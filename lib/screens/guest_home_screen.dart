@@ -5,18 +5,36 @@ import 'package:flutter/services.dart';
 /// Dosya yolu önerisi: lib/screens/guest_home_screen.dart
 
 class _C {
-  static const navy = Color(0xFF0F2547);
-  static const blue = Color(0xFF1565D8);
-  static const orange = Color(0xFFF5A524);
-  static const bg = Color(0xFFF2F5FA);
-  static const textDark = Color(0xFF14213D);
-  static const textMuted = Color(0xFF6B7A8A);
-  static const danger = Color(0xFFE53935);
+  // Gebze Belediyesi teması: lacivert + turuncu
+  static const navy = Color(0xFF0A2A66);
+  static const navyDeep = Color(0xFF061B45);
+  static const orange = Color(0xFFFF7A00);
+  static const bg = Color(0xFFF1F5FD);
+  static const textDark = Color(0xFF0A1F44);
+  static const textMuted = Color(0xFF5F6F8A);
+  static const danger = Color(0xFFE5231B);
+
+  static const orangeGradient = [Color(0xFFFFA11F), Color(0xFFFF6A00)];
+  static const navyGradient = [Color(0xFF1E5BC6), Color(0xFF0A2A66)];
 }
+
+// Bootstrap'teki var(--bs-body-font-family) ile aynı sistem yazı tipi yığını.
+// (Flutter'da CSS değişkeni olmadığı için değerleri doğrudan yazıldı.)
+const String _kBodyFont = 'system-ui';
+const List<String> _kBodyFontFallback = [
+  '-apple-system',
+  'Segoe UI',
+  'Roboto',
+  'Helvetica Neue',
+  'Noto Sans',
+  'Liberation Sans',
+  'Arial',
+  'sans-serif',
+];
 
 List<BoxShadow> _softShadow() => [
       BoxShadow(
-        color: const Color(0xFF14213D).withAlpha(22),
+        color: const Color(0xFF0A2A66).withAlpha(28),
         blurRadius: 18,
         offset: const Offset(0, 6),
       ),
@@ -30,18 +48,42 @@ class GuestHomeScreen extends StatefulWidget {
 }
 
 class _GuestHomeScreenState extends State<GuestHomeScreen> {
-  // Hero görseli için: assets klasörüne ekleyip yolunu yazın,
-  // örn: 'assets/images/gebze_hero.jpg' (pubspec.yaml'a da eklemeyi unutmayın).
-  static const String? _heroAsset = null;
+  // Hero görseli: proje kökündeki gorsel/ klasörü (pubspec.yaml'da tanımlı olmalı).
+  static const String? _heroAsset = 'gorsel/gebze_gorsel.jpg';
 
   int _navIndex = 0;
+  double? _heroAspect; // görselin genişlik / yükseklik oranı
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveHeroAspect();
+  }
+
+  // Görselin gerçek oranını okuyup hero yüksekliğini buna göre ayarlar,
+  // böylece görsel ekran genişliğine sığar (sağdan/soldan kırpılmaz).
+  void _resolveHeroAspect() {
+    final asset = _heroAsset;
+    if (asset == null) return;
+    final stream = AssetImage(asset).resolve(const ImageConfiguration());
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (info, _) {
+        final aspect = info.image.width / info.image.height;
+        if (mounted) setState(() => _heroAspect = aspect);
+        stream.removeListener(listener);
+      },
+      onError: (_, __) => stream.removeListener(listener),
+    );
+    stream.addListener(listener);
+  }
 
   static const _quickActions = <_QuickActionData>[
-    _QuickActionData('GEZİLECEK YERLER', Icons.map_rounded, Color(0xFF1565D8), Color(0xFFE4EEFC)),
-    _QuickActionData('YEME İÇME', Icons.restaurant_rounded, Color(0xFFF59E0B), Color(0xFFFFF0DC)),
-    _QuickActionData('E-BEL', Icons.account_balance_rounded, Color(0xFF3949AB), Color(0xFFE8EAF8)),
-    _QuickActionData('MİSAFİR ŞİKAYET', Icons.report_problem_rounded, Color(0xFFE53935), Color(0xFFFDE8E8)),
-    _QuickActionData('OTOPARK', Icons.local_parking_rounded, Color(0xFF00897B), Color(0xFFE0F4F1)),
+    _QuickActionData('GEZİLECEK YERLER', Icons.map_rounded, _C.orangeGradient),
+    _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
+    _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
+    _QuickActionData('MİSAFİR ŞİKAYET', Icons.report_problem_rounded, _C.navyGradient),
+    _QuickActionData('OTOPARK', Icons.local_parking_rounded, _C.orangeGradient),
   ];
 
   static const _events = <_RowData>[
@@ -64,8 +106,23 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final base = Theme.of(context);
+    return Theme(
+      data: base.copyWith(
+        textTheme: base.textTheme.apply(
+          fontFamily: _kBodyFont,
+          fontFamilyFallback: _kBodyFontFallback,
+        ),
+      ),
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final heroH = (size.height * 0.42).clamp(330.0, 410.0);
+    final heroH = _heroAspect != null
+        ? (size.width / _heroAspect!).clamp(280.0, 480.0)
+        : (size.height * 0.42).clamp(330.0, 410.0);
     const overlap = 32.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -121,7 +178,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                         const _SectionCard(
                           title: 'HABERLER',
                           icon: Icons.menu_book_rounded,
-                          iconColor: _C.blue,
+                          iconColor: _C.orange,
                           rows: _news,
                         ),
                       ],
@@ -185,15 +242,38 @@ class _HeroBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (asset != null) {
-      return Image.asset(asset!, fit: BoxFit.cover);
+      // fitWidth: görsel her zaman ekran genişliğine tam oturur (sağ/sol kırpılmaz).
+      // Görselin altında boşluk kalırsa lacivert zemin görünür.
+      return ClipRect(
+        child: ColoredBox(
+          color: _C.navyDeep,
+          child: Image.asset(
+            asset!,
+            fit: BoxFit.fitWidth,
+            alignment: Alignment.topCenter,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (_, __, ___) => const _HeroPlaceholder(),
+          ),
+        ),
+      );
     }
+    return const _HeroPlaceholder();
+  }
+}
+
+class _HeroPlaceholder extends StatelessWidget {
+  const _HeroPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
     // GÖRSEL placeholder: gün batımı tonlarında gradient
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF4E8FCB), Color(0xFFBFD8EE), Color(0xFFF7C99B), Color(0xFF5E7FA3)],
+          colors: [Color(0xFF1E6FE0), Color(0xFF8CC4FF), Color(0xFFFFB347), Color(0xFFFF7A00)],
           stops: [0.0, 0.4, 0.65, 1.0],
         ),
       ),
@@ -224,28 +304,28 @@ class _HeroContent extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
         child: Stack(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const _Logo(),
-                    GestureDetector(
-                      onTap: () {},
-                      child: const _BellIcon(),
+                const _Logo(),
+                const SizedBox(width: 12),
+                // Karşılama yazısı: logodan bağımsız, logonun sağında
+                const Expanded(
+                  child: Text(
+                    "Gebze'ye\nHoşgeldiniz",
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      height: 1.15,
+                      fontWeight: FontWeight.w800,
+                      color: _C.navy,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                const Text(
-                  "Gebze'ye\nHoşgeldiniz",
-                  style: TextStyle(
-                    fontSize: 30,
-                    height: 1.1,
-                    fontWeight: FontWeight.w800,
-                    color: _C.navy,
                   ),
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: const _BellIcon(),
                 ),
               ],
             ),
@@ -291,6 +371,24 @@ class _HeroContent extends StatelessWidget {
 
 class _Logo extends StatelessWidget {
   const _Logo();
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 150),
+      child: Image.asset(
+        'gorsel/gebze_logo.png',
+        height: 58,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const _LogoFallback(),
+      ),
+    );
+  }
+}
+
+// Logo dosyası bulunamazsa gösterilen yedek logo
+class _LogoFallback extends StatelessWidget {
+  const _LogoFallback();
 
   @override
   Widget build(BuildContext context) {
@@ -372,7 +470,7 @@ class _WeatherPill extends StatelessWidget {
       width: width.clamp(250.0, 360.0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xEB0F2A4A),
+        color: const Color(0xF20A2A66),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white24),
         boxShadow: _softShadow(),
@@ -459,9 +557,8 @@ class _WeatherPill extends StatelessWidget {
 class _QuickActionData {
   final String label;
   final IconData icon;
-  final Color color;
-  final Color background;
-  const _QuickActionData(this.label, this.icon, this.color, this.background);
+  final List<Color> gradient;
+  const _QuickActionData(this.label, this.icon, this.gradient);
 }
 
 class _QuickActionsCard extends StatelessWidget {
@@ -491,10 +588,21 @@ class _QuickActionsCard extends StatelessWidget {
                       width: 54,
                       height: 54,
                       decoration: BoxDecoration(
-                        color: item.background,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: item.gradient,
+                        ),
                         borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: item.gradient.last.withAlpha(90),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                       ),
-                      child: Icon(item.icon, color: item.color, size: 28),
+                      child: Icon(item.icon, color: Colors.white, size: 28),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
@@ -582,11 +690,11 @@ class _SectionCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: _C.blue,
+                        color: _C.orange,
                       ),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_rounded, color: _C.blue, size: 16),
+                    Icon(Icons.arrow_forward_rounded, color: _C.orange, size: 16),
                   ],
                 ),
               ),
@@ -624,7 +732,7 @@ class _SectionRow extends StatelessWidget {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF8FB8DE), Color(0xFF4F7FAE)],
+                  colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
                 ),
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -681,7 +789,7 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _C.navy,
+      color: _C.navyDeep,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       elevation: 16,
       clipBehavior: Clip.antiAlias,
