@@ -79,7 +79,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   }
 
   static const _quickActions = <_QuickActionData>[
-    _QuickActionData('GEZİLECEK YERLER', Icons.map_rounded, _C.orangeGradient),
+    _QuickActionData('GEZİLECEK YER', Icons.map_rounded, _C.orangeGradient),
     _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
     _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
     _QuickActionData('MİSAFİR ŞİKAYET', Icons.report_problem_rounded, _C.navyGradient),
