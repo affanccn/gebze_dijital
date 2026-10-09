@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/municipal_news.dart';
+import 'package:gebze_dijital/features/news/models/municipal_news.dart';
 
 class NewsPreviewScreen extends StatelessWidget {
   const NewsPreviewScreen({super.key, required this.news});
