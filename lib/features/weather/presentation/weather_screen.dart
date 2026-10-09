@@ -16,24 +16,6 @@ class WeatherScreen extends ConsumerWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: const Color(0xFF061B45),
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          title: const Text(
-            'Gebze Hava Durumu',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
         body: weatherAsyncValue.when(
           data: (weatherInfo) {
             if (weatherInfo == null) {
@@ -68,7 +50,8 @@ class WeatherScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          SizedBox(height: MediaQuery.of(context).padding.top + 56 + 20),
+          _buildHeader(context),
+          const SizedBox(height: 10),
           _buildCurrentWeather(weatherInfo.current),
           if (weatherInfo.forecast.isNotEmpty && weatherInfo.forecast.first.hourly.isNotEmpty) ...[
             const SizedBox(height: 32),
@@ -304,5 +287,62 @@ class WeatherScreen extends ConsumerWidget {
       return dateStr;
     }
   }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.transparent, // Background will seamlessly blend
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 4),
+                  const Expanded(
+                    child: Text(
+                      'HAVA DURUMU',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(40),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.cloud_rounded, color: Colors.white, size: 22),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 48, top: 2),
+                child: Text(
+                  'Gebze için güncel ve saatlik hava durumu raporu.',
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+
 
