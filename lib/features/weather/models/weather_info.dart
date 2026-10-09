@@ -57,6 +57,7 @@ class WeatherForecast {
   final double mintempC;
   final String condition;
   final String icon;
+  final List<HourlyForecast> hourly;
 
   const WeatherForecast({
     required this.date,
@@ -64,6 +65,7 @@ class WeatherForecast {
     required this.mintempC,
     required this.condition,
     required this.icon,
+    this.hourly = const [],
   });
 
   factory WeatherForecast.fromMap(Map<String, dynamic> map) {
@@ -72,6 +74,30 @@ class WeatherForecast {
       maxtempC: (map['maxtemp_c'] ?? 0).toDouble(),
       mintempC: (map['mintemp_c'] ?? 0).toDouble(),
       condition: map['condition'] ?? '',
+      icon: map['icon'] ?? '',
+      hourly: (map['hourly'] as List<dynamic>?)
+              ?.map((e) => HourlyForecast.fromMap(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class HourlyForecast {
+  final String time;
+  final double tempC;
+  final String icon;
+
+  const HourlyForecast({
+    required this.time,
+    required this.tempC,
+    required this.icon,
+  });
+
+  factory HourlyForecast.fromMap(Map<String, dynamic> map) {
+    return HourlyForecast(
+      time: map['time'] ?? '',
+      tempC: (map['temp_c'] ?? 0).toDouble(),
       icon: map['icon'] ?? '',
     );
   }

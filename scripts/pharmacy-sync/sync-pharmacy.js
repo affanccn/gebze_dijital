@@ -2,7 +2,7 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 const COLLECTION = "pharmacies_on_duty";
-const API_URL = "https://api.collectapi.com/health/dutyPharmacy?ilce=Gebze&il=Kocaeli";
+const API_URL = "https://eczaneapi.com/api/v1/pharmacies/on-duty?city=kocaeli&district=gebze";
 
 function initializeFirebase() {
   const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -33,11 +33,9 @@ async function fetchPharmacies() {
     throw new Error("PHARMACY_API_KEY GitHub Secret eksik.");
   }
 
-  // Assuming apiKey format provided is full token or just needs to be passed.
-  // We use collectapi style as default. If the API key is "eczane_api_...", we pass it directly in the header.
   const response = await fetch(API_URL, {
     headers: {
-      "authorization": apiKey.startsWith("apikey ") ? apiKey : `apikey ${apiKey}`,
+      "X-API-Key": apiKey,
       "content-type": "application/json"
     }
   });
@@ -47,11 +45,18 @@ async function fetchPharmacies() {
   }
 
   const data = await response.json();
-  if (!data.success || !data.result) {
+  if (!data.success || !data.data) {
     throw new Error("API'den beklenen formatta veri alınamadı.");
   }
 
-  return data.result; // Array of pharmacies
+  // EczaneAPI 'Bugün' için olan objeyi bul.
+  const todayData = data.data.find(d => d.day === "Bugün" || d.day === "Today");
+  if (!todayData || !todayData.pharmacies) {
+    return [];
+  }
+
+  return todayData.pharmacies; // Array of pharmacies
+
 }
 
 async function main() {
@@ -78,8 +83,9 @@ async function main() {
       name: pharmacy.name || "",
       address: pharmacy.address || "",
       phone: pharmacy.phone || "",
-      district: pharmacy.dist || "Gebze",
-      loc: pharmacy.loc || "", // "lat,lng" formatında gelebilir
+      district: pharmacy.district?.name || "Gebze",
+      loc: pharmacy.location ? `${pharmacy.location.latitude},${pharmacy.location.longitude}` : "",
+
       syncedAt: FieldValue.serverTimestamp(),
     });
   });

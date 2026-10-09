@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
+import '../features/weather/services/weather_provider.dart';
+import '../features/weather/presentation/weather_screen.dart';
 import 'services_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
@@ -491,102 +493,158 @@ class _BellIcon extends StatelessWidget {
 
 // ───────────────────────── Hava Durumu ─────────────────────────
 
-class _WeatherPill extends StatelessWidget {
+class _WeatherPill extends ConsumerWidget {
   final double width;
   const _WeatherPill({required this.width});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width.clamp(250.0, 360.0),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xF20A2A66),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white24),
-        boxShadow: _softShadow(),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 46,
-            height: 40,
-            child: Stack(
-              children: const [
-                Positioned(
-                  top: 0,
-                  right: 2,
-                  child: Icon(
-                    Icons.wb_sunny_rounded,
-                    color: _C.orange,
-                    size: 24,
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  child: Icon(
-                    Icons.cloud_rounded,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '15°',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  height: 1,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Parçalı Bulutlu',
-                style: TextStyle(color: Colors.white, fontSize: 11.5),
-              ),
-            ],
-          ),
-          Container(
-            width: 1,
-            height: 36,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            color: Colors.white24,
-          ),
-          const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
-          const SizedBox(width: 4),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weatherAsyncValue = ref.watch(weatherProvider);
+    
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const WeatherScreen()),
+        );
+      },
+      child: Container(
+        width: width.clamp(250.0, 360.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xF20A2A66),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white24),
+          boxShadow: _softShadow(),
+        ),
+        child: weatherAsyncValue.when(
+          data: (weatherInfo) {
+            if (weatherInfo == null) {
+              return _buildPlaceholder();
+            }
+            
+            final temp = '${weatherInfo.current.tempC.round()}°';
+            final condition = weatherInfo.current.condition;
+            
+            String iconUrl = weatherInfo.current.icon;
+            if (iconUrl.startsWith('//')) {
+              iconUrl = 'https:$iconUrl';
+            }
+            
+            return Row(
               children: [
-                Text(
-                  'Gebze',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                SizedBox(
+                  width: 46,
+                  height: 40,
+                  child: iconUrl.isNotEmpty 
+                      ? Image.network(iconUrl, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.cloud_rounded, color: Colors.white, size: 36))
+                      : const Icon(Icons.cloud_rounded, color: Colors.white, size: 36),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      temp,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        height: 1,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      condition,
+                      style: const TextStyle(color: Colors.white, fontSize: 11.5),
+                    ),
+                  ],
+                ),
+                Container(
+                  width: 1,
+                  height: 36,
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  color: Colors.white24,
+                ),
+                const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 4),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Gebze',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Güncel Hava Durumu',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'Güncel Hava Durumu',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
-                ),
               ],
-            ),
-          ),
-        ],
+            );
+          },
+          loading: () => _buildLoading(),
+          error: (_, __) => _buildPlaceholder(),
+        ),
       ),
+    );
+  }
+  
+  Widget _buildPlaceholder() {
+    return Row(
+      children: [
+        const SizedBox(
+          width: 46,
+          height: 40,
+          child: Icon(Icons.cloud_off, color: Colors.white, size: 36),
+        ),
+        const SizedBox(width: 8),
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '--°',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                height: 1,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: 2),
+            Text(
+              'Alınamadı',
+              style: TextStyle(color: Colors.white, fontSize: 11.5),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildLoading() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        ),
+        SizedBox(width: 12),
+        Text('Yükleniyor...', style: TextStyle(color: Colors.white, fontSize: 12)),
+      ],
     );
   }
 }

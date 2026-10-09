@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Herkes okuyabilir, kimse uygulamadan yazamaz
+    match /events/{id}               { allow read: if true; allow write: if false; }
+    match /places/{id}               { allow read: if true; allow write: if false; }
+    match /municipal_news/{id}       { allow read: if true; allow write: if false; }
+    match /outages/{id}              { allow read: if true; allow write: if false; }
+    match /pharmacies_on_duty/{id}   { allow read: if true; allow write: if false; }
+    match /weather_info/{id}         { allow read: if true; allow write: if false; }
+
+    // Geri kalan her şey kapalı
+    match /{document=**} { allow read, write: if false; }
+  }
+}
