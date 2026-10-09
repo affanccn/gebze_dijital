@@ -1,6 +1,7 @@
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
-import 'emergency_screen.dart';
+import '../features/pharmacy/presentation/pharmacies_screen.dart';
+import '../features/weather/presentation/weather_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -124,6 +125,18 @@ class _ServicesScreenState extends State<ServicesScreen> {
   if (s.id == 'kesintiler') {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const OutagesScreen()),
+    );
+    return;
+  }
+  if (s.id == 'nobetci_eczane') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
+    );
+    return;
+  }
+  if (s.id == 'hava_durumu') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const WeatherScreen()),
     );
     return;
   }

@@ -1,0 +1,29 @@
+name: Hava Durumu Senkronizasyonu
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Her 30 dakikada bir çalışır
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu Klonla
+        uses: actions/checkout@v4
+
+      - name: Node.js Kurulumu
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bağımlılıkları Yükle
+        working-directory: scripts/weather-sync
+        run: npm install
+
+      - name: Senkronizasyon Betiğini Çalıştır
+        working-directory: scripts/weather-sync
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+        run: node sync-weather.js
