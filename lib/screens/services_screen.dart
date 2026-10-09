@@ -1,4 +1,7 @@
 import 'emergency_screen.dart';
+import 'outages_screen.dart';
+import '../features/pharmacy/presentation/pharmacies_screen.dart';
+import '../features/weather/presentation/weather_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -113,23 +116,39 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
 
   void _open(_ServiceData s) {
-    if (s.id == 'acil_durum') {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const EmergencyScreen(),
-        ),
-      );
-      return;
-    }
-    if (widget.onServiceTap != null) {
-      widget.onServiceTap!(s.id);
-      return;
-    }
-    
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('${s.title} yakında')));
+  if (s.id == 'acil_durum') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EmergencyScreen()),
+    );
+    return;
   }
+  if (s.id == 'kesintiler') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const OutagesScreen()),
+    );
+    return;
+  }
+  if (s.id == 'nobetci_eczane') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
+    );
+    return;
+  }
+  if (s.id == 'hava_durumu') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const WeatherScreen()),
+    );
+    return;
+  }
+  if (widget.onServiceTap != null) {
+    widget.onServiceTap!(s.id);
+    return;
+  }
+
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text('${s.title} yakında')));
+}
 
   @override
   Widget build(BuildContext context) {
