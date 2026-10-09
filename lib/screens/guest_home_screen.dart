@@ -990,7 +990,7 @@ class _NewsSection extends StatelessWidget {
             ],
           ),
         ),
-        const MunicipalNewsList(itemLimit: 3, shrinkWrap: true),
+        const MunicipalNewsList(itemLimit: 3, isHorizontal: true),
       ],
     );
   }
