@@ -83,9 +83,9 @@ function cleanTitle(value) {
   return s;
 }
 
-// URL sonundaki sayı (…_7418.html) haberin site içi kimliği; yeniden eskiye sıralamada kullanılır.
+// URL sonundaki sayı (…_7418.html veya .../617) haberin site içi kimliği; yeniden eskiye sıralamada kullanılır.
 function newsIdFromUrl(url) {
-  const m = url.match(/_(\d+)\.html(?:$|\?)/);
+  const m = url.match(/(?:_|\/)(\d+)(?:\.html)?(?:$|\?)/);
   return m ? Number(m[1]) : null;
 }
 
