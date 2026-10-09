@@ -1,4 +1,3 @@
-
 import * as cheerio from "cheerio";
 import { createHash } from "node:crypto";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
@@ -70,58 +69,108 @@ function absoluteUrl(value, base = BASE_URL) {
   }
 }
 
+// "08 Ekim 2026" biçimindeki tarihi yakalar (site bu biçimi kullanıyor).
+const TR_DATE_RE =
+  /(\d{1,2})\s+(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kasım|Aralık)\s+(\d{4})/i;
+
+// Bazı bağlantılarda başlık iki kez yazılıyor ("A A" -> "A").
+function cleanTitle(value) {
+  const s = (value ?? "").replace(/\s+/g, " ").trim();
+  if (s.length % 2 === 1) {
+    const h = (s.length - 1) / 2;
+    if (s[h] === " " && s.slice(0, h) === s.slice(h + 1)) return s.slice(0, h);
+  }
+  return s;
+}
+
+// URL sonundaki sayı (…_7418.html) haberin site içi kimliği; yeniden eskiye sıralamada kullanılır.
+function newsIdFromUrl(url) {
+  const m = url.match(/_(\d+)\.html(?:$|\?)/);
+  return m ? Number(m[1]) : null;
+}
+
+function imageSrc(img) {
+  return absoluteUrl(img.attr("src") || img.attr("data-src") || "");
+}
+
+// Başlığı saran, TEK habere ait ve tarih içeren en yakın kutuyu bulur.
+function findCard($, link) {
+  let node = link.parent();
+  for (let i = 0; i < 5 && node.length; i++) {
+    const urls = new Set(
+      node
+        .find('a[href*="/haber/"]')
+        .map((_, a) => absoluteUrl($(a).attr("href")))
+        .get()
+    );
+    if (urls.size > 1) return null; // birden fazla haberi kapsıyor, çok geniş
+    if (TR_DATE_RE.test(node.text())) return node;
+    node = node.parent();
+  }
+  return null;
+}
+
 function extractNews($, pageIndex) {
-  const items = [];
-  const seen = new Set();
+  const byUrl = new Map(); // url -> kayıt (ilk görülme sırası korunur)
 
   $('a[href*="/haber/"]').each((_, element) => {
     const link = $(element);
-    const href = link.attr("href");
-    const url = absoluteUrl(href);
-
+    const url = absoluteUrl(link.attr("href"));
     if (!url || !url.includes("/haber/")) return;
 
-    // Haber detay bağlantısına en yakın olası kartı bul.
-    const card = link.closest(
-      ".slider-item, .news-item, .haber-item, " +
-      ".news-card, .haber-kart, article"
-    );
+    let rec = byUrl.get(url);
+    if (!rec) {
+      rec = { title: "", titleRank: 0, image: "", publishedAtText: "" };
+      byUrl.set(url, rec);
+    }
 
-    const container = card.length ? card : link;
+    const inHeading = link.closest("h1, h2, h3, h4").length > 0;
+    const img = link.find("img").first();
 
-    const imageElement =
-      container.find("img").first().length
-        ? container.find("img").first()
-        : link.find("img").first();
+    if (inHeading) {
+      // En güvenilir başlık: haber kartındaki <h3> bağlantısı.
+      const title = cleanTitle(link.text());
+      if (title && rec.titleRank < 3) {
+        rec.title = title;
+        rec.titleRank = 3;
+      }
+      const card = findCard($, link);
+      if (card) {
+        const dateMatch = card.text().replace(/\s+/g, " ").match(TR_DATE_RE);
+        if (dateMatch && !rec.publishedAtText) rec.publishedAtText = dateMatch[0];
+        const cardImg = card.find("img").first();
+        if (cardImg.length && !rec.image) rec.image = imageSrc(cardImg);
+      }
+    } else if (img.length) {
+      if (!rec.image) rec.image = imageSrc(img);
+      const alt = cleanTitle(img.attr("alt"));
+      if (alt && rec.titleRank < 2) {
+        rec.title = alt;
+        rec.titleRank = 2;
+      }
+    } else {
+      // Slider gibi yerlerdeki düz metin bağlantısı: son çare.
+      const title = cleanTitle(link.attr("title") || link.text());
+      if (title && rec.titleRank < 1) {
+        rec.title = title;
+        rec.titleRank = 1;
+      }
+    }
+  });
 
-    const title =
-      container.find(
-        ".slider-title, .news-title, .haber-baslik, h1, h2, h3"
-      ).first().text().trim() ||
-      imageElement.attr("alt")?.trim() ||
-      link.attr("title")?.trim() ||
-      link.text().trim();
-
-    if (!title || seen.has(url)) return;
-
-    // Tarihi sadece kartta bulunuyorsa al.
-    const cardText = container.text().replace(/\s+/g, " ").trim();
-    const dateMatch = cardText.match(
-      /\b\d{1,2}[./-]\d{1,2}[./-]\d{4}\b/
-    );
-
-    seen.add(url);
-
+  const items = [];
+  for (const [url, rec] of byUrl) {
+    if (!rec.title) continue;
     items.push({
-      title,
+      title: rec.title,
       url,
-      image: absoluteUrl(imageElement.attr("src")),
-      publishedAtText: dateMatch?.[0] ?? "",
+      image: rec.image,
+      publishedAtText: rec.publishedAtText,
+      newsId: newsIdFromUrl(url),
       pageIndex,
       itemIndex: items.length,
     });
-  });
-
+  }
   return items;
 }
 
