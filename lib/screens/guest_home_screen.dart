@@ -1,11 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../features/news/presentation/news_screen.dart';
+import '../features/news/presentation/providers/news_providers.dart';
 import 'services_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
-/// Dosya yolu önerisi: lib/screens/guest_home_screen.dart
+/// Dosya yolu: lib/screens/guest_home_screen.dart
 
 class _C {
   // Gebze Belediyesi teması: lacivert + turuncu
@@ -82,29 +87,17 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   }
 
   static const _quickActions = <_QuickActionData>[
-    _QuickActionData('GEZİLECEK YEr', Icons.map_rounded, _C.orangeGradient),
+    _QuickActionData('GEZİLECEK YER', Icons.map_rounded, _C.orangeGradient),
     _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
     _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
     _QuickActionData('MİSAFİR ŞİKAYET', Icons.report_problem_rounded, _C.navyGradient),
     _QuickActionData('OTOPARK', Icons.local_parking_rounded, _C.orangeGradient),
   ];
 
-  static const _events = <_RowData>[
-    _RowData('Gebze Kültür Festivali', '12 Kasım • Gebze Kültür Merkezi', Icons.event_rounded),
-    _RowData('Açık Hava Konseri', '15 Kasım • Millet Bahçesi', Icons.music_note_rounded),
-    _RowData('Çocuk Tiyatrosu', '19 Kasım • Şehir Tiyatrosu', Icons.theater_comedy_rounded),
-  ];
-
   static const _historicPlaces = <_RowData>[
     _RowData('Eskihisar Kalesi', 'Tarihi kale ve sahil', Icons.castle_rounded),
     _RowData('Çoban Mustafa Paşa Külliyesi', 'Osmanlı dönemi külliye', Icons.mosque_rounded),
     _RowData('Hannibal Anıt Mezarı', 'Antik dönem anıtı', Icons.account_balance_rounded),
-  ];
-
-  static const _news = <_RowData>[
-    _RowData("Gebze'de Yeni Park Projesi Hizmete Açıldı", '28 Ekim 2026', Icons.article_rounded),
-    _RowData('Belediyemizden Öğrencilere Ücretsiz Ulaşım Desteği', '25 Ekim 2026', Icons.article_rounded),
-    _RowData('Mustafapaşa Sahil Düzenleme Çalışmaları Başladı', '20 Ekim 2026', Icons.article_rounded),
   ];
 
   @override
@@ -173,12 +166,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                           rows: _historicPlaces,
                         ),
                         const SizedBox(height: 16),
-                        const _SectionCard(
-                          title: 'HABERLER',
-                          icon: Icons.menu_book_rounded,
-                          iconColor: _C.orange,
-                          rows: _news,
-                        ),
+                        const _NewsSection(),
                       ],
                     ),
                   ),
@@ -647,7 +635,15 @@ class _RowData {
   final String title;
   final String subtitle;
   final IconData icon;
-  const _RowData(this.title, this.subtitle, this.icon);
+  final String? imageUrl;
+  final VoidCallback? onTap;
+  const _RowData(
+    this.title,
+    this.subtitle,
+    this.icon, {
+    this.imageUrl,
+    this.onTap,
+  });
 }
 
 class _SectionCard extends StatelessWidget {
@@ -655,12 +651,14 @@ class _SectionCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final List<_RowData> rows;
+  final VoidCallback? onSeeAll;
 
   const _SectionCard({
     required this.title,
     required this.icon,
     required this.iconColor,
     required this.rows,
+    this.onSeeAll,
   });
 
   @override
@@ -692,7 +690,7 @@ class _SectionCard extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {},
+                onTap: onSeeAll,
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -729,16 +727,17 @@ class _SectionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: data.onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            // Görsel placeholder'ı
+            // Görsel (varsa ağdan, yoksa ikon placeholder'ı)
             Container(
               width: 58,
               height: 58,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
@@ -747,7 +746,14 @@ class _SectionRow extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(data.icon, color: Colors.white, size: 26),
+              child: data.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: data.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          Icon(data.icon, color: Colors.white, size: 26),
+                    )
+                  : Icon(data.icon, color: Colors.white, size: 26),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -859,6 +865,9 @@ class _NavItem {
   final IconData icon;
   const _NavItem(this.label, this.icon);
 }
+
+// ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
+
 class _EventsSection extends StatelessWidget {
   const _EventsSection();
 
@@ -894,6 +903,49 @@ class _EventsSection extends StatelessWidget {
           icon: Icons.event_available_rounded,
           iconColor: _C.orange,
           rows: rows,
+        );
+      },
+    );
+  }
+}
+
+// ───────────────────────── Haberler (Firestore) ─────────────────────────
+
+class _NewsSection extends ConsumerWidget {
+  const _NewsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final news = ref.watch(newsListProvider);
+
+    return news.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Text('Hata: $e'),
+      data: (items) {
+        if (items.isEmpty) return const SizedBox.shrink();
+        return _SectionCard(
+          title: 'HABERLER',
+          icon: Icons.menu_book_rounded,
+          iconColor: _C.orange,
+          onSeeAll: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const NewsScreen()),
+          ),
+          rows: [
+            for (final n in items.take(3))
+              _RowData(
+                n.title,
+                n.dateLabel ?? '',
+                Icons.article_rounded,
+                imageUrl: n.imageUrl,
+                onTap: () => launchUrl(
+                  Uri.parse(n.url),
+                  mode: LaunchMode.inAppBrowserView,
+                ),
+              ),
+          ],
         );
       },
     );
