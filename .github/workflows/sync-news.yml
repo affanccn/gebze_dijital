@@ -3,7 +3,6 @@ name: Sync Gebze Municipality News
 
 on:
   schedule:
-    # Her 30 dakikada bir; saat başından uzak zamanlar.
     - cron: "17,47 * * * *"
   workflow_dispatch:
 
@@ -28,15 +27,14 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: scripts/news-sync/package.json
+          cache-dependency-path: scripts/news-sync/package-lock.json
 
       - name: Install dependencies
         working-directory: scripts/news-sync
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Sync news to Firestore
         working-directory: scripts/news-sync
         env:
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: npm run sync
+        run: node sync-news.js
