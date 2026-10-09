@@ -1,0 +1,40 @@
+
+name: Sync Gebze Municipality News
+
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: gebze-news-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync-news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: scripts/news-sync/package-lock.json
+
+      - name: Install dependencies
+        working-directory: scripts/news-sync
+        run: npm ci --no-audit --no-fund
+
+      - name: Sync news to Firestore
+        working-directory: scripts/news-sync
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node sync-news.js

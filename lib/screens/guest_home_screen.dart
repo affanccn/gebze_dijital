@@ -1,12 +1,18 @@
 import 'emergency_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../features/news/municipal_news_screen.dart';
+import '../features/news/widgets/municipal_news_list.dart';
 
 import 'services_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
-/// Dosya yolu önerisi: lib/screens/guest_home_screen.dart
+/// Dosya yolu: lib/screens/guest_home_screen.dart
 
 class _C {
   // Gebze Belediyesi teması: lacivert + turuncu
@@ -37,12 +43,12 @@ const List<String> _kBodyFontFallback = [
 ];
 
 List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(28),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
+  BoxShadow(
+    color: const Color(0xFF0A2A66).withAlpha(28),
+    blurRadius: 18,
+    offset: const Offset(0, 6),
+  ),
+];
 
 class GuestHomeScreen extends StatefulWidget {
   const GuestHomeScreen({super.key});
@@ -71,41 +77,38 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     if (asset == null) return;
     final stream = AssetImage(asset).resolve(const ImageConfiguration());
     late final ImageStreamListener listener;
-    listener = ImageStreamListener(
-      (info, _) {
-        final aspect = info.image.width / info.image.height;
-        if (mounted) setState(() => _heroAspect = aspect);
-        stream.removeListener(listener);
-      },
-      onError: (_, __) => stream.removeListener(listener),
-    );
+    listener = ImageStreamListener((info, _) {
+      final aspect = info.image.width / info.image.height;
+      if (mounted) setState(() => _heroAspect = aspect);
+      stream.removeListener(listener);
+    }, onError: (_, __) => stream.removeListener(listener));
     stream.addListener(listener);
   }
 
   static const _quickActions = <_QuickActionData>[
-    _QuickActionData('GEZİLECEK YEr', Icons.map_rounded, _C.orangeGradient),
+    _QuickActionData('GEZİLECEK YER', Icons.map_rounded, _C.orangeGradient),
     _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
     _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
-    _QuickActionData('MİSAFİR ŞİKAYET', Icons.report_problem_rounded, _C.navyGradient),
+    _QuickActionData(
+      'MİSAFİR ŞİKAYET',
+      Icons.report_problem_rounded,
+      _C.navyGradient,
+    ),
     _QuickActionData('OTOPARK', Icons.local_parking_rounded, _C.orangeGradient),
-  ];
-
-  static const _events = <_RowData>[
-    _RowData('Gebze Kültür Festivali', '12 Kasım • Gebze Kültür Merkezi', Icons.event_rounded),
-    _RowData('Açık Hava Konseri', '15 Kasım • Millet Bahçesi', Icons.music_note_rounded),
-    _RowData('Çocuk Tiyatrosu', '19 Kasım • Şehir Tiyatrosu', Icons.theater_comedy_rounded),
   ];
 
   static const _historicPlaces = <_RowData>[
     _RowData('Eskihisar Kalesi', 'Tarihi kale ve sahil', Icons.castle_rounded),
-    _RowData('Çoban Mustafa Paşa Külliyesi', 'Osmanlı dönemi külliye', Icons.mosque_rounded),
-    _RowData('Hannibal Anıt Mezarı', 'Antik dönem anıtı', Icons.account_balance_rounded),
-  ];
-
-  static const _news = <_RowData>[
-    _RowData("Gebze'de Yeni Park Projesi Hizmete Açıldı", '28 Ekim 2026', Icons.article_rounded),
-    _RowData('Belediyemizden Öğrencilere Ücretsiz Ulaşım Desteği', '25 Ekim 2026', Icons.article_rounded),
-    _RowData('Mustafapaşa Sahil Düzenleme Çalışmaları Başladı', '20 Ekim 2026', Icons.article_rounded),
+    _RowData(
+      'Çoban Mustafa Paşa Külliyesi',
+      'Osmanlı dönemi külliye',
+      Icons.mosque_rounded,
+    ),
+    _RowData(
+      'Hannibal Anıt Mezarı',
+      'Antik dönem anıtı',
+      Icons.account_balance_rounded,
+    ),
   ];
 
   @override
@@ -130,7 +133,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     const overlap = 32.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
         backgroundColor: _C.bg,
         body: SingleChildScrollView(
@@ -157,7 +162,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                     width: double.infinity,
                     decoration: const BoxDecoration(
                       color: _C.bg,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(overlap)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(overlap),
+                      ),
                     ),
                     // Alt boşluk: acil durum butonunun son kartı kapatmaması için
                     padding: const EdgeInsets.fromLTRB(16, 52, 16, 110),
@@ -174,12 +181,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                           rows: _historicPlaces,
                         ),
                         const SizedBox(height: 16),
-                        const _SectionCard(
-                          title: 'HABERLER',
-                          icon: Icons.menu_book_rounded,
-                          iconColor: _C.orange,
-                          rows: _news,
-                        ),
+                        const _NewsSection(),
                       ],
                     ),
                   ),
@@ -221,7 +223,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 Text(
                   'ACİL\nDURUM',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 9, height: 1.05, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    fontSize: 9,
+                    height: 1.05,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -233,14 +239,16 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           index: _navIndex,
           onTap: (i) {
             if (i == 3) {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => ServicesScreen(
-                  onNavTap: (j) {
-                    Navigator.of(context).pop();
-                    if (j != 0) setState(() => _navIndex = j);
-                  },
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ServicesScreen(
+                    onNavTap: (j) {
+                      Navigator.of(context).pop();
+                      if (j != 0) setState(() => _navIndex = j);
+                    },
+                  ),
                 ),
-              ));
+              );
             } else {
               setState(() => _navIndex = i);
             }
@@ -291,7 +299,12 @@ class _HeroPlaceholder extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E6FE0), Color(0xFF8CC4FF), Color(0xFFFFB347), Color(0xFFFF7A00)],
+          colors: [
+            Color(0xFF1E6FE0),
+            Color(0xFF8CC4FF),
+            Color(0xFFFFB347),
+            Color(0xFFFF7A00),
+          ],
           stops: [0.0, 0.4, 0.65, 1.0],
         ),
       ),
@@ -341,10 +354,7 @@ class _HeroContent extends StatelessWidget {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const _BellIcon(),
-                ),
+                GestureDetector(onTap: () {}, child: const _BellIcon()),
               ],
             ),
             Positioned(
@@ -456,7 +466,11 @@ class _BellIcon extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 32),
+          const Icon(
+            Icons.notifications_none_rounded,
+            color: Colors.white,
+            size: 32,
+          ),
           Positioned(
             top: 4,
             right: 6,
@@ -503,12 +517,20 @@ class _WeatherPill extends StatelessWidget {
                 Positioned(
                   top: 0,
                   right: 2,
-                  child: Icon(Icons.wb_sunny_rounded, color: _C.orange, size: 24),
+                  child: Icon(
+                    Icons.wb_sunny_rounded,
+                    color: _C.orange,
+                    size: 24,
+                  ),
                 ),
                 Positioned(
                   bottom: 0,
                   left: 0,
-                  child: Icon(Icons.cloud_rounded, color: Colors.white, size: 36),
+                  child: Icon(
+                    Icons.cloud_rounded,
+                    color: Colors.white,
+                    size: 36,
+                  ),
                 ),
               ],
             ),
@@ -654,7 +676,15 @@ class _RowData {
   final String title;
   final String subtitle;
   final IconData icon;
-  const _RowData(this.title, this.subtitle, this.icon);
+  final String? imageUrl;
+  final VoidCallback? onTap;
+  const _RowData(
+    this.title,
+    this.subtitle,
+    this.icon, {
+    this.imageUrl,
+    this.onTap,
+  });
 }
 
 class _SectionCard extends StatelessWidget {
@@ -662,12 +692,14 @@ class _SectionCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final List<_RowData> rows;
+  final VoidCallback? onSeeAll;
 
   const _SectionCard({
     required this.title,
     required this.icon,
     required this.iconColor,
     required this.rows,
+    this.onSeeAll,
   });
 
   @override
@@ -699,7 +731,7 @@ class _SectionCard extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {},
+                onTap: onSeeAll,
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -712,7 +744,11 @@ class _SectionCard extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_rounded, color: _C.orange, size: 16),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: _C.orange,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
@@ -721,7 +757,8 @@ class _SectionCard extends StatelessWidget {
           const SizedBox(height: 6),
           for (int i = 0; i < rows.length; i++) ...[
             _SectionRow(data: rows[i]),
-            if (i != rows.length - 1) Divider(height: 1, color: Colors.grey.withAlpha(40)),
+            if (i != rows.length - 1)
+              Divider(height: 1, color: Colors.grey.withAlpha(40)),
           ],
         ],
       ),
@@ -736,16 +773,17 @@ class _SectionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: data.onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            // Görsel placeholder'ı
+            // Görsel (varsa ağdan, yoksa ikon placeholder'ı)
             Container(
               width: 58,
               height: 58,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
@@ -754,7 +792,14 @@ class _SectionRow extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(data.icon, color: Colors.white, size: 26),
+              child: data.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: data.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          Icon(data.icon, color: Colors.white, size: 26),
+                    )
+                  : Icon(data.icon, color: Colors.white, size: 26),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -835,7 +880,9 @@ class _BottomNav extends StatelessWidget {
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
-                            fontWeight: i == index ? FontWeight.w800 : FontWeight.w500,
+                            fontWeight: i == index
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: i == index ? _C.orange : Colors.white70,
                           ),
                         ),
@@ -866,6 +913,9 @@ class _NavItem {
   final IconData icon;
   const _NavItem(this.label, this.icon);
 }
+
+// ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
+
 class _EventsSection extends StatelessWidget {
   const _EventsSection();
 
@@ -903,6 +953,46 @@ class _EventsSection extends StatelessWidget {
           rows: rows,
         );
       },
+    );
+  }
+}
+
+// ───────────────────────── Haberler (Firestore) ─────────────────────────
+
+class _NewsSection extends StatelessWidget {
+  const _NewsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Gebze Haberleri',
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MunicipalNewsScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Tümünü Gör'),
+              ),
+            ],
+          ),
+        ),
+        MunicipalNewsList(itemLimit: 3, shrinkWrap: true),
+      ],
     );
   }
 }
