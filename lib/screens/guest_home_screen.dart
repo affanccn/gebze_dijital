@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'services_screen.dart';
+
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu önerisi: lib/screens/guest_home_screen.dart
 
@@ -222,7 +224,20 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 
         bottomNavigationBar: _BottomNav(
           index: _navIndex,
-          onTap: (i) => setState(() => _navIndex = i),
+          onTap: (i) {
+            if (i == 3) {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => ServicesScreen(
+                  onNavTap: (j) {
+                    Navigator.of(context).pop();
+                    if (j != 0) setState(() => _navIndex = j);
+                  },
+                ),
+              ));
+            } else {
+              setState(() => _navIndex = i);
+            }
+          },
         ),
       ),
     );
