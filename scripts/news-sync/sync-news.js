@@ -9,20 +9,36 @@ const NEWS_URL = `${BASE_URL}/haberler.html`;
 const COLLECTION = "municipal_news";
 const MAX_PAGES = 20;
 
+
 function initializeFirebase() {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
   const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
 
-  if (!projectId || !rawServiceAccount) {
-    throw new Error("Firebase GitHub Secrets eksik.");
+  if (!rawServiceAccount) {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT GitHub Secret eksik."
+    );
   }
 
-  const serviceAccount = JSON.parse(rawServiceAccount);
+  let serviceAccount;
+
+  try {
+    serviceAccount = JSON.parse(rawServiceAccount);
+  } catch {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT geçerli bir JSON değil."
+    );
+  }
+
+  if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
+    throw new Error(
+      "Servis hesabı JSON dosyasında gerekli alanlar eksik."
+    );
+  }
 
   if (!getApps().length) {
     initializeApp({
       credential: cert(serviceAccount),
-      projectId,
+      projectId: serviceAccount.project_id,
     });
   }
 
