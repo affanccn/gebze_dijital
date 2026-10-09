@@ -10,9 +10,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -27,23 +25,21 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PushService.init(
+        onNewsOpened: () {
+          final navigator = navigatorKey.currentState;
 
-    
-WidgetsBinding.instance.addPostFrameCallback((_) {
-  PushService.init(
-    onNewsOpened: () {
-      final navigator = navigatorKey.currentState;
+          if (navigator == null) return;
 
-      if (navigator == null) return;
-
-      navigator.push(
-        MaterialPageRoute(
-          builder: (_) => const MunicipalNewsScreen(),
-        ),
+          navigator.push(
+            MaterialPageRoute(
+              builder: (_) => const MunicipalNewsScreen(),
+            ),
+          );
+        },
       );
-    },
-  );
-});
+    });
   }
 
   @override

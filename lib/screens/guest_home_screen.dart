@@ -8,7 +8,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
-
 import 'services_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
@@ -959,6 +958,7 @@ class _EventsSection extends StatelessWidget {
 
 // ───────────────────────── Haberler (Firestore) ─────────────────────────
 
+<<<<<<< HEAD
 class _NewsSection extends StatelessWidget {
   const _NewsSection();
 
@@ -993,6 +993,45 @@ class _NewsSection extends StatelessWidget {
         ),
         MunicipalNewsList(itemLimit: 3, shrinkWrap: true),
       ],
+=======
+class _NewsSection extends ConsumerWidget {
+  const _NewsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final news = ref.watch(newsListProvider);
+
+    return news.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Text('Hata: $e'),
+      data: (items) {
+        if (items.isEmpty) return const SizedBox.shrink();
+        return _SectionCard(
+          title: 'HABERLER',
+          icon: Icons.menu_book_rounded,
+          iconColor: _C.orange,
+          onSeeAll: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const NewsScreen()),
+          ),
+          rows: [
+            for (final n in items.take(3))
+              _RowData(
+                n.title,
+                n.dateLabel ?? '',
+                Icons.article_rounded,
+                imageUrl: n.imageUrl,
+                onTap: () => launchUrl(
+                  Uri.parse(n.url),
+                  mode: LaunchMode.inAppBrowserView,
+                ),
+              ),
+          ],
+        );
+      },
+>>>>>>> origin/main
     );
   }
 }

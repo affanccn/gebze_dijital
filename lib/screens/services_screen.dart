@@ -121,7 +121,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
       );
       return;
     }
-
     if (widget.onServiceTap != null) {
       widget.onServiceTap!(s.id);
       return;
