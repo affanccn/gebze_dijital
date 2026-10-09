@@ -4,19 +4,30 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/municipal_news.dart';
 import '../services/news_service.dart';
 
-class MunicipalNewsList extends StatelessWidget {
-  MunicipalNewsList({super.key, this.itemLimit, this.shrinkWrap = false});
+class MunicipalNewsList extends StatefulWidget {
+  const MunicipalNewsList({super.key, this.itemLimit, this.shrinkWrap = false});
 
   final int? itemLimit;
   final bool shrinkWrap;
-  final NewsService _service = NewsService();
+
+  @override
+  State<MunicipalNewsList> createState() => _MunicipalNewsListState();
+}
+
+class _MunicipalNewsListState extends State<MunicipalNewsList> {
+  // Stream bir kez oluşturulur: ekran yeniden çizilince tekrar okuma yapılmaz,
+  // liste de yanıp sönmez.
+  late final Stream<List<MunicipalNews>> _stream = NewsService().watchNews(
+    limit: widget.itemLimit ?? 100,
+  );
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MunicipalNews>>(
-      stream: _service.watchNews(),
+      stream: _stream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          debugPrint('Haber akışı hatası: ${snapshot.error}');
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(16),
@@ -25,7 +36,7 @@ class MunicipalNewsList extends StatelessWidget {
           );
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
@@ -34,10 +45,7 @@ class MunicipalNewsList extends StatelessWidget {
           );
         }
 
-        final allNews = snapshot.data ?? <MunicipalNews>[];
-        final news = itemLimit == null
-            ? allNews
-            : allNews.take(itemLimit!).toList();
+        final news = snapshot.data!;
 
         if (news.isEmpty) {
           return const Center(
@@ -49,8 +57,10 @@ class MunicipalNewsList extends StatelessWidget {
         }
 
         return ListView.builder(
-          shrinkWrap: shrinkWrap,
-          physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+          shrinkWrap: widget.shrinkWrap,
+          physics: widget.shrinkWrap
+              ? const NeverScrollableScrollPhysics()
+              : null,
           itemCount: news.length,
           itemBuilder: (context, index) {
             final item = news[index];

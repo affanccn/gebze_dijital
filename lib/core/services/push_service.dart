@@ -1,18 +1,27 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 class PushService {
   static Future<void> init({required void Function() onNewsOpened}) async {
-    final m = FirebaseMessaging.instance;
-    await m.requestPermission();
-    await m.subscribeToTopic('news');
+    // Topic aboneliği web'de desteklenmiyor; sadece Android/iOS'ta çalışır.
+    if (kIsWeb) return;
 
-    // uygulama kapalıyken bildirime tıklandıysa
-    final initial = await m.getInitialMessage();
-    if (initial != null && initial.data['type'] == 'news') onNewsOpened();
+    try {
+      final m = FirebaseMessaging.instance;
+      await m.requestPermission();
+      await m.subscribeToTopic('news');
 
-    // arka plandayken bildirime tıklandıysa
-    FirebaseMessaging.onMessageOpenedApp.listen((msg) {
-      if (msg.data['type'] == 'news') onNewsOpened();
-    });
+      // uygulama kapalıyken bildirime tıklandıysa
+      final initial = await m.getInitialMessage();
+      if (initial != null && initial.data['type'] == 'news') onNewsOpened();
+
+      // arka plandayken bildirime tıklandıysa
+      FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+        if (msg.data['type'] == 'news') onNewsOpened();
+      });
+    } catch (e) {
+      // Push hatası uygulamanın açılmasını engellememeli.
+      debugPrint('PushService hatası: $e');
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'emergency_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -5,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../features/news/presentation/news_screen.dart';
-import '../features/news/presentation/providers/news_providers.dart';
+import '../features/news/municipal_news_screen.dart';
+import '../features/news/widgets/municipal_news_list.dart';
 import 'services_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
@@ -97,8 +98,16 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 
   static const _historicPlaces = <_RowData>[
     _RowData('Eskihisar Kalesi', 'Tarihi kale ve sahil', Icons.castle_rounded),
-    _RowData('Çoban Mustafa Paşa Külliyesi', 'Osmanlı dönemi külliye', Icons.mosque_rounded),
-    _RowData('Hannibal Anıt Mezarı', 'Antik dönem anıtı', Icons.account_balance_rounded),
+    _RowData(
+      'Çoban Mustafa Paşa Külliyesi',
+      'Osmanlı dönemi külliye',
+      Icons.mosque_rounded,
+    ),
+    _RowData(
+      'Hannibal Anıt Mezarı',
+      'Antik dönem anıtı',
+      Icons.account_balance_rounded,
+    ),
   ];
 
   @override
@@ -194,7 +203,13 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           height: 78,
           child: FloatingActionButton(
             heroTag: 'emergency_fab',
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const EmergencyScreen(),
+                ),
+              );
+            },
             backgroundColor: _C.danger,
             foregroundColor: Colors.white,
             elevation: 8,
@@ -223,14 +238,16 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           index: _navIndex,
           onTap: (i) {
             if (i == 3) {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => ServicesScreen(
-                  onNavTap: (j) {
-                    Navigator.of(context).pop();
-                    if (j != 0) setState(() => _navIndex = j);
-                  },
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ServicesScreen(
+                    onNavTap: (j) {
+                      Navigator.of(context).pop();
+                      if (j != 0) setState(() => _navIndex = j);
+                    },
+                  ),
                 ),
-              ));
+              );
             } else {
               setState(() => _navIndex = i);
             }
@@ -941,43 +958,40 @@ class _EventsSection extends StatelessWidget {
 
 // ───────────────────────── Haberler (Firestore) ─────────────────────────
 
-class _NewsSection extends ConsumerWidget {
+class _NewsSection extends StatelessWidget {
   const _NewsSection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final news = ref.watch(newsListProvider);
-
-    return news.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Text('Hata: $e'),
-      data: (items) {
-        if (items.isEmpty) return const SizedBox.shrink();
-        return _SectionCard(
-          title: 'HABERLER',
-          icon: Icons.menu_book_rounded,
-          iconColor: _C.orange,
-          onSeeAll: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const NewsScreen()),
-          ),
-          rows: [
-            for (final n in items.take(3))
-              _RowData(
-                n.title,
-                n.dateLabel ?? '',
-                Icons.article_rounded,
-                imageUrl: n.imageUrl,
-                onTap: () => launchUrl(
-                  Uri.parse(n.url),
-                  mode: LaunchMode.inAppBrowserView,
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Gebze Haberleri',
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
-          ],
-        );
-      },
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MunicipalNewsScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Tümünü Gör'),
+              ),
+            ],
+          ),
+        ),
+        const MunicipalNewsList(itemLimit: 3, shrinkWrap: true),
+      ],
     );
   }
 }

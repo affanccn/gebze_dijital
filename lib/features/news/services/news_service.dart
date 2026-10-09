@@ -8,20 +8,19 @@ class NewsService {
 
   final FirebaseFirestore _firestore;
 
-  Stream<List<MunicipalNews>> watchNews() {
-    return _firestore.collection('municipal_news').snapshots().map((snapshot) {
-      final news = snapshot.docs
-          .map((doc) => MunicipalNews.fromMap(doc.id, doc.data()))
-          .toList();
-
-      news.sort((a, b) {
-        final pageCompare = a.pageIndex.compareTo(b.pageIndex);
-        if (pageCompare != 0) return pageCompare;
-
-        return a.itemIndex.compareTo(b.itemIndex);
-      });
-
-      return news;
-    });
+  /// En yeni haber en üstte (sitedeki haber numarası büyük = daha yeni).
+  /// `newsId` alanı olmayan eski dokümanlar listeye girmez.
+  /// Tek alanlı sıralama olduğu için birleşik index gerekmez.
+  Stream<List<MunicipalNews>> watchNews({int limit = 100}) {
+    return _firestore
+        .collection('municipal_news')
+        .orderBy('newsId', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => MunicipalNews.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
   }
 }

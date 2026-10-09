@@ -1,3 +1,4 @@
+import 'emergency_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -112,11 +113,19 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
 
   void _open(_ServiceData s) {
+    if (s.id == 'acil_durum') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const EmergencyScreen(),
+        ),
+      );
+      return;
+    }
     if (widget.onServiceTap != null) {
       widget.onServiceTap!(s.id);
       return;
     }
-    // TODO: ilgili sayfalara yönlendirme bağlanacak.
+    
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('${s.title} yakında')));
