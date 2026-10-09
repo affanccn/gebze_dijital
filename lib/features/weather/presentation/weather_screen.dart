@@ -70,7 +70,11 @@ class WeatherScreen extends ConsumerWidget {
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top + 56 + 20),
           _buildCurrentWeather(weatherInfo.current),
-          const SizedBox(height: 48),
+          if (weatherInfo.forecast.isNotEmpty && weatherInfo.forecast.first.hourly.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            _buildHourlyForecast(weatherInfo.forecast.first.hourly),
+          ],
+          const SizedBox(height: 32),
           Expanded(
             child: Container(
               width: double.infinity,
@@ -255,11 +259,47 @@ class WeatherScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildHourlyForecast(List<HourlyForecast> hourly) {
+    // Filter to show from current hour onwards if we want, or just show all.
+    // We'll show all but start scroll position? Just showing all is fine.
+    return SizedBox(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: hourly.length,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemBuilder: (context, index) {
+          final h = hourly[index];
+          String iconUrl = h.icon;
+          if (iconUrl.startsWith('//')) iconUrl = 'https:$iconUrl';
+          final time = h.time.split(' ').last; // e.g. "2023-10-09 15:00" -> "15:00"
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(time, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 10),
+                if (iconUrl.isNotEmpty)
+                  Image.network(iconUrl, width: 36, height: 36, errorBuilder: (_,__,___)=> const Icon(Icons.cloud_rounded, color: Colors.white, size: 28))
+                else
+                  const Icon(Icons.cloud_rounded, color: Colors.white, size: 28),
+                const SizedBox(height: 10),
+                Text('${h.tempC.round()}°', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   String _formatDate(String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
-      final days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-      return '${date.day}.${date.month.toString().padLeft(2, '0')} ${days[date.weekday - 1]}';
+      final days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+      return days[date.weekday - 1];
     } catch (e) {
       return dateStr;
     }

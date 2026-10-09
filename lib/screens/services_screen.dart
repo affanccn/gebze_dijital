@@ -2,7 +2,7 @@ import 'emergency_screen.dart';
 import 'outages_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
-import '../features/news/presentation/news_screen.dart';
+import '../features/news/municipal_news_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -143,7 +143,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
   if (s.id == 'haberler') {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const NewsScreen()),
+      MaterialPageRoute(builder: (context) => const MunicipalNewsScreen()),
     );
     return;
   }
