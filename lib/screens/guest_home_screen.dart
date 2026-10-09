@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -161,12 +162,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                       children: [
                         _QuickActionsCard(items: _quickActions),
                         const SizedBox(height: 16),
-                        const _SectionCard(
-                          title: 'YAKLAŞAN ETKİNLİKLER',
-                          icon: Icons.event_available_rounded,
-                          iconColor: _C.orange,
-                          rows: _events,
-                        ),
+                        const _EventsSection(),
                         const SizedBox(height: 16),
                         const _SectionCard(
                           title: 'TARİHİ YERLER',
@@ -847,4 +843,44 @@ class _NavItem {
   final String label;
   final IconData icon;
   const _NavItem(this.label, this.icon);
+}
+class _EventsSection extends StatelessWidget {
+  const _EventsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('events')
+          .orderBy('date')
+          .limit(3)
+          .snapshots(),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Text('Hata: ${snap.error}');
+        }
+        if (!snap.hasData) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          );
+        }
+        final rows = snap.data!.docs.map((d) {
+          final m = d.data();
+          return _RowData(
+            m['title'] ?? '',
+            m['subtitle'] ?? '',
+            Icons.event_rounded,
+          );
+        }).toList();
+
+        return _SectionCard(
+          title: 'YAKLAŞAN ETKİNLİKLER',
+          icon: Icons.event_available_rounded,
+          iconColor: _C.orange,
+          rows: rows,
+        );
+      },
+    );
+  }
 }
