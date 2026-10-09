@@ -1,203 +1,85 @@
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
+const { getMessaging } = require("firebase-admin/messaging");
+const cheerio = require("cheerio");
 
-import * as cheerio from "cheerio";
-import { createHash } from "node:crypto";
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+initializeApp({
+  credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
+});
 
-const BASE_URL = "https://www.gebze.bel.tr";
-const NEWS_URL = `${BASE_URL}/haberler.html`;
-const COLLECTION = "municipal_news";
-const MAX_PAGES = 20;
+const BASE = "https://www.gebze.bel.tr";
+const MONTHS = { ocak:0, şubat:1, mart:2, nisan:3, mayıs:4, haziran:5,
+                 temmuz:6, ağustos:7, eylül:8, ekim:9, kasım:10, aralık:11 };
+const DATE_RE = /(\d{1,2})\s+(\p{L}+)\s+(\d{4})/u;
 
-function initializeFirebase() {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
-
-  if (!projectId || !rawServiceAccount) {
-    throw new Error("Firebase GitHub Secrets eksik.");
-  }
-
-  const serviceAccount = JSON.parse(rawServiceAccount);
-
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert(serviceAccount),
-      projectId,
-    });
-  }
-
-  return getFirestore();
+function parseDate(text) {
+  const m = text.match(DATE_RE);
+  if (!m) return null;
+  const month = MONTHS[m[2].toLocaleLowerCase("tr")];
+  if (month === undefined) return null;
+  return Timestamp.fromDate(new Date(Date.UTC(+m[3], month, +m[1])));
 }
 
-async function getHtml(url) {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "GebzeDijitalNewsBot/1.0",
-      "Accept": "text/html",
-    },
-    signal: AbortSignal.timeout(20000),
+async function scrapeList(page = "haberler.html") {
+  const res = await fetch(`${BASE}/${page}`, {
+    headers: { "User-Agent": "GebzeDijitalApp/1.0 (iletisim@ornek.com)" },
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const $ = cheerio.load(await res.text());
+  const items = new Map();
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${url}`);
-  }
+  $('h3 a[href*="/haber/"]').each((_, a) => {
+    const href = $(a).attr("href") || "";
+    const idMatch = href.match(/_(\d+)\.html$/);
+    if (!idMatch || items.has(idMatch[1])) return;
 
-  return response.text();
-}
-
-function absoluteUrl(value, base = BASE_URL) {
-  if (!value) return "";
-  try {
-    return new URL(value, base).href;
-  } catch {
-    return "";
-  }
-}
-
-function extractNews($, pageIndex) {
-  const items = [];
-  const seen = new Set();
-
-  $('a[href*="/haber/"]').each((_, element) => {
-    const link = $(element);
-    const href = link.attr("href");
-    const url = absoluteUrl(href);
-
-    if (!url || !url.includes("/haber/")) return;
-
-    // Haber detay bağlantısına en yakın olası kartı bul.
-    const card = link.closest(
-      ".slider-item, .news-item, .haber-item, " +
-      ".news-card, .haber-kart, article"
-    );
-
-    const container = card.length ? card : link;
-
-    const imageElement =
-      container.find("img").first().length
-        ? container.find("img").first()
-        : link.find("img").first();
-
-    const title =
-      container.find(
-        ".slider-title, .news-title, .haber-baslik, h1, h2, h3"
-      ).first().text().trim() ||
-      imageElement.attr("alt")?.trim() ||
-      link.attr("title")?.trim() ||
-      link.text().trim();
-
-    if (!title || seen.has(url)) return;
-
-    // Tarihi sadece kartta bulunuyorsa al.
-    const cardText = container.text().replace(/\s+/g, " ").trim();
-    const dateMatch = cardText.match(
-      /\b\d{1,2}[./-]\d{1,2}[./-]\d{4}\b/
-    );
-
-    seen.add(url);
-
-    items.push({
-      title,
-      url,
-      image: absoluteUrl(imageElement.attr("src")),
-      publishedAtText: dateMatch?.[0] ?? "",
-      pageIndex,
-      itemIndex: items.length,
+    let box = $(a).parent();
+    for (let i = 0; i < 4 && !(box.find("img").length && DATE_RE.test(box.text())); i++) {
+      box = box.parent();
+    }
+    const img = box.find("img").first().attr("src");
+    items.set(idMatch[1], {
+      id: idMatch[1],
+      title: $(a).text().trim(),
+      url: new URL(href, BASE).href,
+      imageUrl: img ? new URL(img, BASE).href : null,
+      publishedAt: parseDate(box.text()),
     });
   });
-
-  return items;
+  return [...items.values()];
 }
 
 async function main() {
-  const db = initializeFirebase();
-  const firstHtml = await getHtml(NEWS_URL);
-  const $first = cheerio.load(firstHtml);
+  const db = getFirestore();
+  const items = await scrapeList();
+  if (items.length === 0) throw new Error("0 haber parse edildi, site yapısı değişmiş olabilir");
 
-  // İlk sayfa ve HTML'de bulunan sayfalama bağlantıları.
-  const pages = new Set([NEWS_URL]);
+  const isFirstRun = (await db.collection("news").limit(1).get()).empty;
+  const fresh = [];
 
-  $first(".news-pagination a.page-btn").each((_, element) => {
-    const href = $first(element).attr("href");
-    const url = absoluteUrl(href, NEWS_URL);
-
-    if (
-      url.startsWith(`${BASE_URL}/`) &&
-      /haberler(?:_\d+)?\.html(?:$|\?)/.test(url)
-    ) {
-      pages.add(url);
-    }
-  });
-
-  const pageList = [...pages].slice(0, MAX_PAGES);
-  const allNews = new Map();
-
-  for (let i = 0; i < pageList.length; i++) {
-    const pageUrl = pageList[i];
-
-    try {
-      const html =
-        pageUrl === NEWS_URL
-          ? firstHtml
-          : await getHtml(pageUrl);
-
-      const $ = cheerio.load(html);
-      const items = extractNews($, i + 1);
-
-      for (const item of items) {
-        // URL'den sabit kimlik: aynı haber tekrar eklenmez.
-        const id = createHash("sha256")
-          .update(item.url)
-          .digest("hex");
-
-        allNews.set(id, { id, ...item });
-      }
-
-      console.log(
-        `Sayfa ${i + 1}: ${items.length} haber (${pageUrl})`
-      );
-    } catch (error) {
-      console.error(`Sayfa alınamadı: ${pageUrl}`, error.message);
-      throw error;
-    }
+  for (const n of items) {
+    const ref = db.collection("news").doc(n.id);
+    if ((await ref.get()).exists) continue;
+    await ref.set({
+      ...n,
+      source: "gebze.bel.tr",
+      isPublished: true,
+      fetchedAt: FieldValue.serverTimestamp(),
+    });
+    fresh.push(n);
   }
 
-  if (allNews.size === 0) {
-    throw new Error(
-      "Hiç haber bulunamadı. HTML seçicilerini kontrol edin; boş veriyle senkronizasyonu başarılı saymayın."
-    );
+  if (!isFirstRun && fresh.length > 0) {
+    await getMessaging().send({
+      topic: "news",
+      notification: {
+        title: fresh.length === 1 ? "Gebze Belediyesi" : `${fresh.length} yeni haber`,
+        body: fresh[0].title,
+      },
+      data: { type: "news", newsId: fresh[0].id },
+    });
   }
-
-  const entries = [...allNews.values()];
-
-  // Firestore batch sınırını aşmamak için parçalı yaz.
-  for (let start = 0; start < entries.length; start += 400) {
-    const batch = db.batch();
-
-    for (const item of entries.slice(start, start + 400)) {
-      const { id, ...data } = item;
-      const ref = db.collection(COLLECTION).doc(id);
-
-      batch.set(
-        ref,
-        {
-          ...data,
-          source: "Gebze Belediyesi",
-          syncedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-    }
-
-    await batch.commit();
-  }
-
-  console.log(
-    `Senkronizasyon tamamlandı: ${entries.length} haber işlendi.`
-  );
+  console.log(`Bitti. Yeni haber: ${fresh.length}`);
 }
 
-main().catch((error) => {
-  console.error("Haber senkronizasyonu başarısız:", error);
-  process.exitCode = 1;
-});
+main().catch((e) => { console.error(e); process.exit(1); });
