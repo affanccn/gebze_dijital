@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/weather_provider.dart';
 import '../models/weather_info.dart';
@@ -10,44 +12,71 @@ class WeatherScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final weatherAsyncValue = ref.watch(weatherProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gebze Hava Durumu'),
-        backgroundColor: const Color(0xFF0A2A66),
-        foregroundColor: Colors.white,
-      ),
-      body: weatherAsyncValue.when(
-        data: (weatherInfo) {
-          if (weatherInfo == null) {
-            return const Center(child: Text('Hava durumu bilgisi bulunamadı.'));
-          }
-          return _buildContent(context, weatherInfo);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Hata oluştu: $error')),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF061B45),
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: const Text(
+            'Gebze Hava Durumu',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: weatherAsyncValue.when(
+          data: (weatherInfo) {
+            if (weatherInfo == null) {
+              return const Center(
+                  child: Text('Hava durumu bilgisi bulunamadı.',
+                      style: TextStyle(color: Colors.white)));
+            }
+            return _buildContent(context, weatherInfo);
+          },
+          loading: () => const Center(
+              child: CircularProgressIndicator(color: Colors.white)),
+          error: (error, stack) => Center(
+              child: Text('Hata oluştu: $error',
+                  style: const TextStyle(color: Colors.white))),
+        ),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, WeatherInfo weatherInfo) {
     return Container(
+      width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A2A66), Color(0xFF1E5BC6)],
+          colors: [
+            Color(0xFF061B45), // Deep navy
+            Color(0xFF1E5BC6), // Lighter blue
+          ],
         ),
       ),
       child: Column(
         children: [
-          const SizedBox(height: 40),
+          SizedBox(height: MediaQuery.of(context).padding.top + 56 + 20),
           _buildCurrentWeather(weatherInfo.current),
-          const SizedBox(height: 40),
+          const SizedBox(height: 48),
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: const BoxDecoration(
-                color: Color(0xFFF1F5FD),
+                color: Color(0xFFF4F6FB), // Light soft background
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
               ),
               child: Column(
@@ -56,17 +85,21 @@ class WeatherScreen extends ConsumerWidget {
                   const Text(
                     'Gelecek Günler',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A1F44),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0A1F44), // Deep navy text
                     ),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: ListView.builder(
+                    child: ListView.separated(
+                      padding: EdgeInsets.zero,
                       itemCount: weatherInfo.forecast.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        return _buildForecastItem(weatherInfo.forecast[index]);
+                        return _buildForecastItem(
+                            weatherInfo.forecast[index]);
                       },
                     ),
                   ),
@@ -80,7 +113,6 @@ class WeatherScreen extends ConsumerWidget {
   }
 
   Widget _buildCurrentWeather(CurrentWeather current) {
-    // Add "https:" if icon url starts with "//"
     String iconUrl = current.icon;
     if (iconUrl.startsWith('//')) {
       iconUrl = 'https:$iconUrl';
@@ -91,16 +123,20 @@ class WeatherScreen extends ConsumerWidget {
         if (iconUrl.isNotEmpty)
           Image.network(
             iconUrl,
-            width: 100,
-            height: 100,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Icon(Icons.cloud, size: 80, color: Colors.white),
+            width: 90,
+            height: 90,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Icon(
+                Icons.wb_sunny_rounded,
+                size: 80,
+                color: Color(0xFFFFB300)),
           ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
           '${current.tempC.round()}°C',
           style: const TextStyle(
-            fontSize: 64,
+            fontSize: 72,
+            height: 1.1,
             fontWeight: FontWeight.w900,
             color: Colors.white,
           ),
@@ -108,17 +144,20 @@ class WeatherScreen extends ConsumerWidget {
         Text(
           current.condition,
           style: const TextStyle(
-            fontSize: 24,
-            color: Colors.white70,
+            fontSize: 22,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildWeatherDetail(Icons.water_drop, '${current.humidity}%', 'Nem'),
-            const SizedBox(width: 40),
-            _buildWeatherDetail(Icons.air, '${current.windKph.round()} km/s', 'Rüzgar'),
+            _buildWeatherDetail(
+                Icons.water_drop_rounded, '${current.humidity}%', 'Nem'),
+            const SizedBox(width: 48),
+            _buildWeatherDetail(
+                Icons.air_rounded, '${current.windKph.round()} km/s', 'Rüzgar'),
           ],
         )
       ],
@@ -128,10 +167,19 @@ class WeatherScreen extends ConsumerWidget {
   Widget _buildWeatherDetail(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: 24),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Icon(icon, color: Colors.white, size: 28),
+        const SizedBox(height: 8),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 16)),
+        const SizedBox(height: 2),
+        Text(label,
+            style: const TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+                fontSize: 13)),
       ],
     );
   }
@@ -143,50 +191,61 @@ class WeatherScreen extends ConsumerWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0A2A66).withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF0A2A66).withAlpha(12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Text(
               _formatDate(forecast.date),
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
                 color: Color(0xFF0A1F44),
               ),
             ),
           ),
           if (iconUrl.isNotEmpty)
-            Image.network(iconUrl, width: 40, height: 40, errorBuilder: (_, __, ___) => const Icon(Icons.cloud, color: Colors.grey))
+            Image.network(iconUrl,
+                width: 36,
+                height: 36,
+                errorBuilder: (_, __, ___) => const Icon(
+                    Icons.wb_sunny_rounded,
+                    color: Color(0xFFFFB300),
+                    size: 28))
           else
-            const Icon(Icons.cloud, color: Colors.grey, size: 40),
-          const SizedBox(width: 16),
+            const Icon(Icons.wb_sunny_rounded,
+                color: Color(0xFFFFB300), size: 28),
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
                   '${forecast.maxtempC.round()}°',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: Color(0xFF0A1F44)),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '${forecast.mintempC.round()}°',
-                  style: const TextStyle(color: Colors.grey, fontSize: 16),
+                  style: const TextStyle(
+                      color: Color(0xFF909BB0),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15),
                 ),
               ],
             ),
@@ -197,13 +256,13 @@ class WeatherScreen extends ConsumerWidget {
   }
 
   String _formatDate(String dateStr) {
-    // Basic date formatter from "YYYY-MM-DD"
     try {
       final date = DateTime.parse(dateStr);
       final days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-      return '${date.day}.${date.month} ${days[date.weekday - 1]}';
+      return '${date.day}.${date.month.toString().padLeft(2, '0')} ${days[date.weekday - 1]}';
     } catch (e) {
       return dateStr;
     }
   }
 }
+
