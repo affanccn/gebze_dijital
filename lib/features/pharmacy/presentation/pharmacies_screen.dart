@@ -26,6 +26,7 @@ class PharmaciesScreen extends ConsumerWidget {
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                    physics: const ClampingScrollPhysics(),
                     itemCount: pharmacies.length,
                     itemBuilder: (context, index) {
                       final pharmacy = pharmacies[index];

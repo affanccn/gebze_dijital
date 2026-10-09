@@ -81,6 +81,7 @@ class WeatherScreen extends ConsumerWidget {
                   Expanded(
                     child: ListView.separated(
                       padding: EdgeInsets.zero,
+                      physics: const ClampingScrollPhysics(),
                       itemCount: weatherInfo.forecast.length,
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: 12),
