@@ -1,3 +1,4 @@
+import 'emergency_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -201,7 +202,13 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           height: 78,
           child: FloatingActionButton(
             heroTag: 'emergency_fab',
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const EmergencyScreen(),
+                ),
+              );
+            },
             backgroundColor: _C.danger,
             foregroundColor: Colors.white,
             elevation: 8,
