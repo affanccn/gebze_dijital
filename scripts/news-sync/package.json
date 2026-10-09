@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "firebase-admin": "^13.0.0",
     "@google-cloud/firestore": "^7.11.0",
