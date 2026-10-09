@@ -41,12 +41,12 @@ const List<String> _kBodyFontFallback = [
 ];
 
 List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(28),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
+  BoxShadow(
+    color: const Color(0xFF0A2A66).withAlpha(28),
+    blurRadius: 18,
+    offset: const Offset(0, 6),
+  ),
+];
 
 class GuestHomeScreen extends StatefulWidget {
   const GuestHomeScreen({super.key});
@@ -75,14 +75,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     if (asset == null) return;
     final stream = AssetImage(asset).resolve(const ImageConfiguration());
     late final ImageStreamListener listener;
-    listener = ImageStreamListener(
-      (info, _) {
-        final aspect = info.image.width / info.image.height;
-        if (mounted) setState(() => _heroAspect = aspect);
-        stream.removeListener(listener);
-      },
-      onError: (_, __) => stream.removeListener(listener),
-    );
+    listener = ImageStreamListener((info, _) {
+      final aspect = info.image.width / info.image.height;
+      if (mounted) setState(() => _heroAspect = aspect);
+      stream.removeListener(listener);
+    }, onError: (_, __) => stream.removeListener(listener));
     stream.addListener(listener);
   }
 
@@ -90,7 +87,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     _QuickActionData('GEZİLECEK YER', Icons.map_rounded, _C.orangeGradient),
     _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
     _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
-    _QuickActionData('MİSAFİR ŞİKAYET', Icons.report_problem_rounded, _C.navyGradient),
+    _QuickActionData(
+      'MİSAFİR ŞİKAYET',
+      Icons.report_problem_rounded,
+      _C.navyGradient,
+    ),
     _QuickActionData('OTOPARK', Icons.local_parking_rounded, _C.orangeGradient),
   ];
 
@@ -122,7 +123,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     const overlap = 32.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
         backgroundColor: _C.bg,
         body: SingleChildScrollView(
@@ -149,7 +152,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                     width: double.infinity,
                     decoration: const BoxDecoration(
                       color: _C.bg,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(overlap)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(overlap),
+                      ),
                     ),
                     // Alt boşluk: acil durum butonunun son kartı kapatmaması için
                     padding: const EdgeInsets.fromLTRB(16, 52, 16, 110),
@@ -202,7 +207,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 Text(
                   'ACİL\nDURUM',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 9, height: 1.05, fontWeight: FontWeight.w800),
+                  style: TextStyle(
+                    fontSize: 9,
+                    height: 1.05,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -272,7 +281,12 @@ class _HeroPlaceholder extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E6FE0), Color(0xFF8CC4FF), Color(0xFFFFB347), Color(0xFFFF7A00)],
+          colors: [
+            Color(0xFF1E6FE0),
+            Color(0xFF8CC4FF),
+            Color(0xFFFFB347),
+            Color(0xFFFF7A00),
+          ],
           stops: [0.0, 0.4, 0.65, 1.0],
         ),
       ),
@@ -322,10 +336,7 @@ class _HeroContent extends StatelessWidget {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const _BellIcon(),
-                ),
+                GestureDetector(onTap: () {}, child: const _BellIcon()),
               ],
             ),
             Positioned(
@@ -437,7 +448,11 @@ class _BellIcon extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 32),
+          const Icon(
+            Icons.notifications_none_rounded,
+            color: Colors.white,
+            size: 32,
+          ),
           Positioned(
             top: 4,
             right: 6,
@@ -484,12 +499,20 @@ class _WeatherPill extends StatelessWidget {
                 Positioned(
                   top: 0,
                   right: 2,
-                  child: Icon(Icons.wb_sunny_rounded, color: _C.orange, size: 24),
+                  child: Icon(
+                    Icons.wb_sunny_rounded,
+                    color: _C.orange,
+                    size: 24,
+                  ),
                 ),
                 Positioned(
                   bottom: 0,
                   left: 0,
-                  child: Icon(Icons.cloud_rounded, color: Colors.white, size: 36),
+                  child: Icon(
+                    Icons.cloud_rounded,
+                    color: Colors.white,
+                    size: 36,
+                  ),
                 ),
               ],
             ),
@@ -703,7 +726,11 @@ class _SectionCard extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_rounded, color: _C.orange, size: 16),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: _C.orange,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
@@ -712,7 +739,8 @@ class _SectionCard extends StatelessWidget {
           const SizedBox(height: 6),
           for (int i = 0; i < rows.length; i++) ...[
             _SectionRow(data: rows[i]),
-            if (i != rows.length - 1) Divider(height: 1, color: Colors.grey.withAlpha(40)),
+            if (i != rows.length - 1)
+              Divider(height: 1, color: Colors.grey.withAlpha(40)),
           ],
         ],
       ),
@@ -834,7 +862,9 @@ class _BottomNav extends StatelessWidget {
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
-                            fontWeight: i == index ? FontWeight.w800 : FontWeight.w500,
+                            fontWeight: i == index
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: i == index ? _C.orange : Colors.white70,
                           ),
                         ),
