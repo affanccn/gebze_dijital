@@ -67,7 +67,7 @@ class _MunicipalNewsListState extends State<MunicipalNewsList> {
           shrinkWrap: widget.shrinkWrap && !widget.isHorizontal,
           physics: widget.shrinkWrap && !widget.isHorizontal
               ? const NeverScrollableScrollPhysics()
-              : const AlwaysScrollableScrollPhysics(),
+              : const ClampingScrollPhysics(),
           itemCount: news.length,
           itemBuilder: (context, index) {
             final item = news[index];

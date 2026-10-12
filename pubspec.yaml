@@ -17,6 +17,7 @@ dependencies:
   cached_network_image: ^4.0.4
   url_launcher: ^6.3.3
   flutter_riverpod: ^3.4.3
+  google_fonts: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +29,4 @@ flutter:
 
   assets:
     - gorsel/
+    - gorsel/pati/

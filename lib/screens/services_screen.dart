@@ -1,8 +1,11 @@
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
+import 'soz_sende_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import '../features/news/municipal_news_screen.dart';
+import '../features/pati/presentation/gebze_pati_screen.dart';
+import '../features/ebelediye/presentation/ebelediye_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -129,6 +132,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
     return;
   }
+      if (s.id == 'soz_sende') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const SozSendeScreen()),
+    );
+    return;
+  }
   if (s.id == 'nobetci_eczane') {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
@@ -144,6 +153,18 @@ class _ServicesScreenState extends State<ServicesScreen> {
   if (s.id == 'haberler') {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const MunicipalNewsScreen()),
+    );
+    return;
+  }
+  if (s.id == 'gebze_pati') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const GebzePatiScreen()),
+    );
+    return;
+  }
+  if (s.id == 'e_belediye') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
     );
     return;
   }
@@ -185,7 +206,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
             _Header(controller: _searchCtrl, onChanged: (v) => setState(() => _query = v)),
             Expanded(
               child: ListView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
                 children: [
                   if (showEmergency) ...[
