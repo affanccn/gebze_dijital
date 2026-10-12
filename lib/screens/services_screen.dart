@@ -1,6 +1,6 @@
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
-import 'emergency_screen.dart';
+import 'soz_sende_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -124,6 +124,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
   if (s.id == 'kesintiler') {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const OutagesScreen()),
+    );
+    return;
+  }
+    if (s.id == 'soz_sende') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const SozSendeScreen()),
     );
     return;
   }
