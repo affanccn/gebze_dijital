@@ -134,7 +134,7 @@ class _OutagesScreenState extends State<OutagesScreen> {
                     }
 
                     return ListView.builder(
-                      physics: const BouncingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                       itemCount: filtered.length,
                       itemBuilder: (context, i) => _OutageCard(data: filtered[i]),

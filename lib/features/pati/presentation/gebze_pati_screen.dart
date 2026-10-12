@@ -149,20 +149,23 @@ class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProv
                     ],
                   ),
                   labelColor: const Color(0xFF0A2A66),
-                  unselectedLabelColor: Colors.white70,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
-                  unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11.5),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+                  unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 10.5),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   dividerColor: Colors.transparent,
                   tabs: const [
                     Tab(
+                      height: 52,
                       icon: Icon(Icons.medical_services_rounded, size: 18),
                       text: 'Ambulans & Merkez',
                     ),
                     Tab(
+                      height: 52,
                       icon: Icon(Icons.favorite_rounded, size: 18),
                       text: 'Sahiplendirme',
                     ),
                     Tab(
+                      height: 52,
                       icon: Icon(Icons.food_bank_rounded, size: 18),
                       text: 'Mama & Klinikler',
                     ),

@@ -55,6 +55,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
     final vetClinicsAsync = ref.watch(vetClinicsStreamProvider);
 
     return ListView(
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
         // 1. MAMA VE SU ODAKLARI AĞI BAŞLIK & AÇIKLAMA KARTI

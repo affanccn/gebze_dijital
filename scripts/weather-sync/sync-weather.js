@@ -57,6 +57,61 @@ async function main() {
   // Hava durumu bilgisini tek bir dökümanda tutmak mantıklıdır (örneğin "gebze" id'li döküman)
   const ref = db.collection(COLLECTION).doc("gebze"); 
   
+  // Open-Meteo ile eksik günleri (5 güne) tamamlama desteği
+  let finalForecast = weatherData.forecast ? weatherData.forecast.forecastday.map(day => ({
+    date: day.date,
+    maxtemp_c: day.day.maxtemp_c,
+    mintemp_c: day.day.mintemp_c,
+    condition: day.day.condition.text,
+    icon: day.day.condition.icon,
+    hourly: day.hour ? day.hour.map((h) => ({
+      time: h.time,
+      temp_c: h.temp_c,
+      icon: h.condition.icon,
+    })) : []
+  })) : [];
+
+  // WeatherAPI free plan 3 gün döndürdüyse, Open-Meteo ücretsiz API'sinden 5 güne tamamla
+  if (finalForecast.length < 5) {
+    try {
+      const omUrl = 'https://api.open-meteo.com/v1/forecast?latitude=40.8037&longitude=29.4398&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=Europe%2FIstanbul';
+      const omRes = await fetch(omUrl);
+      if (omRes.ok) {
+        const omData = await omRes.json();
+        if (omData && omData.daily && omData.daily.time) {
+          const wCodeMap = (code) => {
+            if (code === 0) return { text: "Güneşli", icon: "//cdn.weatherapi.com/weather/64x64/day/113.png" };
+            if ([1, 2].includes(code)) return { text: "Parçalı Bulutlu", icon: "//cdn.weatherapi.com/weather/64x64/day/116.png" };
+            if (code === 3) return { text: "Bulutlu", icon: "//cdn.weatherapi.com/weather/64x64/day/119.png" };
+            if ([45, 48].includes(code)) return { text: "Sisli", icon: "//cdn.weatherapi.com/weather/64x64/day/143.png" };
+            if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return { text: "Yağmurlu", icon: "//cdn.weatherapi.com/weather/64x64/day/296.png" };
+            if ([71, 73, 75, 85, 86].includes(code)) return { text: "Karlı", icon: "//cdn.weatherapi.com/weather/64x64/day/326.png" };
+            if ([95, 96, 99].includes(code)) return { text: "Gök Gürültülü Fırtına", icon: "//cdn.weatherapi.com/weather/64x64/day/389.png" };
+            return { text: "Parçalı Bulutlu", icon: "//cdn.weatherapi.com/weather/64x64/day/116.png" };
+          };
+
+          for (let i = 0; i < omData.daily.time.length; i++) {
+            const dStr = omData.daily.time[i];
+            const alreadyExists = finalForecast.some(f => f.date === dStr);
+            if (!alreadyExists) {
+              const cond = wCodeMap(omData.daily.weather_code[i]);
+              finalForecast.push({
+                date: dStr,
+                maxtemp_c: omData.daily.temperature_2m_max[i],
+                mintemp_c: omData.daily.temperature_2m_min[i],
+                condition: cond.text,
+                icon: cond.icon,
+                hourly: []
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Open-Meteo ek gün tamamlama hatası:", e.message);
+    }
+  }
+
   batch.set(ref, {
     current: {
       temp_c: weatherData.current.temp_c,
@@ -66,23 +121,12 @@ async function main() {
       wind_kph: weatherData.current.wind_kph,
       feelslike_c: weatherData.current.feelslike_c
     },
-    forecast: weatherData.forecast ? weatherData.forecast.forecastday.map(day => ({
-      date: day.date,
-      maxtemp_c: day.day.maxtemp_c,
-      mintemp_c: day.day.mintemp_c,
-      condition: day.day.condition.text,
-      icon: day.day.condition.icon,
-      hourly: day.hour ? day.hour.map((h) => ({
-        time: h.time,
-        temp_c: h.temp_c,
-        icon: h.condition.icon,
-      })) : []
-    })) : [],
+    forecast: finalForecast,
     syncedAt: FieldValue.serverTimestamp(),
   });
 
   await batch.commit();
-  console.log("Hava durumu senkronizasyonu tamamlandı.");
+  console.log(`Hava durumu senkronizasyonu tamamlandı (${finalForecast.length} gün).`);
 }
 
 main().catch((error) => {

@@ -324,7 +324,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         }
 
         return ListView.builder(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           itemCount: filtered.length,
           itemBuilder: (context, i) {
@@ -384,7 +384,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         }
 
         return ListView.builder(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
           itemCount: filtered.length,
           itemBuilder: (context, i) {

@@ -69,6 +69,7 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
         // 1. ACİL HAYVAN AMBULANSI ÇAĞRI BANNERI (KIRMIZI/TURUNCU VURGU)

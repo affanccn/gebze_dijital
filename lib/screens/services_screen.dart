@@ -199,7 +199,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
             _Header(controller: _searchCtrl, onChanged: (v) => setState(() => _query = v)),
             Expanded(
               child: ListView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
                 children: [
                   if (showEmergency) ...[

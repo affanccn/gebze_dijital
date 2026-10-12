@@ -29,6 +29,7 @@ class AdoptionTab extends ConsumerWidget {
     final petState = ref.watch(petAdoptionsStreamProvider);
 
     return ListView(
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
         // 1. SAHİPLENDİRME SÜRECİ NASIL İŞLER? BANNER & AŞAMALAR

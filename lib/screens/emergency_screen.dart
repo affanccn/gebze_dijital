@@ -164,7 +164,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               _Header(),
               Expanded(
                 child: ListView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                   children: [
                     // 112 Butonu

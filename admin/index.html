@@ -694,6 +694,165 @@
       }
     };
 
+    window.seedAllData = async () => {
+      if (!confirm("Tüm örnek veriler (sahiplendirme, besleme odakları ve veterinerler) Firestore veritabanına yüklensin mi?")) return;
+      const btn = document.getElementById("btnSeed");
+      btn.disabled = true;
+      btn.innerText = "Yükleniyor...";
+
+      const samplePets = [
+        {
+          name: 'Pamuk',
+          species: 'Kedi',
+          breed: 'Tekir Melez',
+          gender: 'Dişi',
+          age: '6 Aylık',
+          imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+          description: 'Sokakta yaralı bulunup merkezimizde tedavisi tamamlandı. Çok uysal ve oyuncu.',
+          healthStatus: 'Karma aşıları yapıldı, iç-dış parazit uygulandı, mikroçipli.',
+          centerPhone: '(0262) 642 04 30',
+          isAdopted: false,
+          createdAt: serverTimestamp()
+        },
+        {
+          name: 'Karabaş',
+          species: 'Köpek',
+          breed: 'Anadolu Çoban Melezi',
+          gender: 'Erkek',
+          age: '1.5 Yaşında',
+          imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80',
+          description: 'Bahçeli bir yuvaya veya sevgi dolu bir aileye çok uygun. Temel eğitimleri verildi.',
+          healthStatus: 'Kuduz ve karma aşıları tam, kısırlaştırıldı, çipli.',
+          centerPhone: '(0262) 642 04 30',
+          isAdopted: false,
+          createdAt: serverTimestamp()
+        },
+        {
+          name: 'Zeytin',
+          species: 'Kedi',
+          breed: 'Siyah Bombay Melezi',
+          gender: 'Erkek',
+          age: '1 Yaşında',
+          imageUrl: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80',
+          description: 'Göz tedavisi tamamlandı, tamamen sağlığına kavuştu. Kucak delisi ve sakin.',
+          healthStatus: 'Aşı takvimi tamamlandı, kısırlaştırıldı.',
+          centerPhone: '(0262) 642 04 30',
+          isAdopted: false,
+          createdAt: serverTimestamp()
+        },
+        {
+          name: 'Maya',
+          species: 'Köpek',
+          breed: 'Golden Melezi',
+          gender: 'Dişi',
+          age: '8 Aylık',
+          imageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+          description: 'Merkezimizde sevgiyle büyütüldü. Çocuklarla çok iyi anlaşıyor.',
+          healthStatus: 'Gençlik aşıları ve parazit aşıları yapıldı.',
+          centerPhone: '(0262) 642 04 30',
+          isAdopted: false,
+          createdAt: serverTimestamp()
+        }
+      ];
+
+      const sampleFeeding = [
+        {
+          title: 'Gebze Kent Meydanı Besleme Odağı',
+          neighborhood: 'Hacıhalil',
+          address: 'Gebze Kent Meydanı Park Alanı Batı Çıkışı',
+          latitude: 40.8031,
+          longitude: 29.4312,
+          type: 'Mama ve Otomatik Su Odağı',
+          equipment: 'Güneş enerjili otomatik su kabı, paslanmaz çelik mama haznesi',
+          note: 'Belediyemiz veteriner ekipleri tarafından düzenli olarak takviye edilmektedir.',
+          createdAt: serverTimestamp()
+        },
+        {
+          title: 'Millet Bahçesi Kedi Köyü & Besleme Noktası',
+          neighborhood: 'Mevlana',
+          address: 'Mevlana Mah. Issıkgöl Cad. Millet Bahçesi İçi',
+          latitude: 40.8160,
+          longitude: 29.4395,
+          type: 'Kedi Köyü & Su İstasyonu',
+          equipment: '4 katlı yalıtımlı kedi evi, taze su pınarı, kuru mama ünitesi',
+          note: 'Belediyemiz veteriner ekipleri tarafından düzenli olarak takviye edilmektedir.',
+          createdAt: serverTimestamp()
+        },
+        {
+          title: 'Alaettin Kurt Stadyumu Çevresi Besleme Odağı',
+          neighborhood: 'Gaziler',
+          address: 'Şehit Fahrettin Çevik Parkı giriş kapısı yanı',
+          latitude: 40.8095,
+          longitude: 29.4445,
+          type: 'Büyük Can Dostlar Mama ve Su Odağı',
+          equipment: 'Geniş hazneli kuru mama besleme noktası ve temiz su kabı',
+          note: 'Belediyemiz veteriner ekipleri tarafından düzenli olarak takviye edilmektedir.',
+          createdAt: serverTimestamp()
+        },
+        {
+          title: 'Eskihisar Sahil Parkı Besleme Noktası',
+          neighborhood: 'Eskihisar',
+          address: 'Eskihisar Sahil Kordon Yürüyüş Yolu başlangıcı',
+          latitude: 40.7718,
+          longitude: 29.4285,
+          type: 'Sahil Kedi ve Köpek Besleme Odağı',
+          equipment: 'Rüzgar ve yağmur korumalı mama istasyonu, su kabı',
+          note: 'Belediyemiz veteriner ekipleri tarafından düzenli olarak takviye edilmektedir.',
+          createdAt: serverTimestamp()
+        }
+      ];
+
+      const sampleVets = [
+        {
+          name: 'Gebze Pati Veteriner Kliniği (7/24 Nöbetçi)',
+          district: 'Gebze / Kocaeli',
+          address: 'Hacıhalil Mah. Hükümet Cad. No:42/A, Gebze/Kocaeli',
+          phone: '(0262) 641 22 33',
+          emergencyHours: '7/24 Acil Nöbetçi Hizmeti',
+          latitude: 40.8035,
+          longitude: 29.4320,
+          is24Hours: true,
+          createdAt: serverTimestamp()
+        },
+        {
+          name: 'Anka Veteriner Tıp Merkezi & Cerrahi',
+          district: 'Gebze / Kocaeli',
+          address: 'Osman Yılmaz Mah. İstanbul Cad. No:88, Gebze/Kocaeli',
+          phone: '(0262) 646 10 20',
+          emergencyHours: '24 Saat Acil Müdahale & Yoğun Bakım',
+          latitude: 40.8005,
+          longitude: 29.4270,
+          is24Hours: true,
+          createdAt: serverTimestamp()
+        },
+        {
+          name: 'Mavi Pati Veteriner Kliniği',
+          district: 'Gebze / Kocaeli',
+          address: 'Mevlana Mah. Issıkgöl Cad. No:62/B, Gebze/Kocaeli',
+          phone: '(0262) 643 78 90',
+          emergencyHours: '7/24 Acil Çağrı & Müdahale',
+          latitude: 40.8140,
+          longitude: 29.4380,
+          is24Hours: true,
+          createdAt: serverTimestamp()
+        }
+      ];
+
+      try {
+        for (const p of samplePets) await addDoc(collection(db, "pet_adoptions"), p);
+        for (const f of sampleFeeding) await addDoc(collection(db, "feeding_points"), f);
+        for (const v of sampleVets) await addDoc(collection(db, "vet_clinics"), v);
+
+        showNotification("Tüm örnek veriler Firestore'a başarıyla yazıldı!");
+        loadPets();
+      } catch (err) {
+        alert("Yüklenirken hata: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "⚡ Örnek Verileri Firestore'a Yükle (Seed)";
+      }
+    };
+
     function showNotification(msg) {
       const toast = document.getElementById("toast");
       toast.innerText = msg;
@@ -713,8 +872,13 @@
           <p>Sahiplendirme, Mama & Su Odakları ve Nöbetçi Klinikler Firebase Yönetimi</p>
         </div>
       </div>
-      <div class="header-badge">
-        📞 Sabit Merkez İletişimi: (0262) 642 04 30
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button id="btnSeed" class="btn" style="background:#FFA11F; color:#061B45; font-size:12px; padding:8px 14px; font-weight:800;" onclick="window.seedAllData()">
+          ⚡ Örnek Verileri Firestore'a Yükle (Seed)
+        </button>
+        <div class="header-badge">
+          📞 Sabit Merkez İletişimi: (0262) 642 04 30
+        </div>
       </div>
     </div>
   </header>
