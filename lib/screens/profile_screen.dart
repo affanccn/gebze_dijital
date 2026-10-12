@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../features/profile/models/user_profile.dart';
 import '../features/profile/services/profile_service.dart';
 import '../core/localization/app_strings.dart';
@@ -33,12 +34,12 @@ const List<String> _kBodyFontFallback = [
 ];
 
 List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(18),
-        blurRadius: 16,
-        offset: const Offset(0, 5),
-      ),
-    ];
+  BoxShadow(
+    color: const Color(0xFF0A2A66).withAlpha(18),
+    blurRadius: 16,
+    offset: const Offset(0, 5),
+  ),
+];
 
 const List<String> _kGebzeNeighborhoods = [
   'Mustafapaşa',
@@ -88,14 +89,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: Scaffold(
           backgroundColor: _C.bg,
           body: profileAsync.when(
             data: (profile) => _buildProfileContent(context, profile),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: _C.navy),
-            ),
+            loading: () =>
+                const Center(child: CircularProgressIndicator(color: _C.navy)),
             error: (err, _) => _buildErrorState(context, err.toString()),
           ),
           bottomNavigationBar: _BottomNav(
@@ -133,19 +135,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 _buildStatsCard(context, profile, lang),
                 const SizedBox(height: 22),
-                _buildSectionTitle(AppStrings.get('section_account', lang), Icons.person_rounded),
+                _buildSectionTitle(
+                  AppStrings.get('section_account', lang),
+                  Icons.person_rounded,
+                ),
                 const SizedBox(height: 10),
                 _buildAccountSection(context, profile, lang),
                 const SizedBox(height: 22),
-                _buildSectionTitle(AppStrings.get('section_activities', lang), Icons.history_rounded),
+                _buildSectionTitle(
+                  AppStrings.get('section_activities', lang),
+                  Icons.history_rounded,
+                ),
                 const SizedBox(height: 10),
                 _buildActivitiesSection(context, profile, lang),
                 const SizedBox(height: 22),
-                _buildSectionTitle(AppStrings.get('section_settings', lang), Icons.tune_rounded),
+                _buildSectionTitle(
+                  AppStrings.get('section_settings', lang),
+                  Icons.tune_rounded,
+                ),
                 const SizedBox(height: 10),
                 _buildSettingsSection(context, profile, lang),
                 const SizedBox(height: 22),
-                _buildSectionTitle(AppStrings.get('section_support', lang), Icons.headset_mic_rounded),
+                _buildSectionTitle(
+                  AppStrings.get('section_support', lang),
+                  Icons.headset_mic_rounded,
+                ),
                 const SizedBox(height: 10),
                 _buildSupportSection(context, lang),
                 const SizedBox(height: 28),
@@ -172,7 +186,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Üst Header (Hero) ─────────────────────────
 
-  Widget _buildHeroHeader(BuildContext context, UserProfile profile, String lang) {
+  Widget _buildHeroHeader(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     const heroH = 260.0;
 
     return Container(
@@ -194,7 +212,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           // Arka plan: Gebze Görseli
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(32),
+            ),
             child: Image.asset(
               'gorsel/gebze_gorsel.jpg',
               fit: BoxFit.cover,
@@ -213,7 +233,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Karartma ve Lacivert Degrade Katmanı
           Container(
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(32),
+              ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -243,8 +265,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             Navigator.of(context).pop();
                           }
                         },
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white, size: 22),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                       ),
                       Text(
                         AppStrings.get('profile_screen_title', lang),
@@ -256,9 +281,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () => _openEditProfileDialog(context, profile),
-                        icon: const Icon(Icons.edit_note_rounded,
-                            color: Colors.white, size: 28),
+                        onPressed: () =>
+                            _openEditProfileDialog(context, profile),
+                        icon: const Icon(
+                          Icons.edit_note_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
                     ],
                   ),
@@ -273,7 +302,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             height: 78,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2.5),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2.5,
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withAlpha(80),
@@ -310,10 +342,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 decoration: BoxDecoration(
                                   color: _C.orange,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 1.5),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 1.5,
+                                  ),
                                 ),
-                                child: const Icon(Icons.camera_alt_rounded,
-                                    size: 14, color: Colors.white),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -349,7 +387,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withAlpha(35),
                                     borderRadius: BorderRadius.circular(12),
@@ -357,8 +397,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.location_on_rounded,
-                                          size: 12, color: _C.orange),
+                                      const Icon(
+                                        Icons.location_on_rounded,
+                                        size: 12,
+                                        color: _C.orange,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         '${profile.neighborhood} ${AppStrings.get('mahalle_abbr', lang)}',
@@ -375,19 +418,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 if (profile.isVerified)
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 7, vertical: 3),
+                                      horizontal: 7,
+                                      vertical: 3,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF2E7D32).withAlpha(190),
+                                      color: const Color(0xFF2E7D32)
+                                          .withAlpha(190),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.verified_rounded,
-                                            size: 12, color: Colors.white),
+                                        const Icon(
+                                          Icons.verified_rounded,
+                                          size: 12,
+                                          color: Colors.white,
+                                        ),
                                         const SizedBox(width: 3),
                                         Text(
-                                          AppStrings.get('verified_badge', lang),
+                                          AppStrings.get(
+                                            'verified_badge',
+                                            lang,
+                                          ),
                                           style: const TextStyle(
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w700,
@@ -415,7 +467,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Sayaç Kartı ─────────────────────────
 
-  Widget _buildStatsCard(BuildContext context, UserProfile profile, String lang) {
+  Widget _buildStatsCard(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
@@ -426,24 +482,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(AppStrings.get('stat_requests', lang), '${profile.totalRequests}', Icons.assignment_rounded,
-              () => _openActivitiesSheet(context, 'talep', lang)),
+          _buildStatItem(
+            AppStrings.get('stat_requests', lang),
+            '${profile.totalRequests}',
+            Icons.assignment_rounded,
+            () => _openActivitiesSheet(context, 'talep', lang),
+          ),
           _buildStatDivider(),
-          _buildStatItem(AppStrings.get('stat_suggestions', lang), '${profile.totalSuggestions}',
-              Icons.record_voice_over_rounded, () => _openActivitiesSheet(context, 'oneri', lang)),
+          _buildStatItem(
+            AppStrings.get('stat_suggestions', lang),
+            '${profile.totalSuggestions}',
+            Icons.record_voice_over_rounded,
+            () => _openActivitiesSheet(context, 'oneri', lang),
+          ),
           _buildStatDivider(),
-          _buildStatItem(AppStrings.get('stat_supports', lang), '${profile.totalSupported}', Icons.thumb_up_rounded,
-              () => _openActivitiesSheet(context, 'destek', lang)),
+          _buildStatItem(
+            AppStrings.get('stat_supports', lang),
+            '${profile.totalSupported}',
+            Icons.thumb_up_rounded,
+            () => _openActivitiesSheet(context, 'destek', lang),
+          ),
           _buildStatDivider(),
-          _buildStatItem(AppStrings.get('stat_saved', lang), '${profile.totalSaved}', Icons.bookmark_rounded,
-              () => _openActivitiesSheet(context, 'kayit', lang)),
+          _buildStatItem(
+            AppStrings.get('stat_saved', lang),
+            '${profile.totalSaved}',
+            Icons.bookmark_rounded,
+            () => _openActivitiesSheet(context, 'kayit', lang),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildStatItem(
-      String label, String value, IconData icon, VoidCallback onTap) {
+    String label,
+    String value,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -477,11 +553,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildStatDivider() {
-    return Container(
-      width: 1,
-      height: 34,
-      color: const Color(0xFFE2E8F0),
-    );
+    return Container(width: 1, height: 34, color: const Color(0xFFE2E8F0));
   }
 
   // ───────────────────────── Bölüm Başlığı ─────────────────────────
@@ -506,7 +578,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Hesap Bölümü ─────────────────────────
 
-  Widget _buildAccountSection(BuildContext context, UserProfile profile, String lang) {
+  Widget _buildAccountSection(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     return _buildGroupCard([
       _buildListTile(
         icon: Icons.badge_rounded,
@@ -520,7 +596,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         icon: Icons.home_work_rounded,
         iconColor: _C.orange,
         title: AppStrings.get('tile_neighborhood', lang),
-        subtitle: '${profile.neighborhood} ${AppStrings.get('mahalle_suffix', lang)}',
+        subtitle:
+            '${profile.neighborhood} ${AppStrings.get('mahalle_suffix', lang)}',
         onTap: () => _openNeighborhoodPicker(context, profile),
       ),
       _buildDivider(),
@@ -536,13 +613,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Aktiviteler Bölümü ─────────────────────────
 
-  Widget _buildActivitiesSection(BuildContext context, UserProfile profile, String lang) {
+  Widget _buildActivitiesSection(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     return _buildGroupCard([
       _buildListTile(
         icon: Icons.assignment_turned_in_rounded,
         iconColor: const Color(0xFF1E5BC6),
         title: AppStrings.get('act_requests_title', lang),
-        subtitle: '${profile.totalRequests} ${AppStrings.get('stat_requests', lang)}',
+        subtitle:
+            '${profile.totalRequests} ${AppStrings.get('stat_requests', lang)}',
         onTap: () => _openActivitiesSheet(context, 'talep', lang),
       ),
       _buildDivider(),
@@ -550,7 +632,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         icon: Icons.lightbulb_rounded,
         iconColor: const Color(0xFFF57C00),
         title: AppStrings.get('act_suggestions_title', lang),
-        subtitle: '${profile.totalSuggestions} ${AppStrings.get('stat_suggestions', lang)}',
+        subtitle:
+            '${profile.totalSuggestions} ${AppStrings.get('stat_suggestions', lang)}',
         onTap: () => _openActivitiesSheet(context, 'oneri', lang),
       ),
       _buildDivider(),
@@ -558,7 +641,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         icon: Icons.favorite_rounded,
         iconColor: const Color(0xFFE5231B),
         title: AppStrings.get('act_supports_title', lang),
-        subtitle: '${profile.totalSupported} ${AppStrings.get('stat_supports', lang)}',
+        subtitle:
+            '${profile.totalSupported} ${AppStrings.get('stat_supports', lang)}',
         onTap: () => _openActivitiesSheet(context, 'destek', lang),
       ),
       _buildDivider(),
@@ -574,7 +658,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Ayarlar Bölümü ─────────────────────────
 
-  Widget _buildSettingsSection(BuildContext context, UserProfile profile, String lang) {
+  Widget _buildSettingsSection(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     String langLabel;
     switch (profile.language) {
       case 'en':
@@ -619,8 +707,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: const Color(0xFF5E35B1).withAlpha(25),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.format_size_rounded,
-                  color: Color(0xFF5E35B1), size: 22),
+              child: const Icon(
+                Icons.format_size_rounded,
+                color: Color(0xFF5E35B1),
+                size: 22,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -689,7 +780,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Butonlar (Çıkış & Hesap Sil) ─────────────────────────
 
-  Widget _buildActionButtons(BuildContext context, UserProfile profile, String lang) {
+  Widget _buildActionButtons(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     return Column(
       children: [
         // Çıkış Yap Butonu
@@ -805,8 +900,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: Color(0xFF94A3B8), size: 22),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Color(0xFF94A3B8),
+              size: 22,
+            ),
           ],
         ),
       ),
@@ -834,7 +932,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
-            Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -888,22 +990,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                _buildTextField('Ad Soyad', nameCtrl, Icons.person_outline_rounded),
+                _buildTextField(
+                  'Ad Soyad',
+                  nameCtrl,
+                  Icons.person_outline_rounded,
+                ),
                 const SizedBox(height: 12),
                 _buildTextField('E-posta', emailCtrl, Icons.email_outlined),
                 const SizedBox(height: 12),
-                _buildTextField('Telefon Numarası', phoneCtrl, Icons.phone_outlined),
+                _buildTextField(
+                  'Telefon Numarası',
+                  phoneCtrl,
+                  Icons.phone_outlined,
+                ),
                 const SizedBox(height: 12),
                 _buildTextField('T.C. Kimlik No', tcCtrl, Icons.badge_outlined),
                 const SizedBox(height: 12),
-                _buildTextField('Açık Adres', addrCtrl, Icons.location_on_outlined, maxLines: 2),
+                _buildTextField(
+                  'Açık Adres',
+                  addrCtrl,
+                  Icons.location_on_outlined,
+                  maxLines: 2,
+                ),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
                     onPressed: () async {
-                      await ref.read(profileServiceProvider).updateProfile(
+                      await ref
+                          .read(profileServiceProvider)
+                          .updateProfile(
                             fullName: nameCtrl.text.trim(),
                             email: emailCtrl.text.trim(),
                             phoneNumber: phoneCtrl.text.trim(),
@@ -921,8 +1038,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text('Kaydet ve Güncelle',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    child: const Text(
+                      'Kaydet ve Güncelle',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -933,7 +1055,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController ctrl, IconData icon, {int maxLines = 1}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController ctrl,
+    IconData icon, {
+    int maxLines = 1,
+  }) {
     return TextField(
       controller: ctrl,
       maxLines: maxLines,
@@ -942,7 +1069,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         prefixIcon: Icon(icon, size: 20, color: _C.navy),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -1005,23 +1135,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const Divider(height: 1, color: Color(0xFFF1F5FD)),
                   itemBuilder: (context, index) {
                     final n = _kGebzeNeighborhoods[index];
-                    final isSelected = profile.neighborhood.toLowerCase() == n.toLowerCase();
+                    final isSelected =
+                        profile.neighborhood.toLowerCase() == n.toLowerCase();
 
                     return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       title: Text(
                         '$n Mahallesi',
                         style: TextStyle(
                           fontSize: 14.5,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          fontWeight: isSelected
+                              ? FontWeight.w800
+                              : FontWeight.w600,
                           color: isSelected ? _C.navy : _C.textDark,
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: _C.navy)
+                          ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: _C.navy,
+                            )
                           : null,
                       onTap: () async {
-                        await ref.read(profileServiceProvider).updateNeighborhood(n);
+                        await ref
+                            .read(profileServiceProvider)
+                            .updateNeighborhood(n);
                         if (ctx.mounted) Navigator.of(ctx).pop();
                         _showSnackBar('Mahalleniz $n olarak güncellendi.');
                       },
@@ -1036,7 +1177,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openNotificationPreferences(BuildContext context, UserProfile profile, String lang) {
+  void _openNotificationPreferences(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     final prefs = Map<String, bool>.from(profile.notificationPreferences);
 
     showModalBottomSheet(
@@ -1072,26 +1217,54 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _buildSwitchTile('Anlık Bildirimler (Push)', prefs['push'] ?? true, (v) {
-                    setModalState(() => prefs['push'] = v);
-                    ref.read(profileServiceProvider).updateNotificationPreference('push', v);
-                  }),
-                  _buildSwitchTile('SMS Bildirimleri', prefs['sms'] ?? true, (v) {
+                  _buildSwitchTile(
+                    'Anlık Bildirimler (Push)',
+                    prefs['push'] ?? true,
+                    (v) {
+                      setModalState(() => prefs['push'] = v);
+                      ref
+                          .read(profileServiceProvider)
+                          .updateNotificationPreference('push', v);
+                    },
+                  ),
+                  _buildSwitchTile('SMS Bildirimleri', prefs['sms'] ?? true, (
+                    v,
+                  ) {
                     setModalState(() => prefs['sms'] = v);
-                    ref.read(profileServiceProvider).updateNotificationPreference('sms', v);
+                    ref
+                        .read(profileServiceProvider)
+                        .updateNotificationPreference('sms', v);
                   }),
-                  _buildSwitchTile('Kesinti Uyarıları (Su, Elektrik, Gaz)', prefs['outages'] ?? true, (v) {
-                    setModalState(() => prefs['outages'] = v);
-                    ref.read(profileServiceProvider).updateNotificationPreference('outages', v);
-                  }),
-                  _buildSwitchTile('Acil Durum & Afet Bildirimleri', prefs['emergency'] ?? true, (v) {
-                    setModalState(() => prefs['emergency'] = v);
-                    ref.read(profileServiceProvider).updateNotificationPreference('emergency', v);
-                  }),
-                  _buildSwitchTile('Söz Sende & Anket Bildirimleri', prefs['sozSende'] ?? true, (v) {
-                    setModalState(() => prefs['sozSende'] = v);
-                    ref.read(profileServiceProvider).updateNotificationPreference('sozSende', v);
-                  }),
+                  _buildSwitchTile(
+                    'Kesinti Uyarıları (Su, Elektrik, Gaz)',
+                    prefs['outages'] ?? true,
+                    (v) {
+                      setModalState(() => prefs['outages'] = v);
+                      ref
+                          .read(profileServiceProvider)
+                          .updateNotificationPreference('outages', v);
+                    },
+                  ),
+                  _buildSwitchTile(
+                    'Acil Durum & Afet Bildirimleri',
+                    prefs['emergency'] ?? true,
+                    (v) {
+                      setModalState(() => prefs['emergency'] = v);
+                      ref
+                          .read(profileServiceProvider)
+                          .updateNotificationPreference('emergency', v);
+                    },
+                  ),
+                  _buildSwitchTile(
+                    'Söz Sende & Anket Bildirimleri',
+                    prefs['sozSende'] ?? true,
+                    (v) {
+                      setModalState(() => prefs['sozSende'] = v);
+                      ref
+                          .read(profileServiceProvider)
+                          .updateNotificationPreference('sozSende', v);
+                    },
+                  ),
                 ],
               ),
             );
@@ -1101,7 +1274,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildSwitchTile(String title, bool val, ValueChanged<bool> onChanged) {
+  Widget _buildSwitchTile(
+    String title,
+    bool val,
+    ValueChanged<bool> onChanged,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1128,8 +1305,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openActivitiesSheet(BuildContext context, String initialType, [String lang = 'tr']) {
-    final activitiesStream = ref.read(profileServiceProvider).getActivitiesStream();
+  void _openActivitiesSheet(
+    BuildContext context,
+    String initialType, [
+    String lang = 'tr',
+  ]) {
+    final activitiesStream = ref
+        .read(profileServiceProvider)
+        .getActivitiesStream();
 
     showModalBottomSheet(
       context: context,
@@ -1144,10 +1327,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           initialIndex: initialType == 'oneri'
               ? 1
               : initialType == 'destek'
-                  ? 2
-                  : initialType == 'kayit'
-                      ? 3
-                      : 0,
+              ? 2
+              : initialType == 'kayit'
+              ? 3
+              : 0,
           child: Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(ctx).size.height * 0.78,
@@ -1178,7 +1361,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   labelColor: _C.navy,
                   unselectedLabelColor: _C.textMuted,
                   indicatorColor: _C.navy,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
                   tabs: [
                     Tab(text: AppStrings.get('stat_requests', lang)),
                     Tab(text: AppStrings.get('stat_suggestions', lang)),
@@ -1194,10 +1380,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       final list = snapshot.data ?? [];
                       return TabBarView(
                         children: [
-                          _buildActivityList(list.where((a) => a.type == 'talep').toList()),
-                          _buildActivityList(list.where((a) => a.type == 'oneri').toList()),
-                          _buildActivityList(list.where((a) => a.type == 'destek').toList()),
-                          _buildActivityList(list.where((a) => a.type == 'kayit').toList()),
+                          _buildActivityList(
+                            list.where((a) => a.type == 'talep').toList(),
+                          ),
+                          _buildActivityList(
+                            list.where((a) => a.type == 'oneri').toList(),
+                          ),
+                          _buildActivityList(
+                            list.where((a) => a.type == 'destek').toList(),
+                          ),
+                          _buildActivityList(
+                            list.where((a) => a.type == 'kayit').toList(),
+                          ),
                         ],
                       );
                     },
@@ -1223,7 +1417,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               SizedBox(height: 10),
               Text(
                 'Henüz bu kategoride aktiviteniz yok',
-                style: TextStyle(fontSize: 14, color: _C.textMuted, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _C.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -1266,7 +1464,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: _C.navy.withAlpha(20),
                       borderRadius: BorderRadius.circular(8),
@@ -1281,7 +1482,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: statusColor.withAlpha(25),
                       borderRadius: BorderRadius.circular(8),
@@ -1315,11 +1519,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF94A3B8)),
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 12,
+                    color: Color(0xFF94A3B8),
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     item.date,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ),
                 ],
               ),
@@ -1330,7 +1541,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openLanguagePicker(BuildContext context, UserProfile profile, String lang) {
+  void _openLanguagePicker(
+    BuildContext context,
+    UserProfile profile,
+    String lang,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -1346,7 +1561,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Text(
                 AppStrings.get('tile_language', lang),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _C.textDark),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: _C.textDark,
+                ),
               ),
               const SizedBox(height: 14),
               _buildLanguageItem('Türkçe', 'tr', '🇹🇷', lang, (code) {
@@ -1375,16 +1594,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildLanguageItem(
-      String label, String code, String flag, String currentCode, ValueChanged<String> onSelect) {
+    String label,
+    String code,
+    String flag,
+    String currentCode,
+    ValueChanged<String> onSelect,
+  ) {
     final isSelected = currentCode == code;
 
     return ListTile(
       leading: Text(flag, style: const TextStyle(fontSize: 24)),
-      title: Text(label,
-          style: TextStyle(
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected ? _C.navy : _C.textDark)),
-      trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: _C.navy) : null,
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          color: isSelected ? _C.navy : _C.textDark,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle_rounded, color: _C.navy)
+          : null,
       onTap: () => onSelect(code),
     );
   }
@@ -1405,12 +1634,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               const Text(
                 'Tema Tercihini Seçin',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _C.textDark),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: _C.textDark,
+                ),
               ),
               const SizedBox(height: 14),
-              _buildThemeOption('Açık Tema', 'light', Icons.light_mode_rounded, profile.themeMode),
-              _buildThemeOption('Koyu Tema', 'dark', Icons.dark_mode_rounded, profile.themeMode),
-              _buildThemeOption('Sistem Varsayılanı', 'system', Icons.phone_android_rounded, profile.themeMode),
+              _buildThemeOption(
+                'Açık Tema',
+                'light',
+                Icons.light_mode_rounded,
+                profile.themeMode,
+              ),
+              _buildThemeOption(
+                'Koyu Tema',
+                'dark',
+                Icons.dark_mode_rounded,
+                profile.themeMode,
+              ),
+              _buildThemeOption(
+                'Sistem Varsayılanı',
+                'system',
+                Icons.phone_android_rounded,
+                profile.themeMode,
+              ),
             ],
           ),
         );
@@ -1418,16 +1666,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildThemeOption(String label, String mode, IconData icon, String currentMode) {
+  Widget _buildThemeOption(
+    String label,
+    String mode,
+    IconData icon,
+    String currentMode,
+  ) {
     final isSelected = currentMode == mode;
 
     return ListTile(
       leading: Icon(icon, color: isSelected ? _C.navy : _C.textMuted),
-      title: Text(label,
-          style: TextStyle(
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected ? _C.navy : _C.textDark)),
-      trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: _C.navy) : null,
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          color: isSelected ? _C.navy : _C.textDark,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle_rounded, color: _C.navy)
+          : null,
       onTap: () {
         ref.read(profileServiceProvider).updateThemeMode(mode);
         Navigator.of(context).pop();
@@ -1443,13 +1701,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          title: const Text('Profil Resmi Değiştir', style: TextStyle(fontWeight: FontWeight.w800)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
+          title: const Text(
+            'Profil Resmi Değiştir',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Profil resminiz için bir görsel bağlantısı (URL) girebilirsiniz:',
-                  style: TextStyle(fontSize: 13, color: _C.textMuted)),
+              const Text(
+                'Profil resminiz için bir görsel bağlantısı (URL) girebilirsiniz:',
+                style: TextStyle(fontSize: 13, color: _C.textMuted),
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: urlCtrl,
@@ -1457,7 +1722,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   hintText: 'https://...',
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ],
@@ -1469,7 +1736,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                ref.read(profileServiceProvider).updateAvatarUrl(urlCtrl.text.trim());
+                ref
+                    .read(profileServiceProvider)
+                    .updateAvatarUrl(urlCtrl.text.trim());
                 Navigator.of(ctx).pop();
                 _showSnackBar('Profil resmi güncellendi.');
               },
@@ -1490,8 +1759,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          title: Text(AppStrings.get('btn_logout', lang), style: const TextStyle(fontWeight: FontWeight.w800)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
+          title: Text(
+            AppStrings.get('btn_logout', lang),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
           content: Text(AppStrings.get('confirm_signout_msg', lang)),
           actions: [
             TextButton(
@@ -1503,7 +1777,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Navigator.of(ctx).pop();
                 _showSnackBar(AppStrings.get('logged_out_msg', lang));
               },
-              style: ElevatedButton.styleFrom(backgroundColor: _C.navy, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _C.navy,
+                foregroundColor: Colors.white,
+              ),
               child: Text(AppStrings.get('btn_logout', lang)),
             ),
           ],
@@ -1517,13 +1794,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
           title: Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: _C.danger, size: 26),
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: _C.danger,
+                size: 26,
+              ),
               const SizedBox(width: 8),
-              Text(AppStrings.get('btn_delete_account', lang),
-                  style: const TextStyle(fontWeight: FontWeight.w800, color: _C.danger)),
+              Text(
+                AppStrings.get('btn_delete_account', lang),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: _C.danger,
+                ),
+              ),
             ],
           ),
           content: Text(
@@ -1541,7 +1829,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (ctx.mounted) Navigator.of(ctx).pop();
                 _showSnackBar(AppStrings.get('account_deleted_msg', lang));
               },
-              style: ElevatedButton.styleFrom(backgroundColor: _C.danger, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _C.danger,
+                foregroundColor: Colors.white,
+              ),
               child: Text(AppStrings.get('btn_confirm_delete', lang)),
             ),
           ],
@@ -1579,8 +1870,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('KVKK ve Gizlilik Politikası',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: _C.textDark)),
+                  const Text(
+                    'KVKK ve Gizlilik Politikası',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: _C.textDark,
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
                     onPressed: () => Navigator.of(ctx).pop(),
@@ -1597,7 +1894,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     '3. Veri İşleme Amacı: Belediye hizmetlerinin hızlı, verimli ve dijital olarak vatandaşlara ulaştırılması, acil durum bildirimlerinin iletilmesi.\n'
                     '4. Veri Aktarımı: Verileriniz üçüncü şahıslarla ticari amaçla paylaşılmaz, yalnızca yasal zorunluluk hallerinde yetkili kamu kurumlarıyla paylaşılabilir.\n'
                     '5. Haklarınız: KVKK Madde 11 uyarınca dilediğiniz zaman verilerinizin güncellenmesini, silinmesini veya işlenip işlenmediğini öğrenmeyi talep edebilirsiniz.',
-                    style: TextStyle(fontSize: 13, height: 1.5, color: _C.textMuted),
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.5,
+                      color: _C.textMuted,
+                    ),
                   ),
                 ),
               ),
@@ -1642,7 +1943,10 @@ class _BottomNav extends ConsumerWidget {
       _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
       _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
       _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+      _NavItem(
+        AppStrings.get('nav_profile', lang),
+        Icons.person_outline_rounded,
+      ),
     ];
 
     return Material(
@@ -1674,7 +1978,9 @@ class _BottomNav extends ConsumerWidget {
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
-                            fontWeight: i == index ? FontWeight.w800 : FontWeight.w500,
+                            fontWeight: i == index
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: i == index ? _C.orange : Colors.white70,
                           ),
                         ),
