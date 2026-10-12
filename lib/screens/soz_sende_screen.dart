@@ -35,12 +35,40 @@ const List<String> _kBodyFontFallback = [
 ];
 
 List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(24),
-        blurRadius: 16,
-        offset: const Offset(0, 5),
-      ),
-    ];
+  BoxShadow(
+    color: const Color(0xFF0A2A66).withAlpha(24),
+    blurRadius: 16,
+    offset: const Offset(0, 5),
+  ),
+];
+
+List<Map<String, dynamic>> _readPollOptions(Map<String, dynamic> poll) {
+  final rawOptions = poll['options'];
+  if (rawOptions is! List) return [];
+
+  final rawVotes = poll['votes'];
+  return List.generate(rawOptions.length, (i) {
+    final rawOption = rawOptions[i];
+    final option = rawOption is Map
+        ? Map<String, dynamic>.from(rawOption)
+        : null;
+    final storedVotes = rawVotes is List
+        ? (i < rawVotes.length ? rawVotes[i] : null)
+        : rawVotes is Map
+        ? (rawVotes[i.toString()] ?? rawVotes[i])
+        : null;
+
+    return {
+      'text': (option?['text'] ?? rawOption ?? '').toString(),
+      'votes': _pollVoteCount(storedVotes ?? option?['votes']),
+    };
+  });
+}
+
+int _pollVoteCount(dynamic value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
 
 const List<String> _kNeighborhoods = [
   'Tümü',
@@ -105,8 +133,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
   static const _fallbackSuggestions = <Map<String, dynamic>>[
     {
       'title': 'Hacıhalil\'e ek otobüs durağı',
-      'description':
-          'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
+      'description': 'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
       'neighborhood': 'Hacıhalil',
       'category': 'Ulaşım',
       'status': 'İnceleniyor',
@@ -157,12 +184,18 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         final snap = await tx.get(ref);
         final data = snap.data();
         if (data == null) return;
-        final options = List<Map<String, dynamic>>.from(
-          (data['options'] as List).map((e) => Map<String, dynamic>.from(e as Map)),
-        );
-        options[optionIndex]['votes'] =
-            ((options[optionIndex]['votes'] ?? 0) as num).toInt() + 1;
-        tx.update(ref, {'options': options});
+        final options = _readPollOptions(data);
+        if (optionIndex < 0 || optionIndex >= options.length) {
+          throw StateError('Anket seçeneği artık mevcut değil.');
+        }
+
+        final rawVotes = data['votes'];
+        final votes = rawVotes is Map
+            ? Map<String, dynamic>.from(rawVotes)
+            : <String, dynamic>{};
+        votes[optionIndex.toString()] =
+            _pollVoteCount(options[optionIndex]['votes']) + 1;
+        tx.update(ref, {'votes': votes});
       });
     } catch (e) {
       if (!mounted) return;
@@ -196,11 +229,13 @@ class _SozSendeScreenState extends State<SozSendeScreen>
   void _snack(String msg) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(msg),
-        backgroundColor: _C.navyDeep,
-        behavior: SnackBarBehavior.floating,
-      ));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: _C.navyDeep,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 
   void _openNewSuggestion() {
@@ -227,7 +262,9 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: Scaffold(
           backgroundColor: _C.bg,
           floatingActionButton: _tab.index == 1
@@ -249,10 +286,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
               Expanded(
                 child: TabBarView(
                   controller: _tab,
-                  children: [
-                    _buildPollsTab(),
-                    _buildSuggestionsTab(),
-                  ],
+                  children: [_buildPollsTab(), _buildSuggestionsTab()],
                 ),
               ),
             ],
@@ -287,7 +321,9 @@ class _SozSendeScreenState extends State<SozSendeScreen>
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: isSelected ? _C.navy : Colors.grey.withAlpha(50)),
+              side: BorderSide(
+                color: isSelected ? _C.navy : Colors.grey.withAlpha(50),
+              ),
             ),
           );
         },
@@ -310,9 +346,13 @@ class _SozSendeScreenState extends State<SozSendeScreen>
 
         final List<Map<String, dynamic>> items;
         if (snap.hasData && snap.data!.docs.isNotEmpty) {
-          items = snap.data!.docs.map((d) => {...d.data(), '_id': d.id}).toList();
+          items = snap.data!.docs
+              .map((d) => {...d.data(), '_id': d.id})
+              .toList();
         } else {
-          items = _fallbackPolls.map((e) => Map<String, dynamic>.from(e)).toList();
+          items = _fallbackPolls
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
 
         final filtered = items.where(_matchesNeighborhood).toList();
@@ -358,7 +398,9 @@ class _SozSendeScreenState extends State<SozSendeScreen>
 
         List<Map<String, dynamic>> items;
         if (snap.hasData && snap.data!.docs.isNotEmpty) {
-          items = snap.data!.docs.map((d) => {...d.data(), '_id': d.id}).toList();
+          items = snap.data!.docs
+              .map((d) => {...d.data(), '_id': d.id})
+              .toList();
           // Index gerektirmemesi için istemci tarafında sırala (yeni → eski)
           items.sort((a, b) {
             final ta = a['createdAt'];
@@ -369,7 +411,9 @@ class _SozSendeScreenState extends State<SozSendeScreen>
             return 0;
           });
         } else {
-          items = _fallbackSuggestions.map((e) => Map<String, dynamic>.from(e)).toList();
+          items = _fallbackSuggestions
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
 
         final filtered = items.where(_matchesNeighborhood).toList();
@@ -429,8 +473,11 @@ class _Header extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   const Expanded(
@@ -451,8 +498,11 @@ class _Header extends StatelessWidget {
                       gradient: const LinearGradient(colors: _C.orangeGradient),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.record_voice_over_rounded,
-                        color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.record_voice_over_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),
@@ -479,8 +529,10 @@ class _Header extends StatelessWidget {
                   ),
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white70,
-                  labelStyle:
-                      const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
                   tabs: const [
                     Tab(text: 'Oylamalar'),
                     Tab(text: 'Fikir & Öneriler'),
@@ -512,9 +564,7 @@ class _PollCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final options = (data['options'] as List? ?? [])
-        .map((e) => Map<String, dynamic>.from(e as Map))
-        .toList();
+    final options = _readPollOptions(data);
 
     // Demo veride oy Firestore'a yazılmadığı için ekranda +1 gösteriyoruz.
     int votesOf(int i) {
@@ -522,7 +572,10 @@ class _PollCard extends StatelessWidget {
       return base + (isDemo && votedIndex == i ? 1 : 0);
     }
 
-    final total = List.generate(options.length, votesOf).fold<int>(0, (a, b) => a + b);
+    final total = List.generate(
+      options.length,
+      votesOf,
+    ).fold<int>(0, (a, b) => a + b);
     final hasVoted = votedIndex != null;
 
     return Container(
@@ -548,7 +601,10 @@ class _PollCard extends StatelessWidget {
                 Text(
                   'Bitiş: ${data['endDate']}',
                   style: const TextStyle(
-                      fontSize: 11, color: _C.textMuted, fontWeight: FontWeight.w600),
+                    fontSize: 11,
+                    color: _C.textMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
             ],
           ),
@@ -576,21 +632,35 @@ class _PollCard extends StatelessWidget {
           const SizedBox(height: 2),
           Row(
             children: [
-              const Icon(Icons.people_alt_rounded, size: 14, color: _C.textMuted),
+              const Icon(
+                Icons.people_alt_rounded,
+                size: 14,
+                color: _C.textMuted,
+              ),
               const SizedBox(width: 5),
               Text(
                 '$total oy',
                 style: const TextStyle(
-                    fontSize: 11.5, color: _C.textMuted, fontWeight: FontWeight.w700),
+                  fontSize: 11.5,
+                  color: _C.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               if (hasVoted) ...[
                 const Spacer(),
-                const Icon(Icons.check_circle_rounded, size: 15, color: _C.green),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 15,
+                  color: _C.green,
+                ),
                 const SizedBox(width: 4),
                 const Text(
                   'Oyunuz kaydedildi',
                   style: TextStyle(
-                      fontSize: 11.5, color: _C.green, fontWeight: FontWeight.w700),
+                    fontSize: 11.5,
+                    color: _C.green,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ],
@@ -650,7 +720,9 @@ class _PollOption extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: selected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         color: _C.textDark,
                       ),
                     ),
@@ -665,8 +737,11 @@ class _PollOption extends StatelessWidget {
                       ),
                     )
                   else
-                    const Icon(Icons.radio_button_unchecked_rounded,
-                        size: 18, color: _C.textMuted),
+                    const Icon(
+                      Icons.radio_button_unchecked_rounded,
+                      size: 18,
+                      color: _C.textMuted,
+                    ),
                 ],
               ),
             ),
@@ -749,7 +824,11 @@ class _SuggestionCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             (data['description'] ?? '').toString(),
-            style: const TextStyle(fontSize: 12.5, color: _C.textMuted, height: 1.35),
+            style: const TextStyle(
+              fontSize: 12.5,
+              color: _C.textMuted,
+              height: 1.35,
+            ),
           ),
           const SizedBox(height: 10),
           Divider(height: 1, color: Colors.grey.withAlpha(35)),
@@ -760,11 +839,16 @@ class _SuggestionCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 onTap: onLike,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 6,
+                  ),
                   child: Row(
                     children: [
                       Icon(
-                        liked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+                        liked
+                            ? Icons.thumb_up_rounded
+                            : Icons.thumb_up_outlined,
                         size: 18,
                         color: liked ? _C.orange : _C.textMuted,
                       ),
@@ -810,7 +894,11 @@ class _Badge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: color),
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -834,7 +922,10 @@ class _EmptyState extends StatelessWidget {
           Text(
             text,
             style: const TextStyle(
-                fontSize: 13.5, color: _C.textMuted, fontWeight: FontWeight.w600),
+              fontSize: 13.5,
+              color: _C.textMuted,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -870,7 +961,9 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
     final title = _title.text.trim();
     final desc = _desc.text.trim();
     if (title.length < 5 || desc.length < 10) {
-      setState(() => _error = 'Başlık en az 5, açıklama en az 10 karakter olmalı.');
+      setState(
+        () => _error = 'Başlık en az 5, açıklama en az 10 karakter olmalı.',
+      );
       return;
     }
     setState(() {
@@ -898,16 +991,16 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontSize: 13, color: _C.textMuted),
-        filled: true,
-        fillColor: _C.bg,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      );
+    hintText: hint,
+    hintStyle: const TextStyle(fontSize: 13, color: _C.textMuted),
+    filled: true,
+    fillColor: _C.bg,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -937,13 +1030,17 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
             const Text(
               'Fikrini Paylaş',
               style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w900, color: _C.navy),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: _C.navy,
+              ),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _title,
               maxLength: 80,
-              decoration: _dec('Başlık (örn. Parka bank konulsun)').copyWith(counterText: ''),
+              decoration: _dec('Başlık (örn. Parka bank konulsun)')
+                  .copyWith(counterText: ''),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -964,7 +1061,8 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                         .skip(1)
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => setState(() => _neighborhood = v ?? _neighborhood),
+                    onChanged: (v) =>
+                        setState(() => _neighborhood = v ?? _neighborhood),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -976,16 +1074,22 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                     items: _kCategories
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => setState(() => _category = v ?? _category),
+                    onChanged: (v) =>
+                        setState(() => _category = v ?? _category),
                   ),
                 ),
               ],
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!,
-                  style: const TextStyle(
-                      color: _C.danger, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(
+                _error!,
+                style: const TextStyle(
+                  color: _C.danger,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
             const SizedBox(height: 14),
             SizedBox(
@@ -997,16 +1101,22 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                   backgroundColor: _C.navy,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  textStyle:
-                      const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
                 ),
                 child: _sending
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Gönder'),
               ),
