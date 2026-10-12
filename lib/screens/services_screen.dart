@@ -1,6 +1,9 @@
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
 import 'soz_sende_screen.dart';
+import '../features/pharmacy/presentation/pharmacies_screen.dart';
+import '../features/weather/presentation/weather_screen.dart';
+import '../features/news/municipal_news_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -130,6 +133,24 @@ class _ServicesScreenState extends State<ServicesScreen> {
     if (s.id == 'soz_sende') {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const SozSendeScreen()),
+    );
+  }
+  if (s.id == 'nobetci_eczane') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
+    );
+    return;
+  }
+  if (s.id == 'hava_durumu') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const WeatherScreen()),
+    );
+    return;
+  }
+  if (s.id == 'haberler') {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const MunicipalNewsScreen()),
+
     );
     return;
   }
