@@ -130,10 +130,11 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
     return;
   }
-    if (s.id == 'soz_sende') {
+      if (s.id == 'soz_sende') {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const SozSendeScreen()),
     );
+    return;
   }
   if (s.id == 'nobetci_eczane') {
     Navigator.of(context).push(
