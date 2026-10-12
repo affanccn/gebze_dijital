@@ -5,13 +5,12 @@ class _C {
   static const navy = Color(0xFF0A2A66);
   static const navyDeep = Color(0xFF061B45);
   static const orange = Color(0xFFFF7A00);
-  static const bg = Color(0xFFF1F5FD);
+  static const bg = Color(0xFFF6F8FC);
+  static const line = Color(0xFFE4E9F2);
   static const textDark = Color(0xFF0A1F44);
   static const textMuted = Color(0xFF5F6F8A);
   static const danger = Color(0xFFE5231B);
-
-  static const dangerGradient = [Color(0xFFFF5A4F), Color(0xFFE5231B)];
-  static const navyGradient = [Color(0xFF1E5BC6), Color(0xFF0A2A66)];
+  static const green = Color(0xFF2E7D32);
 }
 
 const String _kBodyFont = 'system-ui';
@@ -26,13 +25,11 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(24),
-        blurRadius: 16,
-        offset: const Offset(0, 5),
-      ),
-    ];
+BoxDecoration _cardDeco([double r = 18]) => BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(r),
+      border: Border.all(color: _C.line),
+    );
 
 /// Toplanma Alanı Veri Modeli
 class AssemblyArea {
@@ -161,10 +158,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           backgroundColor: _C.bg,
           body: Column(
             children: [
-              _Header(),
+              const _Header(),
               Expanded(
                 child: ListView(
-                  physics: const ClampingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                   children: [
                     // 112 Butonu
@@ -174,18 +171,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                       phone: '112',
                       onTap: () => _callNumber('112 Acil', '112'),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 22),
 
-                    // Hızlı Yardım Numaraları Grid
-                    const Text(
-                      'HIZLI ARAMA NUMARALARI',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: _C.navy,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    // Hızlı Yardım Numaraları
+                    const _SectionLabel('HIZLI ARAMA NUMARALARI'),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -212,41 +201,36 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 26),
 
                     // Toplanma Alanları Başlığı ve Arama Kutusu
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'ACİL TOPLANMA ALANLARI',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: _C.navy,
-                            letterSpacing: 0.5,
+                        const _SectionLabel('ACİL TOPLANMA ALANLARI'),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _C.navy.withAlpha(16),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                        ),
-                        Text(
-                          '${areas.length} Alan',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: _C.textMuted,
+                          child: Text(
+                            '${areas.length} Alan',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: _C.navy,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
 
                     // Mahalle / Alan Arama Input'u
                     Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: _softShadow(),
-                      ),
+                      height: 46,
+                      decoration: _cardDeco(14),
                       child: TextField(
                         onChanged: (val) => setState(() => _searchAreaQuery = val),
                         style: const TextStyle(fontSize: 13, color: _C.textDark),
@@ -255,7 +239,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                           hintStyle: TextStyle(fontSize: 12.5, color: _C.textMuted),
                           prefixIcon: Icon(Icons.search_rounded, size: 20, color: _C.textMuted),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(vertical: 13),
                         ),
                       ),
                     ),
@@ -291,63 +275,98 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: _C.orange,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w900,
+            color: _C.navy,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ───────────────────────── Üst Başlık ─────────────────────────
 
 class _Header extends StatelessWidget {
+  const _Header();
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_C.danger, Color(0xFFB71C1C)],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-      ),
+      color: _C.danger,
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(36),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 4),
-                  const Expanded(
-                    child: Text(
+                  child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 17),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       'ACİL DURUM & TOPLANMA',
                       style: TextStyle(
-                        fontSize: 19,
+                        fontSize: 17,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.4,
                       ),
                     ),
-                  ),
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(40),
-                      borderRadius: BorderRadius.circular(12),
+                    SizedBox(height: 2),
+                    Text(
+                      'Gebze acil çağrı hatları ve en yakın güvenli toplanma bölgeleri.',
+                      style: TextStyle(fontSize: 11.5, color: Colors.white70),
                     ),
-                    child: const Icon(Icons.emergency_rounded, color: Colors.white, size: 22),
-                  ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.only(left: 48, top: 2),
-                child: Text(
-                  'Gebze acil çağrı hatları ve en yakın güvenli toplanma bölgeleri.',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                  ],
                 ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.emergency_rounded, color: _C.danger, size: 22),
               ),
             ],
           ),
@@ -377,35 +396,25 @@ class _MainCallCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFE5231B), Color(0xFFB71C1C)],
-            ),
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: _C.danger.withAlpha(100),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _C.danger, width: 1.6),
           ),
           child: Row(
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(45),
+                  color: _C.danger.withAlpha(24),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 30),
+                child: const Icon(Icons.phone_in_talk_rounded, color: _C.danger, size: 28),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -415,33 +424,33 @@ class _MainCallCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 15.5,
+                        fontSize: 14.5,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: _C.textDark,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
                       maxLines: 2,
-                      style: const TextStyle(fontSize: 11, color: Colors.white70, height: 1.2),
+                      style: const TextStyle(fontSize: 11, color: _C.textMuted, height: 1.25),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: _C.danger,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
                   phone,
                   style: const TextStyle(
-                    color: _C.danger,
+                    color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: 19,
+                    fontSize: 20,
                   ),
                 ),
               ),
@@ -477,15 +486,11 @@ class _QuickCallBox extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Ink(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: _softShadow(),
-          ),
+          decoration: _cardDeco(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -496,15 +501,23 @@ class _QuickCallBox extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: color.withAlpha(25),
-                      borderRadius: BorderRadius.circular(12),
+                      color: color.withAlpha(26),
+                      shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, color: color, size: 22),
+                    child: Icon(icon, color: color, size: 21),
                   ),
-                  const Icon(Icons.call_rounded, color: _C.textMuted, size: 18),
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: _C.green.withAlpha(24),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.call_rounded, color: _C.green, size: 16),
+                  ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 title,
                 maxLines: 1,
@@ -522,11 +535,11 @@ class _QuickCallBox extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 11, color: _C.textMuted),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 number,
                 style: TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 16,
                   fontWeight: FontWeight.w900,
                   color: color,
                 ),
@@ -554,11 +567,7 @@ class _AssemblyAreaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
-      ),
+      decoration: _cardDeco(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -566,13 +575,13 @@ class _AssemblyAreaCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(14),
+                  color: _C.green.withAlpha(24),
+                  shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.groups_rounded, color: Color(0xFF2E7D32), size: 24),
+                child: const Icon(Icons.groups_rounded, color: _C.green, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -585,9 +594,10 @@ class _AssemblyAreaCard extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: _C.textDark,
+                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       '${area.neighborhood} • ${area.address}',
                       style: const TextStyle(fontSize: 11.5, color: _C.textMuted),
@@ -595,13 +605,13 @@ class _AssemblyAreaCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               // Mesafe rozeti
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _C.bg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _C.navy.withAlpha(20)),
+                  color: _C.navy.withAlpha(16),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -621,9 +631,7 @@ class _AssemblyAreaCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Divider(height: 1, color: Colors.grey.withAlpha(35)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -653,12 +661,12 @@ class _AssemblyAreaCard extends StatelessWidget {
                 icon: const Icon(Icons.directions_rounded, size: 15),
                 label: const Text('Yol Tarifi'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _C.navy,
-                  foregroundColor: Colors.white,
+                  backgroundColor: _C.navy.withAlpha(16),
+                  foregroundColor: _C.navy,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ],
