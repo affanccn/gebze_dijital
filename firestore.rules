@@ -9,6 +9,7 @@ service cloud.firestore {
     match /outages/{id}              { allow read: if true; allow write: if false; }
     match /pharmacies_on_duty/{id}   { allow read: if true; allow write: if false; }
     match /weather_info/{id}         { allow read: if true; allow write: if false; }
+    match /pet_adoptions/{id}        { allow read: if true; allow write: if false; }
 
     // Geri kalan her şey kapalı
     match /{document=**} { allow read, write: if false; }

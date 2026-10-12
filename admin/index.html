@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gebze Belediyesi - Sahiplendirme Yönetim Paneli</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Firebase App & Firestore SDKs (v10 Modular) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      deleteDoc, 
+      doc, 
+      updateDoc, 
+      serverTimestamp, 
+      query, 
+      orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Firebase Ayarları (gebze-dijital)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4CqNJxmmKPTTnFqjzHbFvvH3FZN8VIRM",
+      authDomain: "gebze-dijital.firebaseapp.com",
+      projectId: "gebze-dijital",
+      storageBucket: "gebze-dijital.firebasestorage.app",
+      messagingSenderId: "417554808986",
+      appId: "1:417554808986:web:aea3daf07f5b6534301f23"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Global Referanslar
+    window.db = db;
+    window.firestoreOps = {
+      collection, addDoc, getDocs, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy
+    };
+
+    // İlk Yükleme
+    document.addEventListener("DOMContentLoaded", () => {
+      loadPets();
+      setupForm();
+    });
+
+    async function loadPets() {
+      const container = document.getElementById("petsGrid");
+      const loading = document.getElementById("loadingIndicator");
+      loading.style.display = "block";
+      container.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "pet_adoptions"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+
+        loading.style.display = "none";
+
+        if (snapshot.empty) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v1H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3h-2V6a4 4 0 0 0-4-4z"/></svg>
+              <p>Henüz sisteme eklenmiş hayvan bulunmuyor.</p>
+            </div>
+          `;
+          return;
+        }
+
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const card = createPetCard(docSnap.id, data);
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Yükleme hatası:", err);
+        loading.style.display = "none";
+        container.innerHTML = `
+          <div class="alert alert-error">
+            Veriler alınırken hata oluştu: ${err.message}. Lütfen Firestore kurallarını ve bağlantınızı kontrol edin.
+          </div>
+        `;
+      }
+    }
+
+    function createPetCard(id, data) {
+      const card = document.createElement("div");
+      card.className = "pet-card";
+
+      const imgUrl = data.imageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80";
+
+      card.innerHTML = `
+        <div class="card-img-wrapper">
+          <img src="${imgUrl}" alt="${data.name}" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80'">
+          <span class="badge ${data.species === 'Köpek' ? 'badge-primary' : 'badge-orange'}">${data.species} • ${data.breed || 'Melez'}</span>
+          ${data.isAdopted ? '<span class="badge badge-success" style="right:12px;left:auto;">Sahiplendirildi</span>' : ''}
+        </div>
+        <div class="card-body">
+          <div class="card-header-row">
+            <h3>${data.name}</h3>
+            <span class="pet-meta">${data.gender} • ${data.age}</span>
+          </div>
+          <p class="pet-desc">${data.description || 'Açıklama belirtilmedi.'}</p>
+          <div class="pet-health">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E5BC6" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>${data.healthStatus || 'Aşıları ve kontrolleri yapıldı'}</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-outline" onclick="window.toggleAdopted('${id}', ${!data.isAdopted})">
+              ${data.isAdopted ? 'Tekrar İlana Al' : 'Sahiplendirildi Olarak İşaretle'}
+            </button>
+            <button class="btn btn-danger" onclick="window.deletePet('${id}')">
+              Sil
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function setupForm() {
+      const form = document.getElementById("addPetForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Kaydediliyor...";
+
+        const newPet = {
+          name: document.getElementById("petName").value.trim(),
+          species: document.getElementById("petSpecies").value,
+          breed: document.getElementById("petBreed").value.trim() || "Melez",
+          gender: document.getElementById("petGender").value,
+          age: document.getElementById("petAge").value.trim() || "Genç",
+          imageUrl: document.getElementById("petImageUrl").value.trim(),
+          description: document.getElementById("petDescription").value.trim(),
+          healthStatus: document.getElementById("petHealthStatus").value.trim() || "Aşılı, çipli ve sağlıklı",
+          centerPhone: "(0262) 642 04 30", // Her zaman Gebze Belediyesi Rehabilitasyon Merkezi
+          isAdopted: false,
+          createdAt: serverTimestamp()
+        };
+
+        try {
+          await addDoc(collection(db, "pet_adoptions"), newPet);
+          form.reset();
+          showNotification("Can dostumuz başarıyla sisteme eklendi ve Gebze Dijital uygulamasında yayına girdi!");
+          loadPets();
+        } catch (err) {
+          alert("Hata oluştu: " + err.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Can Dostumuzu Kaydet ve Yayına Al";
+        }
+      });
+    }
+
+    window.deletePet = async (id) => {
+      if (!confirm("Bu ilanı silmek istediğinize emin misiniz?")) return;
+      try {
+        await deleteDoc(doc(db, "pet_adoptions", id));
+        showNotification("İlan başarıyla silindi.");
+        loadPets();
+      } catch (err) {
+        alert("Silinirken hata: " + err.message);
+      }
+    };
+
+    window.toggleAdopted = async (id, status) => {
+      try {
+        await updateDoc(doc(db, "pet_adoptions", id), {
+          isAdopted: status
+        });
+        showNotification("İlan durumu güncellendi.");
+        loadPets();
+      } catch (err) {
+        alert("Güncellenirken hata: " + err.message);
+      }
+    };
+
+    function showNotification(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = "toast show";
+      setTimeout(() => {
+        toast.className = "toast";
+      }, 3500);
+    }
+  </script>
+
+  <style>
+    :root {
+      --navy: #0A2A66;
+      --navy-deep: #061B45;
+      --navy-light: #1E5BC6;
+      --orange: #FF7A00;
+      --orange-light: #FFA11F;
+      --bg: #F1F5FD;
+      --card-bg: #FFFFFF;
+      --text-dark: #0A1F44;
+      --text-muted: #5F6F8A;
+      --danger: #E5231B;
+      --success: #2E7D32;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-dark);
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
+      color: white;
+      padding: 24px 32px;
+      box-shadow: 0 4px 20px rgba(10, 42, 102, 0.2);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .brand-title h1 {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .header-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 18px rgba(10, 42, 102, 0.08);
+      height: fit-content;
+    }
+
+    .panel-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(10, 42, 102, 0.08);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+    }
+
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(10, 42, 102, 0.15);
+      font-size: 13.5px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .form-group input:focus, 
+    .form-group select:focus, 
+    .form-group textarea:focus {
+      border-color: var(--navy-light);
+      box-shadow: 0 0 0 3px rgba(30, 91, 198, 0.12);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--navy);
+      border: 1.5px solid rgba(10, 42, 102, 0.2);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg);
+    }
+
+    .btn-danger {
+      background: #FFEBEE;
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: #FFCDD2;
+    }
+
+    /* Pets Grid */
+    .pets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .pet-card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 18px rgba(10, 42, 102, 0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(10, 42, 102, 0.05);
+    }
+
+    .card-img-wrapper {
+      position: relative;
+      height: 180px;
+      background: #e2e8f0;
+    }
+
+    .card-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .badge-primary { background: var(--navy); }
+    .badge-orange { background: var(--orange); }
+    .badge-success { background: var(--success); }
+
+    .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-header-row h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .pet-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .pet-desc {
+      font-size: 12.5px;
+      color: #4A5568;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      flex: 1;
+    }
+
+    .pet-health {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--navy-deep);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 48px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-state svg {
+      margin-bottom: 12px;
+      stroke: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">🐾</div>
+        <div class="brand-title">
+          <h1>Gebze Belediyesi • Can Dostlarımız Yönetim Paneli</h1>
+          <p>Gebze Pati Sahiplendirme İlanları ve Sokak Hayvanları Merkezi Yönetimi</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        📞 Sabit Merkez İletişimi: (0262) 642 04 30
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- SOL: YENİ HAYVAN EKLEME FORMU -->
+    <div class="panel">
+      <div class="panel-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Yuva Arayan Hayvan Ekle
+      </div>
+
+      <form id="addPetForm">
+        <div class="form-group">
+          <label>Can Dostumuzun Adı *</label>
+          <input type="text" id="petName" placeholder="Örn: Pamuk, Dost, Zeytin" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tür *</label>
+            <select id="petSpecies" required>
+              <option value="Köpek">Köpek</option>
+              <option value="Kedi">Kedi</option>
+              <option value="Diğer">Diğer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Irk / Cins</label>
+            <input type="text" id="petBreed" placeholder="Örn: Golden Melezi, Tekir">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cinsiyet *</label>
+            <select id="petGender" required>
+              <option value="Erkek">Erkek</option>
+              <option value="Dişi">Dişi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Yaş / Evre</label>
+            <input type="text" id="petAge" placeholder="Örn: 6 Aylık, 1.5 Yaşında">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Fotoğraf URL (Web / Cloud Linki)</label>
+          <input type="url" id="petImageUrl" placeholder="https://... (Fotoğraf web linki)">
+        </div>
+
+        <div class="form-group">
+          <label>Sağlık & Aşı Durumu</label>
+          <input type="text" id="petHealthStatus" placeholder="Örn: Kuduz aşısı tam, kısırlaştırıldı, çipli">
+        </div>
+
+        <div class="form-group">
+          <label>Hikayesi ve Karakteri</label>
+          <textarea id="petDescription" rows="3" placeholder="Karakteri, insanlarla ve çocuklarla uyumu hakkında kısa bilgi..."></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary">
+          Can Dostumuzu Kaydet ve Yayına Al
+        </button>
+      </form>
+    </div>
+
+    <!-- SAĞ: YAYINDAKİ YUVA ARAYAN CAN DOSTLARIMIZ LİSTESİ -->
+    <div>
+      <div class="panel" style="margin-bottom: 20px;">
+        <div class="panel-title" style="margin-bottom: 0; border: none; padding-bottom: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          Yayındaki Yuva Arayan Hayvanlar
+        </div>
+      </div>
+
+      <div id="loadingIndicator" style="text-align:center; padding: 30px; font-weight:600; color:var(--navy);">
+        İlanlar yükleniyor...
+      </div>
+
+      <div class="pets-grid" id="petsGrid"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+</body>
+</html>

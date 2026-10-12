@@ -32,8 +32,8 @@ async function fetchWeather() {
     throw new Error("WEATHER_API_KEY GitHub Secret eksik.");
   }
 
-  // weatherapi.com endpoint for Gebze, 3 days forecast
-  const url = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Gebze&days=3&aqi=no&alerts=no&lang=tr`;
+  // weatherapi.com endpoint for Gebze, 5 days forecast
+  const url = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Gebze&days=5&aqi=no&alerts=no&lang=tr`;
 
   const response = await fetch(url);
   if (!response.ok) {

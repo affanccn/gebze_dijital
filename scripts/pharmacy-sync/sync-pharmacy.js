@@ -62,14 +62,14 @@ async function fetchPharmacies() {
 async function main() {
   const db = initializeFirebase();
   const pharmacies = await fetchPharmacies();
-  
+
   if (pharmacies.length === 0) {
     console.log("Bugün için nöbetçi eczane bulunamadı.");
     return;
   }
 
   const batch = db.batch();
-  
+
   // Önce eski nöbetçi eczaneleri temizleyelim (sadece bugünün verisi kalsın)
   const oldDocs = await db.collection(COLLECTION).get();
   oldDocs.forEach((doc) => {
