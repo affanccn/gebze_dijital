@@ -122,6 +122,18 @@ async function main() {
       feelslike_c: weatherData.current.feelslike_c
     },
     forecast: finalForecast,
+    forecast: weatherData.forecast ? weatherData.forecast.forecastday.map(day => ({
+      date: day.date,
+      maxtemp_c: day.day.maxtemp_c,
+      mintemp_c: day.day.mintemp_c,
+      condition: day.day.condition.text,
+      icon: day.day.condition.icon,
+      hourly: day.hour ? day.hour.map((h) => ({
+        time: h.time,
+        temp_c: h.temp_c,
+        icon: h.condition.icon,
+      })) : []
+    })) : [],
     syncedAt: FieldValue.serverTimestamp(),
   });
 
