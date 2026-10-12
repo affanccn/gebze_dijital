@@ -42,6 +42,26 @@ List<BoxShadow> _softShadow() => [
       ),
     ];
 
+Map<String, int> _readVoteCounts(dynamic rawVotes) {
+  if (rawVotes is Map) {
+    return {
+      for (final entry in rawVotes.entries)
+        entry.key.toString(): _voteCount(entry.value),
+    };
+  }
+  if (rawVotes is List) {
+    return {
+      for (var i = 0; i < rawVotes.length; i++) '$i': _voteCount(rawVotes[i]),
+    };
+  }
+  return {};
+}
+
+int _voteCount(dynamic value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
 const List<String> _kNeighborhoods = [
   'Tümü',
   'Mustafapaşa',
