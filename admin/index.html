@@ -419,6 +419,7 @@
       if (tabId === 'pets') loadPets();
       if (tabId === 'feeding') loadFeedingPoints();
       if (tabId === 'vets') loadVets();
+      if (tabId === 'ebelediye') loadEBelediye();
     };
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -672,6 +673,75 @@
       });
     }
 
+    // 4. E-BELEDİYE KATEGORİ VE HİZMETLERİ
+    async function loadEBelediye() {
+      const container = document.getElementById("ebelediyeGrid");
+      const loading = document.getElementById("ebelediyeLoading");
+      loading.style.display = "block";
+      container.innerHTML = "";
+
+      try {
+        const snapshot = await getDocs(collection(db, "ebelediye_categories"));
+        loading.style.display = "none";
+
+        if (snapshot.empty) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <p style="font-size:15px; font-weight:700; color:var(--navy); margin-bottom:8px;">Henüz Firestore'da E-Belediye kategorisi bulunmuyor.</p>
+              <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Uygulama şu an varsayılan Gebze Belediyesi e-Belediye şablonunu kullanıyor. Aşağıdaki butona tıklayarak Firestore'a kaydedebilirsiniz.</p>
+              <button class="btn btn-primary" onclick="window.seedEBelediyeOnly()">🏛️ E-Belediye Verilerini Firestore'a Yaz</button>
+            </div>
+          `;
+          return;
+        }
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+
+          const servicesHtml = (data.services || []).map(s => `
+            <li style="margin-bottom:6px; font-size:12.5px; color:var(--text-dark);">
+              <strong>${s.name}</strong> - <span style="color:var(--text-muted);">${s.description || 'Resmi Portal Yönlendirmeli'}</span>
+              <br><a href="${s.url}" target="_blank" style="color:var(--navy-light); font-size:11px; text-decoration:none;">🔗 ${s.url}</a>
+            </li>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="card-body">
+              <div class="card-header-row">
+                <h3>📁 ${data.name}</h3>
+                <span class="badge" style="background:#E3F2FD; color:#0288D1;">${(data.services || []).length} Hizmet</span>
+              </div>
+              <ul style="list-style:none; padding-left:0; margin-top:10px;">
+                ${servicesHtml}
+              </ul>
+            </div>
+            <div class="card-actions" style="margin-top:12px; padding: 0 16px 16px;">
+              <button class="btn btn-danger" style="grid-column: 1 / -1;" onclick="deleteItem('ebelediye_categories', '${docSnap.id}', loadEBelediye)">Kategoriyi Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        loading.style.display = "none";
+        container.innerHTML = `<div class="empty-state">Yüklenirken hata oluştu: ${err.message}</div>`;
+      }
+    }
+
+    window.seedEBelediyeOnly = async () => {
+      const sampleCats = getSampleEBelediyeCategories();
+      try {
+        for (const cat of sampleCats) {
+          await addDoc(collection(db, "ebelediye_categories"), cat);
+        }
+        showNotification("E-Belediye kategorileri Firestore'a kaydedildi!");
+        loadEBelediye();
+      } catch (err) {
+        alert("Hata: " + err.message);
+      }
+    };
+
     // GENEL SİLME & GÜNCELLEME
     window.deleteItem = async (col, id, reloadFn) => {
       if (!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
@@ -838,12 +908,15 @@
         }
       ];
 
+      const sampleEBelediye = getSampleEBelediyeCategories();
+
       try {
         for (const p of samplePets) await addDoc(collection(db, "pet_adoptions"), p);
         for (const f of sampleFeeding) await addDoc(collection(db, "feeding_points"), f);
         for (const v of sampleVets) await addDoc(collection(db, "vet_clinics"), v);
+        for (const eb of sampleEBelediye) await addDoc(collection(db, "ebelediye_categories"), eb);
 
-        showNotification("Tüm örnek veriler Firestore'a başarıyla yazıldı!");
+        showNotification("Tüm örnek veriler ve E-Belediye kategorileri Firestore'a başarıyla yazıldı!");
         loadPets();
       } catch (err) {
         alert("Yüklenirken hata: " + err.message);
@@ -852,6 +925,215 @@
         btn.innerText = "⚡ Örnek Verileri Firestore'a Yükle (Seed)";
       }
     };
+
+    function getSampleEBelediyeCategories() {
+      return [
+        {
+          id: 29,
+          name: 'Vergi İşlemleri',
+          icon: 'receipt_long',
+          services: [
+            {
+              id: 21,
+              name: 'Vergi / Borç Ödeme',
+              description: 'Emlak, çevre temizlik, ilan-reklam vergisi ve belediye borcu sorgulama/ödeme portalı',
+              url: 'https://portal.gebze.bel.tr/ui/user/login',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 123,
+              name: 'e-Beyan',
+              description: 'Arsa, arazi, mesken, işyeri ve çevre temizlik e-beyan bildirim formları',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/',
+              hasModal: true,
+              isNew: false,
+              modalSteps: [
+                {
+                  id: 'step1',
+                  title: 'Başvuru Türünüzü Seçiniz',
+                  options: [
+                    { text: 'Gerçek Kişi (Vatandaş)', nextStep: 'step2-88' },
+                    { text: 'Tüzel Kişi (Şirket / Kurum)', nextStep: 'step2-89' }
+                  ]
+                },
+                {
+                  id: 'step2-88',
+                  title: 'Gerçek Kişi e-Beyan Bildirimleri',
+                  backStep: 'step1',
+                  options: [
+                    { text: 'Mesken e-Beyan Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-mesken-beyani-bildirim-formu/' },
+                    { text: 'Arsa e-Beyan Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-arsa-beyani-bildirim-formu/' },
+                    { text: 'Arazi e-Beyan Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-arazi-beyani-bildirim-formu/' },
+                    { text: 'İşyeri e-Beyan Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-isyeri-beyani-bildirim-formu/' },
+                    { text: 'Çevre Temizlik e-Beyan Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-cevre-ve-temizlik-beyani/' },
+                    { text: 'İlan ve Reklam e-Beyan Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-ilan-ve-reklam-beyani/' }
+                  ]
+                },
+                {
+                  id: 'step2-89',
+                  title: 'Tüzel Kişi e-Beyan Bildirimleri',
+                  backStep: 'step1',
+                  options: [
+                    { text: 'Mesken e-Beyan Bildirimi (Tüzel)', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-mesken-beyani-bildirim-formu-tuzel/#/' },
+                    { text: 'Arsa e-Beyan Bildirimi (Tüzel)', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-arsa-beyani-bildirim-formu-tuzel/#/' },
+                    { text: 'İşyeri e-Beyan Bildirimi (Tüzel)', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-isyeri-beyani-bildirim-formu-tuzel/#/' },
+                    { text: 'Çevre Temizlik Bildirimi (Tüzel)', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-cevre-ve-temizlik-beyani-tuzel/#/' },
+                    { text: 'İlan ve Reklam Bildirimi (Tüzel)', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-ilan-ve-reklam-beyani-tuzel/#/' }
+                  ]
+                }
+              ]
+            },
+            {
+              id: 60,
+              name: 'e-Beyan Bildirim Takip',
+              description: 'Daha önce yaptığınız e-beyan başvurularının onay ve inceleme durumunu takip edin',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/#/Status',
+              hasModal: false,
+              isNew: false
+            }
+          ]
+        },
+        {
+          id: 30,
+          name: 'Gebze İletişim Merkezi',
+          icon: 'support_agent',
+          services: [
+            {
+              id: 124,
+              name: 'Başvuru Formu',
+              description: 'İstek, şikayet, teşekkür, proje önerisi ve ihbar bildirimlerinizi online iletin',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/',
+              hasModal: true,
+              isNew: false,
+              modalSteps: [
+                {
+                  id: 'step1',
+                  title: 'Başvuru Türünüzü Seçiniz',
+                  options: [
+                    { text: 'İstek Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/?incident_type_id=1&hidden_fields=incident_type_id#/' },
+                    { text: 'Şikayet Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/?incident_type_id=2&hidden_fields=incident_type_id#/' },
+                    { text: 'Teşekkür Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/?incident_type_id=3&hidden_fields=incident_type_id#/' },
+                    { text: 'Proje Önerisi Bildirimi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/?incident_type_id=4&hidden_fields=incident_type_id#/' },
+                    { text: 'Bilgi Talebi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/?incident_type_id=5&hidden_fields=incident_type_id#/' },
+                    { text: 'İhbar', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/?incident_type_id=6&hidden_fields=incident_type_id#/' }
+                  ]
+                }
+              ]
+            },
+            {
+              id: 69,
+              name: 'Başvuru Takip',
+              description: 'T.C. Kimlik No veya Başvuru Takip Numarası ile başvurunuzun sonucunu sorgulayın',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/#/Status',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 125,
+              name: 'Bilgi Edinme (CİMER)',
+              description: 'Cumhurbaşkanlığı İletişim Merkezi (CİMER) üzerinden yasal bilgi edinme başvurusu',
+              url: 'https://www.cimer.gov.tr/',
+              hasModal: false,
+              isNew: false
+            }
+          ]
+        },
+        {
+          id: 31,
+          name: 'İnteraktif Hizmetler',
+          icon: 'touch_app',
+          services: [
+            {
+              id: 45,
+              name: 'e-Eksper',
+              description: 'Gayrimenkul değerleme ve ekspertiz raporu belge başvuruları',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/eeksper#/',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 51,
+              name: 'e-İşyeri Ruhsat',
+              description: 'Sıhhi ve gayrisıhhi müesseseler için online işyeri açma ruhsat başvurusu',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-isyeri-ruhsat#/',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 47,
+              name: 'e-Rayiç Belgesi',
+              description: 'e-Devlet üzerinden emlak vergisi bildirim sureti ve rayiç bedel sorgulama',
+              url: 'https://www.turkiye.gov.tr/gebze-belediyesi-emlak-vergisi-bildirim-sureti-sorgu',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 59,
+              name: 'E-Moloz Hattı',
+              description: 'Ev ve işyerinizdeki inşaat ve tadilat atıkları için belediye moloz alım talebi',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-moloz-hatti#/',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 116,
+              name: 'e-Geri Dönüşüm',
+              description: 'Geri dönüştürülebilir atıklar, tekstil ve elektronik atık toplama talebi',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-geridonusum-hatti#/',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 81,
+              name: 'Sosyal Yardım Başvurusu',
+              description: 'İhtiyaç sahibi aileler için belediyemiz sosyal destek ve yardım başvurusu',
+              url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/sosyal-yardimlar-online-basvuru-formu#/',
+              hasModal: false,
+              isNew: false
+            }
+          ]
+        },
+        {
+          id: 32,
+          name: 'İmar Yönetim Sistemi',
+          icon: 'apartment',
+          services: [
+            {
+              id: 127,
+              name: 'İmar Durumu Başvurusu',
+              description: 'İnşaat veya tevhit-ifraz amaçlı resmi parsel imar durumu belgesi başvurusu',
+              url: 'https://eimar.gebze.bel.tr/YapiBelgeleriWeb/BasvuruTurList/RedirectEDevlet?BasvuruTurId=0K3%2Ad2JOcWBtkopYTDZSfA%3D%3D',
+              hasModal: false,
+              isNew: false
+            },
+            {
+              id: 128,
+              name: 'Yapı Ruhsatı Başvuruları',
+              description: 'Mimari, statik, mekanik ve elektrik proje onay ve yapı ruhsatı süreçleri',
+              url: 'https://eimar.gebze.bel.tr/',
+              hasModal: false,
+              isNew: false
+            }
+          ]
+        },
+        {
+          id: 17,
+          name: 'Spor ve Eğitim',
+          icon: 'school',
+          services: [
+            {
+              id: 130,
+              name: 'SENDE (Kayıt ve Eğitim Portalı)',
+              description: 'GESMEK, spor okulları, kış okulları ve çocuk atölyeleri online kayıt sistemi',
+              url: 'https://sende.gebze.bel.tr/',
+              hasModal: false,
+              isNew: false
+            }
+          ]
+        }
+      ];
+    }
 
     function showNotification(msg) {
       const toast = document.getElementById("toast");
@@ -894,6 +1176,9 @@
       </button>
       <button class="tab-btn" id="btn-vets" onclick="switchTab('vets')">
         🏥 Nöbetçi Veteriner Klinikleri
+      </button>
+      <button class="tab-btn" id="btn-ebelediye" onclick="switchTab('ebelediye')">
+        🏛️ E-Belediye Kategorileri
       </button>
     </div>
   </div>
@@ -1064,6 +1349,29 @@
         </div>
         <div id="vetsLoading" style="text-align:center; padding:24px; color:var(--navy); font-weight:700;">Yükleniyor...</div>
         <div class="items-grid" id="vetsGrid"></div>
+      </div>
+    </div>
+
+    <!-- 4. TAB: E-BELEDİYE KATEGORİ VE HİZMETLERİ -->
+    <div class="tab-content" id="tab-ebelediye">
+      <div class="panel">
+        <div class="panel-title">
+          Gebze Belediyesi E-Belediye Portalı Bilgisi
+        </div>
+        <p style="color:var(--text-muted); font-size:13.5px; line-height:1.5; margin-bottom:14px;">
+          E-Belediye modülü vatandaşların vergi borçlarını, e-beyan başvurularını ve interaktif belediye işlemlerini resmi portallar üzerinden güvenle gerçekleştirmesini sağlar. Uygulama bu kategorileri ve bağlantılarını Firestore'dan veya dinamik şablondan çeker.
+        </p>
+        <button class="btn btn-primary" onclick="window.seedEBelediyeOnly()">⚡ E-Belediye Kategorilerini Yeniden Eşitle / Yükle</button>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-title" style="margin-bottom:0; border:none; padding:0;">
+            Kayıtlı E-Belediye Kategorileri ve Bağlantıları
+          </div>
+        </div>
+        <div id="ebelediyeLoading" style="text-align:center; padding:24px; color:var(--navy); font-weight:700;">Yükleniyor...</div>
+        <div class="items-grid" id="ebelediyeGrid"></div>
       </div>
     </div>
 

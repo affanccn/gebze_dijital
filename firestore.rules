@@ -2,16 +2,47 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Herkes okuyabilir, kimse uygulamadan yazamaz
-    match /events/{id}               { allow read: if true; allow write: if false; }
-    match /places/{id}               { allow read: if true; allow write: if false; }
-    match /municipal_news/{id}       { allow read: if true; allow write: if false; }
-    match /outages/{id}              { allow read: if true; allow write: if false; }
-    match /pharmacies_on_duty/{id}   { allow read: if true; allow write: if false; }
-    match /weather_info/{id}         { allow read: if true; allow write: if false; }
-    match /pet_adoptions/{id}        { allow read, write: if true; }
+    // Sadece okunabilen koleksiyonlar
+    match /events/{id}              { allow read: if true; }
+    match /municipal_news/{id}     { allow read: if true; }
+    match /outages/{id}            { allow read: if true; }
+    match /pharmacies_on_duty/{id} { allow read: if true; }
+    match /weather_info/{id}       { allow read: if true; }
+    match /pet_adoptions/{id}        { allow read: if true; allow write: if false; }
+    match /feeding_points/{id}       { allow read: if true; allow write: if false; }
+    match /vet_clinics/{id}          { allow read: if true; allow write: if false; }
+    match /ebelediye_categories/{id} { allow read, write: if true; }
+
+
+   function isAdmin() {
+  return request.auth != null && request.auth.token.admin == true;
+}
+
+match /polls/{id} {
+  allow read: if true;
+  // Kullanıcı sadece oy sayacını 1 artırabilir
+  allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+                || isAdmin();
+  allow create, delete: if isAdmin();
+}
+match /pet_adoptions/{id}        { allow read, write: if true; }
     match /feeding_points/{id}       { allow read, write: if true; }
     match /vet_clinics/{id}          { allow read, write: if true; }
+
+match /suggestions/{id} {
+  allow read: if resource.data.approved == true || isAdmin();
+  allow create: if request.resource.data.approved == false
+                && request.resource.data.title is string
+                && request.resource.data.title.size() >= 5
+                && request.resource.data.title.size() <= 80
+                && request.resource.data.description is string
+                && request.resource.data.description.size() <= 400
+                && request.resource.data.likes == 0;
+  allow update: if (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                    && (request.resource.data.likes - resource.data.likes) in [-1, 1])
+                || isAdmin();
+  allow delete: if isAdmin();
+}
 
     // Geri kalan her şey kapalı
     match /{document=**} { allow read, write: if false; }
