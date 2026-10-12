@@ -55,12 +55,12 @@ final List<PetAdoption> kFallbackPets = [
   ),
 ];
 
-/// Gebze Mama ve Su Odakları Listesi
+/// Gebze Mama ve Su Odakları Fallback Listesi
 const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-1',
     title: 'Gebze Kent Meydanı Besleme Odağı',
-    neighborhood: 'Hacıhalil Mahallesi',
+    neighborhood: 'Hacıhalil',
     address: 'Gebze Kent Meydanı Park Alanı Batı Çıkışı',
     latitude: 40.8031,
     longitude: 29.4312,
@@ -70,7 +70,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-2',
     title: 'Millet Bahçesi Kedi Köyü & Besleme Noktası',
-    neighborhood: 'Mevlana Mahallesi',
+    neighborhood: 'Mevlana',
     address: 'Mevlana Mah. Issıkgöl Cad. Millet Bahçesi İçi',
     latitude: 40.8160,
     longitude: 29.4395,
@@ -80,7 +80,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-3',
     title: 'Alaettin Kurt Stadyumu Çevresi Besleme Odağı',
-    neighborhood: 'Gaziler Mahallesi',
+    neighborhood: 'Gaziler',
     address: 'Şehit Fahrettin Çevik Parkı giriş kapısı yanı',
     latitude: 40.8095,
     longitude: 29.4445,
@@ -90,7 +90,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-4',
     title: 'Eskihisar Sahil Parkı Besleme Noktası',
-    neighborhood: 'Eskihisar Mahallesi',
+    neighborhood: 'Eskihisar',
     address: 'Eskihisar Sahil Kordon Yürüyüş Yolu başlangıcı',
     latitude: 40.7718,
     longitude: 29.4285,
@@ -100,7 +100,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-5',
     title: 'Tatlıkuyu Vadisi Parkı Besleme Noktası',
-    neighborhood: 'Tatlıkuyu Mahallesi',
+    neighborhood: 'Tatlıkuyu',
     address: 'Tatlıkuyu Vadisi 1. Etap Gölet Kenarı Ahşap Köprü Yanı',
     latitude: 40.7962,
     longitude: 29.4210,
@@ -110,7 +110,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-6',
     title: 'Gaziler Dağı Tabiat Parkı Doğal Besleme Noktası',
-    neighborhood: 'Gaziler Mahallesi',
+    neighborhood: 'Gaziler',
     address: 'Gaziler Dağı Orman Girişi Mesire Alanı Kenarı',
     latitude: 40.8220,
     longitude: 29.4510,
@@ -120,7 +120,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-7',
     title: 'Arapçeşme Parkı Besleme İstasyonu',
-    neighborhood: 'Arapçeşme Mahallesi',
+    neighborhood: 'Arapçeşme',
     address: 'Arapçeşme Mah. Şehit Oktay Kaya Cad. Park Alanı',
     latitude: 40.8080,
     longitude: 29.4250,
@@ -130,7 +130,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   FeedingPoint(
     id: 'fp-8',
     title: 'Mustafapaşa Mahallesi Parkı Besleme Odağı',
-    neighborhood: 'Mustafapaşa Mahallesi',
+    neighborhood: 'Mustafapaşa',
     address: 'Mustafapaşa Mah. 721. Sokak Çocuk Parkı Yanı',
     latitude: 40.8010,
     longitude: 29.4410,
@@ -139,7 +139,7 @@ const List<FeedingPoint> kGebzeFeedingPoints = [
   ),
 ];
 
-/// Sahipli Evcil Hayvan Durumları İçin Gebze Özel Nöbetçi & 7/24 Veteriner Klinikleri
+/// Sahipli Evcil Hayvan Durumları İçin Gebze Özel Nöbetçi & 7/24 Veteriner Klinikleri Fallback Listesi
 const List<DutyVetClinic> kGebzeDutyVetClinics = [
   DutyVetClinic(
     id: 'vet-1',
@@ -198,7 +198,7 @@ const List<DutyVetClinic> kGebzeDutyVetClinics = [
   ),
 ];
 
-/// Firestore Stream Provider - 'pet_adoptions' koleksiyonundan anlık canlı veri çeker
+/// 1. Sahiplendirme Stream Provider - Firestore 'pet_adoptions' koleksiyonu
 final petAdoptionsStreamProvider = StreamProvider.autoDispose<List<PetAdoption>>((ref) {
   return FirebaseFirestore.instance
       .collection('pet_adoptions')
@@ -206,12 +206,40 @@ final petAdoptionsStreamProvider = StreamProvider.autoDispose<List<PetAdoption>>
       .snapshots()
       .map((snapshot) {
     if (snapshot.docs.isEmpty) {
-      // Eğer veritabanı henüz boşsa fallback listemizi döndürelim
       return kFallbackPets;
     }
     return snapshot.docs.map((doc) => PetAdoption.fromFirestore(doc)).toList();
   }).handleError((error) {
-    // Firestore bağlantı veya kural hatası durumunda fallback verisi döner
     return kFallbackPets;
+  });
+});
+
+/// 2. Mama ve Su Odakları Stream Provider - Firestore 'feeding_points' koleksiyonu
+final feedingPointsStreamProvider = StreamProvider.autoDispose<List<FeedingPoint>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('feeding_points')
+      .snapshots()
+      .map((snapshot) {
+    if (snapshot.docs.isEmpty) {
+      return kGebzeFeedingPoints;
+    }
+    return snapshot.docs.map((doc) => FeedingPoint.fromFirestore(doc)).toList();
+  }).handleError((error) {
+    return kGebzeFeedingPoints;
+  });
+});
+
+/// 3. Özel & Nöbetçi Veteriner Klinikleri Stream Provider - Firestore 'vet_clinics' koleksiyonu
+final vetClinicsStreamProvider = StreamProvider.autoDispose<List<DutyVetClinic>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('vet_clinics')
+      .snapshots()
+      .map((snapshot) {
+    if (snapshot.docs.isEmpty) {
+      return kGebzeDutyVetClinics;
+    }
+    return snapshot.docs.map((doc) => DutyVetClinic.fromFirestore(doc)).toList();
+  }).handleError((error) {
+    return kGebzeDutyVetClinics;
   });
 });

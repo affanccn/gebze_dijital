@@ -3,194 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gebze Belediyesi - Sahiplendirme Yönetim Paneli</title>
+  <title>Gebze Belediyesi • Gebze Pati Yönetim Paneli</title>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Firebase App & Firestore SDKs (v10 Modular) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      addDoc, 
-      getDocs, 
-      deleteDoc, 
-      doc, 
-      updateDoc, 
-      serverTimestamp, 
-      query, 
-      orderBy 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    // Firebase Ayarları (gebze-dijital)
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4CqNJxmmKPTTnFqjzHbFvvH3FZN8VIRM",
-      authDomain: "gebze-dijital.firebaseapp.com",
-      projectId: "gebze-dijital",
-      storageBucket: "gebze-dijital.firebasestorage.app",
-      messagingSenderId: "417554808986",
-      appId: "1:417554808986:web:aea3daf07f5b6534301f23"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Global Referanslar
-    window.db = db;
-    window.firestoreOps = {
-      collection, addDoc, getDocs, deleteDoc, doc, updateDoc, serverTimestamp, query, orderBy
-    };
-
-    // İlk Yükleme
-    document.addEventListener("DOMContentLoaded", () => {
-      loadPets();
-      setupForm();
-    });
-
-    async function loadPets() {
-      const container = document.getElementById("petsGrid");
-      const loading = document.getElementById("loadingIndicator");
-      loading.style.display = "block";
-      container.innerHTML = "";
-
-      try {
-        const q = query(collection(db, "pet_adoptions"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-
-        loading.style.display = "none";
-
-        if (snapshot.empty) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v1H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-8a3 3 0 0 0-3-3h-2V6a4 4 0 0 0-4-4z"/></svg>
-              <p>Henüz sisteme eklenmiş hayvan bulunmuyor.</p>
-            </div>
-          `;
-          return;
-        }
-
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const card = createPetCard(docSnap.id, data);
-          container.appendChild(card);
-        });
-      } catch (err) {
-        console.error("Yükleme hatası:", err);
-        loading.style.display = "none";
-        container.innerHTML = `
-          <div class="alert alert-error">
-            Veriler alınırken hata oluştu: ${err.message}. Lütfen Firestore kurallarını ve bağlantınızı kontrol edin.
-          </div>
-        `;
-      }
-    }
-
-    function createPetCard(id, data) {
-      const card = document.createElement("div");
-      card.className = "pet-card";
-
-      const imgUrl = data.imageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80";
-
-      card.innerHTML = `
-        <div class="card-img-wrapper">
-          <img src="${imgUrl}" alt="${data.name}" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80'">
-          <span class="badge ${data.species === 'Köpek' ? 'badge-primary' : 'badge-orange'}">${data.species} • ${data.breed || 'Melez'}</span>
-          ${data.isAdopted ? '<span class="badge badge-success" style="right:12px;left:auto;">Sahiplendirildi</span>' : ''}
-        </div>
-        <div class="card-body">
-          <div class="card-header-row">
-            <h3>${data.name}</h3>
-            <span class="pet-meta">${data.gender} • ${data.age}</span>
-          </div>
-          <p class="pet-desc">${data.description || 'Açıklama belirtilmedi.'}</p>
-          <div class="pet-health">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E5BC6" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>${data.healthStatus || 'Aşıları ve kontrolleri yapıldı'}</span>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-outline" onclick="window.toggleAdopted('${id}', ${!data.isAdopted})">
-              ${data.isAdopted ? 'Tekrar İlana Al' : 'Sahiplendirildi Olarak İşaretle'}
-            </button>
-            <button class="btn btn-danger" onclick="window.deletePet('${id}')">
-              Sil
-            </button>
-          </div>
-        </div>
-      `;
-      return card;
-    }
-
-    function setupForm() {
-      const form = document.getElementById("addPetForm");
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const submitBtn = document.getElementById("submitBtn");
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Kaydediliyor...";
-
-        const newPet = {
-          name: document.getElementById("petName").value.trim(),
-          species: document.getElementById("petSpecies").value,
-          breed: document.getElementById("petBreed").value.trim() || "Melez",
-          gender: document.getElementById("petGender").value,
-          age: document.getElementById("petAge").value.trim() || "Genç",
-          imageUrl: document.getElementById("petImageUrl").value.trim(),
-          description: document.getElementById("petDescription").value.trim(),
-          healthStatus: document.getElementById("petHealthStatus").value.trim() || "Aşılı, çipli ve sağlıklı",
-          centerPhone: "(0262) 642 04 30", // Her zaman Gebze Belediyesi Rehabilitasyon Merkezi
-          isAdopted: false,
-          createdAt: serverTimestamp()
-        };
-
-        try {
-          await addDoc(collection(db, "pet_adoptions"), newPet);
-          form.reset();
-          showNotification("Can dostumuz başarıyla sisteme eklendi ve Gebze Dijital uygulamasında yayına girdi!");
-          loadPets();
-        } catch (err) {
-          alert("Hata oluştu: " + err.message);
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerText = "Can Dostumuzu Kaydet ve Yayına Al";
-        }
-      });
-    }
-
-    window.deletePet = async (id) => {
-      if (!confirm("Bu ilanı silmek istediğinize emin misiniz?")) return;
-      try {
-        await deleteDoc(doc(db, "pet_adoptions", id));
-        showNotification("İlan başarıyla silindi.");
-        loadPets();
-      } catch (err) {
-        alert("Silinirken hata: " + err.message);
-      }
-    };
-
-    window.toggleAdopted = async (id, status) => {
-      try {
-        await updateDoc(doc(db, "pet_adoptions", id), {
-          isAdopted: status
-        });
-        showNotification("İlan durumu güncellendi.");
-        loadPets();
-      } catch (err) {
-        alert("Güncellenirken hata: " + err.message);
-      }
-    };
-
-    function showNotification(msg) {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.className = "toast show";
-      setTimeout(() => {
-        toast.className = "toast";
-      }, 3500);
-    }
-  </script>
-
+  
   <style>
     :root {
       --navy: #0A2A66;
@@ -223,27 +41,29 @@
     header {
       background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
       color: white;
-      padding: 24px 32px;
+      padding: 20px 32px;
       box-shadow: 0 4px 20px rgba(10, 42, 102, 0.2);
     }
 
     .header-content {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
 
     .brand-icon {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       background: rgba(255, 255, 255, 0.15);
       border-radius: 14px;
       display: flex;
@@ -253,13 +73,13 @@
     }
 
     .brand-title h1 {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 900;
       letter-spacing: 0.5px;
     }
 
     .brand-title p {
-      font-size: 13px;
+      font-size: 12.5px;
       opacity: 0.85;
       margin-top: 2px;
     }
@@ -272,17 +92,62 @@
       font-weight: 600;
     }
 
-    .main-container {
-      max-width: 1200px;
-      margin: 32px auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 32px;
+    /* Tab Menü */
+    .nav-tabs-wrapper {
+      background: white;
+      border-bottom: 1px solid rgba(10, 42, 102, 0.1);
     }
 
-    @media (max-width: 900px) {
-      .main-container {
+    .nav-tabs {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      padding: 0 20px;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      padding: 16px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--navy-light);
+    }
+
+    .tab-btn.active {
+      color: var(--navy);
+      border-bottom-color: var(--navy);
+    }
+
+    .main-container {
+      max-width: 1280px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 960px) {
+      .tab-content.active {
         grid-template-columns: 1fr;
       }
     }
@@ -296,37 +161,37 @@
     }
 
     .panel-title {
-      font-size: 17px;
+      font-size: 16.5px;
       font-weight: 800;
       color: var(--navy);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       gap: 10px;
-      padding-bottom: 14px;
+      padding-bottom: 12px;
       border-bottom: 1px solid rgba(10, 42, 102, 0.08);
     }
 
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .form-group label {
       display: block;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-dark);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .form-group input, 
     .form-group select, 
     .form-group textarea {
       width: 100%;
-      padding: 10px 14px;
+      padding: 9px 12px;
       border-radius: 10px;
       border: 1.5px solid rgba(10, 42, 102, 0.15);
-      font-size: 13.5px;
+      font-size: 13px;
       transition: all 0.2s;
       outline: none;
     }
@@ -341,13 +206,13 @@
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
 
     .btn {
-      padding: 12px 18px;
+      padding: 11px 16px;
       border-radius: 12px;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       border: none;
@@ -387,14 +252,14 @@
       background: #FFCDD2;
     }
 
-    /* Pets Grid */
-    .pets-grid {
+    /* Grid Kartlar */
+    .items-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+      gap: 18px;
     }
 
-    .pet-card {
+    .item-card {
       background: white;
       border-radius: var(--radius);
       box-shadow: 0 4px 18px rgba(10, 42, 102, 0.08);
@@ -406,7 +271,7 @@
 
     .card-img-wrapper {
       position: relative;
-      height: 180px;
+      height: 170px;
       background: #e2e8f0;
     }
 
@@ -418,8 +283,8 @@
 
     .badge {
       position: absolute;
-      top: 12px;
-      left: 12px;
+      top: 10px;
+      left: 10px;
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 11px;
@@ -442,30 +307,30 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .card-header-row h3 {
-      font-size: 16px;
+      font-size: 15.5px;
       font-weight: 800;
       color: var(--navy);
     }
 
-    .pet-meta {
+    .item-meta {
       font-size: 12px;
       color: var(--text-muted);
       font-weight: 600;
     }
 
-    .pet-desc {
+    .item-desc {
       font-size: 12.5px;
       color: #4A5568;
       line-height: 1.4;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       flex: 1;
     }
 
-    .pet-health {
+    .item-highlight {
       display: flex;
       align-items: center;
       gap: 6px;
@@ -474,7 +339,7 @@
       background: var(--bg);
       padding: 6px 10px;
       border-radius: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .card-actions {
@@ -507,15 +372,335 @@
 
     .empty-state {
       grid-column: 1 / -1;
-      padding: 48px;
+      padding: 40px;
       text-align: center;
       color: var(--text-muted);
     }
-    .empty-state svg {
-      margin-bottom: 12px;
-      stroke: var(--text-muted);
-    }
   </style>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      deleteDoc, 
+      doc, 
+      updateDoc, 
+      serverTimestamp, 
+      query, 
+      orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4CqNJxmmKPTTnFqjzHbFvvH3FZN8VIRM",
+      authDomain: "gebze-dijital.firebaseapp.com",
+      projectId: "gebze-dijital",
+      storageBucket: "gebze-dijital.firebasestorage.app",
+      messagingSenderId: "417554808986",
+      appId: "1:417554808986:web:aea3daf07f5b6534301f23"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+
+    // Sekme Değişimi
+    window.switchTab = (tabId) => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      document.getElementById('btn-' + tabId).classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      if (tabId === 'pets') loadPets();
+      if (tabId === 'feeding') loadFeedingPoints();
+      if (tabId === 'vets') loadVets();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupPetForm();
+      setupFeedingForm();
+      setupVetForm();
+      loadPets();
+    });
+
+    // 1. SAHİPLENDİRME FONKSİYONLARI
+    async function loadPets() {
+      const container = document.getElementById("petsGrid");
+      const loading = document.getElementById("petsLoading");
+      loading.style.display = "block";
+      container.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "pet_adoptions"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        loading.style.display = "none";
+
+        if (snapshot.empty) {
+          container.innerHTML = `<div class="empty-state">Henüz eklenmiş hayvan bulunmuyor.</div>`;
+          return;
+        }
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          const img = data.imageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80";
+
+          card.innerHTML = `
+            <div class="card-img-wrapper">
+              <img src="${img}" alt="${data.name}" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80'">
+              <span class="badge ${data.species === 'Köpek' ? 'badge-primary' : 'badge-orange'}">${data.species} • ${data.breed || 'Melez'}</span>
+              ${data.isAdopted ? '<span class="badge badge-success" style="right:10px;left:auto;">Sahiplendirildi</span>' : ''}
+            </div>
+            <div class="card-body">
+              <div class="card-header-row">
+                <h3>${data.name}</h3>
+                <span class="item-meta">${data.gender} • ${data.age}</span>
+              </div>
+              <p class="item-desc">${data.description || 'Açıklama belirtilmedi.'}</p>
+              <div class="item-highlight">
+                <span>🛡️ ${data.healthStatus || 'Aşıları tam, sağlıklı'}</span>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-outline" onclick="window.toggleAdopted('${docSnap.id}', ${!data.isAdopted})">
+                  ${data.isAdopted ? 'İlana Geri Al' : 'Sahiplendirildi Yap'}
+                </button>
+                <button class="btn btn-danger" onclick="window.deleteItem('pet_adoptions', '${docSnap.id}', loadPets)">Sil</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        loading.style.display = "none";
+        container.innerHTML = `<div class="empty-state">Hata: ${err.message}</div>`;
+      }
+    }
+
+    function setupPetForm() {
+      const form = document.getElementById("addPetForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+
+        const newPet = {
+          name: document.getElementById("petName").value.trim(),
+          species: document.getElementById("petSpecies").value,
+          breed: document.getElementById("petBreed").value.trim() || "Melez",
+          gender: document.getElementById("petGender").value,
+          age: document.getElementById("petAge").value.trim() || "Genç",
+          imageUrl: document.getElementById("petImageUrl").value.trim(),
+          description: document.getElementById("petDescription").value.trim(),
+          healthStatus: document.getElementById("petHealthStatus").value.trim() || "Aşılı, çipli",
+          centerPhone: "(0262) 642 04 30",
+          isAdopted: false,
+          createdAt: serverTimestamp()
+        };
+
+        try {
+          await addDoc(collection(db, "pet_adoptions"), newPet);
+          form.reset();
+          showNotification("Can dostumuz başarıyla kaydedildi!");
+          loadPets();
+        } catch (err) {
+          alert("Hata: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    // 2. MAMA VE SU ODAKLARI FONKSİYONLARI
+    async function loadFeedingPoints() {
+      const container = document.getElementById("feedingGrid");
+      const loading = document.getElementById("feedingLoading");
+      loading.style.display = "block";
+      container.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "feeding_points"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        loading.style.display = "none";
+
+        if (snapshot.empty) {
+          container.innerHTML = `<div class="empty-state">Henüz Firestore'a eklenmiş odak bulunmuyor. Mobilde varsayılan Gebze odak ağı gösterilmektedir.</div>`;
+          return;
+        }
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+
+          card.innerHTML = `
+            <div class="card-body">
+              <div class="card-header-row">
+                <h3>${data.title}</h3>
+              </div>
+              <span class="item-meta" style="color:var(--navy-light); margin-bottom:6px;">${data.neighborhood} Mahallesi • ${data.type}</span>
+              <p class="item-desc">📍 ${data.address}</p>
+              <div class="item-highlight">
+                <span>📦 ${data.equipment || 'Mama ve su haznesi'}</span>
+              </div>
+              <div class="card-actions">
+                <a class="btn btn-outline" style="text-decoration:none;" href="https://maps.google.com/?q=${data.latitude},${data.longitude}" target="_blank">Haritada Aç</a>
+                <button class="btn btn-danger" onclick="window.deleteItem('feeding_points', '${docSnap.id}', loadFeedingPoints)">Sil</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        loading.style.display = "none";
+        container.innerHTML = `<div class="empty-state">Hata: ${err.message}</div>`;
+      }
+    }
+
+    function setupFeedingForm() {
+      const form = document.getElementById("addFeedingForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+
+        const newPoint = {
+          title: document.getElementById("fpTitle").value.trim(),
+          neighborhood: document.getElementById("fpNeighborhood").value.trim(),
+          address: document.getElementById("fpAddress").value.trim(),
+          type: document.getElementById("fpType").value.trim(),
+          equipment: document.getElementById("fpEquipment").value.trim(),
+          latitude: parseFloat(document.getElementById("fpLat").value) || 40.8028,
+          longitude: parseFloat(document.getElementById("fpLng").value) || 29.4307,
+          note: "Belediyemiz ekiplerince düzenli denetlenmektedir.",
+          createdAt: serverTimestamp()
+        };
+
+        try {
+          await addDoc(collection(db, "feeding_points"), newPoint);
+          form.reset();
+          showNotification("Besleme odağı başarıyla kaydedildi!");
+          loadFeedingPoints();
+        } catch (err) {
+          alert("Hata: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    // 3. VETERİNER KLİNİKLERİ FONKSİYONLARI
+    async function loadVets() {
+      const container = document.getElementById("vetsGrid");
+      const loading = document.getElementById("vetsLoading");
+      loading.style.display = "block";
+      container.innerHTML = "";
+
+      try {
+        const q = query(collection(db, "vet_clinics"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        loading.style.display = "none";
+
+        if (snapshot.empty) {
+          container.innerHTML = `<div class="empty-state">Henüz eklenmiş klinik bulunmuyor. Mobilde varsayılan Gebze nöbetçi klinikleri listelenmektedir.</div>`;
+          return;
+        }
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+
+          card.innerHTML = `
+            <div class="card-body">
+              <div class="card-header-row">
+                <h3>${data.name}</h3>
+              </div>
+              <span class="item-meta" style="color:var(--danger); margin-bottom:6px;">⏰ ${data.emergencyHours}</span>
+              <p class="item-desc">📍 ${data.address}</p>
+              <div class="item-highlight">
+                <span>📞 ${data.phone}</span>
+              </div>
+              <div class="card-actions">
+                <a class="btn btn-outline" style="text-decoration:none;" href="tel:${data.phone}">Ara</a>
+                <button class="btn btn-danger" onclick="window.deleteItem('vet_clinics', '${docSnap.id}', loadVets)">Sil</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        loading.style.display = "none";
+        container.innerHTML = `<div class="empty-state">Hata: ${err.message}</div>`;
+      }
+    }
+
+    function setupVetForm() {
+      const form = document.getElementById("addVetForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+
+        const newVet = {
+          name: document.getElementById("vetName").value.trim(),
+          district: "Gebze / Kocaeli",
+          address: document.getElementById("vetAddress").value.trim(),
+          phone: document.getElementById("vetPhone").value.trim(),
+          emergencyHours: document.getElementById("vetHours").value.trim(),
+          latitude: parseFloat(document.getElementById("vetLat").value) || 40.8028,
+          longitude: parseFloat(document.getElementById("vetLng").value) || 29.4307,
+          is24Hours: true,
+          createdAt: serverTimestamp()
+        };
+
+        try {
+          await addDoc(collection(db, "vet_clinics"), newVet);
+          form.reset();
+          showNotification("Veteriner kliniği başarıyla kaydedildi!");
+          loadVets();
+        } catch (err) {
+          alert("Hata: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    // GENEL SİLME & GÜNCELLEME
+    window.deleteItem = async (col, id, reloadFn) => {
+      if (!confirm("Bu kaydı silmek istediğinize emin misiniz?")) return;
+      try {
+        await deleteDoc(doc(db, col, id));
+        showNotification("Kayıt başarıyla silindi.");
+        reloadFn();
+      } catch (err) {
+        alert("Hata: " + err.message);
+      }
+    };
+
+    window.toggleAdopted = async (id, status) => {
+      try {
+        await updateDoc(doc(db, "pet_adoptions", id), { isAdopted: status });
+        showNotification("Durum güncellendi.");
+        loadPets();
+      } catch (err) {
+        alert("Hata: " + err.message);
+      }
+    };
+
+    function showNotification(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = "toast show";
+      setTimeout(() => toast.className = "toast", 3500);
+    }
+  </script>
 </head>
 <body>
 
@@ -524,8 +709,8 @@
       <div class="brand">
         <div class="brand-icon">🐾</div>
         <div class="brand-title">
-          <h1>Gebze Belediyesi • Can Dostlarımız Yönetim Paneli</h1>
-          <p>Gebze Pati Sahiplendirme İlanları ve Sokak Hayvanları Merkezi Yönetimi</p>
+          <h1>Gebze Belediyesi • Gebze Pati Yönetim Paneli</h1>
+          <p>Sahiplendirme, Mama & Su Odakları ve Nöbetçi Klinikler Firebase Yönetimi</p>
         </div>
       </div>
       <div class="header-badge">
@@ -534,85 +719,190 @@
     </div>
   </header>
 
+  <!-- SEKMELER -->
+  <div class="nav-tabs-wrapper">
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btn-pets" onclick="switchTab('pets')">
+        🐶 Sahiplendirme İlanları
+      </button>
+      <button class="tab-btn" id="btn-feeding" onclick="switchTab('feeding')">
+        🥣 Mama & Su Odakları
+      </button>
+      <button class="tab-btn" id="btn-vets" onclick="switchTab('vets')">
+        🏥 Nöbetçi Veteriner Klinikleri
+      </button>
+    </div>
+  </div>
+
   <div class="main-container">
-    <!-- SOL: YENİ HAYVAN EKLEME FORMU -->
-    <div class="panel">
-      <div class="panel-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        Yuva Arayan Hayvan Ekle
+    
+    <!-- 1. TAB: SAHİPLENDİRME -->
+    <div class="tab-content active" id="tab-pets">
+      <div class="panel">
+        <div class="panel-title">
+          Yuva Arayan Hayvan Ekle
+        </div>
+        <form id="addPetForm">
+          <div class="form-group">
+            <label>Can Dostumuzun Adı *</label>
+            <input type="text" id="petName" placeholder="Örn: Pamuk, Dost, Zeytin" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tür *</label>
+              <select id="petSpecies" required>
+                <option value="Köpek">Köpek</option>
+                <option value="Kedi">Kedi</option>
+                <option value="Diğer">Diğer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Irk / Cins</label>
+              <input type="text" id="petBreed" placeholder="Örn: Golden Melezi, Tekir">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cinsiyet *</label>
+              <select id="petGender" required>
+                <option value="Erkek">Erkek</option>
+                <option value="Dişi">Dişi</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Yaş / Evre</label>
+              <input type="text" id="petAge" placeholder="Örn: 6 Aylık, 1.5 Yaşında">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Fotoğraf URL (Web / Cloud Linki)</label>
+            <input type="url" id="petImageUrl" placeholder="https://... (Fotoğraf linki)">
+          </div>
+          <div class="form-group">
+            <label>Sağlık & Aşı Durumu</label>
+            <input type="text" id="petHealthStatus" placeholder="Örn: Kuduz aşısı yapıldı, kısırlaştırıldı">
+          </div>
+          <div class="form-group">
+            <label>Hikayesi & Karakteri</label>
+            <textarea id="petDescription" rows="3" placeholder="Karakteri ve geçmişi hakkında bilgi..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">İlanı Kaydet ve Yayına Al</button>
+        </form>
       </div>
 
-      <form id="addPetForm">
-        <div class="form-group">
-          <label>Can Dostumuzun Adı *</label>
-          <input type="text" id="petName" placeholder="Örn: Pamuk, Dost, Zeytin" required>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Tür *</label>
-            <select id="petSpecies" required>
-              <option value="Köpek">Köpek</option>
-              <option value="Kedi">Kedi</option>
-              <option value="Diğer">Diğer</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Irk / Cins</label>
-            <input type="text" id="petBreed" placeholder="Örn: Golden Melezi, Tekir">
+      <div>
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-title" style="margin-bottom:0; border:none; padding:0;">
+            Yayındaki Yuva Arayan Can Dostlarımız
           </div>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Cinsiyet *</label>
-            <select id="petGender" required>
-              <option value="Erkek">Erkek</option>
-              <option value="Dişi">Dişi</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Yaş / Evre</label>
-            <input type="text" id="petAge" placeholder="Örn: 6 Aylık, 1.5 Yaşında">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Fotoğraf URL (Web / Cloud Linki)</label>
-          <input type="url" id="petImageUrl" placeholder="https://... (Fotoğraf web linki)">
-        </div>
-
-        <div class="form-group">
-          <label>Sağlık & Aşı Durumu</label>
-          <input type="text" id="petHealthStatus" placeholder="Örn: Kuduz aşısı tam, kısırlaştırıldı, çipli">
-        </div>
-
-        <div class="form-group">
-          <label>Hikayesi ve Karakteri</label>
-          <textarea id="petDescription" rows="3" placeholder="Karakteri, insanlarla ve çocuklarla uyumu hakkında kısa bilgi..."></textarea>
-        </div>
-
-        <button type="submit" id="submitBtn" class="btn btn-primary">
-          Can Dostumuzu Kaydet ve Yayına Al
-        </button>
-      </form>
+        <div id="petsLoading" style="text-align:center; padding:24px; color:var(--navy); font-weight:700;">Yükleniyor...</div>
+        <div class="items-grid" id="petsGrid"></div>
+      </div>
     </div>
 
-    <!-- SAĞ: YAYINDAKİ YUVA ARAYAN CAN DOSTLARIMIZ LİSTESİ -->
-    <div>
-      <div class="panel" style="margin-bottom: 20px;">
-        <div class="panel-title" style="margin-bottom: 0; border: none; padding-bottom: 0;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-          Yayındaki Yuva Arayan Hayvanlar
+    <!-- 2. TAB: MAMA VE SU ODAKLARI -->
+    <div class="tab-content" id="tab-feeding">
+      <div class="panel">
+        <div class="panel-title">
+          Yeni Mama & Su Odağı Ekle
         </div>
+        <form id="addFeedingForm">
+          <div class="form-group">
+            <label>Odak / İstasyon Adı *</label>
+            <input type="text" id="fpTitle" placeholder="Örn: Kent Meydanı Besleme Odağı" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mahalle *</label>
+              <input type="text" id="fpNeighborhood" placeholder="Örn: Hacıhalil, Mevlana" required>
+            </div>
+            <div class="form-group">
+              <label>İstasyon Türü</label>
+              <input type="text" id="fpType" placeholder="Örn: Mama ve Otomatik Su Odağı">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Açık Adres / Konum Tarifi *</label>
+            <input type="text" id="fpAddress" placeholder="Örn: Kent Meydanı Park Girişi yanı" required>
+          </div>
+          <div class="form-group">
+            <label>Ekipmanlar & Özellikler</label>
+            <input type="text" id="fpEquipment" placeholder="Örn: Güneş enerjili su kabı, kuru mama haznesi">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Enlem (Latitude)</label>
+              <input type="number" step="any" id="fpLat" placeholder="40.8031">
+            </div>
+            <div class="form-group">
+              <label>Boylam (Longitude)</label>
+              <input type="number" step="any" id="fpLng" placeholder="29.4312">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Besleme Odağını Kaydet</button>
+        </form>
       </div>
 
-      <div id="loadingIndicator" style="text-align:center; padding: 30px; font-weight:600; color:var(--navy);">
-        İlanlar yükleniyor...
+      <div>
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-title" style="margin-bottom:0; border:none; padding:0;">
+            Kayıtlı Mama ve Su Odakları
+          </div>
+        </div>
+        <div id="feedingLoading" style="text-align:center; padding:24px; color:var(--navy); font-weight:700;">Yükleniyor...</div>
+        <div class="items-grid" id="feedingGrid"></div>
       </div>
-
-      <div class="pets-grid" id="petsGrid"></div>
     </div>
+
+    <!-- 3. TAB: NÖBETÇİ VETERİNERLER -->
+    <div class="tab-content" id="tab-vets">
+      <div class="panel">
+        <div class="panel-title">
+          Yeni Nöbetçi Klinik Ekle
+        </div>
+        <form id="addVetForm">
+          <div class="form-group">
+            <label>Klinik Adı *</label>
+            <input type="text" id="vetName" placeholder="Örn: Gebze Pati Veteriner Kliniği" required>
+          </div>
+          <div class="form-group">
+            <label>Nöbet & Çalışma Saatleri *</label>
+            <input type="text" id="vetHours" placeholder="Örn: 7/24 Acil Nöbetçi Hizmeti" required>
+          </div>
+          <div class="form-group">
+            <label>Telefon Numarası *</label>
+            <input type="text" id="vetPhone" placeholder="Örn: (0262) 641 22 33" required>
+          </div>
+          <div class="form-group">
+            <label>Açık Adres *</label>
+            <input type="text" id="vetAddress" placeholder="Örn: Hacıhalil Mah. Hükümet Cad. No:42/A" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Enlem (Latitude)</label>
+              <input type="number" step="any" id="vetLat" placeholder="40.8035">
+            </div>
+            <div class="form-group">
+              <label>Boylam (Longitude)</label>
+              <input type="number" step="any" id="vetLng" placeholder="29.4320">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Veteriner Kliniğini Kaydet</button>
+        </form>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom: 20px;">
+          <div class="panel-title" style="margin-bottom:0; border:none; padding:0;">
+            Kayıtlı Nöbetçi Veteriner Klinikleri
+          </div>
+        </div>
+        <div id="vetsLoading" style="text-align:center; padding:24px; color:var(--navy); font-weight:700;">Yükleniyor...</div>
+        <div class="items-grid" id="vetsGrid"></div>
+      </div>
+    </div>
+
   </div>
 
   <div id="toast" class="toast"></div>

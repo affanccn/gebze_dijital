@@ -1,31 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/pati_data_provider.dart';
 import '../../models/feeding_point.dart';
 
-class FoodClinicsTab extends StatefulWidget {
+class FoodClinicsTab extends ConsumerStatefulWidget {
   const FoodClinicsTab({super.key});
 
   @override
-  State<FoodClinicsTab> createState() => _FoodClinicsTabState();
+  ConsumerState<FoodClinicsTab> createState() => _FoodClinicsTabState();
 }
 
-class _FoodClinicsTabState extends State<FoodClinicsTab> {
+class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
   String _selectedNeighborhood = 'Tümü';
 
-  List<String> get _neighborhoods {
+  List<String> _getNeighborhoods(List<FeedingPoint> points) {
     final list = <String>{'Tümü'};
-    for (final fp in kGebzeFeedingPoints) {
-      list.add(fp.neighborhood);
+    for (final fp in points) {
+      if (fp.neighborhood.isNotEmpty) {
+        list.add(fp.neighborhood);
+      }
     }
     return list.toList();
   }
 
-  List<FeedingPoint> get _filteredFeedingPoints {
+  List<FeedingPoint> _filterPoints(List<FeedingPoint> points) {
     if (_selectedNeighborhood == 'Tümü') {
-      return kGebzeFeedingPoints;
+      return points;
     }
-    return kGebzeFeedingPoints.where((fp) => fp.neighborhood == _selectedNeighborhood).toList();
+    return points.where((fp) => fp.neighborhood == _selectedNeighborhood).toList();
   }
 
   Future<void> _makeCall(String phone) async {
@@ -48,6 +51,9 @@ class _FoodClinicsTabState extends State<FoodClinicsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final feedingPointsAsync = ref.watch(feedingPointsStreamProvider);
+    final vetClinicsAsync = ref.watch(vetClinicsStreamProvider);
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
@@ -55,21 +61,68 @@ class _FoodClinicsTabState extends State<FoodClinicsTab> {
         _buildFeedingPointsHeader(context),
         const SizedBox(height: 14),
 
-        // Mahalle Filtre Çipleri
-        _buildNeighborhoodChips(),
-        const SizedBox(height: 14),
+        // Besleme Noktaları (Canlı Firestore Stream / Admin Panel Senkronize)
+        feedingPointsAsync.when(
+          data: (points) {
+            final neighborhoods = _getNeighborhoods(points);
+            final filtered = _filterPoints(points);
 
-        // Besleme Noktaları Kartları
-        ..._filteredFeedingPoints.map((fp) => _buildFeedingPointCard(fp)),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildNeighborhoodChips(neighborhoods),
+                const SizedBox(height: 14),
+                if (filtered.isEmpty)
+                  _buildEmptySection('Bu mahallede kayıtlı besleme odağı bulunamadı.')
+                else
+                  ...filtered.map((fp) => _buildFeedingPointCard(fp)),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, _) => Column(
+            children: kGebzeFeedingPoints.map((fp) => _buildFeedingPointCard(fp)).toList(),
+          ),
+        ),
         const SizedBox(height: 24),
 
-        // 2. ÖZEL NÖBETÇİ VETERİNER KLİNİKLERİ BÖLÜMÜ
+        // 2. ÖZEL NÖBETÇİ VETERİNER KLİNİKLERİ BÖLÜMÜ (Canlı Firestore Stream / Admin Senkronize)
         _buildVetClinicsHeader(context),
         const SizedBox(height: 14),
 
-        // Özel Veteriner Kartları
-        ...kGebzeDutyVetClinics.map((clinic) => _buildVetClinicCard(clinic)),
+        vetClinicsAsync.when(
+          data: (clinics) {
+            if (clinics.isEmpty) {
+              return _buildEmptySection('Kayıtlı nöbetçi veteriner kliniği bulunamadı.');
+            }
+            return Column(
+              children: clinics.map((c) => _buildVetClinicCard(c)).toList(),
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, _) => Column(
+            children: kGebzeDutyVetClinics.map((c) => _buildVetClinicCard(c)).toList(),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildEmptySection(String text) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      alignment: Alignment.center,
+      child: Text(text, style: const TextStyle(fontSize: 13, color: Color(0xFF5F6F8A))),
     );
   }
 
@@ -132,15 +185,15 @@ class _FoodClinicsTabState extends State<FoodClinicsTab> {
     );
   }
 
-  Widget _buildNeighborhoodChips() {
+  Widget _buildNeighborhoodChips(List<String> neighborhoods) {
     return SizedBox(
       height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: _neighborhoods.length,
+        itemCount: neighborhoods.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final n = _neighborhoods[index];
+          final n = neighborhoods[index];
           final isSelected = n == _selectedNeighborhood;
           return ChoiceChip(
             label: Text(
