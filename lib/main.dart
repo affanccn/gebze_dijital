@@ -6,6 +6,11 @@ import 'core/services/push_service.dart';
 import 'firebase_options.dart';
 import 'screens/guest_home_screen.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/localization/app_strings.dart';
+import 'features/profile/models/user_profile.dart';
+import 'features/profile/services/profile_service.dart';
+
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
@@ -14,14 +19,14 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
@@ -44,10 +49,31 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Firestore'daki profil dili yüklendiğinde appLanguageProvider'ı eşitle
+    ref.listen<AsyncValue<UserProfile>>(profileProvider, (prev, next) {
+      final lang = next.value?.language;
+      if (lang != null && lang.isNotEmpty && lang != ref.read(appLanguageProvider)) {
+        ref.read(appLanguageProvider.notifier).setLanguage(lang);
+      }
+    });
+
+    final activeLang = ref.watch(appLanguageProvider);
+
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Gebze Dijital',
+      locale: Locale(activeLang),
+      supportedLocales: const [
+        Locale('tr'),
+        Locale('en'),
+        Locale('ar'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF0B5FA5),

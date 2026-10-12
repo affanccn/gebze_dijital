@@ -6,8 +6,11 @@ import '../features/weather/presentation/weather_screen.dart';
 import '../features/news/municipal_news_screen.dart';
 import '../features/pati/presentation/gebze_pati_screen.dart';
 import '../features/ebelediye/presentation/ebelediye_screen.dart';
+import 'profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/localization/app_strings.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
 /// Dosya yolu önerisi: lib/screens/services_screen.dart
@@ -54,7 +57,7 @@ class _ServiceData {
   const _ServiceData(this.id, this.title, this.subtitle, this.icon, this.gradient);
 }
 
-class ServicesScreen extends StatefulWidget {
+class ServicesScreen extends ConsumerStatefulWidget {
   /// Alt menüde başka bir sekmeye geçilmek istendiğinde çağrılır.
   /// (0: Ana Sayfa, 1: Rehber, 2: Bildir, 3: Hizmetler, 4: Profil)
   final ValueChanged<int>? onNavTap;
@@ -65,43 +68,42 @@ class ServicesScreen extends StatefulWidget {
   const ServicesScreen({super.key, this.onNavTap, this.onServiceTap});
 
   @override
-  State<ServicesScreen> createState() => _ServicesScreenState();
+  ConsumerState<ServicesScreen> createState() => _ServicesScreenState();
 }
 
-class _ServicesScreenState extends State<ServicesScreen> {
+class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
-  // Acil Durum üstte ayrı, büyük kart olarak gösterilir.
-  static const _emergency = _ServiceData(
+  _ServiceData _getEmergency(String lang) => _ServiceData(
     'acil_durum',
-    'ACİL DURUM',
-    'Acil numaralar ve tek dokunuşla yardım çağır',
+    AppStrings.get('service_emergency', lang),
+    AppStrings.get('service_emergency_sub', lang),
     Icons.emergency_rounded,
-    [Color(0xFFFF5A4F), Color(0xFFE5231B)],
+    const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
   );
 
-  static const _services = <_ServiceData>[
-    _ServiceData('kesintiler', 'Kesintiler', 'Su, elektrik ve doğalgaz kesintileri',
-        Icons.power_off_rounded, _C.navyGradient),
-    _ServiceData('otopark', 'Otopark', 'Boş park yerleri ve ücretler',
-        Icons.local_parking_rounded, _C.navyGradient),
-    _ServiceData('soz_sende', 'Söz Sende', 'Fikir, öneri ve oylamalar',
-        Icons.record_voice_over_rounded, _C.navyGradient),
-    _ServiceData('gebze_pati', 'Gebze Pati', 'Sahiplendirme ve sokak hayvanları',
-        Icons.pets_rounded, _C.navyGradient),
-    _ServiceData('nobetci_eczane', 'Nöbetçi Eczane', 'Bugün nöbetçi olan eczaneler',
-        Icons.local_pharmacy_rounded, _C.navyGradient),
-    _ServiceData('hava_durumu', 'Hava Durumu', 'Anlık durum ve haftalık tahmin',
-        Icons.wb_cloudy_rounded, _C.navyGradient),
-    _ServiceData('mahallemde', 'Mahallemde', 'Mahallendeki çalışmalar ve hizmetler',
-        Icons.location_city_rounded, _C.navyGradient),
-    _ServiceData('e_belediye', 'E-Belediye', 'Borç sorgulama ve online işlemler',
-        Icons.account_balance_rounded, _C.navyGradient),
+  List<_ServiceData> _getServices(String lang) => [
+    _ServiceData('kesintiler', AppStrings.get('service_outages', lang),
+        AppStrings.get('service_outages_sub', lang), Icons.power_off_rounded, _C.navyGradient),
+    _ServiceData('otopark', AppStrings.get('service_parking', lang),
+        AppStrings.get('service_parking_sub', lang), Icons.local_parking_rounded, _C.navyGradient),
+    _ServiceData('soz_sende', AppStrings.get('service_soz_sende', lang),
+        AppStrings.get('service_soz_sende_sub', lang), Icons.record_voice_over_rounded, _C.navyGradient),
+    _ServiceData('gebze_pati', AppStrings.get('service_pati', lang),
+        AppStrings.get('service_pati_sub', lang), Icons.pets_rounded, _C.navyGradient),
+    _ServiceData('nobetci_eczane', AppStrings.get('service_pharmacy', lang),
+        AppStrings.get('service_pharmacy_sub', lang), Icons.local_pharmacy_rounded, _C.navyGradient),
+    _ServiceData('hava_durumu', AppStrings.get('service_weather', lang),
+        AppStrings.get('service_weather_sub', lang), Icons.wb_cloudy_rounded, _C.navyGradient),
+    _ServiceData('mahallemde', AppStrings.get('service_neighborhood', lang),
+        AppStrings.get('service_neighborhood_sub', lang), Icons.location_city_rounded, _C.navyGradient),
+    _ServiceData('e_belediye', AppStrings.get('service_ebelediye', lang),
+        AppStrings.get('service_ebelediye_sub', lang), Icons.account_balance_rounded, _C.navyGradient),
     _ServiceData('asistan_bot', 'AsistanBot', 'Sorularını yapay zekâ ile yanıtla',
         Icons.smart_toy_rounded, _C.navyGradient),
-    _ServiceData('haberler', 'Haberler', 'Belediyeden güncel haberler',
-        Icons.menu_book_rounded, _C.navyGradient),
+    _ServiceData('haberler', AppStrings.get('service_news', lang),
+        AppStrings.get('service_news_sub', lang), Icons.menu_book_rounded, _C.navyGradient),
   ];
 
   @override
@@ -110,10 +112,11 @@ class _ServicesScreenState extends State<ServicesScreen> {
     super.dispose();
   }
 
-  List<_ServiceData> get _filtered {
+  List<_ServiceData> _filtered(String lang) {
+    final list = _getServices(lang);
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return _services;
-    return _services
+    if (q.isEmpty) return list;
+    return list
         .where((s) =>
             s.title.toLowerCase().contains(q) || s.subtitle.toLowerCase().contains(q))
         .toList();
@@ -193,9 +196,11 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
 
   Widget _buildScreen(BuildContext context) {
-    final items = _filtered;
+    final lang = ref.watch(appLanguageProvider);
+    final items = _filtered(lang);
+    final emergency = _getEmergency(lang);
     final showEmergency = _query.trim().isEmpty ||
-        _emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
+        emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
@@ -203,14 +208,18 @@ class _ServicesScreenState extends State<ServicesScreen> {
         backgroundColor: _C.bg,
         body: Column(
           children: [
-            _Header(controller: _searchCtrl, onChanged: (v) => setState(() => _query = v)),
+            _Header(
+              controller: _searchCtrl,
+              onChanged: (v) => setState(() => _query = v),
+              lang: lang,
+            ),
             Expanded(
               child: ListView(
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
                 children: [
                   if (showEmergency) ...[
-                    _EmergencyCard(data: _emergency, onTap: () => _open(_emergency)),
+                    _EmergencyCard(data: emergency, onTap: () => _open(emergency)),
                     const SizedBox(height: 16),
                   ],
                   if (items.isEmpty && !showEmergency)
@@ -237,7 +246,17 @@ class _ServicesScreenState extends State<ServicesScreen> {
         ),
         bottomNavigationBar: _BottomNav(
           index: 3,
-          onTap: (i) => widget.onNavTap?.call(i),
+          onTap: (i) {
+            if (widget.onNavTap != null) {
+              widget.onNavTap!(i);
+            } else if (i == 4) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            } else if (i == 0) {
+              Navigator.of(context).pop();
+            }
+          },
         ),
       ),
     );
@@ -249,7 +268,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
 class _Header extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  const _Header({required this.controller, required this.onChanged});
+  final String lang;
+  const _Header({
+    required this.controller,
+    required this.onChanged,
+    required this.lang,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -286,23 +310,23 @@ class _Header extends StatelessWidget {
                     child: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'HİZMETLER',
-                          style: TextStyle(
+                          AppStrings.get('services_screen_title', lang),
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          'Gebze Belediyesi dijital hizmetleri',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                          AppStrings.get('services_screen_subtitle', lang),
+                          style: const TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
                     ),
@@ -330,12 +354,12 @@ class _Header extends StatelessWidget {
                   onChanged: onChanged,
                   textInputAction: TextInputAction.search,
                   style: const TextStyle(fontSize: 14, color: _C.textDark),
-                  decoration: const InputDecoration(
-                    hintText: 'Hizmet ara...',
-                    hintStyle: TextStyle(color: _C.textMuted, fontSize: 14),
-                    prefixIcon: Icon(Icons.search_rounded, color: _C.textMuted),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.get('search_services_hint', lang),
+                    hintStyle: const TextStyle(color: _C.textMuted, fontSize: 14),
+                    prefixIcon: const Icon(Icons.search_rounded, color: _C.textMuted),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 13),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
                   ),
                 ),
               ),
@@ -518,21 +542,22 @@ class _EmptyState extends StatelessWidget {
 
 // ───────────────────────── Alt Menü ─────────────────────────
 
-class _BottomNav extends StatelessWidget {
+class _BottomNav extends ConsumerWidget {
   final int index;
   final ValueChanged<int> onTap;
   const _BottomNav({required this.index, required this.onTap});
 
-  static const _items = <_NavItem>[
-    _NavItem('ANA SAYFA', Icons.home_rounded),
-    _NavItem('REHBER', Icons.explore_outlined),
-    _NavItem('BİLDİR', Icons.photo_camera_outlined),
-    _NavItem('HİZMETLER', Icons.grid_view_rounded),
-    _NavItem('PROFİL', Icons.person_outline_rounded),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
+    final items = <_NavItem>[
+      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
+      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
+      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
+      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
+      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+    ];
+
     return Material(
       color: _C.navyDeep,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -544,7 +569,7 @@ class _BottomNav extends StatelessWidget {
           padding: const EdgeInsets.only(top: 12, bottom: 6),
           child: Row(
             children: [
-              for (int i = 0; i < _items.length; i++)
+              for (int i = 0; i < items.length; i++)
                 Expanded(
                   child: InkWell(
                     onTap: () => onTap(i),
@@ -552,13 +577,13 @@ class _BottomNav extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _items[i].icon,
+                          items[i].icon,
                           size: 28,
                           color: i == index ? _C.orange : Colors.white70,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _items[i].label,
+                          items[i].label,
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,

@@ -4,13 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
 import '../features/weather/services/weather_provider.dart';
 import '../features/weather/presentation/weather_screen.dart';
+import '../core/localization/app_strings.dart';
 import 'services_screen.dart';
+import 'profile_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu: lib/screens/guest_home_screen.dart
@@ -51,14 +52,14 @@ List<BoxShadow> _softShadow() => [
   ),
 ];
 
-class GuestHomeScreen extends StatefulWidget {
+class GuestHomeScreen extends ConsumerStatefulWidget {
   const GuestHomeScreen({super.key});
 
   @override
-  State<GuestHomeScreen> createState() => _GuestHomeScreenState();
+  ConsumerState<GuestHomeScreen> createState() => _GuestHomeScreenState();
 }
 
-class _GuestHomeScreenState extends State<GuestHomeScreen> {
+class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   // Hero görseli: proje kökündeki gorsel/ klasörü (pubspec.yaml'da tanımlı olmalı).
   static const String? _heroAsset = 'gorsel/gebze_gorsel.jpg';
 
@@ -86,16 +87,16 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     stream.addListener(listener);
   }
 
-  static const _quickActions = <_QuickActionData>[
-    _QuickActionData('GEZİLECEK YER', Icons.map_rounded, _C.orangeGradient),
-    _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
-    _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
+  List<_QuickActionData> _getQuickActions(String lang) => [
+    _QuickActionData(AppStrings.get('qa_places', lang), Icons.map_rounded, _C.orangeGradient),
+    _QuickActionData(AppStrings.get('qa_food', lang), Icons.restaurant_rounded, _C.navyGradient),
+    _QuickActionData(AppStrings.get('qa_ebel', lang), Icons.account_balance_rounded, _C.orangeGradient),
     _QuickActionData(
-      'MİSAFİR ŞİKAYET',
+      AppStrings.get('qa_complaint', lang),
       Icons.report_problem_rounded,
       _C.navyGradient,
     ),
-    _QuickActionData('OTOPARK', Icons.local_parking_rounded, _C.orangeGradient),
+    _QuickActionData(AppStrings.get('qa_parking', lang), Icons.local_parking_rounded, _C.orangeGradient),
   ];
 
   static const _historicPlaces = <_RowData>[
@@ -127,6 +128,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   }
 
   Widget _buildScreen(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final size = MediaQuery.of(context).size;
     final heroH = _heroAspect != null
         ? (size.width / _heroAspect!).clamp(280.0, 480.0)
@@ -157,7 +159,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 children: [
                   SizedBox(
                     height: heroH - overlap,
-                    child: const _HeroContent(),
+                    child: _HeroContent(lang: lang),
                   ),
                   Container(
                     width: double.infinity,
@@ -171,18 +173,18 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 52, 16, 110),
                     child: Column(
                       children: [
-                        _QuickActionsCard(items: _quickActions),
+                        _QuickActionsCard(items: _getQuickActions(lang)),
                         const SizedBox(height: 16),
-                        const _EventsSection(),
+                        _EventsSection(lang: lang),
                         const SizedBox(height: 16),
-                        const _SectionCard(
-                          title: 'TARİHİ YERLER',
+                        _SectionCard(
+                          title: AppStrings.get('historic_places_title', lang),
                           icon: Icons.account_balance_rounded,
                           iconColor: _C.navy,
                           rows: _historicPlaces,
                         ),
                         const SizedBox(height: 16),
-                        const _NewsSection(),
+                        _NewsSection(lang: lang),
                       ],
                     ),
                   ),
@@ -216,15 +218,15 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
             foregroundColor: Colors.white,
             elevation: 8,
             shape: const CircleBorder(),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.emergency_rounded, size: 28),
-                SizedBox(height: 2),
+                const Icon(Icons.emergency_rounded, size: 28),
+                const SizedBox(height: 2),
                 Text(
-                  'ACİL\nDURUM',
+                  AppStrings.get('emergency_btn', lang),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 9,
                     height: 1.05,
                     fontWeight: FontWeight.w800,
@@ -245,7 +247,34 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                   builder: (_) => ServicesScreen(
                     onNavTap: (j) {
                       Navigator.of(context).pop();
-                      if (j != 0) setState(() => _navIndex = j);
+                      if (j == 4) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ProfileScreen(),
+                          ),
+                        );
+                      } else if (j != 0) {
+                        setState(() => _navIndex = j);
+                      }
+                    },
+                  ),
+                ),
+              );
+            } else if (i == 4) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ProfileScreen(
+                    onNavTap: (j) {
+                      Navigator.of(context).pop();
+                      if (j == 3) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ServicesScreen(),
+                          ),
+                        );
+                      } else if (j != 0) {
+                        setState(() => _navIndex = j);
+                      }
                     },
                   ),
                 ),
@@ -326,7 +355,8 @@ class _HeroPlaceholder extends StatelessWidget {
 }
 
 class _HeroContent extends StatelessWidget {
-  const _HeroContent();
+  final String lang;
+  const _HeroContent({required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -342,12 +372,12 @@ class _HeroContent extends StatelessWidget {
                 const _Logo(),
                 const SizedBox(width: 12),
                 // Karşılama yazısı: logodan bağımsız, logonun sağında
-                const Expanded(
+                Expanded(
                   child: Text(
-                    "Gebze'ye\nHoşgeldiniz",
+                    AppStrings.get('welcome_gebze', lang),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       height: 1.15,
                       fontWeight: FontWeight.w800,
@@ -366,10 +396,10 @@ class _HeroContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      'Daha güzel\nbir Gebze için',
+                    Text(
+                      AppStrings.get('better_gebze', lang),
                       textAlign: TextAlign.right,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 21,
                         height: 1.15,
                         fontStyle: FontStyle.italic,
@@ -499,6 +529,7 @@ class _WeatherPill extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
     final weatherAsyncValue = ref.watch(weatherProvider);
     
     return GestureDetector(
@@ -519,7 +550,7 @@ class _WeatherPill extends ConsumerWidget {
         child: weatherAsyncValue.when(
           data: (weatherInfo) {
             if (weatherInfo == null) {
-              return _buildPlaceholder();
+              return _buildPlaceholder(lang);
             }
             
             final temp = '${weatherInfo.current.tempC.round()}°';
@@ -568,12 +599,12 @@ class _WeatherPill extends ConsumerWidget {
                 ),
                 const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
                 const SizedBox(width: 4),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      const Text(
                         'Gebze',
                         style: TextStyle(
                           color: Colors.white,
@@ -582,10 +613,10 @@ class _WeatherPill extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'Güncel Hava Durumu',
+                        AppStrings.get('current_weather_pill', lang),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                        style: const TextStyle(color: Colors.white70, fontSize: 11),
                       ),
                     ],
                   ),
@@ -593,14 +624,14 @@ class _WeatherPill extends ConsumerWidget {
               ],
             );
           },
-          loading: () => _buildLoading(),
-          error: (_, __) => _buildPlaceholder(),
+          loading: () => _buildLoading(lang),
+          error: (_, __) => _buildPlaceholder(lang),
         ),
       ),
     );
   }
   
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(String lang) {
     return Row(
       children: [
         const SizedBox(
@@ -609,11 +640,11 @@ class _WeatherPill extends ConsumerWidget {
           child: Icon(Icons.cloud_off, color: Colors.white, size: 36),
         ),
         const SizedBox(width: 8),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               '--°',
               style: TextStyle(
                 color: Colors.white,
@@ -622,10 +653,10 @@ class _WeatherPill extends ConsumerWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            SizedBox(height: 2),
+            const SizedBox(height: 2),
             Text(
-              'Alınamadı',
-              style: TextStyle(color: Colors.white, fontSize: 11.5),
+              AppStrings.get('failed_to_load', lang),
+              style: const TextStyle(color: Colors.white, fontSize: 11.5),
             ),
           ],
         ),
@@ -633,17 +664,17 @@ class _WeatherPill extends ConsumerWidget {
     );
   }
   
-  Widget _buildLoading() {
-    return const Row(
+  Widget _buildLoading(String lang) {
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
+        const SizedBox(
           width: 24,
           height: 24,
           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
         ),
-        SizedBox(width: 12),
-        Text('Yükleniyor...', style: TextStyle(color: Colors.white, fontSize: 12)),
+        const SizedBox(width: 12),
+        Text(AppStrings.get('loading', lang), style: const TextStyle(color: Colors.white, fontSize: 12)),
       ],
     );
   }
@@ -893,21 +924,22 @@ class _SectionRow extends StatelessWidget {
 
 // ───────────────────────── Alt Menü ─────────────────────────
 
-class _BottomNav extends StatelessWidget {
+class _BottomNav extends ConsumerWidget {
   final int index;
   final ValueChanged<int> onTap;
   const _BottomNav({required this.index, required this.onTap});
 
-  static const _items = <_NavItem>[
-    _NavItem('ANA SAYFA', Icons.home_rounded),
-    _NavItem('REHBER', Icons.explore_outlined),
-    _NavItem('BİLDİR', Icons.photo_camera_outlined),
-    _NavItem('HİZMETLER', Icons.grid_view_rounded),
-    _NavItem('PROFİL', Icons.person_outline_rounded),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
+    final items = <_NavItem>[
+      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
+      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
+      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
+      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
+      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+    ];
+
     return Material(
       color: _C.navyDeep,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -919,7 +951,7 @@ class _BottomNav extends StatelessWidget {
           padding: const EdgeInsets.only(top: 12, bottom: 6),
           child: Row(
             children: [
-              for (int i = 0; i < _items.length; i++)
+              for (int i = 0; i < items.length; i++)
                 Expanded(
                   child: InkWell(
                     onTap: () => onTap(i),
@@ -927,13 +959,13 @@ class _BottomNav extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _items[i].icon,
+                          items[i].icon,
                           size: 28,
                           color: i == index ? _C.orange : Colors.white70,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _items[i].label,
+                          items[i].label,
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
@@ -974,7 +1006,8 @@ class _NavItem {
 // ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
 
 class _EventsSection extends StatelessWidget {
-  const _EventsSection();
+  final String lang;
+  const _EventsSection({required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -1004,7 +1037,7 @@ class _EventsSection extends StatelessWidget {
         }).toList();
 
         return _SectionCard(
-          title: 'YAKLAŞAN ETKİNLİKLER',
+          title: AppStrings.get('events_title', lang),
           icon: Icons.event_available_rounded,
           iconColor: _C.orange,
           rows: rows,
@@ -1017,7 +1050,8 @@ class _EventsSection extends StatelessWidget {
 // ───────────────────────── Haberler (Firestore) ─────────────────────────
 
 class _NewsSection extends StatelessWidget {
-  const _NewsSection();
+  final String lang;
+  const _NewsSection({required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -1030,7 +1064,7 @@ class _NewsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Gebze Haberleri',
+                  AppStrings.get('news_title', lang),
                   style: Theme.of(context).textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
@@ -1043,7 +1077,7 @@ class _NewsSection extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('Tümünü Gör'),
+                child: Text(AppStrings.get('see_all', lang)),
               ),
             ],
           ),
