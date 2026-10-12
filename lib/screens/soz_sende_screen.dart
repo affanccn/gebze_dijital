@@ -34,14 +34,6 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(24),
-        blurRadius: 16,
-        offset: const Offset(0, 5),
-      ),
-    ];
-
 const List<String> _kNeighborhoods = [
   'Tümü',
   'Mustafapaşa',
@@ -531,7 +523,7 @@ class _PollCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
+        border: Border.all(color: const Color(0xFFE4E9F2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,7 +707,7 @@ class _SuggestionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
+        border: Border.all(color: const Color(0xFFE4E9F2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

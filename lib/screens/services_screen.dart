@@ -37,14 +37,6 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(28),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
-
 class _ServiceData {
   final String id;
   final String title;
@@ -370,13 +362,6 @@ class _EmergencyCard extends StatelessWidget {
               colors: data.gradient,
             ),
             borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: _C.danger.withAlpha(80),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: Row(
             children: [
@@ -441,7 +426,7 @@ class _ServiceCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(22),
-            boxShadow: _softShadow(),
+            border: Border.all(color: const Color(0xFFE4E9F2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,13 +441,6 @@ class _ServiceCard extends StatelessWidget {
                     colors: data.gradient,
                   ),
                   borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: data.gradient.last.withAlpha(90),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
                 ),
                 child: Icon(data.icon, color: Colors.white, size: 28),
               ),

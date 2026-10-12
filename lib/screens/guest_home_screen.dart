@@ -10,6 +10,7 @@ import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
 import '../features/weather/services/weather_provider.dart';
 import '../features/weather/presentation/weather_screen.dart';
+import 'guide_screen.dart';
 import 'services_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
@@ -111,6 +112,35 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
       Icons.account_balance_rounded,
     ),
   ];
+
+  /// Alt menü yönlendirmesi: 1 -> Rehber, 3 -> Hizmetler, diğerleri -> sekme seçimi.
+  void _handleNav(int i) {
+    if (i == 1) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => GuideScreen(
+            onNavTap: (j) {
+              Navigator.of(context).pop();
+              if (j != 0 && j != 1) _handleNav(j);
+            },
+          ),
+        ),
+      );
+    } else if (i == 3) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ServicesScreen(
+            onNavTap: (j) {
+              Navigator.of(context).pop();
+              if (j != 0 && j != 3) _handleNav(j);
+            },
+          ),
+        ),
+      );
+    } else {
+      setState(() => _navIndex = i);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,25 +265,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
         bottomNavigationBar: _BottomNav(
           index: _navIndex,
-          onTap: (i) {
-            if (i == 3) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ServicesScreen(
-                    onNavTap: (j) {
-                      Navigator.of(context).pop();
-                      if (j != 0) setState(() => _navIndex = j);
-                    },
-                  ),
-                ),
-              );
-            } else {
-              setState(() => _navIndex = i);
-            }
-          },
+          onTap: _handleNav,
         ),
       ),
     );

@@ -27,14 +27,6 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(20),
-        blurRadius: 14,
-        offset: const Offset(0, 4),
-      ),
-    ];
-
 class OutagesScreen extends StatefulWidget {
   const OutagesScreen({super.key});
 
@@ -297,7 +289,7 @@ class _OutageCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
+        border: Border.all(color: const Color(0xFFE4E9F2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
