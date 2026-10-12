@@ -2,8 +2,11 @@ name: Hava Durumu Senkronizasyonu
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Her 30 dakikada bir çalışır
+    - cron: '15,45 * * * *' # Her saatin 15 ve 45. dakikalarında düzenli çalışır (yoğunluk gecikmesini önler)
   workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/weather-sync/**'
 
 jobs:
   sync:

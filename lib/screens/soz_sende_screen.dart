@@ -62,16 +62,6 @@ const List<String> _kCategories = [
   'Diğer',
 ];
 
-/// endDate Firestore'da Timestamp ya da hazır metin olabilir.
-String _fmtDate(dynamic v) {
-  if (v is Timestamp) {
-    final d = v.toDate();
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(d.day)}.${two(d.month)}.${d.year}';
-  }
-  return (v ?? '').toString();
-}
-
 class SozSendeScreen extends StatefulWidget {
   const SozSendeScreen({super.key});
 
@@ -94,15 +84,21 @@ class _SozSendeScreenState extends State<SozSendeScreen>
       'question': 'Mustafapaşa Mahallesi\'ne hangi sosyal tesis yapılsın?',
       'neighborhood': 'Mustafapaşa',
       'endDate': '30.10.2026',
-      'options': ['Kütüphane & Etüt Merkezi', 'Spor Kompleksi', 'Yaşlı Yaşam Merkezi'],
-      'votes': {'0': 128, '1': 94, '2': 61},
+      'options': [
+        {'text': 'Kütüphane & Etüt Merkezi', 'votes': 128},
+        {'text': 'Spor Kompleksi', 'votes': 94},
+        {'text': 'Yaşlı Yaşam Merkezi', 'votes': 61},
+      ],
     },
     {
       'question': 'Gebze Sahil Parkı\'nda hangi düzenleme öncelikli olmalı?',
       'neighborhood': 'Eskihisar',
       'endDate': '25.10.2026',
-      'options': ['Yürüyüş ve bisiklet yolu', 'Çocuk oyun alanı', 'Aydınlatma'],
-      'votes': {'0': 210, '1': 143, '2': 87},
+      'options': [
+        {'text': 'Yürüyüş ve bisiklet yolu', 'votes': 210},
+        {'text': 'Çocuk oyun alanı', 'votes': 143},
+        {'text': 'Aydınlatma', 'votes': 87},
+      ],
     },
   ];
 
@@ -156,11 +152,18 @@ class _SozSendeScreenState extends State<SozSendeScreen>
     if (docId == null) return; // demo veri: sadece yerelde göster
 
     try {
-      // Oylar votes map'inde tutulur: {"0": 12, "1": 5}. Transaction gerekmez.
-      await FirebaseFirestore.instance
-          .collection('polls')
-          .doc(docId)
-          .update({'votes.$optionIndex': FieldValue.increment(1)});
+      final ref = FirebaseFirestore.instance.collection('polls').doc(docId);
+      await FirebaseFirestore.instance.runTransaction((tx) async {
+        final snap = await tx.get(ref);
+        final data = snap.data();
+        if (data == null) return;
+        final options = List<Map<String, dynamic>>.from(
+          (data['options'] as List).map((e) => Map<String, dynamic>.from(e as Map)),
+        );
+        options[optionIndex]['votes'] =
+            ((options[optionIndex]['votes'] ?? 0) as num).toInt() + 1;
+        tx.update(ref, {'options': options});
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() => _votedPolls.remove(key));
@@ -208,7 +211,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
       builder: (_) => const _NewSuggestionSheet(),
     ).then((sent) {
       if (sent == true) {
-        _snack('Teşekkürler! Öneriniz incelendikten sonra yayınlanacak.');
+        _snack('Teşekkürler! Öneriniz belediyeye iletildi.');
       }
     });
   }
@@ -296,10 +299,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
 
   Widget _buildPollsTab() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('polls')
-          .where('isActive', isEqualTo: true)
-          .snapshots(),
+      stream: FirebaseFirestore.instance.collection('polls').snapshots(),
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(child: Text('Veri yüklenemedi: ${snap.error}'));
@@ -347,10 +347,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
 
   Widget _buildSuggestionsTab() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('suggestions')
-          .where('approved', isEqualTo: true)
-          .snapshots(),
+      stream: FirebaseFirestore.instance.collection('suggestions').snapshots(),
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(child: Text('Veri yüklenemedi: ${snap.error}'));
@@ -515,12 +512,13 @@ class _PollCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final options = (data['options'] as List? ?? []).map((e) => e.toString()).toList();
-    final votes = Map<String, dynamic>.from((data['votes'] as Map?) ?? {});
+    final options = (data['options'] as List? ?? [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
 
     // Demo veride oy Firestore'a yazılmadığı için ekranda +1 gösteriyoruz.
     int votesOf(int i) {
-      final base = ((votes['$i'] ?? 0) as num).toInt();
+      final base = ((options[i]['votes'] ?? 0) as num).toInt();
       return base + (isDemo && votedIndex == i ? 1 : 0);
     }
 
@@ -548,7 +546,7 @@ class _PollCard extends StatelessWidget {
               const Spacer(),
               if (data['endDate'] != null)
                 Text(
-                  'Bitiş: ${_fmtDate(data['endDate'])}',
+                  'Bitiş: ${data['endDate']}',
                   style: const TextStyle(
                       fontSize: 11, color: _C.textMuted, fontWeight: FontWeight.w600),
                 ),
@@ -567,7 +565,7 @@ class _PollCard extends StatelessWidget {
           const SizedBox(height: 12),
           for (int i = 0; i < options.length; i++) ...[
             _PollOption(
-              text: options[i],
+              text: (options[i]['text'] ?? '').toString(),
               percent: total == 0 ? 0 : votesOf(i) / total,
               showResult: hasVoted,
               selected: votedIndex == i,
@@ -886,7 +884,6 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
         'neighborhood': _neighborhood,
         'category': _category,
         'status': 'Beklemede',
-        'approved': false, // admin onaylayınca true olur
         'likes': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });

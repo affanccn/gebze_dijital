@@ -3,10 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class WeatherInfo {
   final CurrentWeather current;
   final List<WeatherForecast> forecast;
+  final DateTime? syncedAt;
 
   const WeatherInfo({
     required this.current,
     required this.forecast,
+    this.syncedAt,
   });
 
   factory WeatherInfo.fromFirestore(DocumentSnapshot doc) {
@@ -14,10 +16,12 @@ class WeatherInfo {
     
     final currentData = data?['current'] as Map<String, dynamic>?;
     final forecastData = data?['forecast'] as List<dynamic>?;
+    final syncedAtTimestamp = data?['syncedAt'] as Timestamp?;
 
     return WeatherInfo(
       current: CurrentWeather.fromMap(currentData ?? {}),
       forecast: forecastData?.map((e) => WeatherForecast.fromMap(e)).toList() ?? [],
+      syncedAt: syncedAtTimestamp?.toDate(),
     );
   }
 }

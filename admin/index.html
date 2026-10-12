@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gebze Belediyesi • Dijital Yönetim Paneli</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #0A2A66;
+      --navy-deep: #061B45;
+      --navy-light: #1E5BC6;
+      --navy-soft: #EEF4FF;
+      --orange: #FF7A00;
+      --orange-light: #FFA11F;
+      --bg: #F3F6FD;
+      --card-bg: #FFFFFF;
+      --text-dark: #0A1F44;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --danger: #E5231B;
+      --success: #16A34A;
+      --warning: #F59E0B;
+      --sidebar-w: 270px;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-dark);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, var(--navy-deep) 0%, #04122E 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      box-shadow: 4px 0 24px rgba(6, 27, 69, 0.25);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(255, 122, 0, 0.35);
+      flex-shrink: 0;
+    }
+
+    .brand-info h2 {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
+      line-height: 1.2;
+    }
+
+    .brand-info p {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 2px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 12px;
+    }
+
+    .nav-group-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.45);
+      font-weight: 800;
+      padding: 12px 14px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 3px;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--navy-light) 0%, #154599 100%);
+      color: white;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(30, 91, 198, 0.35);
+    }
+
+    .nav-item .icon {
+      font-size: 17px;
+      width: 22px;
+      text-align: center;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--orange);
+      color: white;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #22C55E;
+      border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 8px #22C55E;
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main-wrapper {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Topbar */
+    .topbar {
+      background: white;
+      height: 72px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--navy);
+    }
+
+    .page-title h1 {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--text-dark);
+    }
+
+    .page-title p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(10, 42, 102, 0.25);
+    }
+
+    .btn-seed {
+      background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.3);
+    }
+
+    .btn-danger {
+      background: #FEE2E2;
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: #DCFCE7;
+      color: var(--success);
+    }
+
+    .btn-success:hover {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text-dark);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    /* Content Area */
+    .content-area {
+      padding: 28px 32px 60px;
+      flex: 1;
+    }
+
+    .tab-view {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* KPI / Stat Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: white;
+      padding: 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(10, 42, 102, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(10, 42, 102, 0.08);
+    }
+
+    .kpi-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .kpi-info h3 {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text-dark);
+      line-height: 1.1;
+    }
+
+    .kpi-info p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* Form & Panel Containers */
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      .panel-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(10, 42, 102, 0.04);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+    }
+
+    .form-control, input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 13.5px;
+      outline: none;
+      transition: border 0.2s;
+      background: #F8FAFC;
+    }
+
+    .form-control:focus, input:focus, select:focus, textarea:focus {
+      border-color: var(--navy-light);
+      background: white;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Kart Izgaraları (Listeler) */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(10, 42, 102, 0.04);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s;
+    }
+
+    .item-card:hover {
+      box-shadow: 0 8px 24px rgba(10, 42, 102, 0.08);
+      border-color: rgba(30, 91, 198, 0.3);
+    }
+
+    .item-card-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background: #E2E8F0;
+    }
+
+    .item-card-body {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item-card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .item-card-meta {
+      font-size: 12px;
+      color: var(--navy-light);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .item-card-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 12px;
+      flex: 1;
+    }
+
+    .item-card-footer {
+      padding: 12px 16px;
+      background: #F8FAFC;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .badge-primary { background: #E0E7FF; color: #3730A3; }
+    .badge-success { background: #DCFCE7; color: #166534; }
+    .badge-warning { background: #FEF3C7; color: #92400E; }
+    .badge-danger  { background: #FEE2E2; color: #991B1B; }
+
+    /* Alt Sekmeler (Pati vb. içi) */
+    .sub-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--navy-soft);
+      padding: 5px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .sub-tab-btn {
+      padding: 8px 16px;
+      border-radius: 9px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sub-tab-btn.active {
+      background: white;
+      color: var(--navy);
+      box-shadow: 0 2px 8px rgba(10, 42, 102, 0.12);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--navy-deep);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      background: white;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main-wrapper {
+        margin-left: 0;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .content-area {
+        padding: 20px 16px;
+      }
+      .topbar {
+        padding: 0 16px;
+      }
+    }
+  </style>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      deleteDoc,
+      doc,
+      updateDoc,
+      serverTimestamp,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4CqNJxmmKPTTnFqjzHbFvvH3FZN8VIRM",
+      authDomain: "gebze-dijital.firebaseapp.com",
+      projectId: "gebze-dijital",
+      storageBucket: "gebze-dijital.firebasestorage.app",
+      messagingSenderId: "417554808986",
+      appId: "1:417554808986:web:aea3daf07f5b6534301f23"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.db = db;
+
+    // Sekme Değişimi
+    window.switchNav = (tabId, title, subtitle) => {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+
+      const navBtn = document.getElementById('nav-' + tabId);
+      if (navBtn) navBtn.classList.add('active');
+
+      const targetTab = document.getElementById('view-' + tabId);
+      if (targetTab) targetTab.classList.add('active');
+
+      document.getElementById('headerTitle').innerText = title || 'Yönetim Paneli';
+      document.getElementById('headerSubtitle').innerText = subtitle || 'Gebze Belediyesi Dijital Hizmetler';
+
+      // İlgili modül verilerini yükle
+      if (tabId === 'dashboard') loadDashboard();
+      if (tabId === 'news') loadNews();
+      if (tabId === 'events') loadEvents();
+      if (tabId === 'polls') loadPolls();
+      if (tabId === 'suggestions') loadSuggestions();
+      if (tabId === 'outages') loadOutages();
+      if (tabId === 'pharmacies') loadPharmacies();
+      if (tabId === 'pets') loadPatiData();
+      if (tabId === 'ebelediye') loadEBelediye();
+
+      // Mobil menüyü kapat
+      document.getElementById('sidebar').classList.remove('open');
+    };
+
+    window.toggleSidebar = () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    };
+
+    // ───────────────── 1. DASHBOARD ─────────────────
+    async function loadDashboard() {
+      try {
+        const [newsSnap, suggSnap, pollsSnap, outSnap, petsSnap, pharmSnap] = await Promise.all([
+          getDocs(collection(db, "municipal_news")),
+          getDocs(collection(db, "suggestions")),
+          getDocs(collection(db, "polls")),
+          getDocs(collection(db, "outages")),
+          getDocs(collection(db, "pet_adoptions")),
+          getDocs(collection(db, "pharmacies_on_duty"))
+        ]);
+
+        document.getElementById('kpiNews').innerText = newsSnap.size;
+
+        let pendingSugg = 0;
+        suggSnap.forEach(d => { if (d.data().approved !== true) pendingSugg++; });
+        document.getElementById('kpiSuggestions').innerText = pendingSugg;
+
+        document.getElementById('kpiPolls').innerText = pollsSnap.size;
+        document.getElementById('kpiOutages').innerText = outSnap.size;
+        document.getElementById('kpiPets').innerText = petsSnap.size;
+        document.getElementById('kpiPharmacies').innerText = pharmSnap.size;
+
+        const badge = document.getElementById('badgePendingSugg');
+        if (badge) {
+          badge.innerText = pendingSugg;
+          badge.style.display = pendingSugg > 0 ? 'inline-block' : 'none';
+        }
+      } catch (err) {
+        console.error("Dashboard yüklenirken hata:", err);
+      }
+    }
+
+    // ───────────────── 2. HABERLER & DUYURULAR ─────────────────
+    async function loadNews() {
+      const container = document.getElementById("newsGrid");
+      container.innerHTML = '<div class="empty-state">Haberler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "municipal_news"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Henüz kayıtlı haber yok. Demo verileri yükleyebilirsiniz.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <img src="${d.image || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=600&q=80'}" class="item-card-image" alt="haber">
+            <div class="item-card-body">
+              <div class="item-card-meta">📅 ${d.publishedAtText || 'Bugün'}</div>
+              <div class="item-card-title">${d.title}</div>
+              <div class="item-card-desc">${d.url ? '🔗 ' + d.url : 'Belediye Güncel Haberi'}</div>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-primary">ID: ${docSnap.id.substring(0, 8)}</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('municipal_news', '${docSnap.id}', loadNews)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── 3. ETKİNLİKLER ─────────────────
+    async function loadEvents() {
+      const container = document.getElementById("eventsGrid");
+      container.innerHTML = '<div class="empty-state">Etkinlikler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "events"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Henüz kayıtlı etkinlik yok.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">🎭 Kültür & Sanat • 📅 ${d.date || 'Yakında'}</div>
+              <div class="item-card-title">${d.title}</div>
+              <div class="item-card-desc">📍 ${d.subtitle || 'Gebze Kültür Merkezi'}</div>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-success">Aktif</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('events', '${docSnap.id}', loadEvents)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── 4. SÖZ SENDE (ANKETLER) ─────────────────
+    async function loadPolls() {
+      const container = document.getElementById("pollsGrid");
+      container.innerHTML = '<div class="empty-state">Anketler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "polls"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Henüz aktif anket yok.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const optionsHtml = (d.options || []).map((opt, i) => {
+            const votes = (d.votes && d.votes[i]) ? d.votes[i] : 0;
+            return `<li style="font-size:12.5px; margin-bottom:5px; color:var(--text-dark);">
+              <strong>${opt}</strong>: <span class="badge badge-primary">${votes} Oy</span>
+            </li>`;
+          }).join('');
+
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">🗳️ ${d.neighborhood || 'Tüm Gebze'} • Bitiş: ${d.endDate || 'Süresiz'}</div>
+              <div class="item-card-title">${d.question}</div>
+              <div class="item-card-desc">${d.description || ''}</div>
+              <ul style="list-style:none; padding:0; margin:10px 0;">${optionsHtml}</ul>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge ${d.isActive ? 'badge-success' : 'badge-warning'}">${d.isActive ? 'Oylamaya Açık' : 'Kapalı'}</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('polls', '${docSnap.id}', loadPolls)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── 5. VATANDAŞ ÖNERİLERİ ─────────────────
+    async function loadSuggestions() {
+      const container = document.getElementById("suggestionsGrid");
+      container.innerHTML = '<div class="empty-state">Öneriler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "suggestions"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Henüz iletilen öneri yok.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const isApproved = d.approved === true;
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">
+                💡 ${d.category || 'Genel'} • 📍 ${d.neighborhood || 'Gebze'}
+                <span class="badge ${isApproved ? 'badge-success' : 'badge-warning'}" style="margin-left:auto;">
+                  ${isApproved ? 'Yayında' : 'Onay Bekliyor'}
+                </span>
+              </div>
+              <div class="item-card-title">${d.title}</div>
+              <div class="item-card-desc">${d.description || ''}</div>
+              <div style="font-size:12px; color:var(--text-muted); font-weight:600;">
+                Geliştirici: ${d.author || 'Vatandaş'} • ❤️ ${d.likes || 0} Beğeni
+              </div>
+            </div>
+            <div class="item-card-footer">
+              ${!isApproved ? `
+                <button class="btn btn-success btn-sm" onclick="approveSuggestion('${docSnap.id}')">✅ Onayla ve Yayınla</button>
+              ` : `
+                <span style="font-size:12px; color:var(--success); font-weight:700;">Mobilde Görünüyor</span>
+              `}
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('suggestions', '${docSnap.id}', loadSuggestions)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    window.approveSuggestion = async (id) => {
+      try {
+        await updateDoc(doc(db, "suggestions", id), { approved: true });
+        showToast("Öneri onaylandı ve mobil uygulamada yayına alındı!");
+        loadSuggestions();
+        loadDashboard();
+      } catch (e) {
+        alert("Hata: " + e.message);
+      }
+    };
+
+    // ───────────────── 6. KESİNTİLER ─────────────────
+    async function loadOutages() {
+      const container = document.getElementById("outagesGrid");
+      container.innerHTML = '<div class="empty-state">Kesintiler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "outages"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Aktif planlı kesinti kaydı bulunamadı.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">⚡ ${d.provider || 'Altyapı'} • ${d.type ? d.type.toUpperCase() : 'KESİNTİ'}</div>
+              <div class="item-card-title">${d.title}</div>
+              <div class="item-card-desc">📍 ${d.neighborhood || 'Gebze Geneli'}</div>
+              <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+                🕒 Başlangıç: ${d.startDate || 'Belirtilmedi'}<br>
+                🏁 Bitiş: ${d.endDate || 'Belirtilmedi'}
+              </div>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-warning">${d.status || 'Devam Ediyor'}</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('outages', '${docSnap.id}', loadOutages)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── 7. NÖBETÇİ ECZANELER ─────────────────
+    async function loadPharmacies() {
+      const container = document.getElementById("pharmaciesGrid");
+      container.innerHTML = '<div class="empty-state">Eczaneler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "pharmacies_on_duty"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Kayıtlı nöbetçi eczane bulunmuyor.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">💊 ${d.district || 'Gebze'} • ${d.hours || 'Nöbetçi'}</div>
+              <div class="item-card-title">${d.name}</div>
+              <div class="item-card-desc">📍 ${d.address}</div>
+              <div style="font-size:12.5px; font-weight:700; color:var(--navy-light);">
+                📞 ${d.phone || 'Telefon yok'}
+              </div>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-success">7/24 Açık</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('pharmacies_on_duty', '${docSnap.id}', loadPharmacies)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── 8. GEBZE PATİ VERİLERİ ─────────────────
+    window.switchPatiTab = (subTab) => {
+      document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.pati-sub-view').forEach(v => v.style.display = 'none');
+      document.getElementById('sub-btn-' + subTab).classList.add('active');
+      document.getElementById('pati-sub-' + subTab).style.display = 'block';
+    };
+
+    async function loadPatiData() {
+      loadPets();
+      loadFeeding();
+      loadVets();
+    }
+
+    async function loadPets() {
+      const container = document.getElementById("petsGrid");
+      container.innerHTML = '<div class="empty-state">Can dostlarımız yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "pet_adoptions"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Henüz yuva arayan can dostumuz eklenmemiş.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <img src="${d.imageUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80'}" class="item-card-image" alt="pet">
+            <div class="item-card-body">
+              <div class="item-card-meta">🐾 ${d.species} • ${d.gender} • ${d.age}</div>
+              <div class="item-card-title">${d.name} (${d.breed || 'Melez'})</div>
+              <div class="item-card-desc">${d.description || ''}</div>
+              <div style="font-size:12px; color:var(--text-muted);">🩺 ${d.healthStatus || 'Sağlıklı'}</div>
+            </div>
+            <div class="item-card-footer">
+              <button class="btn btn-sm ${d.isAdopted ? 'btn-success' : 'btn-outline'}" onclick="toggleAdopted('${docSnap.id}', ${!d.isAdopted})">
+                ${d.isAdopted ? '✅ Sahiplendirildi' : '🏠 Yuva Arıyor'}
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('pet_adoptions', '${docSnap.id}', loadPets)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    window.toggleAdopted = async (id, status) => {
+      try {
+        await updateDoc(doc(db, "pet_adoptions", id), { isAdopted: status });
+        showToast("Durum güncellendi.");
+        loadPets();
+      } catch (e) {
+        alert("Hata: " + e.message);
+      }
+    };
+
+    async function loadFeeding() {
+      const container = document.getElementById("feedingGrid");
+      container.innerHTML = '<div class="empty-state">Odaklar yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "feeding_points"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Kayıtlı besleme odağı bulunmuyor.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">🥣 ${d.neighborhood} Mah. • ${d.type || 'Besleme Noktası'}</div>
+              <div class="item-card-title">${d.title}</div>
+              <div class="item-card-desc">📍 ${d.address}</div>
+              <div style="font-size:12px; color:var(--navy-light);">📦 ${d.equipment || 'Mama ve su ünitesi'}</div>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-primary">Aktif İstasyon</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('feeding_points', '${docSnap.id}', loadFeeding)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    async function loadVets() {
+      const container = document.getElementById("vetsGrid");
+      container.innerHTML = '<div class="empty-state">Klinikler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "vet_clinics"));
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state">Kayıtlı nöbetçi klinik yok.</div>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">🏥 ${d.district || 'Gebze'} • ${d.emergencyHours || 'Nöbetçi'}</div>
+              <div class="item-card-title">${d.name}</div>
+              <div class="item-card-desc">📍 ${d.address}</div>
+              <div style="font-size:12.5px; font-weight:700; color:var(--navy-light);">📞 ${d.phone}</div>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-success">7/24 Acil</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('vet_clinics', '${docSnap.id}', loadVets)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── 9. E-BELEDİYE ─────────────────
+    async function loadEBelediye() {
+      const container = document.getElementById("ebelediyeGrid");
+      container.innerHTML = '<div class="empty-state">Kategoriler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, "ebelediye_categories"));
+        if (snap.empty) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <p style="font-weight:700; margin-bottom:8px;">Firestore'da E-Belediye verisi bulunamadı.</p>
+              <button class="btn btn-primary btn-sm" onclick="window.seedEBelediyeOnly()">🏛️ Resmi E-Belediye Şablonunu Yükle</button>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const sList = (d.services || []).map(s => `
+            <li style="margin-bottom:6px; font-size:12.5px;">
+              <strong>${s.name}</strong> - <span style="color:var(--text-muted);">${s.description || 'Resmi Portal'}</span><br>
+              <a href="${s.url}" target="_blank" style="color:var(--navy-light); font-size:11px; text-decoration:none;">🔗 ${s.url}</a>
+            </li>
+          `).join('');
+
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">📁 Kategori ID: ${d.id} • ${(d.services || []).length} Hizmet</div>
+              <div class="item-card-title">${d.name}</div>
+              <ul style="list-style:none; padding:0; margin-top:10px;">${sList}</ul>
+            </div>
+            <div class="item-card-footer">
+              <span class="badge badge-primary">E-Devlet Entegre</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('ebelediye_categories', '${docSnap.id}', loadEBelediye)">Sil</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+      }
+    }
+
+    // ───────────────── GENEL SİLME FONKSİYONU ─────────────────
+    window.deleteDocItem = async (colName, docId, callback) => {
+      if (!confirm("Bu kaydı kalıcı olarak silmek istediğinize emin misiniz?")) return;
+      try {
+        await deleteDoc(doc(db, colName, docId));
+        showToast("Kayıt başarıyla silindi.");
+        if (callback) callback();
+        loadDashboard();
+      } catch (e) {
+        alert("Silinirken hata oluştu: " + e.message);
+      }
+    };
+
+    // ───────────────── FORM DİNLEYİCİLERİ ─────────────────
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Haber Ekle
+      document.getElementById("formAddNews")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type=submit]");
+        btn.disabled = true;
+        try {
+          await addDoc(collection(db, "municipal_news"), {
+            title: document.getElementById("newsTitle").value.trim(),
+            publishedAtText: document.getElementById("newsDate").value.trim() || "Bugün",
+            image: document.getElementById("newsImage").value.trim() || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=600&q=80",
+            url: document.getElementById("newsUrl").value.trim() || "https://www.gebze.bel.tr/",
+            pageIndex: 1,
+            itemIndex: 1,
+            createdAt: serverTimestamp()
+          });
+          e.target.reset();
+          showToast("Haber başarıyla yayınlandı!");
+          loadNews();
+          loadDashboard();
+        } catch (err) { alert(err.message); }
+        finally { btn.disabled = false; }
+      });
+
+      // 2. Etkinlik Ekle
+      document.getElementById("formAddEvent")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type=submit]");
+        btn.disabled = true;
+        try {
+          await addDoc(collection(db, "events"), {
+            title: document.getElementById("eventTitle").value.trim(),
+            subtitle: document.getElementById("eventSubtitle").value.trim(),
+            date: document.getElementById("eventDate").value.trim(),
+            createdAt: serverTimestamp()
+          });
+          e.target.reset();
+          showToast("Etkinlik başarıyla eklendi!");
+          loadEvents();
+        } catch (err) { alert(err.message); }
+        finally { btn.disabled = false; }
+      });
+
+      // 3. Kesinti Ekle
+      document.getElementById("formAddOutage")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type=submit]");
+        btn.disabled = true;
+        try {
+          await addDoc(collection(db, "outages"), {
+            title: document.getElementById("outageTitle").value.trim(),
+            type: document.getElementById("outageType").value,
+            provider: document.getElementById("outageProvider").value.trim(),
+            neighborhood: document.getElementById("outageNeighborhood").value.trim(),
+            startDate: document.getElementById("outageStart").value.trim(),
+            endDate: document.getElementById("outageEnd").value.trim(),
+            status: document.getElementById("outageStatus").value,
+            createdAt: serverTimestamp()
+          });
+          e.target.reset();
+          showToast("Planlı kesinti sisteme kaydedildi!");
+          loadOutages();
+          loadDashboard();
+        } catch (err) { alert(err.message); }
+        finally { btn.disabled = false; }
+      });
+
+      // 4. Anket Ekle
+      document.getElementById("formAddPoll")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type=submit]");
+        btn.disabled = true;
+        try {
+          const rawOpts = document.getElementById("pollOptions").value.split("\n").map(s => s.trim()).filter(Boolean);
+          const votesMap = {};
+          rawOpts.forEach((_, i) => votesMap[i] = 0);
+
+          await addDoc(collection(db, "polls"), {
+            question: document.getElementById("pollQuestion").value.trim(),
+            description: document.getElementById("pollDesc").value.trim(),
+            neighborhood: document.getElementById("pollNeighborhood").value.trim() || "Tüm Gebze",
+            endDate: document.getElementById("pollEndDate").value.trim() || "Süresiz",
+            options: rawOpts,
+            votes: votesMap,
+            isActive: true,
+            createdAt: serverTimestamp()
+          });
+          e.target.reset();
+          showToast("Yeni anket oylamaya açıldı!");
+          loadPolls();
+          loadDashboard();
+        } catch (err) { alert(err.message); }
+        finally { btn.disabled = false; }
+      });
+
+      // 5. Can Dost Ekle
+      document.getElementById("formAddPet")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type=submit]");
+        btn.disabled = true;
+        try {
+          await addDoc(collection(db, "pet_adoptions"), {
+            name: document.getElementById("petName").value.trim(),
+            species: document.getElementById("petSpecies").value,
+            breed: document.getElementById("petBreed").value.trim() || "Melez",
+            gender: document.getElementById("petGender").value,
+            age: document.getElementById("petAge").value.trim(),
+            imageUrl: document.getElementById("petImage").value.trim() || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80",
+            healthStatus: document.getElementById("petHealth").value.trim() || "Aşılı, çipli",
+            description: document.getElementById("petDesc").value.trim(),
+            isAdopted: false,
+            createdAt: serverTimestamp()
+          });
+          e.target.reset();
+          showToast("Can dostumuz ilana eklendi!");
+          loadPets();
+          loadDashboard();
+        } catch (err) { alert(err.message); }
+        finally { btn.disabled = false; }
+      });
+
+      // İlk açılışta Dashboard yükle
+      loadDashboard();
+    });
+
+    // ───────────────── SEED ALL (TÜM DEMO VERİLERİ) ─────────────────
+    window.seedAllData = async () => {
+      if (!confirm("Tüm Gebze Belediyesi modülleri için örnek veriler Firestore'a yüklensin mi?")) return;
+      const btn = document.getElementById("btnSeedAll");
+      btn.disabled = true;
+      btn.innerText = "Yükleniyor...";
+
+      const failedModules = [];
+      let successCount = 0;
+
+      async function runModuleSeed(moduleName, taskFn) {
+        try {
+          await taskFn();
+          successCount++;
+        } catch (err) {
+          console.warn(`[Seed] ${moduleName} hatası:`, err);
+          failedModules.push(`${moduleName}: ${err.message}`);
+        }
+      }
+
+      try {
+        // 1. Haberler
+        await runModuleSeed("Haberler (municipal_news)", async () => {
+          const sampleNews = [
+            {
+              title: 'Gebze Belediyesi Millet Bahçesi 2. Etap Açılışı Gerçekleştirildi',
+              publishedAtText: '11 Ekim 2026',
+              image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80',
+              url: 'https://www.gebze.bel.tr/',
+              pageIndex: 1, itemIndex: 1, createdAt: serverTimestamp()
+            },
+            {
+              title: 'Başkan Büyükgöz Gençlerle Buluştu: GESMEK Yeni Dönem Kayıtları Başladı',
+              publishedAtText: '10 Ekim 2026',
+              image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80',
+              url: 'https://sende.gebze.bel.tr/',
+              pageIndex: 1, itemIndex: 2, createdAt: serverTimestamp()
+            },
+            {
+              title: 'Sıfır Atık ve Çevre Seferberliği: Mahallelerimizde Geri Dönüşüm Noktaları Artıyor',
+              publishedAtText: '09 Ekim 2026',
+              image: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80',
+              url: 'https://www.gebze.bel.tr/',
+              pageIndex: 1, itemIndex: 3, createdAt: serverTimestamp()
+            }
+          ];
+          for (const n of sampleNews) await addDoc(collection(db, "municipal_news"), n);
+        });
+
+        // 2. Etkinlikler
+        await runModuleSeed("Etkinlikler (events)", async () => {
+          const sampleEvents = [
+            { title: 'Gebze Kitap Fuarı ve İmza Günleri', subtitle: 'Kent Meydanı Kültür Çadırı • 10:00 - 20:00', date: '15-22 Ekim 2026', createdAt: serverTimestamp() },
+            { title: 'Tasavvuf Müziği Konseri & Şiir Dinletisi', subtitle: 'Osman Hamdi Bey Kültür Merkezi • 19:30', date: '18 Ekim 2026', createdAt: serverTimestamp() },
+            { title: 'Çocuk Tiyatrosu: Masal Gezegeni', subtitle: 'GKM Büyük Sahne • 14:00 (Ücretsiz)', date: '25 Ekim 2026', createdAt: serverTimestamp() }
+          ];
+          for (const ev of sampleEvents) await addDoc(collection(db, "events"), ev);
+        });
+
+        // 3. Kesintiler
+        await runModuleSeed("Kesintiler (outages)", async () => {
+          const sampleOutages = [
+            {
+              type: 'su', title: 'Ana İsale Hattı Vana Yenileme Çalışması', provider: 'İSU',
+              neighborhood: 'Osman Yılmaz & Köşklü Çeşme Mah.', startDate: '12.10.2026 10:00', endDate: '12.10.2026 17:00',
+              status: 'Devam Ediyor', createdAt: serverTimestamp()
+            },
+            {
+              type: 'elektrik', title: 'Trafo Merkezi Periyodik Bakımı', provider: 'SEDAŞ',
+              neighborhood: 'Hacıhalil & Mustafapaşa Mah.', startDate: '13.10.2026 09:00', endDate: '13.10.2026 13:00',
+              status: 'Planlandı', createdAt: serverTimestamp()
+            },
+            {
+              type: 'gaz', title: 'Şebeke İyileştirme ve Branşman İşi', provider: 'PALGAZ',
+              neighborhood: 'Yenikent Mahallesi 2400. Sokak Çevresi', startDate: '14.10.2026 13:30', endDate: '14.10.2026 16:30',
+              status: 'Planlandı', createdAt: serverTimestamp()
+            }
+          ];
+          for (const o of sampleOutages) await addDoc(collection(db, "outages"), o);
+        });
+
+        // 4. Anketler
+        await runModuleSeed("Anketler (polls)", async () => {
+          const samplePolls = [
+            {
+              question: 'Cumhuriyet Meydanı Yayalaştırma Projesinde Öncelik Ne Olmalı?',
+              description: 'Gebze merkez trafiğini rahatlatmak ve yayalara daha fazla alan açmak için fikirlerinizi bekliyoruz.',
+              neighborhood: 'Tüm Gebze',
+              endDate: '31 Ekim 2026',
+              options: ['Daha fazla yeşil alan ve dinlenme bankları', 'Genişletilmiş bisiklet ve yürüyüş parkuru', 'Açık hava etkinlik ve konser alanı'],
+              votes: { 0: 142, 1: 89, 2: 167 },
+              isActive: true, createdAt: serverTimestamp()
+            },
+            {
+              question: 'Mahallenizde Hangi Branşta Spor Atölyesi Açılsın?',
+              description: 'Gebze Belediyesi Spor Okulları kış dönemi yeni kurs branşları belirleniyor.',
+              neighborhood: 'Mevlana & Gaziler',
+              endDate: '25 Ekim 2026',
+              options: ['Voleybol & Basketbol', 'Okçuluk & Geleneksel Sporlar', 'Yüzme & Su Sporları'],
+              votes: { 0: 64, 1: 52, 2: 110 },
+              isActive: true, createdAt: serverTimestamp()
+            }
+          ];
+          for (const pl of samplePolls) await addDoc(collection(db, "polls"), pl);
+        });
+
+        // 5. Vatandaş Önerileri
+        await runModuleSeed("Öneriler (suggestions)", async () => {
+          const sampleSugg = [
+            {
+              title: 'Eskihisar Kalesine Hafta Sonu Ring Seferleri',
+              description: 'Tarihi kaleye vatandaşların toplu taşımayla daha rahat ulaşabilmesi için meydandan ücretsiz elektrikli servis koyulabilir.',
+              category: 'Ulaşım', neighborhood: 'Eskihisar', author: 'Mehmet S.', likes: 48, approved: true, createdAt: serverTimestamp()
+            },
+            {
+              title: 'Millet Bahçesine Mobil Kütüphane ve Çalışma Alanı',
+              description: 'Gençlerin açık havada sessizce ders çalışabileceği Wi-Fi destekli güneş enerjili banklar eklenebilir.',
+              category: 'Eğitim', neighborhood: 'Mevlana', author: 'Büşra K.', likes: 35, approved: false, createdAt: serverTimestamp()
+            }
+          ];
+          for (const sg of sampleSugg) await addDoc(collection(db, "suggestions"), sg);
+        });
+
+        // 6. Eczaneler
+        await runModuleSeed("Eczaneler (pharmacies_on_duty)", async () => {
+          const samplePharm = [
+            { name: 'Gebze Şifa Eczanesi', address: 'Hacıhalil Mah. Atatürk Cad. No:18/B', district: 'Gebze / Kocaeli', phone: '(0262) 641 12 34', hours: '24 Saat Açık', createdAt: serverTimestamp() },
+            { name: 'Yeni Hayat Eczanesi', address: 'Osman Yılmaz Mah. İstanbul Cad. No:94', district: 'Gebze / Kocaeli', phone: '(0262) 646 55 66', hours: '24 Saat Açık', createdAt: serverTimestamp() },
+            { name: 'Meltem Eczanesi', address: 'Yenikent Mah. Issıkgöl Cad. No:45', district: 'Gebze / Kocaeli', phone: '(0262) 643 77 88', hours: '24 Saat Açık', createdAt: serverTimestamp() }
+          ];
+          for (const ph of samplePharm) await addDoc(collection(db, "pharmacies_on_duty"), ph);
+        });
+
+        // 7. Pati (Pets, Odaklar, Veterinerler)
+        await runModuleSeed("Gebze Pati", async () => {
+          await addDoc(collection(db, "pet_adoptions"), {
+            name: 'Pamuk', species: 'Kedi', breed: 'Tekir', gender: 'Dişi', age: '6 Aylık',
+            imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+            healthStatus: 'Aşıları yapıldı, çipli', description: 'Çok oyuncu, çocuklarla çok iyi anlaşıyor.', isAdopted: false, createdAt: serverTimestamp()
+          });
+          await addDoc(collection(db, "feeding_points"), {
+            title: 'Kent Meydanı Besleme Odağı', neighborhood: 'Hacıhalil', address: 'Kent Meydanı Park Girişi',
+            type: 'Mama ve Su İstasyonu', equipment: 'Otomatik su kabı, kuru mama haznesi', createdAt: serverTimestamp()
+          });
+          await addDoc(collection(db, "vet_clinics"), {
+            name: 'Gebze Pati Veteriner Kliniği', address: 'Hacıhalil Mah. Hükümet Cad. No:42/A',
+            district: 'Gebze', phone: '(0262) 641 22 33', emergencyHours: '7/24 Acil', createdAt: serverTimestamp()
+          });
+        });
+
+        // 8. E-Belediye Kategorileri
+        await runModuleSeed("E-Belediye", async () => {
+          await window.seedEBelediyeOnly();
+        });
+
+        if (failedModules.length === 0) {
+          showToast("Tüm belediye demo verileri Firestore'a başarıyla yazıldı!");
+        } else {
+          showToast(`Bazı veriler yüklendi (${successCount} modül başarılı).`);
+          alert("Yetki Bildirimi:\n\nFirebase Console kurallarınızda yazma izni (write) kapalı olan bazı koleksiyonlar atlandı:\n\n" + failedModules.join("\n") + "\n\nBu modülleri de eklemek için Firebase Console -> Firestore Database -> Rules sekmesinde ilgili koleksiyona 'allow write: if true;' izni vermeniz gerekir.");
+        }
+
+        loadDashboard();
+      } catch (globalErr) {
+        alert("Yüklenirken genel hata: " + globalErr.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "⚡ Demo Verileri Yükle (Seed All)";
+      }
+    };
+
+    window.seedEBelediyeOnly = async () => {
+      const cats = [
+        {
+          id: 29, name: 'Vergi İşlemleri', icon: 'receipt_long',
+          services: [
+            { id: 21, name: 'Vergi / Borç Ödeme', description: 'Emlak, çevre temizlik, ilan-reklam borç sorgulama ve ödeme', url: 'https://portal.gebze.bel.tr/ui/user/login', hasModal: false },
+            { id: 123, name: 'e-Beyan', description: 'Arsa, arazi, mesken, işyeri ve çevre temizlik e-beyan formları', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/', hasModal: true },
+            { id: 60, name: 'e-Beyan Bildirim Takip', description: 'Yapılan e-beyan bildirimlerinin durum sorgulaması', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/#/Status', hasModal: false }
+          ]
+        },
+        {
+          id: 30, name: 'Gebze İletişim Merkezi', icon: 'support_agent',
+          services: [
+            { id: 124, name: 'Başvuru Formu (Çözüm Merkezi)', description: 'İstek, şikayet, teşekkür, proje önerisi ve ihbar', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/', hasModal: true },
+            { id: 69, name: 'Başvuru Takip', description: 'T.C. Kimlik veya Takip No ile sonuç sorgulama', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/#/Status', hasModal: false }
+          ]
+        },
+        {
+          id: 31, name: 'İnteraktif Hizmetler', icon: 'touch_app',
+          services: [
+            { id: 45, name: 'e-Eksper', description: 'Gayrimenkul değerleme ve ekspertiz raporu', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/eeksper#/', hasModal: false },
+            { id: 51, name: 'e-İşyeri Ruhsat', description: 'Sıhhi ve gayrisıhhi müesseseler ruhsat başvurusu', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-isyeri-ruhsat#/', hasModal: false },
+            { id: 59, name: 'E-Moloz Hattı', description: 'İnşaat ve tadilat atıkları için moloz alım talebi', url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/e-moloz-hatti#/', hasModal: false }
+          ]
+        },
+        {
+          id: 32, name: 'İmar Yönetim Sistemi', icon: 'apartment',
+          services: [
+            { id: 127, name: 'İmar Durumu Başvurusu', description: 'Resmi parsel imar durumu belgesi başvurusu', url: 'https://eimar.gebze.bel.tr/', hasModal: false },
+            { id: 128, name: 'Yapı Ruhsatı Başvuruları', description: 'Mimari ve statik proje onay süreçleri', url: 'https://eimar.gebze.bel.tr/', hasModal: false }
+          ]
+        }
+      ];
+      for (const c of cats) await addDoc(collection(db, "ebelediye_categories"), c);
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.className = "toast show";
+      setTimeout(() => toast.className = "toast", 3500);
+    }
+  </script>
+</head>
+<body>
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">🏛️</div>
+      <div class="brand-info">
+        <h2>GEBZE DİJİTAL</h2>
+        <p>Yönetim Paneli</p>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-group-label">GENEL</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="switchNav('dashboard', 'Genel Bakış', 'Belediye dijital hizmet istatistikleri ve sistem durumu')">
+        <span class="icon">📊</span>
+        <span>Genel Bakış</span>
+      </div>
+
+      <div class="nav-group-label">İÇERİK & HABER</div>
+      <div class="nav-item" id="nav-news" onclick="switchNav('news', 'Haberler & Duyurular', 'Belediyemizden en güncel haberler ve halk duyuruları')">
+        <span class="icon">📰</span>
+        <span>Haberler & Duyurular</span>
+      </div>
+      <div class="nav-item" id="nav-events" onclick="switchNav('events', 'Etkinlikler & Kültür', 'Konserler, tiyatrolar ve resmi kültür-sanat etkinlikleri')">
+        <span class="icon">🎭</span>
+        <span>Etkinlikler</span>
+      </div>
+
+      <div class="nav-group-label">KATILIMCI BELEDİYE</div>
+      <div class="nav-item" id="nav-polls" onclick="switchNav('polls', 'Söz Sende (Anketler)', 'Vatandaş oylamaları, kamuoyu yoklamaları ve projeler')">
+        <span class="icon">🗳️</span>
+        <span>Söz Sende (Anketler)</span>
+      </div>
+      <div class="nav-item" id="nav-suggestions" onclick="switchNav('suggestions', 'Vatandaş Önerileri', 'Mobil uygulamadan iletilen fikirler ve onay yönetimi')">
+        <span class="icon">💡</span>
+        <span>Vatandaş Önerileri</span>
+        <span class="nav-badge" id="badgePendingSugg" style="display:none;">0</span>
+      </div>
+
+      <div class="nav-group-label">ŞEHİR HİZMETLERİ</div>
+      <div class="nav-item" id="nav-outages" onclick="switchNav('outages', 'Kesinti Bildirimleri', 'İSU, SEDAŞ ve PALGAZ su, elektrik, gaz kesintileri')">
+        <span class="icon">⚡</span>
+        <span>Kesintiler</span>
+      </div>
+      <div class="nav-item" id="nav-pharmacies" onclick="switchNav('pharmacies', 'Nöbetçi Eczaneler', 'Bugün ve bu hafta Gebze nöbetçi eczaneleri')">
+        <span class="icon">💊</span>
+        <span>Nöbetçi Eczaneler</span>
+      </div>
+
+      <div class="nav-group-label">CAN DOSTLARIMIZ</div>
+      <div class="nav-item" id="nav-pets" onclick="switchNav('pets', 'Gebze Pati Portalı', 'Sahiplendirme, besleme odakları ve nöbetçi veterinerler')">
+        <span class="icon">🐾</span>
+        <span>Gebze Pati</span>
+      </div>
+
+      <div class="nav-group-label">E-BELEDİYE</div>
+      <div class="nav-item" id="nav-ebelediye" onclick="switchNav('ebelediye', 'E-Belediye Hizmetleri', 'Vergi, imar, beyan ve resmi portal yönlendirmeleri')">
+        <span class="icon">🏛️</span>
+        <span>E-Belediye Portalı</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div style="font-size:12px; color:rgba(255,255,255,0.7); display:flex; align-items:center;">
+        <span class="status-dot"></span> Firebase Bağlı
+      </div>
+      <span style="font-size:11px; color:rgba(255,255,255,0.4);">v2.4 Demo</span>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN WRAPPER ─── -->
+  <div class="main-wrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="page-title">
+          <h1 id="headerTitle">Genel Bakış</h1>
+          <p id="headerSubtitle">Belediye dijital hizmet istatistikleri ve sistem durumu</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button id="btnSeedAll" class="btn btn-seed" onclick="window.seedAllData()">
+          ⚡ Demo Verileri Yükle (Seed All)
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="content-area">
+
+      <!-- ════════ 1. DASHBOARD TAB ════════ -->
+      <section class="tab-view active" id="view-dashboard">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card" onclick="switchNav('suggestions', 'Vatandaş Önerileri')">
+            <div class="kpi-icon" style="background:#FEF3C7; color:#D97706;">💡</div>
+            <div class="kpi-info">
+              <h3 id="kpiSuggestions">0</h3>
+              <p>Onay Bekleyen Öneri</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('news', 'Haberler & Duyurular')">
+            <div class="kpi-icon" style="background:#E0E7FF; color:#4338CA;">📰</div>
+            <div class="kpi-info">
+              <h3 id="kpiNews">0</h3>
+              <p>Yayınlanan Haber</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('polls', 'Söz Sende (Anketler)')">
+            <div class="kpi-icon" style="background:#DCFCE7; color:#15803D;">🗳️</div>
+            <div class="kpi-info">
+              <h3 id="kpiPolls">0</h3>
+              <p>Aktif Oylama / Anket</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('outages', 'Kesinti Bildirimleri')">
+            <div class="kpi-icon" style="background:#FEE2E2; color:#B91C1C;">⚡</div>
+            <div class="kpi-info">
+              <h3 id="kpiOutages">0</h3>
+              <p>Planlı Kesinti Bildirimi</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('pets', 'Gebze Pati')">
+            <div class="kpi-icon" style="background:#FFEDD5; color:#C2410C;">🐾</div>
+            <div class="kpi-info">
+              <h3 id="kpiPets">0</h3>
+              <p>Yuva Arayan Can Dost</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('pharmacies', 'Nöbetçi Eczaneler')">
+            <div class="kpi-icon" style="background:#E0F2FE; color:#0369A1;">💊</div>
+            <div class="kpi-info">
+              <h3 id="kpiPharmacies">0</h3>
+              <p>Kayıtlı Nöbetçi Eczane</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hızlı İşlemler & Kısayollar -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">⚡ Hızlı İşlemler & Yönetici Kısayolları</div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:12px;">
+            <button class="btn btn-outline" onclick="switchNav('news')">➕ Yeni Haber Ekle</button>
+            <button class="btn btn-outline" onclick="switchNav('outages')">➕ Yeni Kesinti Bildir</button>
+            <button class="btn btn-outline" onclick="switchNav('polls')">➕ Yeni Anket Başlat</button>
+            <button class="btn btn-outline" onclick="switchNav('suggestions')">🔍 Bekleyen Önerileri İncele</button>
+            <button class="btn btn-outline" onclick="switchNav('pets')">🐶 Yuva Arayan Hayvan Ekle</button>
+            <button class="btn btn-outline" onclick="switchNav('ebelediye')">🏛️ E-Belediye Kategorileri</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">ℹ️ Gebze Dijital Yönetim Sistemi Hakkında</div>
+          </div>
+          <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
+            Bu yönetim paneli, Gebze Belediyesi mobil uygulamasının (Flutter) bulut veritabanını (Google Cloud Firestore) doğrudan canlı olarak yönetir. Burada eklediğiniz haberler, kesinti duyuruları, oylamalar, can dostlarımız ve e-belediye rehberleri anında tüm vatandaşların mobil cihazlarında görüntülenir.
+          </p>
+        </div>
+      </section>
+
+      <!-- ════════ 2. HABERLER TAB ════════ -->
+      <section class="tab-view" id="view-news">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">📰 Yeni Haber Yayınla</div></div>
+            <form id="formAddNews">
+              <div class="form-group">
+                <label>Haber Başlığı *</label>
+                <input type="text" id="newsTitle" placeholder="Örn: Kent Meydanı Yenileme Projesi" required>
+              </div>
+              <div class="form-group">
+                <label>Yayın Tarihi Metni</label>
+                <input type="text" id="newsDate" placeholder="Örn: 12 Ekim 2026">
+              </div>
+              <div class="form-group">
+                <label>Fotoğraf / Banner URL</label>
+                <input type="url" id="newsImage" placeholder="https://images.unsplash.com/...">
+              </div>
+              <div class="form-group">
+                <label>Haber Detay Web Linki</label>
+                <input type="url" id="newsUrl" placeholder="https://www.gebze.bel.tr/haber/...">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">Haberi Yayınla</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header"><div class="panel-title">Kayıtlı Belediye Haberleri</div></div>
+            <div class="items-grid" id="newsGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ 3. ETKİNLİKLER TAB ════════ -->
+      <section class="tab-view" id="view-events">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🎭 Yeni Etkinlik Ekle</div></div>
+            <form id="formAddEvent">
+              <div class="form-group">
+                <label>Etkinlik Adı *</label>
+                <input type="text" id="eventTitle" placeholder="Örn: Tasavvuf Müziği Konseri" required>
+              </div>
+              <div class="form-group">
+                <label>Yer / Mekan Açıklaması *</label>
+                <input type="text" id="eventSubtitle" placeholder="Örn: GKM Büyük Sahne • Saat 19:30" required>
+              </div>
+              <div class="form-group">
+                <label>Etkinlik Tarihi *</label>
+                <input type="text" id="eventDate" placeholder="Örn: 20 Ekim 2026" required>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">Etkinliği Kaydet</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header"><div class="panel-title">Kayıtlı Kültür & Sanat Etkinlikleri</div></div>
+            <div class="items-grid" id="eventsGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ 4. ANKETLER TAB ════════ -->
+      <section class="tab-view" id="view-polls">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🗳️ Yeni Anket / Oylama Başlat</div></div>
+            <form id="formAddPoll">
+              <div class="form-group">
+                <label>Anket Sorusu *</label>
+                <input type="text" id="pollQuestion" placeholder="Örn: Parkımıza hangi alan yapılsın?" required>
+              </div>
+              <div class="form-group">
+                <label>Detaylı Açıklama</label>
+                <textarea id="pollDesc" rows="3" placeholder="Projenin amacı ve oylama detayları"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Hedef Mahalle</label>
+                <input type="text" id="pollNeighborhood" placeholder="Örn: Tüm Gebze veya Hacıhalil">
+              </div>
+              <div class="form-group">
+                <label>Son Oylama Tarihi</label>
+                <input type="text" id="pollEndDate" placeholder="Örn: 30 Ekim 2026">
+              </div>
+              <div class="form-group">
+                <label>Seçenekler (Her satıra 1 seçenek yazın) *</label>
+                <textarea id="pollOptions" rows="4" placeholder="Daha çok yeşil alan&#10;Yürüyüş ve bisiklet yolu&#10;Çocuk oyun alanı" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">Anketi Yayına Al</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header"><div class="panel-title">Aktif ve Geçmiş Oylamalar</div></div>
+            <div class="items-grid" id="pollsGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ 5. ÖNERİLER TAB ════════ -->
+      <section class="tab-view" id="view-suggestions">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">💡 Vatandaş Önerileri & Moderasyon</div>
+            <button class="btn btn-outline btn-sm" onclick="loadSuggestions()">🔄 Yenile</button>
+          </div>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
+            Vatandaşların mobil uygulama Söz Sende bölümünden gönderdiği öneriler ilk olarak "Onay Bekliyor" statüsünde gelir. "✅ Onayla ve Yayınla" butonuna bastığınızda tüm Gebze halkının oylamasına açılır.
+          </p>
+          <div class="items-grid" id="suggestionsGrid"></div>
+        </div>
+      </section>
+
+      <!-- ════════ 6. KESİNTİLER TAB ════════ -->
+      <section class="tab-view" id="view-outages">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">⚡ Yeni Kesinti Bildirimi</div></div>
+            <form id="formAddOutage">
+              <div class="form-group">
+                <label>Kesinti Türü *</label>
+                <select id="outageType" required>
+                  <option value="su">Su Kesintisi (İSU)</option>
+                  <option value="elektrik">Elektrik Kesintisi (SEDAŞ)</option>
+                  <option value="gaz">Doğalgaz Kesintisi (PALGAZ)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Kurum / Sağlayıcı Adı *</label>
+                <input type="text" id="outageProvider" placeholder="Örn: İSU, SEDAŞ, PALGAZ" required>
+              </div>
+              <div class="form-group">
+                <label>Kesinti Başlığı *</label>
+                <input type="text" id="outageTitle" placeholder="Örn: Ana İsale Hattı Bakım Çalışması" required>
+              </div>
+              <div class="form-group">
+                <label>Etkilenen Mahalle / Cadde *</label>
+                <input type="text" id="outageNeighborhood" placeholder="Örn: Osman Yılmaz, Köşklü Çeşme" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Başlangıç</label>
+                  <input type="text" id="outageStart" placeholder="12.10.2026 10:00">
+                </div>
+                <div class="form-group">
+                  <label>Tahmini Bitiş</label>
+                  <input type="text" id="outageEnd" placeholder="12.10.2026 18:00">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Durum</label>
+                <select id="outageStatus">
+                  <option value="Devam Ediyor">Devam Ediyor</option>
+                  <option value="Planlandı">Planlandı</option>
+                  <option value="Tamamlandı">Tamamlandı</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width:100%;">Kesintiyi Bildir</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header"><div class="panel-title">Kayıtlı Planlı Kesintiler</div></div>
+            <div class="items-grid" id="outagesGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ 7. ECZANELER TAB ════════ -->
+      <section class="tab-view" id="view-pharmacies">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">💊 Nöbetçi Eczaneler Yönetimi</div>
+            <button class="btn btn-outline btn-sm" onclick="loadPharmacies()">🔄 Yenile</button>
+          </div>
+          <div class="items-grid" id="pharmaciesGrid"></div>
+        </div>
+      </section>
+
+      <!-- ════════ 8. GEBZE PATİ TAB ════════ -->
+      <section class="tab-view" id="view-pets">
+        <div class="sub-tabs">
+          <button class="sub-tab-btn active" id="sub-btn-adoptions" onclick="switchPatiTab('adoptions')">🐶 Sahiplendirme İlanları</button>
+          <button class="sub-tab-btn" id="sub-btn-feeding" onclick="switchPatiTab('feeding')">🥣 Mama & Su Odakları</button>
+          <button class="sub-tab-btn" id="sub-btn-vets" onclick="switchPatiTab('vets')">🏥 Nöbetçi Klinikler</button>
+        </div>
+
+        <!-- 8.1 Sahiplendirme -->
+        <div class="pati-sub-view" id="pati-sub-adoptions">
+          <div class="panel-grid">
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Yuva Arayan Hayvan Ekle</div></div>
+              <form id="formAddPet">
+                <div class="form-group">
+                  <label>Adı *</label>
+                  <input type="text" id="petName" placeholder="Örn: Pamuk, Dost" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Tür *</label>
+                    <select id="petSpecies">
+                      <option value="Köpek">Köpek</option>
+                      <option value="Kedi">Kedi</option>
+                      <option value="Diğer">Diğer</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Cinsiyet *</label>
+                    <select id="petGender">
+                      <option value="Erkek">Erkek</option>
+                      <option value="Dişi">Dişi</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Irk</label>
+                    <input type="text" id="petBreed" placeholder="Örn: Golden Melezi">
+                  </div>
+                  <div class="form-group">
+                    <label>Yaş</label>
+                    <input type="text" id="petAge" placeholder="Örn: 8 Aylık">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Fotoğraf URL</label>
+                  <input type="url" id="petImage" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                  <label>Sağlık Durumu</label>
+                  <input type="text" id="petHealth" placeholder="Kuduz ve karma aşıları yapıldı">
+                </div>
+                <div class="form-group">
+                  <label>Açıklama / Hikayesi</label>
+                  <textarea id="petDesc" rows="3" placeholder="Merkezimizde sevgiyle büyütüldü"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Can Dostumuzu Kaydet</button>
+              </form>
+            </div>
+            <div>
+              <div class="panel-header"><div class="panel-title">Sahiplendirme İlanları</div></div>
+              <div class="items-grid" id="petsGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8.2 Mama & Su -->
+        <div class="pati-sub-view" id="pati-sub-feeding" style="display:none;">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Kayıtlı Mama & Su Odakları Ağı</div></div>
+            <div class="items-grid" id="feedingGrid"></div>
+          </div>
+        </div>
+
+        <!-- 8.3 Nöbetçi Klinikler -->
+        <div class="pati-sub-view" id="pati-sub-vets" style="display:none;">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Kayıtlı Nöbetçi Veteriner Klinikleri</div></div>
+            <div class="items-grid" id="vetsGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ 9. E-BELEDİYE TAB ════════ -->
+      <section class="tab-view" id="view-ebelediye">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🏛️ Gebze Belediyesi E-Belediye Kategorileri & Dış Bağlantılar</div>
+            <button class="btn btn-primary btn-sm" onclick="window.seedEBelediyeOnly()">⚡ Yeniden Eşitle / Şablonu Yükle</button>
+          </div>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">
+            E-Belediye sistemindeki vergi sorgulama, e-beyan ve imar hizmetleri vatandaşları resmi portallara (<code style="color:var(--navy-light);">portal.gebze.bel.tr</code>, <code style="color:var(--navy-light);">ulakbel.gebze.bel.tr</code> vb.) güvenle yönlendirir.
+          </p>
+          <div class="items-grid" id="ebelediyeGrid"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+</body>
+</html>
