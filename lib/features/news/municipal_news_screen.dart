@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widgets/municipal_news_list.dart';
+import '../../../core/localization/app_strings.dart';
 
-class MunicipalNewsScreen extends StatelessWidget {
+class MunicipalNewsScreen extends ConsumerWidget {
   const MunicipalNewsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       child: Scaffold(
         backgroundColor: const Color(0xFFF1F5FD),
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, lang),
             const Expanded(
               child: MunicipalNewsList(),
             ),
@@ -23,7 +27,7 @@ class MunicipalNewsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String lang) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -48,10 +52,10 @@ class MunicipalNewsScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'BELEDİYE HABERLERİ',
-                      style: TextStyle(
+                      AppStrings.get('municipal_news_title', lang),
+                      style: const TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
@@ -70,11 +74,11 @@ class MunicipalNewsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 48, top: 2),
+              Padding(
+                padding: const EdgeInsets.only(left: 48, top: 2),
                 child: Text(
-                  'Gebze Belediyesi ile ilgili en güncel haberler ve duyurular.',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                  AppStrings.get('municipal_news_sub', lang),
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
               ),
             ],

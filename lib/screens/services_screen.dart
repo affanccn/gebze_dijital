@@ -1,19 +1,19 @@
-import 'emergency_screen.dart';
-import 'outages_screen.dart';
-import 'soz_sende_screen.dart';
-import '../features/pharmacy/presentation/pharmacies_screen.dart';
-import '../features/weather/presentation/weather_screen.dart';
-import '../features/news/municipal_news_screen.dart';
-import '../features/pati/presentation/gebze_pati_screen.dart';
-import '../features/ebelediye/presentation/ebelediye_screen.dart';
-import 'profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/localization/app_strings.dart';
+import '../features/ebelediye/presentation/ebelediye_screen.dart';
+import '../features/news/municipal_news_screen.dart';
+import '../features/pati/presentation/gebze_pati_screen.dart';
+import '../features/pharmacy/presentation/pharmacies_screen.dart';
+import '../features/weather/presentation/weather_screen.dart';
+import 'emergency_screen.dart';
+import 'outages_screen.dart';
+import 'soz_sende_screen.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
-/// Dosya yolu önerisi: lib/screens/services_screen.dart
+/// Dosya yolu: lib/screens/services_screen.dart
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -39,14 +39,6 @@ const List<String> _kBodyFontFallback = [
   'Arial',
   'sans-serif',
 ];
-
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(28),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
 
 class _ServiceData {
   final String id;
@@ -75,36 +67,86 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
-  _ServiceData _getEmergency(String lang) => _ServiceData(
-    'acil_durum',
-    AppStrings.get('service_emergency', lang),
-    AppStrings.get('service_emergency_sub', lang),
-    Icons.emergency_rounded,
-    const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
-  );
+  _ServiceData _getEmergencyData(String lang) => _ServiceData(
+        'acil_durum',
+        AppStrings.get('service_emergency', lang),
+        AppStrings.get('service_emergency_sub', lang),
+        Icons.emergency_rounded,
+        const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
+      );
 
   List<_ServiceData> _getServices(String lang) => [
-    _ServiceData('kesintiler', AppStrings.get('service_outages', lang),
-        AppStrings.get('service_outages_sub', lang), Icons.power_off_rounded, _C.navyGradient),
-    _ServiceData('otopark', AppStrings.get('service_parking', lang),
-        AppStrings.get('service_parking_sub', lang), Icons.local_parking_rounded, _C.navyGradient),
-    _ServiceData('soz_sende', AppStrings.get('service_soz_sende', lang),
-        AppStrings.get('service_soz_sende_sub', lang), Icons.record_voice_over_rounded, _C.navyGradient),
-    _ServiceData('gebze_pati', AppStrings.get('service_pati', lang),
-        AppStrings.get('service_pati_sub', lang), Icons.pets_rounded, _C.navyGradient),
-    _ServiceData('nobetci_eczane', AppStrings.get('service_pharmacy', lang),
-        AppStrings.get('service_pharmacy_sub', lang), Icons.local_pharmacy_rounded, _C.navyGradient),
-    _ServiceData('hava_durumu', AppStrings.get('service_weather', lang),
-        AppStrings.get('service_weather_sub', lang), Icons.wb_cloudy_rounded, _C.navyGradient),
-    _ServiceData('mahallemde', AppStrings.get('service_neighborhood', lang),
-        AppStrings.get('service_neighborhood_sub', lang), Icons.location_city_rounded, _C.navyGradient),
-    _ServiceData('e_belediye', AppStrings.get('service_ebelediye', lang),
-        AppStrings.get('service_ebelediye_sub', lang), Icons.account_balance_rounded, _C.navyGradient),
-    _ServiceData('asistan_bot', 'AsistanBot', 'Sorularını yapay zekâ ile yanıtla',
-        Icons.smart_toy_rounded, _C.navyGradient),
-    _ServiceData('haberler', AppStrings.get('service_news', lang),
-        AppStrings.get('service_news_sub', lang), Icons.menu_book_rounded, _C.navyGradient),
-  ];
+        _ServiceData(
+          'kesintiler',
+          AppStrings.get('service_outages', lang),
+          AppStrings.get('service_outages_sub', lang),
+          Icons.power_off_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'otopark',
+          AppStrings.get('service_parking', lang),
+          AppStrings.get('service_parking_sub', lang),
+          Icons.local_parking_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'soz_sende',
+          AppStrings.get('service_soz_sende', lang),
+          AppStrings.get('service_soz_sende_sub', lang),
+          Icons.record_voice_over_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'gebze_pati',
+          AppStrings.get('service_pati', lang),
+          AppStrings.get('service_pati_sub', lang),
+          Icons.pets_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'nobetci_eczane',
+          AppStrings.get('service_pharmacy', lang),
+          AppStrings.get('service_pharmacy_sub', lang),
+          Icons.local_pharmacy_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'hava_durumu',
+          AppStrings.get('service_weather', lang),
+          AppStrings.get('service_weather_sub', lang),
+          Icons.wb_cloudy_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'mahallemde',
+          AppStrings.get('service_neighborhood', lang),
+          AppStrings.get('service_neighborhood_sub', lang),
+          Icons.location_city_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'e_belediye',
+          AppStrings.get('service_ebelediye', lang),
+          AppStrings.get('service_ebelediye_sub', lang),
+          Icons.account_balance_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'asistan_bot',
+          AppStrings.get('service_assistant', lang),
+          AppStrings.get('service_assistant_sub', lang),
+          Icons.smart_toy_rounded,
+          _C.navyGradient,
+        ),
+        _ServiceData(
+          'haberler',
+          AppStrings.get('service_news', lang),
+          AppStrings.get('service_news_sub', lang),
+          Icons.menu_book_rounded,
+          _C.navyGradient,
+        ),
+      ];
 
   @override
   void dispose() {
@@ -112,78 +154,83 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     super.dispose();
   }
 
-  List<_ServiceData> _filtered(String lang) {
-    final list = _getServices(lang);
+  List<_ServiceData> _filter(List<_ServiceData> services) {
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return list;
-    return list
+    if (q.isEmpty) return services;
+    return services
         .where((s) =>
             s.title.toLowerCase().contains(q) || s.subtitle.toLowerCase().contains(q))
         .toList();
   }
 
-  void _open(_ServiceData s) {
-  if (s.id == 'acil_durum') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const EmergencyScreen()),
-    );
-    return;
-  }
-  if (s.id == 'kesintiler') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const OutagesScreen()),
-    );
-    return;
-  }
-      if (s.id == 'soz_sende') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const SozSendeScreen()),
-    );
-    return;
-  }
-  if (s.id == 'nobetci_eczane') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
-    );
-    return;
-  }
-  if (s.id == 'hava_durumu') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const WeatherScreen()),
-    );
-    return;
-  }
-  if (s.id == 'haberler') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const MunicipalNewsScreen()),
-    );
-    return;
-  }
-  if (s.id == 'gebze_pati') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const GebzePatiScreen()),
-    );
-    return;
-  }
-  if (s.id == 'e_belediye') {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
-    );
-    return;
-  }
-  if (widget.onServiceTap != null) {
-    widget.onServiceTap!(s.id);
-    return;
-  }
+  void _open(_ServiceData s, String lang) {
+    if (s.id == 'acil_durum') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const EmergencyScreen()),
+      );
+      return;
+    }
+    if (s.id == 'kesintiler') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const OutagesScreen()),
+      );
+      return;
+    }
+    if (s.id == 'soz_sende') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const SozSendeScreen()),
+      );
+      return;
+    }
+    if (s.id == 'nobetci_eczane') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
+      );
+      return;
+    }
+    if (s.id == 'hava_durumu') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const WeatherScreen()),
+      );
+      return;
+    }
+    if (s.id == 'haberler') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const MunicipalNewsScreen()),
+      );
+      return;
+    }
+    if (s.id == 'gebze_pati') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const GebzePatiScreen()),
+      );
+      return;
+    }
+    if (s.id == 'e_belediye') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
+      );
+      return;
+    }
+    if (widget.onServiceTap != null) {
+      widget.onServiceTap!(s.id);
+      return;
+    }
 
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text('${s.title} yakında')));
-}
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${s.title} ${AppStrings.get('coming_soon', lang)}'),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
@@ -191,14 +238,15 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
           fontFamilyFallback: _kBodyFontFallback,
         ),
       ),
-      child: _buildScreen(context),
+      child: _buildScreen(context, lang),
     );
   }
 
-  Widget _buildScreen(BuildContext context) {
-    final lang = ref.watch(appLanguageProvider);
-    final items = _filtered(lang);
-    final emergency = _getEmergency(lang);
+  Widget _buildScreen(BuildContext context, String lang) {
+    final emergency = _getEmergencyData(lang);
+    final allServices = _getServices(lang);
+    final items = _filter(allServices);
+
     final showEmergency = _query.trim().isEmpty ||
         emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
 
@@ -210,8 +258,8 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
           children: [
             _Header(
               controller: _searchCtrl,
-              onChanged: (v) => setState(() => _query = v),
               lang: lang,
+              onChanged: (v) => setState(() => _query = v),
             ),
             Expanded(
               child: ListView(
@@ -219,11 +267,14 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
                 children: [
                   if (showEmergency) ...[
-                    _EmergencyCard(data: emergency, onTap: () => _open(emergency)),
+                    _EmergencyCard(
+                      data: emergency,
+                      onTap: () => _open(emergency, lang),
+                    ),
                     const SizedBox(height: 16),
                   ],
                   if (items.isEmpty && !showEmergency)
-                    const _EmptyState()
+                    _EmptyState(lang: lang)
                   else
                     GridView.builder(
                       shrinkWrap: true,
@@ -236,8 +287,10 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                         crossAxisSpacing: 14,
                         mainAxisExtent: 158,
                       ),
-                      itemBuilder: (_, i) =>
-                          _ServiceCard(data: items[i], onTap: () => _open(items[i])),
+                      itemBuilder: (_, i) => _ServiceCard(
+                        data: items[i],
+                        onTap: () => _open(items[i], lang),
+                      ),
                     ),
                 ],
               ),
@@ -246,17 +299,8 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
         ),
         bottomNavigationBar: _BottomNav(
           index: 3,
-          onTap: (i) {
-            if (widget.onNavTap != null) {
-              widget.onNavTap!(i);
-            } else if (i == 4) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            } else if (i == 0) {
-              Navigator.of(context).pop();
-            }
-          },
+          lang: lang,
+          onTap: (i) => widget.onNavTap?.call(i),
         ),
       ),
     );
@@ -267,12 +311,12 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
 
 class _Header extends StatelessWidget {
   final TextEditingController controller;
-  final ValueChanged<String> onChanged;
   final String lang;
+  final ValueChanged<String> onChanged;
   const _Header({
     required this.controller,
-    required this.onChanged,
     required this.lang,
+    required this.onChanged,
   });
 
   @override
@@ -396,22 +440,22 @@ class _EmergencyCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: _C.danger.withAlpha(80),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
+                color: _C.danger.withAlpha(90),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(45),
-                  borderRadius: BorderRadius.circular(18),
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(data.icon, color: Colors.white, size: 32),
+                child: Icon(data.icon, color: Colors.white, size: 30),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -421,7 +465,7 @@ class _EmergencyCard extends StatelessWidget {
                     Text(
                       data.title,
                       style: const TextStyle(
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                         letterSpacing: 0.5,
@@ -432,12 +476,12 @@ class _EmergencyCard extends StatelessWidget {
                       data.subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, height: 1.25, color: Colors.white),
+                      style: const TextStyle(fontSize: 12, color: Colors.white70),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 18),
             ],
           ),
         ),
@@ -456,39 +500,30 @@ class _ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 2,
+      shadowColor: _C.navy.withAlpha(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        child: Ink(
+        child: Padding(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: _softShadow(),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 54,
-                height: 54,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: data.gradient,
                   ),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: data.gradient.last.withAlpha(90),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(data.icon, color: Colors.white, size: 28),
+                child: Icon(data.icon, color: Colors.white, size: 24),
               ),
               const Spacer(),
               Text(
@@ -496,19 +531,20 @@ class _ServiceCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: _C.textDark,
                 ),
               ),
               const SizedBox(height: 3),
-              SizedBox(
-                height: 30,
-                child: Text(
-                  data.subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11.5, height: 1.25, color: _C.textMuted),
+              Text(
+                data.subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  height: 1.25,
+                  color: _C.textMuted,
                 ),
               ),
             ],
@@ -519,22 +555,31 @@ class _ServiceCard extends StatelessWidget {
   }
 }
 
+// ───────────────────────── Boş Durum ─────────────────────────
+
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  final String lang;
+  const _EmptyState({required this.lang});
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 48),
-      child: Column(
-        children: [
-          Icon(Icons.search_off_rounded, size: 48, color: _C.textMuted),
-          SizedBox(height: 10),
-          Text(
-            'Aradığınız hizmet bulunamadı',
-            style: TextStyle(fontSize: 14, color: _C.textMuted, fontWeight: FontWeight.w600),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Center(
+        child: Column(
+          children: [
+            const Icon(Icons.search_off_rounded, size: 54, color: _C.textMuted),
+            const SizedBox(height: 12),
+            Text(
+              AppStrings.get('no_services_found', lang),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: _C.textMuted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -542,14 +587,18 @@ class _EmptyState extends StatelessWidget {
 
 // ───────────────────────── Alt Menü ─────────────────────────
 
-class _BottomNav extends ConsumerWidget {
+class _BottomNav extends StatelessWidget {
   final int index;
+  final String lang;
   final ValueChanged<int> onTap;
-  const _BottomNav({required this.index, required this.onTap});
+  const _BottomNav({
+    required this.index,
+    required this.lang,
+    required this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lang = ref.watch(appLanguageProvider);
+  Widget build(BuildContext context) {
     final items = <_NavItem>[
       _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
       _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),

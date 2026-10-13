@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/ebelediye_provider.dart';
 import '../models/ebelediye_model.dart';
+import '../../../core/localization/app_strings.dart';
 
 /// Gebze Belediyesi - E-Belediye Hizmet ve Bilgilendirme Ekranı
 class EBelediyeScreen extends ConsumerStatefulWidget {
@@ -48,16 +49,16 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     }
   }
 
-  void _onStartService(EBelediyeService service) {
+  void _onStartService(EBelediyeService service, String lang) {
     if (service.hasModal && service.modalSteps.isNotEmpty) {
-      _showModalStepsBottomSheet(service);
+      _showModalStepsBottomSheet(service, lang);
     } else {
-      _showRedirectConfirmationDialog(service);
+      _showRedirectConfirmationDialog(service, lang);
     }
   }
 
   /// Doğrudan yönlendirme öncesi resmi portal ve e-Devlet giriş bilgilendirmesi
-  void _showRedirectConfirmationDialog(EBelediyeService service) {
+  void _showRedirectConfirmationDialog(EBelediyeService service, String lang) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -119,9 +120,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Gebze Belediyesi Resmi Portalı',
-                        style: TextStyle(
+                      Text(
+                        AppStrings.get('official_portal_sub', lang),
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF1E5BC6),
@@ -146,12 +147,12 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
-                      Icon(Icons.lock_outline_rounded, size: 18, color: Color(0xFF0A2A66)),
-                      SizedBox(width: 8),
+                    children: [
+                      const Icon(Icons.lock_outline_rounded, size: 18, color: Color(0xFF0A2A66)),
+                      const SizedBox(width: 8),
                       Text(
-                        'Kimlik Doğrulama Bilgisi',
-                        style: TextStyle(
+                        AppStrings.get('id_verify_info', lang),
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF0A2A66),
@@ -163,7 +164,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                   Text(
                     service.description.isNotEmpty
                         ? service.description
-                        : 'Bu işlem için Gebze Belediyesi resmi web sayfasına yönlendirileceksiniz.',
+                        : AppStrings.get('ebelediye_redirect_fallback', lang),
                     style: const TextStyle(
                       fontSize: 13,
                       height: 1.4,
@@ -171,9 +172,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    '📌 Not: Güvenliğiniz ve vergi/başvuru gizliliği nedeniyle işlem Gebze Belediyesi resmi sayfasında e-Devlet veya T.C. Kimlik doğrulaması ile devam edecektir.',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.get('security_note', lang),
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       height: 1.35,
@@ -196,9 +197,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text(
-                      'Vazgeç',
-                      style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF5F6F8A)),
+                    child: Text(
+                      AppStrings.get('dismiss', lang),
+                      style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF5F6F8A)),
                     ),
                   ),
                 ),
@@ -211,9 +212,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                       _launchExternalUrl(service.url);
                     },
                     icon: const Icon(Icons.open_in_new_rounded, size: 18, color: Colors.white),
-                    label: const Text(
-                      'İşleme Başla',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
+                    label: Text(
+                      AppStrings.get('btn_start_service', lang),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E5BC6),
@@ -232,13 +233,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
   }
 
   /// Çok adımlı başvuru/seçenek sihirbazı (Örn: Gerçek Kişi / Tüzel Kişi, Mesken, Arsa vs.)
-  void _showModalStepsBottomSheet(EBelediyeService service) {
+  void _showModalStepsBottomSheet(EBelediyeService service, String lang) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ModalStepWizard(
         service: service,
+        lang: lang,
         onSelectUrl: (url) {
           Navigator.of(ctx).pop();
           _launchExternalUrl(url);
@@ -249,6 +251,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final categoriesAsync = ref.watch(eBelediyeCategoriesProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -257,14 +260,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
         backgroundColor: const Color(0xFFF1F5FD),
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, lang),
             Expanded(
               child: categoriesAsync.when(
-                data: (categories) => _buildContent(categories),
+                data: (categories) => _buildContent(categories, lang),
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: Color(0xFF1E5BC6)),
                 ),
-                error: (err, _) => _buildContent(kFallbackEBelediyeCategories),
+                error: (err, _) => _buildContent(kFallbackEBelediyeCategories, lang),
               ),
             ),
           ],
@@ -273,7 +276,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String lang) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -306,13 +309,13 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'E-BELEDİYE',
-                          style: TextStyle(
+                          AppStrings.get('ebelediye_screen_title', lang),
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
@@ -320,8 +323,8 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                           ),
                         ),
                         Text(
-                          'Online İşlemler ve Bilgilendirme Portalı',
-                          style: TextStyle(
+                          AppStrings.get('ebelediye_screen_sub', lang),
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Colors.white70,
                           ),
@@ -363,7 +366,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                   onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: 'Hizmet veya işlem ara (vergi, beyan, imar...)',
+                    hintText: AppStrings.get('ebelediye_search_hint_full', lang),
                     hintStyle: TextStyle(
                       color: Colors.grey.shade500,
                       fontSize: 13,
@@ -390,7 +393,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildContent(List<EBelediyeCategory> allCategories) {
+  Widget _buildContent(List<EBelediyeCategory> allCategories, String lang) {
     // Arama ve kategori filtreleme
     final filteredCategories = <EBelediyeCategory>[];
 
@@ -425,11 +428,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       children: [
         // Bilgilendirme Banner Kartı
-        _buildInfoBanner(),
+        _buildInfoBanner(lang),
         const SizedBox(height: 16),
 
         // Kategori Filtreleme Çipleri
-        _buildCategoryChips(allCategories),
+        _buildCategoryChips(allCategories, lang),
         const SizedBox(height: 18),
 
         // Hizmet Bölümleri
@@ -442,7 +445,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 Icon(Icons.search_off_rounded, size: 54, color: Colors.grey.shade400),
                 const SizedBox(height: 12),
                 Text(
-                  'Aramanızla eşleşen e-belediye hizmeti bulunamadı.',
+                  AppStrings.get('ebelediye_empty_search', lang),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -454,14 +457,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
           )
         else
           for (final cat in filteredCategories) ...[
-            _buildCategorySection(cat),
+            _buildCategorySection(cat, lang),
             const SizedBox(height: 24),
           ],
       ],
     );
   }
 
-  Widget _buildInfoBanner() {
+  Widget _buildInfoBanner(String lang) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -489,22 +492,22 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             child: const Icon(Icons.info_outline_rounded, color: Color(0xFF1E5BC6), size: 24),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Online Belediye İşlemleri Rehberi',
-                  style: TextStyle(
+                  AppStrings.get('ebelediye_guide_title', lang),
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0A1F44),
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Gebze Belediyesi online borç sorgulama, e-beyan ve ruhsat işlemleri resmi e-Devlet ve Gebze Belediyesi portalları üzerinden kimlik doğrulaması gerektirmektedir. İlgili hizmeti seçip "İşleme Başla" butonu ile resmi sayfaya yönlendirilirsiniz.',
-                  style: TextStyle(
+                  AppStrings.get('ebelediye_guide_desc', lang),
+                  style: const TextStyle(
                     fontSize: 12,
                     height: 1.4,
                     color: Color(0xFF5F6F8A),
@@ -518,14 +521,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildCategoryChips(List<EBelediyeCategory> allCategories) {
+  Widget _buildCategoryChips(List<EBelediyeCategory> allCategories, String lang) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const ClampingScrollPhysics(),
       child: Row(
         children: [
           _buildFilterChip(
-            label: 'Tümü',
+            label: AppStrings.get('filter_all', lang),
             isSelected: _selectedCategoryId == null,
             onTap: () => setState(() => _selectedCategoryId = null),
           ),
@@ -582,11 +585,10 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildCategorySection(EBelediyeCategory cat) {
+  Widget _buildCategorySection(EBelediyeCategory cat, String lang) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Kategori Başlığı (Kullanıcı ekran görüntüsündeki mavi alt çizgili tasarım)
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -611,10 +613,8 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
         ),
         const SizedBox(height: 14),
 
-        // Hizmet Kartları Grid (Kullanıcı görseli ile birebir uyumlu)
         LayoutBuilder(
           builder: (context, constraints) {
-            // Genişliğe göre 2 veya 3 sütun
             final crossAxisCount = constraints.maxWidth > 500 ? 3 : 2;
             final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * 12)) / crossAxisCount;
 
@@ -625,7 +625,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 for (final service in cat.services)
                   SizedBox(
                     width: itemWidth,
-                    child: _buildServiceCard(service),
+                    child: _buildServiceCard(service, lang),
                   ),
               ],
             );
@@ -635,7 +635,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildServiceCard(EBelediyeService service) {
+  Widget _buildServiceCard(EBelediyeService service, String lang) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -652,12 +652,10 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Kart İçeriği
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
             child: Column(
               children: [
-                // Mavi Dairesel Bilgi İkonu
                 Container(
                   width: 44,
                   height: 44,
@@ -679,7 +677,6 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Hizmet Başlığı
                 Text(
                   service.name,
                   textAlign: TextAlign.center,
@@ -710,31 +707,29 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             ),
           ),
 
-          // Alt Çizgi Ayracı
           Divider(height: 1, color: Colors.grey.shade200),
 
-          // "İşleme Başla" Aksiyon Alanı
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => _onStartService(service),
+              onTap: () => _onStartService(service, lang),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 alignment: Alignment.center,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Text(
-                      'İşleme Başla',
-                      style: TextStyle(
+                      AppStrings.get('btn_start_service', lang),
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF0288D1),
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 4),
+                    const Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 11,
                       color: Color(0xFF0288D1),
@@ -753,10 +748,12 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
 /// Çok adımlı modal seçim sihirbazı
 class _ModalStepWizard extends StatefulWidget {
   final EBelediyeService service;
+  final String lang;
   final ValueChanged<String> onSelectUrl;
 
   const _ModalStepWizard({
     required this.service,
+    required this.lang,
     required this.onSelectUrl,
   });
 
@@ -840,9 +837,9 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Lütfen yapmak istediğiniz işlem türünü seçiniz:',
-            style: TextStyle(fontSize: 13, color: Color(0xFF5F6F8A)),
+          Text(
+            AppStrings.get('select_action_type_sub', widget.lang),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF5F6F8A)),
           ),
           const SizedBox(height: 16),
 

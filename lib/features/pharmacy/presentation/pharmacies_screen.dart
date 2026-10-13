@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/localization/app_strings.dart';
 import '../services/pharmacy_provider.dart';
 
 class PharmaciesScreen extends ConsumerWidget {
@@ -9,6 +11,7 @@ class PharmaciesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
     final pharmaciesAsyncValue = ref.watch(pharmacyProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -17,12 +20,25 @@ class PharmaciesScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFFF1F5FD),
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, lang),
             Expanded(
               child: pharmaciesAsyncValue.when(
                 data: (pharmacies) {
                   if (pharmacies.isEmpty) {
-                    return const Center(child: Text('Bugün için nöbetçi eczane bulunamadı.'));
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          AppStrings.get('no_pharmacy_found', lang),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF5F6F8A),
+                          ),
+                        ),
+                      ),
+                    );
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -30,12 +46,19 @@ class PharmaciesScreen extends ConsumerWidget {
                     itemCount: pharmacies.length,
                     itemBuilder: (context, index) {
                       final pharmacy = pharmacies[index];
-                      return _buildPharmacyCard(context, pharmacy);
+                      return _buildPharmacyCard(context, pharmacy, lang);
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Bir hata oluştu: $error')),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFE5231B)),
+                ),
+                error: (error, stack) => Center(
+                  child: Text(
+                    '${AppStrings.get('error_occurred', lang)}: $error',
+                    style: const TextStyle(color: Color(0xFFE5231B)),
+                  ),
+                ),
               ),
             ),
           ],
@@ -44,7 +67,7 @@ class PharmaciesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String lang) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -69,10 +92,10 @@ class PharmaciesScreen extends ConsumerWidget {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'NÖBETÇİ ECZANELER',
-                      style: TextStyle(
+                      AppStrings.get('pharmacy_screen_title', lang),
+                      style: const TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
@@ -91,11 +114,11 @@ class PharmaciesScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 48, top: 2),
+              Padding(
+                padding: const EdgeInsets.only(left: 48, top: 2),
                 child: Text(
-                  'Gebze genelinde nöbetçi eczane bilgileri ve iletişim.',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                  AppStrings.get('pharmacy_screen_sub', lang),
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                 ),
               ),
             ],
@@ -105,7 +128,7 @@ class PharmaciesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPharmacyCard(BuildContext context, dynamic pharmacy) {
+  Widget _buildPharmacyCard(BuildContext context, dynamic pharmacy, String lang) {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 16),
@@ -181,7 +204,7 @@ class PharmaciesScreen extends ConsumerWidget {
                         launchUrl(uri);
                       },
                       icon: const Icon(Icons.call_rounded, size: 18),
-                      label: const Text('Ara'),
+                      label: Text(AppStrings.get('btn_call', lang)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF0A2A66),
                         side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(50)),
@@ -201,7 +224,7 @@ class PharmaciesScreen extends ConsumerWidget {
                       launchUrl(uri, mode: LaunchMode.externalApplication);
                     },
                     icon: const Icon(Icons.directions_rounded, size: 18),
-                    label: const Text('Yol Tarifi'),
+                    label: Text(AppStrings.get('btn_directions', lang)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE5231B),
                       foregroundColor: Colors.white,

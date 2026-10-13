@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/gebze_time.dart';
 
 class WeatherInfo {
   final CurrentWeather current;
@@ -10,6 +11,9 @@ class WeatherInfo {
     required this.forecast,
     this.syncedAt,
   });
+
+  DateTime? get syncedAtGebze =>
+      syncedAt != null ? GebzeTime.toGebzeTime(syncedAt!) : null;
 
   factory WeatherInfo.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>?;
@@ -72,6 +76,8 @@ class WeatherForecast {
     this.hourly = const [],
   });
 
+  DateTime get dateTime => GebzeTime.parseWeatherDate(date);
+
   factory WeatherForecast.fromMap(Map<String, dynamic> map) {
     return WeatherForecast(
       date: map['date'] ?? '',
@@ -98,6 +104,8 @@ class HourlyForecast {
     required this.icon,
   });
 
+  DateTime get dateTime => GebzeTime.parseWeatherTime(time);
+
   factory HourlyForecast.fromMap(Map<String, dynamic> map) {
     return HourlyForecast(
       time: map['time'] ?? '',
@@ -106,3 +114,4 @@ class HourlyForecast {
     );
   }
 }
+

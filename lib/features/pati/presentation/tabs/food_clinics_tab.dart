@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/pati_data_provider.dart';
 import '../../models/feeding_point.dart';
+import '../../../../core/localization/app_strings.dart';
 
 class FoodClinicsTab extends ConsumerStatefulWidget {
   const FoodClinicsTab({super.key});
@@ -51,6 +52,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final feedingPointsAsync = ref.watch(feedingPointsStreamProvider);
     final vetClinicsAsync = ref.watch(vetClinicsStreamProvider);
 
@@ -59,7 +61,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
         // 1. MAMA VE SU ODAKLARI AĞI BAŞLIK & AÇIKLAMA KARTI
-        _buildFeedingPointsHeader(context),
+        _buildFeedingPointsHeader(context, lang),
         const SizedBox(height: 14),
 
         // Besleme Noktaları (Canlı Firestore Stream / Admin Panel Senkronize)
@@ -71,12 +73,12 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildNeighborhoodChips(neighborhoods),
+                _buildNeighborhoodChips(neighborhoods, lang),
                 const SizedBox(height: 14),
                 if (filtered.isEmpty)
-                  _buildEmptySection('Bu mahallede kayıtlı besleme odağı bulunamadı.')
+                  _buildEmptySection(AppStrings.get('no_feeding_points_in_neighborhood', lang))
                 else
-                  ...filtered.map((fp) => _buildFeedingPointCard(fp)),
+                  ...filtered.map((fp) => _buildFeedingPointCard(fp, lang)),
               ],
             );
           },
@@ -87,22 +89,22 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
             ),
           ),
           error: (_, _) => Column(
-            children: kGebzeFeedingPoints.map((fp) => _buildFeedingPointCard(fp)).toList(),
+            children: kGebzeFeedingPoints.map((fp) => _buildFeedingPointCard(fp, lang)).toList(),
           ),
         ),
         const SizedBox(height: 24),
 
         // 2. ÖZEL NÖBETÇİ VETERİNER KLİNİKLERİ BÖLÜMÜ (Canlı Firestore Stream / Admin Senkronize)
-        _buildVetClinicsHeader(context),
+        _buildVetClinicsHeader(context, lang),
         const SizedBox(height: 14),
 
         vetClinicsAsync.when(
           data: (clinics) {
             if (clinics.isEmpty) {
-              return _buildEmptySection('Kayıtlı nöbetçi veteriner kliniği bulunamadı.');
+              return _buildEmptySection(AppStrings.get('no_duty_clinics', lang));
             }
             return Column(
-              children: clinics.map((c) => _buildVetClinicCard(c)).toList(),
+              children: clinics.map((c) => _buildVetClinicCard(c, lang)).toList(),
             );
           },
           loading: () => const Center(
@@ -112,7 +114,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
             ),
           ),
           error: (_, _) => Column(
-            children: kGebzeDutyVetClinics.map((c) => _buildVetClinicCard(c)).toList(),
+            children: kGebzeDutyVetClinics.map((c) => _buildVetClinicCard(c, lang)).toList(),
           ),
         ),
       ],
@@ -127,7 +129,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
     );
   }
 
-  Widget _buildFeedingPointsHeader(BuildContext context) {
+  Widget _buildFeedingPointsHeader(BuildContext context, String lang) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -155,21 +157,21 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 child: const Icon(Icons.water_drop_rounded, color: Color(0xFF1E5BC6), size: 24),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Gebze Mama & Su Odakları Ağı',
-                      style: TextStyle(
+                      AppStrings.get('feeding_network_title', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF0A1F44),
                       ),
                     ),
                     Text(
-                      'Belediyemizin mahalle odaklı besleme ve su noktaları',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
+                      AppStrings.get('feeding_network_sub', lang),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
                     ),
                   ],
                 ),
@@ -177,16 +179,16 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Gebze genelinde sokak hayvanlarımızın sağlıklı beslenmesi ve taze suya erişimi için kurulan istasyonlar periyodik olarak temizlenmekte ve mama takviyesi yapılmaktadır.',
-            style: TextStyle(fontSize: 13, color: Color(0xFF334A6E), height: 1.45),
+          Text(
+            AppStrings.get('feeding_network_desc', lang),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF334A6E), height: 1.45),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNeighborhoodChips(List<String> neighborhoods) {
+  Widget _buildNeighborhoodChips(List<String> neighborhoods, String lang) {
     return SizedBox(
       height: 38,
       child: ListView.separated(
@@ -196,9 +198,11 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
         itemBuilder: (context, index) {
           final n = neighborhoods[index];
           final isSelected = n == _selectedNeighborhood;
+          final labelText = n == 'Tümü' ? AppStrings.get('filter_all', lang) : n;
+
           return ChoiceChip(
             label: Text(
-              n,
+              labelText,
               style: TextStyle(
                 color: isSelected ? Colors.white : const Color(0xFF0A2A66),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -224,7 +228,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
     );
   }
 
-  Widget _buildFeedingPointCard(FeedingPoint fp) {
+  Widget _buildFeedingPointCard(FeedingPoint fp, String lang) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
@@ -298,7 +302,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Neler Var: ${fp.equipment}',
+                  '${AppStrings.get('equipment_label', lang)} ${fp.equipment}',
                   style: const TextStyle(fontSize: 12, color: Color(0xFF0A1F44), fontWeight: FontWeight.w600),
                 ),
               ),
@@ -313,7 +317,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 child: OutlinedButton.icon(
                   onPressed: () => _viewOnMap(fp.latitude, fp.longitude, fp.title),
                   icon: const Icon(Icons.map_rounded, size: 17),
-                  label: const Text('Haritada Gör'),
+                  label: Text(AppStrings.get('btn_map', lang)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF0A2A66),
                     side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(50)),
@@ -327,7 +331,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 child: ElevatedButton.icon(
                   onPressed: () => _openDirections(fp.latitude, fp.longitude, fp.title),
                   icon: const Icon(Icons.directions_rounded, size: 17),
-                  label: const Text('Yol Tarifi'),
+                  label: Text(AppStrings.get('btn_directions', lang)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0A2A66),
                     foregroundColor: Colors.white,
@@ -344,24 +348,24 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
     );
   }
 
-  Widget _buildVetClinicsHeader(BuildContext context) {
+  Widget _buildVetClinicsHeader(BuildContext context, String lang) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF0A2A66),
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.all(18),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.local_hospital_rounded, color: Color(0xFFFF7A00), size: 24),
-              SizedBox(width: 10),
+              const Icon(Icons.local_hospital_rounded, color: Color(0xFFFF7A00), size: 24),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Sahipli Evcil Hayvanlar İçin Nöbetçi Klinikler',
-                  style: TextStyle(
+                  AppStrings.get('duty_clinics_title', lang),
+                  style: const TextStyle(
                     fontSize: 15.5,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
@@ -370,17 +374,17 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Evcil can dostunuzun acil sağlık durumlarında Gebze genelinde 7/24 veya gece saatlerinde hizmet veren özel nöbetçi veteriner klinikleri listesi ve iletişim bilgileri.',
-            style: TextStyle(fontSize: 12.5, color: Colors.white70, height: 1.4),
+            AppStrings.get('duty_clinics_desc', lang),
+            style: const TextStyle(fontSize: 12.5, color: Colors.white70, height: 1.4),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildVetClinicCard(DutyVetClinic clinic) {
+  Widget _buildVetClinicCard(DutyVetClinic clinic, String lang) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
@@ -470,7 +474,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 child: OutlinedButton.icon(
                   onPressed: () => _makeCall(clinic.phone),
                   icon: const Icon(Icons.call_rounded, size: 17),
-                  label: const Text('Telefon Et'),
+                  label: Text(AppStrings.get('btn_call', lang)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF0A2A66),
                     side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(50)),
@@ -484,7 +488,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 child: ElevatedButton.icon(
                   onPressed: () => _openDirections(clinic.latitude, clinic.longitude, clinic.name),
                   icon: const Icon(Icons.directions_rounded, size: 17),
-                  label: const Text('Yol Tarifi'),
+                  label: Text(AppStrings.get('btn_directions', lang)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE5231B),
                     foregroundColor: Colors.white,

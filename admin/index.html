@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gebze Belediyesi • Dijital Yönetim Paneli</title>
-
+  
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -622,17 +622,17 @@
   <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      getDocs,
-      deleteDoc,
-      doc,
-      updateDoc,
-      serverTimestamp,
-      query,
-      orderBy
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      deleteDoc, 
+      doc, 
+      updateDoc, 
+      serverTimestamp, 
+      query, 
+      orderBy 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -694,11 +694,11 @@
         ]);
 
         document.getElementById('kpiNews').innerText = newsSnap.size;
-
+        
         let pendingSugg = 0;
         suggSnap.forEach(d => { if (d.data().approved !== true) pendingSugg++; });
         document.getElementById('kpiSuggestions').innerText = pendingSugg;
-
+        
         document.getElementById('kpiPolls').innerText = pollsSnap.size;
         document.getElementById('kpiOutages').innerText = outSnap.size;
         document.getElementById('kpiPets').innerText = petsSnap.size;

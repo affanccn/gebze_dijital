@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../core/localization/app_strings.dart';
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -27,59 +30,68 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(20),
-        blurRadius: 14,
-        offset: const Offset(0, 4),
-      ),
-    ];
-
-class OutagesScreen extends StatefulWidget {
+class OutagesScreen extends ConsumerStatefulWidget {
   const OutagesScreen({super.key});
 
   @override
-  State<OutagesScreen> createState() => _OutagesScreenState();
+  ConsumerState<OutagesScreen> createState() => _OutagesScreenState();
 }
 
-class _OutagesScreenState extends State<OutagesScreen> {
+class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   // 0: Tümü, 1: Su (İSU), 2: Elektrik (SEDAŞ), 3: Doğalgaz (PALGAZ)
   int _selectedFilter = 0;
 
-  // Veritabanında kayıt yoksa gösterilecek yedek demo veriler
-  static const _fallbackOutages = [
-    {
-      'type': 'su',
-      'title': 'Ana İsale Hattı Bakım Çalışması',
-      'neighborhood': 'Osman Yılmaz & Köşklü Çeşme Mah.',
-      'startDate': '09.10.2026 10:00',
-      'endDate': '09.10.2026 18:00',
-      'status': 'Devam Ediyor',
-      'provider': 'İSU',
-    },
-    {
-      'type': 'elektrik',
-      'title': 'Trafo Yenileme ve Şebeke İyileştirme',
-      'neighborhood': 'Arapçeşme Mahallesi (Kısmi)',
-      'startDate': '10.10.2026 09:00',
-      'endDate': '10.10.2026 14:00',
-      'status': 'Planlı Kesinti',
-      'provider': 'SEDAŞ',
-    },
-    {
-      'type': 'gaz',
-      'title': 'Altyapı Bağlantı ve Vana Değişimi',
-      'neighborhood': 'Mustafapaşa Mahallesi 712. Sokak',
-      'startDate': '11.10.2026 13:00',
-      'endDate': '11.10.2026 17:00',
-      'status': 'Planlı Kesinti',
-      'provider': 'PALGAZ',
-    },
-  ];
+  List<Map<String, dynamic>> _getFallbackOutages(String lang) {
+    final mahalleSuffix = AppStrings.get('mahalle_suffix', lang);
+    return [
+      {
+        'type': 'su',
+        'title': lang == 'en'
+            ? 'Main Transmission Line Maintenance'
+            : lang == 'ar'
+                ? 'صيانة خط النقل الرئيسي'
+                : 'Ana İsale Hattı Bakım Çalışması',
+        'neighborhood': 'Osman Yılmaz & Köşklü Çeşme $mahalleSuffix',
+        'startDate': '09.10.2026 10:00',
+        'endDate': '09.10.2026 18:00',
+        'status': AppStrings.get('status_ongoing', lang),
+        'provider': 'İSU',
+      },
+      {
+        'type': 'elektrik',
+        'title': lang == 'en'
+            ? 'Transformer Renewal & Grid Improvement'
+            : lang == 'ar'
+                ? 'تجديد المحولات وتحسين الشبكة'
+                : 'Trafo Yenileme ve Şebeke İyileştirme',
+        'neighborhood': 'Arapçeşme $mahalleSuffix',
+        'startDate': '10.10.2026 09:00',
+        'endDate': '10.10.2026 14:00',
+        'status': AppStrings.get('status_planned', lang),
+        'provider': 'SEDAŞ',
+      },
+      {
+        'type': 'gaz',
+        'title': lang == 'en'
+            ? 'Infrastructure Connection & Valve Replacement'
+            : lang == 'ar'
+                ? 'ربط البنية التحتية واستبدال الصمامات'
+                : 'Altyapı Bağlantı ve Vana Değişimi',
+        'neighborhood': 'Mustafapaşa $mahalleSuffix 712. Sokak',
+        'startDate': '11.10.2026 13:00',
+        'endDate': '11.10.2026 17:00',
+        'status': AppStrings.get('status_planned', lang),
+        'provider': 'PALGAZ',
+      },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final fallbackOutages = _getFallbackOutages(lang);
+
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
@@ -93,29 +105,26 @@ class _OutagesScreenState extends State<OutagesScreen> {
           backgroundColor: _C.bg,
           body: Column(
             children: [
-              _Header(),
-              _buildFilterChips(),
+              _Header(lang: lang),
+              _buildFilterChips(lang),
               Expanded(
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('outages').snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return Center(child: Text('Veri yüklenemedi: ${snapshot.error}'));
+                      return Center(
+                        child: Text('${AppStrings.get('error_occurred', lang)}: ${snapshot.error}'),
+                      );
                     }
 
                     List<Map<String, dynamic>> items = [];
 
-                    // Firestore'da veri varsa onu alır, yoksa fallback demo verilerini kullanır
                     if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
                       items = snapshot.data!.docs.map((d) => d.data()).toList();
-                    } else if (snapshot.connectionState == ConnectionState.active ||
-                        snapshot.connectionState == ConnectionState.done) {
-                      items = _fallbackOutages;
                     } else {
-                      items = _fallbackOutages; // bekleme anında da boş görünmesin
+                      items = fallbackOutages;
                     }
 
-                    // Kategori filtrelemesi
                     final filtered = items.where((item) {
                       final type = (item['type'] ?? '').toString().toLowerCase();
                       if (_selectedFilter == 1) return type == 'su';
@@ -125,19 +134,37 @@ class _OutagesScreenState extends State<OutagesScreen> {
                     }).toList();
 
                     if (filtered.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'Bu kategoride planlı bir kesinti bulunmuyor.',
-                          style: TextStyle(color: _C.textMuted, fontWeight: FontWeight.w600),
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_circle_outline_rounded,
+                                  size: 48, color: Color(0xFF2E7D32)),
+                              const SizedBox(height: 12),
+                              Text(
+                                AppStrings.get('no_outages_found', lang),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: _C.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }
 
                     return ListView.builder(
-                      physics: const ClampingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                       itemCount: filtered.length,
-                      itemBuilder: (context, i) => _OutageCard(data: filtered[i]),
+                      itemBuilder: (context, index) {
+                        return _OutageCard(data: filtered[index], lang: lang);
+                      },
                     );
                   },
                 ),
@@ -149,35 +176,44 @@ class _OutagesScreenState extends State<OutagesScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
-    final filters = ['Tümü', 'Su (İSU)', 'Elektrik (SEDAŞ)', 'Doğalgaz'];
+  Widget _buildFilterChips(String lang) {
+    final filters = [
+      AppStrings.get('filter_all', lang),
+      AppStrings.get('filter_water', lang),
+      AppStrings.get('filter_electric', lang),
+      AppStrings.get('filter_gas', lang),
+    ];
+
     return Container(
-      height: 44,
-      margin: const EdgeInsets.only(top: 14, bottom: 4),
+      height: 52,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = _selectedFilter == i;
           return ChoiceChip(
-            label: Text(filters[i]),
-            selected: isSelected,
-            onSelected: (_) => setState(() => _selectedFilter = i),
-            selectedColor: _C.navy,
-            backgroundColor: Colors.white,
-            labelStyle: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: isSelected ? Colors.white : _C.textDark,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: isSelected ? _C.navy : Colors.grey.withAlpha(50),
+            label: Text(
+              filters[i],
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.white : _C.textDark,
               ),
             ),
+            selected: isSelected,
+            selectedColor: _C.navy,
+            backgroundColor: Colors.white,
+            side: BorderSide(
+              color: isSelected ? _C.navy : const Color(0xFFE4E9F2),
+              width: 1,
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            showCheckmark: false,
+            onSelected: (_) => setState(() => _selectedFilter = i),
           );
         },
       ),
@@ -188,6 +224,9 @@ class _OutagesScreenState extends State<OutagesScreen> {
 // ───────────────────────── Üst Başlık ─────────────────────────
 
 class _Header extends StatelessWidget {
+  final String lang;
+  const _Header({required this.lang});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -203,7 +242,7 @@ class _Header extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -214,10 +253,10 @@ class _Header extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'PLANLI KESİNTİLER',
-                      style: TextStyle(
+                      AppStrings.get('outages_screen_title', lang),
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
@@ -236,11 +275,11 @@ class _Header extends StatelessWidget {
                   ),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 48, top: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 48, top: 4),
                 child: Text(
-                  'Gebze geneli su, elektrik ve doğalgaz kesinti takibi',
-                  style: TextStyle(fontSize: 12.5, color: Colors.white70),
+                  AppStrings.get('outages_screen_sub', lang),
+                  style: const TextStyle(fontSize: 12.5, color: Colors.white70),
                 ),
               ),
             ],
@@ -255,7 +294,8 @@ class _Header extends StatelessWidget {
 
 class _OutageCard extends StatelessWidget {
   final Map<String, dynamic> data;
-  const _OutageCard({required this.data});
+  final String lang;
+  const _OutageCard({required this.data, required this.lang});
 
   Color _getTypeColor(String type) {
     switch (type.toLowerCase()) {
@@ -285,11 +325,26 @@ class _OutageCard extends StatelessWidget {
     }
   }
 
+  String _formatStatus(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('devam') || lower.contains('progress')) {
+      return AppStrings.get('status_ongoing', lang);
+    }
+    if (lower.contains('plan') || lower.contains('planlı')) {
+      return AppStrings.get('status_planned', lang);
+    }
+    if (lower.contains('tamam') || lower.contains('complete')) {
+      return AppStrings.get('status_completed', lang);
+    }
+    return raw;
+  }
+
   @override
   Widget build(BuildContext context) {
     final type = (data['type'] ?? '').toString();
     final color = _getTypeColor(type);
     final icon = _getTypeIcon(type);
+    final statusText = _formatStatus((data['status'] ?? '').toString());
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -297,7 +352,7 @@ class _OutageCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
+        border: Border.all(color: const Color(0xFFE4E9F2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +374,7 @@ class _OutageCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      data['title'] ?? 'Planlı Çalışma',
+                      data['title'] ?? '',
                       style: const TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
@@ -328,7 +383,7 @@ class _OutageCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Sağlayıcı: ${data['provider'] ?? 'İlgili Kurum'}',
+                      '${data['provider'] ?? ''}',
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
@@ -345,7 +400,7 @@ class _OutageCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  data['status'] ?? 'Planlı',
+                  statusText,
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -365,7 +420,7 @@ class _OutageCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  data['neighborhood'] ?? 'Tüm Mahalleler',
+                  data['neighborhood'] ?? '',
                   style: const TextStyle(fontSize: 12.5, color: _C.textDark, fontWeight: FontWeight.w600),
                 ),
               ),

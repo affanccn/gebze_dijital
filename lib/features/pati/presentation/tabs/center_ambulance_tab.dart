@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/localization/app_strings.dart';
 
-class CenterAmbulanceTab extends StatefulWidget {
+class CenterAmbulanceTab extends ConsumerStatefulWidget {
   const CenterAmbulanceTab({super.key});
 
   @override
-  State<CenterAmbulanceTab> createState() => _CenterAmbulanceTabState();
+  ConsumerState<CenterAmbulanceTab> createState() => _CenterAmbulanceTabState();
 }
 
-class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
+class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   static const String _centerPhone = '(0262) 642 04 30';
   static const String _centerPhoneClean = '02626420430';
   static const String _centerAddress = 'Pelitli, Yeni Mezarlık Yolu no:49, 41400 Gebze/Kocaeli';
@@ -19,7 +21,6 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
   final PageController _pageController = PageController();
   int _activeImageIndex = 0;
 
-  // Fotoğraf listesi: Kullanıcının ekleyeceği görseller öncelikli, fallback olarak genel görsel
   final List<Map<String, String>> _photos = [
     {
       'path': 'gorsel/pati/merkez_1.jpg',
@@ -68,41 +69,43 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
+
     return ListView(
       physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
         // 1. ACİL HAYVAN AMBULANSI ÇAĞRI BANNERI (KIRMIZI/TURUNCU VURGU)
-        _buildEmergencyBanner(context),
+        _buildEmergencyBanner(context, lang),
         const SizedBox(height: 18),
 
         // 2. HAYVAN AMBULANSI NEDİR & NE İŞE YARAR?
-        _buildAmbulanceInfoCard(context),
+        _buildAmbulanceInfoCard(context, lang),
         const SizedBox(height: 18),
 
         // 3. HANGİ DURUMLARDA ÇAĞRILIR & MÜDAHALELER
-        _buildInterventionsCard(context),
+        _buildInterventionsCard(context, lang),
         const SizedBox(height: 24),
 
         // 4. BÖLÜM AYIRICI BAŞLIK: REHABİLİTASYON VE EĞİTİM MERKEZİ
         _buildSectionHeader(
-          title: 'Sokak Hayvanları Rehabilitasyon ve Eğitim Merkezi',
-          subtitle: 'Tedavi, bakım, aşılama ve sahiplendirme yerleşkesi',
+          title: AppStrings.get('rehab_center_section_title', lang),
+          subtitle: AppStrings.get('rehab_center_section_sub', lang),
           icon: Icons.local_hospital_rounded,
         ),
         const SizedBox(height: 14),
 
         // 5. MERKEZ HAKKINDA GÖRSELLER & BİLGİ KARTI
-        _buildCenterCard(context),
+        _buildCenterCard(context, lang),
         const SizedBox(height: 18),
 
         // 6. ÇALIŞMA SAATLERİ & ULAŞIM
-        _buildWorkingHoursCard(context),
+        _buildWorkingHoursCard(context, lang),
       ],
     );
   }
 
-  Widget _buildEmergencyBanner(BuildContext context) {
+  Widget _buildEmergencyBanner(BuildContext context, String lang) {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -138,13 +141,13 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ACİL HAYVAN AMBULANSI',
-                      style: TextStyle(
+                      AppStrings.get('ambulance_banner_title', lang),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                         fontSize: 18,
@@ -152,8 +155,8 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                       ),
                     ),
                     Text(
-                      'Gebze Belediyesi Acil Müdahale Ekibi',
-                      style: TextStyle(
+                      AppStrings.get('ambulance_banner_team', lang),
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
                       ),
@@ -164,9 +167,9 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
             ],
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Yaralı, kaza geçirmiş veya acil yardıma muhtaç sokak hayvanlarımız için Gebze Belediyesi Hayvan Ambulansı bir telefon uzağınızda.',
-            style: TextStyle(
+          Text(
+            AppStrings.get('ambulance_banner_desc', lang),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 13.5,
               height: 1.45,
@@ -179,9 +182,9 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                 child: ElevatedButton.icon(
                   onPressed: () => _makeCall(_centerPhoneClean),
                   icon: const Icon(Icons.call_rounded, size: 20),
-                  label: const Text(
-                    'Ambulansı Ara (0262 642 04 30)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                  label: Text(
+                    AppStrings.get('call_ambulance_btn', lang),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -201,7 +204,7 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
     );
   }
 
-  Widget _buildAmbulanceInfoCard(BuildContext context) {
+  Widget _buildAmbulanceInfoCard(BuildContext context, String lang) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -229,20 +232,22 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                 child: const Icon(Icons.emergency_share_rounded, color: Color(0xFFFF7A00), size: 22),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Hayvan Ambulansı Ne İşe Yarar?',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0A1F44),
+              Expanded(
+                child: Text(
+                  AppStrings.get('ambulance_what_is', lang),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0A1F44),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Gebze Belediyesi Hayvan Ambulansı; sokakta yaşayan sahipsiz can dostlarımızın trafik kazaları, yüksekten düşme, zehirlenme ve ağır travma gibi acil hayati tehlike içeren durumlarında olay yerinde ilk müdahalenin yapılması ve donanımlı rehabilitasyon merkezine güvenle nakledilmesi için özel olarak tasarlanmış tam teşekküllü acil müdahale aracıdır.',
-            style: TextStyle(
+          Text(
+            AppStrings.get('ambulance_what_is_desc_full', lang),
+            style: const TextStyle(
               fontSize: 13.5,
               color: Color(0xFF334A6E),
               height: 1.5,
@@ -253,19 +258,35 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
     );
   }
 
-  Widget _buildInterventionsCard(BuildContext context) {
+  Widget _buildInterventionsCard(BuildContext context, String lang) {
     final conditions = [
-      {'icon': Icons.car_crash_rounded, 'title': 'Trafik Kazası', 'desc': 'Kırık, kanama veya şok geçiren sokak canlıları'},
-      {'icon': Icons.warning_amber_rounded, 'title': 'Ağır Travma & Düşme', 'desc': 'Yüksekten düşme, ezilme veya hareket edememe'},
-      {'icon': Icons.coronavirus_rounded, 'title': 'Zehirlenme Şüphesi', 'desc': 'Aşırı salya, nöbet geçirme veya solunum güçlüğü'},
-      {'icon': Icons.healing_rounded, 'title': 'Açık Yara & Enfeksiyon', 'desc': 'Hayati tehlike oluşturan derin yara ve uzuv kayıpları'},
+      {
+        'icon': Icons.car_crash_rounded,
+        'title': AppStrings.get('cond_accident', lang),
+        'desc': AppStrings.get('cond_accident_sub', lang),
+      },
+      {
+        'icon': Icons.warning_amber_rounded,
+        'title': AppStrings.get('cond_trauma', lang),
+        'desc': AppStrings.get('cond_trauma_sub', lang),
+      },
+      {
+        'icon': Icons.coronavirus_rounded,
+        'title': AppStrings.get('cond_poison', lang),
+        'desc': AppStrings.get('cond_poison_sub', lang),
+      },
+      {
+        'icon': Icons.healing_rounded,
+        'title': AppStrings.get('cond_wound', lang),
+        'desc': AppStrings.get('cond_wound_sub', lang),
+      },
     ];
 
     final procedures = [
-      'Olay yerinde uzman veteriner hekim / tekniker kontrolü',
-      'Acil kanama durdurma, oksijen desteği ve serum takviyesi',
-      'Kırık ve travma stabilizasyonu ile sedye ile güvenli nakil',
-      'Pelitli Rehabilitasyon Merkezi yoğun bakım ve ameliyathaneye hızlı sevk',
+      AppStrings.get('proc_1', lang),
+      AppStrings.get('proc_2', lang),
+      AppStrings.get('proc_3', lang),
+      AppStrings.get('proc_4', lang),
     ];
 
     return Container(
@@ -284,16 +305,18 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2E7D32), size: 22),
-              SizedBox(width: 8),
-              Text(
-                'Hangi Durumlarda Çağırabilirsiniz?',
-                style: TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0A1F44),
+              const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2E7D32), size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppStrings.get('conditions_title', lang),
+                  style: const TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0A1F44),
+                  ),
                 ),
               ),
             ],
@@ -351,9 +374,9 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
           const SizedBox(height: 16),
           const Divider(height: 1),
           const SizedBox(height: 14),
-          const Text(
-            'Ambulans Ekiplerince Yapılan Müdahaleler:',
-            style: TextStyle(
+          Text(
+            AppStrings.get('ambulance_interventions_label', lang),
+            style: const TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.w700,
               color: Color(0xFF0A1F44),
@@ -425,7 +448,7 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
     );
   }
 
-  Widget _buildCenterCard(BuildContext context) {
+  Widget _buildCenterCard(BuildContext context, String lang) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -512,39 +535,39 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 20),
-                    SizedBox(width: 4),
-                    Text(
+                    const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 20),
+                    const SizedBox(width: 4),
+                    const Text(
                       '4.2',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0A1F44)),
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      '(149 Google Yorumu)',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
+                      AppStrings.get('google_reviews_count', lang),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Text(
-                      'Pelitli Hayvan Hastanesi',
-                      style: TextStyle(fontSize: 11.5, color: Color(0xFF1E5BC6), fontWeight: FontWeight.bold),
+                      AppStrings.get('pelitli_hospital', lang),
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF1E5BC6), fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Merkez Ne İşe Yarar, Neler Yapılır?',
-                  style: TextStyle(
+                Text(
+                  AppStrings.get('center_role_title', lang),
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0A1F44),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Gebze Belediyesi Sokak Hayvanları Rehabilitasyon ve Eğitim Merkezi; sokak hayvanlarımızın sağlık taramaları, kısırlaştırma operasyonları, aşılama ve kuduz mücadeleleri, iç-dış parazit tedavileri ile mikroçip kayıt işlemlerini modern tıbbi standartlarda gerçekleştirmektedir.\n\nAyrıca merkez bünyesinde hayvan hakları ve sevgisi konusunda çocuklara ve öğrencilere yönelik çevre & bilinçlendirme eğitimleri, sahiplendirme bahçesi ve doğal serbest dolaşım alanları bulunmaktadır.',
-                  style: TextStyle(
+                Text(
+                  AppStrings.get('center_role_desc', lang),
+                  style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF334A6E),
                     height: 1.48,
@@ -558,14 +581,14 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                 _buildInfoRow(
                   icon: Icons.location_on_rounded,
                   iconColor: const Color(0xFFE5231B),
-                  title: 'Açık Adres',
+                  title: AppStrings.get('center_open_address', lang),
                   value: _centerAddress,
                 ),
                 const SizedBox(height: 10),
                 _buildInfoRow(
                   icon: Icons.phone_rounded,
                   iconColor: const Color(0xFF0A2A66),
-                  title: 'Telefon',
+                  title: AppStrings.get('center_phone_label', lang),
                   value: _centerPhone,
                 ),
                 const SizedBox(height: 16),
@@ -577,7 +600,7 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                       child: OutlinedButton.icon(
                         onPressed: () => _makeCall(_centerPhoneClean),
                         icon: const Icon(Icons.call_rounded, size: 18),
-                        label: const Text('Telefon Et'),
+                        label: Text(AppStrings.get('btn_call', lang)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF0A2A66),
                           side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(60)),
@@ -591,7 +614,7 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                       child: ElevatedButton.icon(
                         onPressed: () => _openMaps(_centerLat, _centerLng, 'Gebze Belediyesi Sokak Hayvanları Merkezi'),
                         icon: const Icon(Icons.directions_rounded, size: 18),
-                        label: const Text('Yol Tarifi'),
+                        label: Text(AppStrings.get('btn_directions', lang)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0A2A66),
                           foregroundColor: Colors.white,
@@ -609,7 +632,7 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
                   child: TextButton.icon(
                     onPressed: () => _openWeb(_centerWebsite),
                     icon: const Icon(Icons.language_rounded, size: 17),
-                    label: const Text('Belediye Web Sitesini Ziyaret Et (gebze.bel.tr)'),
+                    label: Text(AppStrings.get('btn_visit_website', lang)),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF1E5BC6),
                     ),
@@ -623,15 +646,15 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
     );
   }
 
-  Widget _buildWorkingHoursCard(BuildContext context) {
+  Widget _buildWorkingHoursCard(BuildContext context, String lang) {
     final days = [
-      {'day': 'Pazartesi', 'hours': '09:00 – 16:00', 'open': true},
-      {'day': 'Salı', 'hours': '09:00 – 16:00', 'open': true},
-      {'day': 'Çarşamba', 'hours': '09:00 – 16:00', 'open': true},
-      {'day': 'Perşembe', 'hours': '09:00 – 16:00', 'open': true},
-      {'day': 'Cuma', 'hours': '09:00 – 16:00', 'open': true},
-      {'day': 'Cumartesi', 'hours': 'Kapalı (Acil Servis Hariç)', 'open': false},
-      {'day': 'Pazar', 'hours': 'Kapalı (Acil Servis Hariç)', 'open': false},
+      {'day': AppStrings.get('day_mon', lang), 'hours': '09:00 – 16:00', 'open': true},
+      {'day': AppStrings.get('day_tue', lang), 'hours': '09:00 – 16:00', 'open': true},
+      {'day': AppStrings.get('day_wed', lang), 'hours': '09:00 – 16:00', 'open': true},
+      {'day': AppStrings.get('day_thu', lang), 'hours': '09:00 – 16:00', 'open': true},
+      {'day': AppStrings.get('day_fri', lang), 'hours': '09:00 – 16:00', 'open': true},
+      {'day': AppStrings.get('day_sat', lang), 'hours': AppStrings.get('closed_emergency_except', lang), 'open': false},
+      {'day': AppStrings.get('day_sun', lang), 'hours': AppStrings.get('closed_emergency_except', lang), 'open': false},
     ];
 
     return Container(
@@ -650,16 +673,18 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.access_time_rounded, color: Color(0xFF0A2A66), size: 22),
-              SizedBox(width: 8),
-              Text(
-                'Ziyaret ve İşlem Saatleri',
-                style: TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0A1F44),
+              const Icon(Icons.access_time_rounded, color: Color(0xFF0A2A66), size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppStrings.get('visiting_hours_title', lang),
+                  style: const TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0A1F44),
+                  ),
                 ),
               ),
             ],
@@ -703,9 +728,9 @@ class _CenterAmbulanceTabState extends State<CenterAmbulanceTab> {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            '* Acil hayvan ambulansı ve nöbetçi veteriner acil vaka birimi çalışma saatleri dışındaki acil ihbarlarda da görev başındadır.',
-            style: TextStyle(fontSize: 11, color: Color(0xFF5F6F8A), fontStyle: FontStyle.italic),
+          Text(
+            AppStrings.get('ambulance_shift_note', lang),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF5F6F8A), fontStyle: FontStyle.italic),
           ),
         ],
       ),

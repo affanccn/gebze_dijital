@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gebze_dijital/features/news/models/municipal_news.dart';
+import '../../core/localization/app_strings.dart';
 
-class NewsPreviewScreen extends StatelessWidget {
+class NewsPreviewScreen extends ConsumerWidget {
   const NewsPreviewScreen({super.key, required this.news});
 
   final MunicipalNews news;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Haber Önizlemesi'),
+        title: Text(AppStrings.get('news_preview_title', lang)),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -23,7 +27,7 @@ class NewsPreviewScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 250,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(
+                errorBuilder: (context, error, stackTrace) => const SizedBox(
                   height: 200,
                   child: Center(child: Icon(Icons.image_not_supported, size: 50)),
                 ),
@@ -56,7 +60,7 @@ class NewsPreviewScreen extends StatelessWidget {
                   ],
                   const SizedBox(height: 16),
                   Text(
-                    'Bu haberin tamamını okumak ve daha fazla detaya ulaşmak için lütfen aşağıdaki butona tıklayarak orijinal kaynağa (Gebze Belediyesi web sitesine) gidin.',
+                    AppStrings.get('news_read_more_info', lang),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 32),
@@ -71,7 +75,7 @@ class NewsPreviewScreen extends StatelessWidget {
                         }
                       },
                       icon: const Icon(Icons.open_in_browser),
-                      label: const Text('Haberi Tarayıcıda Aç'),
+                      label: Text(AppStrings.get('news_open_browser_btn', lang)),
                     ),
                   ),
                 ],
