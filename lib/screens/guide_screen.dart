@@ -37,6 +37,14 @@ Widget _withFont(BuildContext context, Widget child) {
   );
 }
 
+/// Önizleme sayfasındaki yeni metinler için yerel çeviri yardımcısı.
+/// (İstersen bunları ileride AppStrings dosyasına taşıyabilirsiniz.)
+String _t(String lang, String tr, String en, String ar) =>
+    lang == 'en' ? en : (lang == 'ar' ? ar : tr);
+
+/// Windows'tan kopyalanan "gorsel\tesisler\x.jpg" yollarını "gorsel/tesisler/x.jpg" yapar.
+String _normalizeImagePath(String path) => path.trim().replaceAll('\\', '/');
+
 Future<void> _openUrl(BuildContext context, String url, String lang) async {
   final ok = await launchUrl(
     Uri.parse(url),
@@ -586,9 +594,10 @@ class _InstitutionCard extends StatelessWidget {
     final address = (data['address'] ?? '').toString();
     final phone = (data['phone'] ?? '').toString();
     final desc = (data['description'] ?? '').toString();
+    final image = (data['image'] ?? '').toString().trim();
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -597,51 +606,104 @@ class _InstitutionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            name,
-            style: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w700, color: _C.textDark),
-          ),
-          if (desc.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(desc,
-                style: const TextStyle(
-                    fontSize: 12.5, height: 1.4, color: _C.textMuted)),
-          ],
-          if (address.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Row(
+          if (image.isNotEmpty)
+            _CardImage(image: image, height: 150, color: color),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.location_on_rounded, size: 16, color: color),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(address,
-                      style: const TextStyle(
-                          fontSize: 12.5, color: _C.textDark)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: _C.textDark),
                 ),
+                if (desc.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(desc,
+                      style: const TextStyle(
+                          fontSize: 12.5, height: 1.4, color: _C.textMuted)),
+                ],
+                if (address.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.location_on_rounded, size: 16, color: color),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(address,
+                            style: const TextStyle(
+                                fontSize: 12.5, color: _C.textDark)),
+                      ),
+                    ],
+                  ),
+                ],
+                if (phone.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () => _openUrl(context, 'tel:$phone', lang),
+                    child: Row(
+                      children: [
+                        Icon(Icons.phone_rounded, size: 16, color: color),
+                        const SizedBox(width: 6),
+                        Text(phone,
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: color)),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
-          ],
-          if (phone.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: () => _openUrl(context, 'tel:$phone', lang),
-              child: Row(
-                children: [
-                  Icon(Icons.phone_rounded, size: 16, color: color),
-                  const SizedBox(width: 6),
-                  Text(phone,
-                      style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: color)),
-                ],
-              ),
-            ),
-          ],
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Asset (`gorsel/...`) veya ağ (`https://...`) görseli; hata/yüklenirken placeholder.
+class _CardImage extends StatelessWidget {
+  final String image;
+  final double height;
+  final Color color;
+  const _CardImage({
+    required this.image,
+    required this.height,
+    required this.color,
+  });
+
+  Widget _placeholder() => Container(
+        height: height,
+        width: double.infinity,
+        color: color.withAlpha(30),
+        child: Icon(Icons.image_outlined, color: color.withAlpha(140), size: 40),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final path = _normalizeImagePath(image);
+    if (path.startsWith('http')) {
+      return CachedNetworkImage(
+        imageUrl: path,
+        height: height,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => _placeholder(),
+        errorWidget: (_, __, ___) => _placeholder(),
+      );
+    }
+    return Image.asset(
+      path,
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _placeholder(),
     );
   }
 }
@@ -825,9 +887,13 @@ class _DiscoverTabState extends State<_DiscoverTab>
                         _favorites.add(p.id);
                       }
                     }),
-                    onTap: p.detailUrl.isNotEmpty
-                        ? () => _openUrl(context, p.detailUrl, widget.lang)
-                        : null,
+                    // Doğrudan internete gitmek yerine önce uygulama içi önizleme açılır.
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            _PlaceDetailScreen(place: p, lang: widget.lang),
+                      ),
+                    ),
                   );
                 },
               );
@@ -861,8 +927,9 @@ class _PlaceImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final img = place.image;
-    if (img == null || img.isEmpty) return _placeholder();
+    final raw = place.image;
+    if (raw == null || raw.trim().isEmpty) return _placeholder();
+    final img = _normalizeImagePath(raw);
 
     if (img.startsWith('http')) {
       return CachedNetworkImage(
@@ -1021,6 +1088,143 @@ class _PlaceCard extends StatelessWidget {
                         color: _C.textMuted,
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ───────────────────────── Mekan Önizleme Sayfası ─────────────────────────
+
+class _PlaceDetailScreen extends StatelessWidget {
+  final HistoricPlace place;
+  final String lang;
+  const _PlaceDetailScreen({required this.place, required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    return _withFont(
+      context,
+      Scaffold(
+        backgroundColor: _C.bg,
+        appBar: AppBar(
+          backgroundColor: _C.bg,
+          foregroundColor: _C.textDark,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: Text(
+            _t(lang, 'Mekan Önizlemesi', 'Place Preview', 'معاينة المكان'),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+        ),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PlaceImage(place: place, height: 250),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: _C.navyDeep.withAlpha(20),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        place.category,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _C.navyDeep,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      place.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: _C.textDark,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      place.summary,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        height: 1.55,
+                        color: _C.textDark,
+                      ),
+                    ),
+                    if (place.detailUrl.isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.info_outline_rounded,
+                                size: 18, color: _C.orange),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _t(
+                                  lang,
+                                  'Daha fazla bilgi için aşağıdaki butona dokunduğunuzda Gebze Belediyesi web sitesine (internet tarayıcısına) yönlendirileceksiniz.',
+                                  'Tapping the button below will take you to the Gebze Municipality website (your internet browser) for more information.',
+                                  'عند الضغط على الزر أدناه سيتم تحويلك إلى موقع بلدية جبزة (متصفح الإنترنت) لمزيد من المعلومات.',
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  height: 1.4,
+                                  color: _C.textDark,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: () =>
+                              _openUrl(context, place.detailUrl, lang),
+                          icon: const Icon(Icons.open_in_browser_rounded,
+                              size: 20),
+                          label: Text(
+                            _t(lang, 'Devamını Tarayıcıda Aç',
+                                'Continue in Browser', 'متابعة في المتصفح'),
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w700),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _C.navy,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: const StadiumBorder(),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
