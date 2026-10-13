@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../features/profile/models/user_profile.dart';
 import '../features/profile/services/profile_service.dart';
 import '../core/localization/app_strings.dart';
+import '../core/accessibility/font_scale_provider.dart';
 import 'services_screen.dart';
 
 class _C {
@@ -735,10 +736,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
             Switch.adaptive(
-              value: profile.isLargeFont,
+              value: ref.watch(appLargeFontProvider),
               activeThumbColor: _C.navy,
               activeTrackColor: const Color(0xFF90CAF9),
               onChanged: (val) {
+                ref.read(appLargeFontProvider.notifier).setLargeFont(val);
                 ref.read(profileServiceProvider).updateLargeFont(val);
               },
             ),

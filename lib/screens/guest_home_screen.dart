@@ -797,8 +797,8 @@ class _QuickActionsCard extends StatelessWidget {
                       child: Icon(item.icon, color: Colors.white, size: 28),
                     ),
                     const SizedBox(height: 8),
-                    SizedBox(
-                      height: 26,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 28),
                       child: Text(
                         item.label,
                         maxLines: 2,
