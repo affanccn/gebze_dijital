@@ -7,6 +7,8 @@ import '../features/profile/models/user_profile.dart';
 import '../features/profile/services/profile_service.dart';
 import '../core/localization/app_strings.dart';
 import '../core/accessibility/font_scale_provider.dart';
+import 'my_requests_screen.dart';
+import 'report_common.dart';
 import 'services_screen.dart';
 
 class _C {
@@ -70,13 +72,32 @@ const List<String> _kGebzeNeighborhoods = [
 class ProfileScreen extends ConsumerStatefulWidget {
   final ValueChanged<int>? onNavTap;
 
-  const ProfileScreen({super.key, this.onNavTap});
+  /// true ise ekran açılır açılmaz Aktiviteler > Talepler sheet'i açılır
+  /// (Çek & Gönder sonrası "Taleplerim" için).
+  final bool openRequestsOnStart;
+
+  const ProfileScreen({
+    super.key,
+    this.onNavTap,
+    this.openRequestsOnStart = false,
+  });
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openRequestsOnStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _openActivitiesSheet(context, 'talep', ref.read(appLanguageProvider));
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
@@ -336,7 +357,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             right: 0,
                             bottom: 0,
                             child: GestureDetector(
-                              onTap: () => _openAvatarPicker(context, profile, lang),
+                              onTap: () =>
+                                  _openAvatarPicker(context, profile, lang),
                               child: Container(
                                 width: 26,
                                 height: 26,
@@ -485,7 +507,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           _buildStatItem(
             AppStrings.get('stat_requests', lang),
-            '${profile.totalRequests}',
+            '${ref.watch(myReportCountProvider)}',
             Icons.assignment_rounded,
             () => _openActivitiesSheet(context, 'talep', lang),
           ),
@@ -625,7 +647,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         iconColor: const Color(0xFF1E5BC6),
         title: AppStrings.get('act_requests_title', lang),
         subtitle:
-            '${profile.totalRequests} ${AppStrings.get('stat_requests', lang)}',
+            '${ref.watch(myReportCountProvider)} ${AppStrings.get('stat_requests', lang)}',
         onTap: () => _openActivitiesSheet(context, 'talep', lang),
       ),
       _buildDivider(),
@@ -947,7 +969,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Modallar & Diyaloglar ─────────────────────────
 
-  void _openEditProfileDialog(BuildContext context, UserProfile profile, [String lang = 'tr']) {
+  void _openEditProfileDialog(
+    BuildContext context,
+    UserProfile profile, [
+    String lang = 'tr',
+  ]) {
     final nameCtrl = TextEditingController(text: profile.fullName);
     final emailCtrl = TextEditingController(text: profile.email);
     final phoneCtrl = TextEditingController(text: profile.phoneNumber);
@@ -998,7 +1024,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Icons.person_outline_rounded,
                 ),
                 const SizedBox(height: 12),
-                _buildTextField(AppStrings.get('field_email', lang), emailCtrl, Icons.email_outlined),
+                _buildTextField(
+                  AppStrings.get('field_email', lang),
+                  emailCtrl,
+                  Icons.email_outlined,
+                ),
                 const SizedBox(height: 12),
                 _buildTextField(
                   AppStrings.get('field_phone', lang),
@@ -1006,7 +1036,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Icons.phone_outlined,
                 ),
                 const SizedBox(height: 12),
-                _buildTextField(AppStrings.get('field_tc', lang), tcCtrl, Icons.badge_outlined),
+                _buildTextField(
+                  AppStrings.get('field_tc', lang),
+                  tcCtrl,
+                  Icons.badge_outlined,
+                ),
                 const SizedBox(height: 12),
                 _buildTextField(
                   AppStrings.get('field_address', lang),
@@ -1031,7 +1065,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             tcNo: tcCtrl.text.trim(),
                           );
                       if (ctx.mounted) Navigator.of(ctx).pop();
-                      _showSnackBar(AppStrings.get('profile_updated_toast', lang));
+                      _showSnackBar(
+                        AppStrings.get('profile_updated_toast', lang),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _C.navy,
@@ -1091,7 +1127,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openNeighborhoodPicker(BuildContext context, UserProfile profile, [String lang = 'tr']) {
+  void _openNeighborhoodPicker(
+    BuildContext context,
+    UserProfile profile, [
+    String lang = 'tr',
+  ]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1166,7 +1206,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             .read(profileServiceProvider)
                             .updateNeighborhood(n);
                         if (ctx.mounted) Navigator.of(ctx).pop();
-                        _showSnackBar(AppStrings.get('neighborhood_updated_toast', lang));
+                        _showSnackBar(
+                          AppStrings.get('neighborhood_updated_toast', lang),
+                        );
                       },
                     );
                   },
@@ -1229,14 +1271,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           .updateNotificationPreference('push', v);
                     },
                   ),
-                  _buildSwitchTile(AppStrings.get('notif_sms', lang), prefs['sms'] ?? true, (
-                    v,
-                  ) {
-                    setModalState(() => prefs['sms'] = v);
-                    ref
-                        .read(profileServiceProvider)
-                        .updateNotificationPreference('sms', v);
-                  }),
+                  _buildSwitchTile(
+                    AppStrings.get('notif_sms', lang),
+                    prefs['sms'] ?? true,
+                    (v) {
+                      setModalState(() => prefs['sms'] = v);
+                      ref
+                          .read(profileServiceProvider)
+                          .updateNotificationPreference('sms', v);
+                    },
+                  ),
                   _buildSwitchTile(
                     AppStrings.get('notif_outages', lang),
                     prefs['outages'] ?? true,
@@ -1382,10 +1426,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       final list = snapshot.data ?? [];
                       return TabBarView(
                         children: [
-                          _buildActivityList(
-                            list.where((a) => a.type == 'talep').toList(),
-                            lang,
-                          ),
+                          const MyRequestsList(),
                           _buildActivityList(
                             list.where((a) => a.type == 'oneri').toList(),
                             lang,
@@ -1411,7 +1452,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildActivityList(List<UserActivityItem> items, [String lang = 'tr']) {
+  Widget _buildActivityList(
+    List<UserActivityItem> items, [
+    String lang = 'tr',
+  ]) {
     if (items.isEmpty) {
       return Center(
         child: Padding(
@@ -1419,7 +1463,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.inbox_rounded, size: 40, color: Color(0xFF94A3B8)),
+              const Icon(
+                Icons.inbox_rounded,
+                size: 40,
+                color: Color(0xFF94A3B8),
+              ),
               const SizedBox(height: 10),
               Text(
                 AppStrings.get('no_activities_found', lang),
@@ -1624,7 +1672,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openThemePicker(BuildContext context, UserProfile profile, [String lang = 'tr']) {
+  void _openThemePicker(
+    BuildContext context,
+    UserProfile profile, [
+    String lang = 'tr',
+  ]) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -1704,7 +1756,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openAvatarPicker(BuildContext context, UserProfile profile, [String lang = 'tr']) {
+  void _openAvatarPicker(
+    BuildContext context,
+    UserProfile profile, [
+    String lang = 'tr',
+  ]) {
     final urlCtrl = TextEditingController(text: profile.avatarUrl);
 
     showDialog(
@@ -1856,7 +1912,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      _showSnackBar(AppStrings.get('call_failed_toast', lang).replaceAll('{0}', '444 0 153'));
+      _showSnackBar(
+        AppStrings.get(
+          'call_failed_toast',
+          lang,
+        ).replaceAll('{0}', '444 0 153'),
+      );
     }
   }
 

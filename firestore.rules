@@ -26,7 +26,11 @@ service cloud.firestore {
     // 5. Söz Sende - Fikir ve Öneriler
     match /suggestions/{id}           { allow read, write: if true; }
 
-    // 6. Kullanıcı Profili ve Aktiviteler (Mobil & Yönetim Paneli)
+    // 6. Çek & Gönder - Vatandaş Bildirimleri / Talepler
+    // (Mobil oluşturur ve takip eder, Yönetim Paneli durumu günceller)
+    match /reports/{id}               { allow read, write: if true; }
+
+    // 7. Kullanıcı Profili ve Aktiviteler (Mobil & Yönetim Paneli)
     match /users/{id}                 { allow read, write: if true; }
     match /users/{userId}/activities/{activityId} { allow read, write: if true; }
     match /user_activities/{id}       { allow read, write: if true; }

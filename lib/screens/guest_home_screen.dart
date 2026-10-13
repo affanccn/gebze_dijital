@@ -12,8 +12,8 @@ import '../features/weather/services/weather_provider.dart';
 import 'emergency_screen.dart';
 import 'guide_screen.dart';
 import 'profile_screen.dart';
+import 'report_screen.dart';
 import 'services_screen.dart';
-import 'soz_sende_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu: lib/screens/guest_home_screen.dart
@@ -45,12 +45,12 @@ const List<String> _kBodyFontFallback = [
 ];
 
 List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(28),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
+  BoxShadow(
+    color: const Color(0xFF0A2A66).withAlpha(28),
+    blurRadius: 18,
+    offset: const Offset(0, 6),
+  ),
+];
 
 class GuestHomeScreen extends ConsumerStatefulWidget {
   const GuestHomeScreen({super.key});
@@ -86,67 +86,66 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   }
 
   List<_QuickActionData> _getQuickActions(String lang) => [
-        _QuickActionData(
-          AppStrings.get('qa_places', lang),
-          Icons.map_rounded,
-          _C.orangeGradient,
-          onTap: () => _openGuide(initialTab: 1),
+    _QuickActionData(
+      AppStrings.get('qa_places', lang),
+      Icons.map_rounded,
+      _C.orangeGradient,
+      onTap: () => _openGuide(initialTab: 1),
+    ),
+    _QuickActionData(
+      AppStrings.get('qa_food', lang),
+      Icons.restaurant_rounded,
+      _C.navyGradient,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const GuideCategoryScreen(categoryId: 'lokantalar'),
         ),
-        _QuickActionData(
-          AppStrings.get('qa_food', lang),
-          Icons.restaurant_rounded,
-          _C.navyGradient,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  const GuideCategoryScreen(categoryId: 'lokantalar'),
-            ),
-          ),
-        ),
-        _QuickActionData(
-          AppStrings.get('qa_ebel', lang),
-          Icons.account_balance_rounded,
-          _C.orangeGradient,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const EBelediyeScreen()),
-          ),
-        ),
-        _QuickActionData(
-          AppStrings.get('qa_complaint', lang),
-          Icons.report_problem_rounded,
-          _C.navyGradient,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const SozSendeScreen()),
-          ),
-        ),
-        _QuickActionData(
-          AppStrings.get('qa_parking', lang),
-          Icons.local_parking_rounded,
-          _C.orangeGradient,
-          onTap: () => _handleNav(3),
-        ),
-      ];
+      ),
+    ),
+    _QuickActionData(
+      AppStrings.get('qa_ebel', lang),
+      Icons.account_balance_rounded,
+      _C.orangeGradient,
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const EBelediyeScreen())),
+    ),
+    _QuickActionData(
+      AppStrings.get('qa_complaint', lang),
+      Icons.report_problem_rounded,
+      _C.navyGradient,
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const ReportScreen())),
+    ),
+    _QuickActionData(
+      AppStrings.get('qa_parking', lang),
+      Icons.local_parking_rounded,
+      _C.orangeGradient,
+      onTap: () => _handleNav(3),
+    ),
+  ];
 
   List<_RowData> _getHistoricPlaces(String lang) => [
-        _RowData(
-          AppStrings.get('hp_eskihisar_title', lang),
-          AppStrings.get('hp_eskihisar_sub', lang),
-          Icons.castle_rounded,
-          onTap: () => _handleNav(1),
-        ),
-        _RowData(
-          AppStrings.get('hp_cmp_title', lang),
-          AppStrings.get('hp_cmp_sub', lang),
-          Icons.mosque_rounded,
-          onTap: () => _handleNav(1),
-        ),
-        _RowData(
-          AppStrings.get('hp_hannibal_title', lang),
-          AppStrings.get('hp_hannibal_sub', lang),
-          Icons.account_balance_rounded,
-          onTap: () => _handleNav(1),
-        ),
-      ];
+    _RowData(
+      AppStrings.get('hp_eskihisar_title', lang),
+      AppStrings.get('hp_eskihisar_sub', lang),
+      Icons.castle_rounded,
+      onTap: () => _handleNav(1),
+    ),
+    _RowData(
+      AppStrings.get('hp_cmp_title', lang),
+      AppStrings.get('hp_cmp_sub', lang),
+      Icons.mosque_rounded,
+      onTap: () => _handleNav(1),
+    ),
+    _RowData(
+      AppStrings.get('hp_hannibal_title', lang),
+      AppStrings.get('hp_hannibal_sub', lang),
+      Icons.account_balance_rounded,
+      onTap: () => _handleNav(1),
+    ),
+  ];
 
   /// Rehberi açar. initialTab: 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet
   void _openGuide({int initialTab = 0}) {
@@ -168,9 +167,8 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     if (i == 1) {
       _openGuide();
     } else if (i == 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const SozSendeScreen()),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const ReportScreen()));
     } else if (i == 3) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -285,10 +283,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
               Positioned(
                 left: 16,
                 top: heroH - overlap - 44,
-                child: _WeatherPill(
-                  width: size.width * 0.66,
-                  lang: lang,
-                ),
+                child: _WeatherPill(width: size.width * 0.66, lang: lang),
               ),
             ],
           ),
@@ -580,9 +575,9 @@ class _WeatherPill extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const WeatherScreen()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => const WeatherScreen()));
       },
       child: Container(
         width: width.clamp(250.0, 360.0),
@@ -840,12 +835,7 @@ class _RowData {
   final String subtitle;
   final IconData icon;
   final VoidCallback? onTap;
-  const _RowData(
-    this.title,
-    this.subtitle,
-    this.icon, {
-    this.onTap,
-  });
+  const _RowData(this.title, this.subtitle, this.icon, {this.onTap});
 }
 
 class _SectionCard extends StatelessWidget {
@@ -1008,7 +998,10 @@ class _BottomNav extends StatelessWidget {
       _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
       _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
       _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+      _NavItem(
+        AppStrings.get('nav_profile', lang),
+        Icons.person_outline_rounded,
+      ),
     ];
 
     return Material(
@@ -1091,7 +1084,9 @@ class _EventsSection extends StatelessWidget {
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(
-            child: Text('${AppStrings.get('error_occurred', lang)}: ${snap.error}'),
+            child: Text(
+              '${AppStrings.get('error_occurred', lang)}: ${snap.error}',
+            ),
           );
         }
         if (!snap.hasData) {
