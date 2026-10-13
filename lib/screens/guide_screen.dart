@@ -266,7 +266,10 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
 class GuideScreen extends ConsumerWidget {
   final ValueChanged<int>? onNavTap;
 
-  const GuideScreen({super.key, this.onNavTap});
+  /// 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet (ana sayfadaki kısayollar için)
+  final int initialTab;
+
+  const GuideScreen({super.key, this.onNavTap, this.initialTab = 0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -279,6 +282,7 @@ class GuideScreen extends ConsumerWidget {
             .copyWith(statusBarColor: Colors.transparent),
         child: DefaultTabController(
           length: 2,
+          initialIndex: initialTab == 1 ? 1 : 0,
           child: Scaffold(
             backgroundColor: _C.bg,
             body: Column(
@@ -303,6 +307,23 @@ class GuideScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Ana sayfadaki kısayollar için: bir kurumsal hizmet kategorisinin
+/// kart listesini doğrudan açar (örn. categoryId: 'lokantalar' → Kent Lokantaları).
+class GuideCategoryScreen extends ConsumerWidget {
+  final String categoryId;
+  const GuideCategoryScreen({super.key, required this.categoryId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
+    final category = _getCategories(lang).firstWhere(
+      (c) => c.id == categoryId,
+      orElse: () => _getCategories(lang).first,
+    );
+    return _InstitutionListScreen(category: category, lang: lang);
   }
 }
 
@@ -515,14 +536,42 @@ class _CategoryTile extends StatelessWidget {
   }
 }
 
-/// Kurum listesi ekranı
-class _InstitutionListScreen extends StatelessWidget {
+/// Kurum listesi ekranı (arama kutulu)
+class _InstitutionListScreen extends StatefulWidget {
   final _Category category;
   final String lang;
   const _InstitutionListScreen({required this.category, required this.lang});
 
   @override
+  State<_InstitutionListScreen> createState() => _InstitutionListScreenState();
+}
+
+class _InstitutionListScreenState extends State<_InstitutionListScreen> {
+  final _ctrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  bool _matches(Map<String, dynamic> d, String q) {
+    if (q.isEmpty) return true;
+    final text = [
+      d['name'],
+      d['description'],
+      d['address'],
+      d['phone'],
+    ].map((e) => (e ?? '').toString().toLowerCase()).join(' ');
+    return text.contains(q);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final category = widget.category;
+    final lang = widget.lang;
+    final q = _query.trim().toLowerCase();
     return _withFont(
       context,
       Scaffold(
@@ -561,15 +610,43 @@ class _InstitutionListScreen extends StatelessWidget {
                 ),
               );
             }
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: docs.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) => _InstitutionCard(
-                data: docs[i].data(),
-                color: category.color,
-                lang: lang,
-              ),
+            final items =
+                docs.map((d) => d.data()).where((d) => _matches(d, q)).toList();
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: _SearchField(
+                    controller: _ctrl,
+                    hint: _t(lang, 'Ara...', 'Search...', 'بحث...'),
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
+                ),
+                Expanded(
+                  child: items.isEmpty
+                      ? Center(
+                          child: Text(
+                            _t(lang, 'Sonuç bulunamadı', 'No results found',
+                                'لم يتم العثور على نتائج'),
+                            style: const TextStyle(
+                                color: _C.textMuted,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, i) => _InstitutionCard(
+                            data: items[i],
+                            color: category.color,
+                            lang: lang,
+                            showMenuButton: category.id == 'lokantalar',
+                          ),
+                        ),
+                ),
+              ],
             );
           },
         ),
@@ -582,10 +659,12 @@ class _InstitutionCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final Color color;
   final String lang;
+  final bool showMenuButton;
   const _InstitutionCard({
     required this.data,
     required this.color,
     required this.lang,
+    this.showMenuButton = false,
   });
 
   @override
@@ -595,6 +674,7 @@ class _InstitutionCard extends StatelessWidget {
     final phone = (data['phone'] ?? '').toString();
     final desc = (data['description'] ?? '').toString();
     final image = (data['image'] ?? '').toString().trim();
+    final menuUrl = (data['menuUrl'] ?? '').toString().trim();
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -655,6 +735,47 @@ class _InstitutionCard extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 color: color)),
                       ],
+                    ),
+                  ),
+                ],
+                if (showMenuButton || menuUrl.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (menuUrl.isEmpty) {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(_t(
+                                  lang,
+                                  'Menü bağlantısı yakında eklenecek.',
+                                  'Menu link coming soon.',
+                                  'رابط القائمة قريباً.',
+                                )),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          return;
+                        }
+                        _openUrl(context, menuUrl, lang);
+                      },
+                      icon: const Icon(Icons.restaurant_menu_rounded, size: 18),
+                      label: Text(
+                        _t(lang, 'Menüyü Gör', 'View Menu', 'عرض القائمة'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ),
                 ],

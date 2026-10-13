@@ -90,13 +90,18 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
           AppStrings.get('qa_places', lang),
           Icons.map_rounded,
           _C.orangeGradient,
-          onTap: () => _handleNav(1),
+          onTap: () => _openGuide(initialTab: 1),
         ),
         _QuickActionData(
           AppStrings.get('qa_food', lang),
           Icons.restaurant_rounded,
           _C.navyGradient,
-          onTap: () => _handleNav(1),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  const GuideCategoryScreen(categoryId: 'lokantalar'),
+            ),
+          ),
         ),
         _QuickActionData(
           AppStrings.get('qa_ebel', lang),
@@ -143,19 +148,25 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
         ),
       ];
 
+  /// Rehberi açar. initialTab: 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet
+  void _openGuide({int initialTab = 0}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GuideScreen(
+          initialTab: initialTab,
+          onNavTap: (j) {
+            Navigator.of(context).pop();
+            if (j != 0 && j != 1) _handleNav(j);
+          },
+        ),
+      ),
+    );
+  }
+
   /// Alt menü yönlendirmesi
   void _handleNav(int i) {
     if (i == 1) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => GuideScreen(
-            onNavTap: (j) {
-              Navigator.of(context).pop();
-              if (j != 0 && j != 1) _handleNav(j);
-            },
-          ),
-        ),
-      );
+      _openGuide();
     } else if (i == 2) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const SozSendeScreen()),
