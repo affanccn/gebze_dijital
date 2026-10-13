@@ -6,11 +6,8 @@ import '../features/weather/presentation/weather_screen.dart';
 import '../features/news/municipal_news_screen.dart';
 import '../features/pati/presentation/gebze_pati_screen.dart';
 import '../features/ebelediye/presentation/ebelediye_screen.dart';
-import 'profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/localization/app_strings.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
 /// Dosya yolu önerisi: lib/screens/services_screen.dart
@@ -40,14 +37,6 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-List<BoxShadow> _softShadow() => [
-      BoxShadow(
-        color: const Color(0xFF0A2A66).withAlpha(28),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ];
-
 class _ServiceData {
   final String id;
   final String title;
@@ -57,7 +46,7 @@ class _ServiceData {
   const _ServiceData(this.id, this.title, this.subtitle, this.icon, this.gradient);
 }
 
-class ServicesScreen extends ConsumerStatefulWidget {
+class ServicesScreen extends StatefulWidget {
   /// Alt menüde başka bir sekmeye geçilmek istendiğinde çağrılır.
   /// (0: Ana Sayfa, 1: Rehber, 2: Bildir, 3: Hizmetler, 4: Profil)
   final ValueChanged<int>? onNavTap;
@@ -68,42 +57,43 @@ class ServicesScreen extends ConsumerStatefulWidget {
   const ServicesScreen({super.key, this.onNavTap, this.onServiceTap});
 
   @override
-  ConsumerState<ServicesScreen> createState() => _ServicesScreenState();
+  State<ServicesScreen> createState() => _ServicesScreenState();
 }
 
-class _ServicesScreenState extends ConsumerState<ServicesScreen> {
+class _ServicesScreenState extends State<ServicesScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
-  _ServiceData _getEmergency(String lang) => _ServiceData(
+  // Acil Durum üstte ayrı, büyük kart olarak gösterilir.
+  static const _emergency = _ServiceData(
     'acil_durum',
-    AppStrings.get('service_emergency', lang),
-    AppStrings.get('service_emergency_sub', lang),
+    'ACİL DURUM',
+    'Acil numaralar ve tek dokunuşla yardım çağır',
     Icons.emergency_rounded,
-    const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
+    [Color(0xFFFF5A4F), Color(0xFFE5231B)],
   );
 
-  List<_ServiceData> _getServices(String lang) => [
-    _ServiceData('kesintiler', AppStrings.get('service_outages', lang),
-        AppStrings.get('service_outages_sub', lang), Icons.power_off_rounded, _C.navyGradient),
-    _ServiceData('otopark', AppStrings.get('service_parking', lang),
-        AppStrings.get('service_parking_sub', lang), Icons.local_parking_rounded, _C.navyGradient),
-    _ServiceData('soz_sende', AppStrings.get('service_soz_sende', lang),
-        AppStrings.get('service_soz_sende_sub', lang), Icons.record_voice_over_rounded, _C.navyGradient),
-    _ServiceData('gebze_pati', AppStrings.get('service_pati', lang),
-        AppStrings.get('service_pati_sub', lang), Icons.pets_rounded, _C.navyGradient),
-    _ServiceData('nobetci_eczane', AppStrings.get('service_pharmacy', lang),
-        AppStrings.get('service_pharmacy_sub', lang), Icons.local_pharmacy_rounded, _C.navyGradient),
-    _ServiceData('hava_durumu', AppStrings.get('service_weather', lang),
-        AppStrings.get('service_weather_sub', lang), Icons.wb_cloudy_rounded, _C.navyGradient),
-    _ServiceData('mahallemde', AppStrings.get('service_neighborhood', lang),
-        AppStrings.get('service_neighborhood_sub', lang), Icons.location_city_rounded, _C.navyGradient),
-    _ServiceData('e_belediye', AppStrings.get('service_ebelediye', lang),
-        AppStrings.get('service_ebelediye_sub', lang), Icons.account_balance_rounded, _C.navyGradient),
+  static const _services = <_ServiceData>[
+    _ServiceData('kesintiler', 'Kesintiler', 'Su, elektrik ve doğalgaz kesintileri',
+        Icons.power_off_rounded, _C.navyGradient),
+    _ServiceData('otopark', 'Otopark', 'Boş park yerleri ve ücretler',
+        Icons.local_parking_rounded, _C.navyGradient),
+    _ServiceData('soz_sende', 'Söz Sende', 'Fikir, öneri ve oylamalar',
+        Icons.record_voice_over_rounded, _C.navyGradient),
+    _ServiceData('gebze_pati', 'Gebze Pati', 'Sahiplendirme ve sokak hayvanları',
+        Icons.pets_rounded, _C.navyGradient),
+    _ServiceData('nobetci_eczane', 'Nöbetçi Eczane', 'Bugün nöbetçi olan eczaneler',
+        Icons.local_pharmacy_rounded, _C.navyGradient),
+    _ServiceData('hava_durumu', 'Hava Durumu', 'Anlık durum ve haftalık tahmin',
+        Icons.wb_cloudy_rounded, _C.navyGradient),
+    _ServiceData('mahallemde', 'Mahallemde', 'Mahallendeki çalışmalar ve hizmetler',
+        Icons.location_city_rounded, _C.navyGradient),
+    _ServiceData('e_belediye', 'E-Belediye', 'Borç sorgulama ve online işlemler',
+        Icons.account_balance_rounded, _C.navyGradient),
     _ServiceData('asistan_bot', 'AsistanBot', 'Sorularını yapay zekâ ile yanıtla',
         Icons.smart_toy_rounded, _C.navyGradient),
-    _ServiceData('haberler', AppStrings.get('service_news', lang),
-        AppStrings.get('service_news_sub', lang), Icons.menu_book_rounded, _C.navyGradient),
+    _ServiceData('haberler', 'Haberler', 'Belediyeden güncel haberler',
+        Icons.menu_book_rounded, _C.navyGradient),
   ];
 
   @override
@@ -112,11 +102,10 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     super.dispose();
   }
 
-  List<_ServiceData> _filtered(String lang) {
-    final list = _getServices(lang);
+  List<_ServiceData> get _filtered {
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return list;
-    return list
+    if (q.isEmpty) return _services;
+    return _services
         .where((s) =>
             s.title.toLowerCase().contains(q) || s.subtitle.toLowerCase().contains(q))
         .toList();
@@ -196,11 +185,9 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   }
 
   Widget _buildScreen(BuildContext context) {
-    final lang = ref.watch(appLanguageProvider);
-    final items = _filtered(lang);
-    final emergency = _getEmergency(lang);
+    final items = _filtered;
     final showEmergency = _query.trim().isEmpty ||
-        emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
+        _emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
@@ -208,18 +195,14 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
         backgroundColor: _C.bg,
         body: Column(
           children: [
-            _Header(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _query = v),
-              lang: lang,
-            ),
+            _Header(controller: _searchCtrl, onChanged: (v) => setState(() => _query = v)),
             Expanded(
               child: ListView(
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
                 children: [
                   if (showEmergency) ...[
-                    _EmergencyCard(data: emergency, onTap: () => _open(emergency)),
+                    _EmergencyCard(data: _emergency, onTap: () => _open(_emergency)),
                     const SizedBox(height: 16),
                   ],
                   if (items.isEmpty && !showEmergency)
@@ -246,17 +229,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
         ),
         bottomNavigationBar: _BottomNav(
           index: 3,
-          onTap: (i) {
-            if (widget.onNavTap != null) {
-              widget.onNavTap!(i);
-            } else if (i == 4) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            } else if (i == 0) {
-              Navigator.of(context).pop();
-            }
-          },
+          onTap: (i) => widget.onNavTap?.call(i),
         ),
       ),
     );
@@ -268,12 +241,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
 class _Header extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  final String lang;
-  const _Header({
-    required this.controller,
-    required this.onChanged,
-    required this.lang,
-  });
+  const _Header({required this.controller, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -310,23 +278,23 @@ class _Header extends StatelessWidget {
                     child: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppStrings.get('services_screen_title', lang),
-                          style: const TextStyle(
+                          'HİZMETLER',
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
-                          AppStrings.get('services_screen_subtitle', lang),
-                          style: const TextStyle(fontSize: 12, color: Colors.white70),
+                          'Gebze Belediyesi dijital hizmetleri',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
                     ),
@@ -354,12 +322,12 @@ class _Header extends StatelessWidget {
                   onChanged: onChanged,
                   textInputAction: TextInputAction.search,
                   style: const TextStyle(fontSize: 14, color: _C.textDark),
-                  decoration: InputDecoration(
-                    hintText: AppStrings.get('search_services_hint', lang),
-                    hintStyle: const TextStyle(color: _C.textMuted, fontSize: 14),
-                    prefixIcon: const Icon(Icons.search_rounded, color: _C.textMuted),
+                  decoration: const InputDecoration(
+                    hintText: 'Hizmet ara...',
+                    hintStyle: TextStyle(color: _C.textMuted, fontSize: 14),
+                    prefixIcon: Icon(Icons.search_rounded, color: _C.textMuted),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                    contentPadding: EdgeInsets.symmetric(vertical: 13),
                   ),
                 ),
               ),
@@ -394,13 +362,6 @@ class _EmergencyCard extends StatelessWidget {
               colors: data.gradient,
             ),
             borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: _C.danger.withAlpha(80),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: Row(
             children: [
@@ -465,7 +426,7 @@ class _ServiceCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(22),
-            boxShadow: _softShadow(),
+            border: Border.all(color: const Color(0xFFE4E9F2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,13 +441,6 @@ class _ServiceCard extends StatelessWidget {
                     colors: data.gradient,
                   ),
                   borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: data.gradient.last.withAlpha(90),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
                 ),
                 child: Icon(data.icon, color: Colors.white, size: 28),
               ),
@@ -542,22 +496,21 @@ class _EmptyState extends StatelessWidget {
 
 // ───────────────────────── Alt Menü ─────────────────────────
 
-class _BottomNav extends ConsumerWidget {
+class _BottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onTap;
   const _BottomNav({required this.index, required this.onTap});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lang = ref.watch(appLanguageProvider);
-    final items = <_NavItem>[
-      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
-      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
-      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
-      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
-    ];
+  static const _items = <_NavItem>[
+    _NavItem('ANA SAYFA', Icons.home_rounded),
+    _NavItem('REHBER', Icons.explore_outlined),
+    _NavItem('BİLDİR', Icons.photo_camera_outlined),
+    _NavItem('HİZMETLER', Icons.grid_view_rounded),
+    _NavItem('PROFİL', Icons.person_outline_rounded),
+  ];
 
+  @override
+  Widget build(BuildContext context) {
     return Material(
       color: _C.navyDeep,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -569,7 +522,7 @@ class _BottomNav extends ConsumerWidget {
           padding: const EdgeInsets.only(top: 12, bottom: 6),
           child: Row(
             children: [
-              for (int i = 0; i < items.length; i++)
+              for (int i = 0; i < _items.length; i++)
                 Expanded(
                   child: InkWell(
                     onTap: () => onTap(i),
@@ -577,13 +530,13 @@ class _BottomNav extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          items[i].icon,
+                          _items[i].icon,
                           size: 28,
                           color: i == index ? _C.orange : Colors.white70,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          items[i].label,
+                          _items[i].label,
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,

@@ -2,32 +2,50 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. Genel Belediye Koleksiyonları (Mobil okur, Yönetim Paneli okur & yazar)
-    match /events/{id}               { allow read, write: if true; }
-    match /places/{id}               { allow read, write: if true; }
-    match /municipal_news/{id}       { allow read, write: if true; }
-    match /outages/{id}              { allow read, write: if true; }
-    match /pharmacies_on_duty/{id}   { allow read, write: if true; }
-    match /weather_info/{id}         { allow read, write: if true; }
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
 
-    // 2. E-Belediye ve Gebze Pati Koleksiyonları
+    // Sadece okunabilen koleksiyonlar (Admin yazabilir)
+    match /events/{id}               { allow read: if true; allow write: if isAdmin(); }
+    match /places/{id}               { allow read: if true; allow write: if isAdmin(); }
+    match /municipal_news/{id}       { allow read: if true; allow write: if isAdmin(); }
+    match /outages/{id}              { allow read: if true; allow write: if isAdmin(); }
+    match /pharmacies_on_duty/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /weather_info/{id}         { allow read: if true; allow write: if isAdmin(); }
+
+    // E-Belediye ve Gebze Pati koleksiyonları
     match /ebelediye_categories/{id} { allow read, write: if true; }
     match /pet_adoptions/{id}        { allow read, write: if true; }
     match /feeding_points/{id}       { allow read, write: if true; }
     match /vet_clinics/{id}          { allow read, write: if true; }
 
-    // 3. Söz Sende - Anketler / Oylamalar
-    match /polls/{id}                { allow read, write: if true; }
+    // Söz Sende - Anketler / Oylamalar
+    match /polls/{id} {
+      allow read: if true;
+      // Kullanıcı sadece oy sayacını 1 artırabilir
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+                    || isAdmin();
+      allow create, delete: if isAdmin();
+    }
 
-    // 4. Söz Sende - Fikir ve Öneriler
-    match /suggestions/{id}          { allow read, write: if true; }
-
-    // 5. Kullanıcı Profili ve Aktiviteler (Mobil & Yönetim Paneli)
-    match /users/{id}                { allow read, write: if true; }
-    match /users/{userId}/activities/{activityId} { allow read, write: if true; }
-    match /user_activities/{id}      { allow read, write: if true; }
+    // Söz Sende - Fikir ve Öneriler
+    match /suggestions/{id} {
+      allow read: if resource.data.approved == true || isAdmin();
+      allow create: if request.resource.data.approved == false
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() >= 5
+                    && request.resource.data.title.size() <= 80
+                    && request.resource.data.description is string
+                    && request.resource.data.description.size() <= 400
+                    && request.resource.data.likes == 0;
+      allow update: if (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                        && (request.resource.data.likes - resource.data.likes) in [-1, 1])
+                    || isAdmin();
+      allow delete: if isAdmin();
+    }
 
     // Geri kalan her şey kapalı
-    match /{document=**}             { allow read, write: if false; }
+    match /{document=**} { allow read, write: if false; }
   }
 }

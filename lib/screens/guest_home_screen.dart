@@ -4,14 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
 import '../features/weather/services/weather_provider.dart';
 import '../features/weather/presentation/weather_screen.dart';
-import '../core/localization/app_strings.dart';
+import 'guide_screen.dart';
 import 'services_screen.dart';
-import 'profile_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu: lib/screens/guest_home_screen.dart
@@ -52,14 +52,14 @@ List<BoxShadow> _softShadow() => [
   ),
 ];
 
-class GuestHomeScreen extends ConsumerStatefulWidget {
+class GuestHomeScreen extends StatefulWidget {
   const GuestHomeScreen({super.key});
 
   @override
-  ConsumerState<GuestHomeScreen> createState() => _GuestHomeScreenState();
+  State<GuestHomeScreen> createState() => _GuestHomeScreenState();
 }
 
-class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
+class _GuestHomeScreenState extends State<GuestHomeScreen> {
   // Hero görseli: proje kökündeki gorsel/ klasörü (pubspec.yaml'da tanımlı olmalı).
   static const String? _heroAsset = 'gorsel/gebze_gorsel.jpg';
 
@@ -87,16 +87,16 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     stream.addListener(listener);
   }
 
-  List<_QuickActionData> _getQuickActions(String lang) => [
-    _QuickActionData(AppStrings.get('qa_places', lang), Icons.map_rounded, _C.orangeGradient),
-    _QuickActionData(AppStrings.get('qa_food', lang), Icons.restaurant_rounded, _C.navyGradient),
-    _QuickActionData(AppStrings.get('qa_ebel', lang), Icons.account_balance_rounded, _C.orangeGradient),
+  static const _quickActions = <_QuickActionData>[
+    _QuickActionData('GEZİLECEK YER', Icons.map_rounded, _C.orangeGradient),
+    _QuickActionData('YEME İÇME', Icons.restaurant_rounded, _C.navyGradient),
+    _QuickActionData('E-BEL', Icons.account_balance_rounded, _C.orangeGradient),
     _QuickActionData(
-      AppStrings.get('qa_complaint', lang),
+      'MİSAFİR ŞİKAYET',
       Icons.report_problem_rounded,
       _C.navyGradient,
     ),
-    _QuickActionData(AppStrings.get('qa_parking', lang), Icons.local_parking_rounded, _C.orangeGradient),
+    _QuickActionData('OTOPARK', Icons.local_parking_rounded, _C.orangeGradient),
   ];
 
   static const _historicPlaces = <_RowData>[
@@ -113,6 +113,35 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     ),
   ];
 
+  /// Alt menü yönlendirmesi: 1 -> Rehber, 3 -> Hizmetler, diğerleri -> sekme seçimi.
+  void _handleNav(int i) {
+    if (i == 1) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => GuideScreen(
+            onNavTap: (j) {
+              Navigator.of(context).pop();
+              if (j != 0 && j != 1) _handleNav(j);
+            },
+          ),
+        ),
+      );
+    } else if (i == 3) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ServicesScreen(
+            onNavTap: (j) {
+              Navigator.of(context).pop();
+              if (j != 0 && j != 3) _handleNav(j);
+            },
+          ),
+        ),
+      );
+    } else {
+      setState(() => _navIndex = i);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final base = Theme.of(context);
@@ -128,7 +157,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   }
 
   Widget _buildScreen(BuildContext context) {
-    final lang = ref.watch(appLanguageProvider);
     final size = MediaQuery.of(context).size;
     final heroH = _heroAspect != null
         ? (size.width / _heroAspect!).clamp(280.0, 480.0)
@@ -159,7 +187,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                 children: [
                   SizedBox(
                     height: heroH - overlap,
-                    child: _HeroContent(lang: lang),
+                    child: const _HeroContent(),
                   ),
                   Container(
                     width: double.infinity,
@@ -173,18 +201,18 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 52, 16, 110),
                     child: Column(
                       children: [
-                        _QuickActionsCard(items: _getQuickActions(lang)),
+                        _QuickActionsCard(items: _quickActions),
                         const SizedBox(height: 16),
-                        _EventsSection(lang: lang),
+                        const _EventsSection(),
                         const SizedBox(height: 16),
-                        _SectionCard(
-                          title: AppStrings.get('historic_places_title', lang),
+                        const _SectionCard(
+                          title: 'TARİHİ YERLER',
                           icon: Icons.account_balance_rounded,
                           iconColor: _C.navy,
                           rows: _historicPlaces,
                         ),
                         const SizedBox(height: 16),
-                        _NewsSection(lang: lang),
+                        const _NewsSection(),
                       ],
                     ),
                   ),
@@ -218,15 +246,15 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
             foregroundColor: Colors.white,
             elevation: 8,
             shape: const CircleBorder(),
-            child: Column(
+            child: const Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.emergency_rounded, size: 28),
-                const SizedBox(height: 2),
+                Icon(Icons.emergency_rounded, size: 28),
+                SizedBox(height: 2),
                 Text(
-                  AppStrings.get('emergency_btn', lang),
+                  'ACİL\nDURUM',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 9,
                     height: 1.05,
                     fontWeight: FontWeight.w800,
@@ -237,52 +265,9 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
         bottomNavigationBar: _BottomNav(
           index: _navIndex,
-          onTap: (i) {
-            if (i == 3) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ServicesScreen(
-                    onNavTap: (j) {
-                      Navigator.of(context).pop();
-                      if (j == 4) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ProfileScreen(),
-                          ),
-                        );
-                      } else if (j != 0) {
-                        setState(() => _navIndex = j);
-                      }
-                    },
-                  ),
-                ),
-              );
-            } else if (i == 4) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ProfileScreen(
-                    onNavTap: (j) {
-                      Navigator.of(context).pop();
-                      if (j == 3) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ServicesScreen(),
-                          ),
-                        );
-                      } else if (j != 0) {
-                        setState(() => _navIndex = j);
-                      }
-                    },
-                  ),
-                ),
-              );
-            } else {
-              setState(() => _navIndex = i);
-            }
-          },
+          onTap: _handleNav,
         ),
       ),
     );
@@ -355,8 +340,7 @@ class _HeroPlaceholder extends StatelessWidget {
 }
 
 class _HeroContent extends StatelessWidget {
-  final String lang;
-  const _HeroContent({required this.lang});
+  const _HeroContent();
 
   @override
   Widget build(BuildContext context) {
@@ -372,12 +356,12 @@ class _HeroContent extends StatelessWidget {
                 const _Logo(),
                 const SizedBox(width: 12),
                 // Karşılama yazısı: logodan bağımsız, logonun sağında
-                Expanded(
+                const Expanded(
                   child: Text(
-                    AppStrings.get('welcome_gebze', lang),
+                    "Gebze'ye\nHoşgeldiniz",
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       height: 1.15,
                       fontWeight: FontWeight.w800,
@@ -396,10 +380,10 @@ class _HeroContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      AppStrings.get('better_gebze', lang),
+                    const Text(
+                      'Daha güzel\nbir Gebze için',
                       textAlign: TextAlign.right,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 21,
                         height: 1.15,
                         fontStyle: FontStyle.italic,
@@ -529,7 +513,6 @@ class _WeatherPill extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lang = ref.watch(appLanguageProvider);
     final weatherAsyncValue = ref.watch(weatherProvider);
     
     return GestureDetector(
@@ -550,7 +533,7 @@ class _WeatherPill extends ConsumerWidget {
         child: weatherAsyncValue.when(
           data: (weatherInfo) {
             if (weatherInfo == null) {
-              return _buildPlaceholder(lang);
+              return _buildPlaceholder();
             }
             
             final temp = '${weatherInfo.current.tempC.round()}°';
@@ -599,12 +582,12 @@ class _WeatherPill extends ConsumerWidget {
                 ),
                 const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
                 const SizedBox(width: 4),
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Gebze',
                         style: TextStyle(
                           color: Colors.white,
@@ -613,10 +596,10 @@ class _WeatherPill extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        AppStrings.get('current_weather_pill', lang),
+                        'Güncel Hava Durumu',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white70, fontSize: 11),
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
                       ),
                     ],
                   ),
@@ -624,14 +607,14 @@ class _WeatherPill extends ConsumerWidget {
               ],
             );
           },
-          loading: () => _buildLoading(lang),
-          error: (_, __) => _buildPlaceholder(lang),
+          loading: () => _buildLoading(),
+          error: (_, __) => _buildPlaceholder(),
         ),
       ),
     );
   }
   
-  Widget _buildPlaceholder(String lang) {
+  Widget _buildPlaceholder() {
     return Row(
       children: [
         const SizedBox(
@@ -640,11 +623,11 @@ class _WeatherPill extends ConsumerWidget {
           child: Icon(Icons.cloud_off, color: Colors.white, size: 36),
         ),
         const SizedBox(width: 8),
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               '--°',
               style: TextStyle(
                 color: Colors.white,
@@ -653,10 +636,10 @@ class _WeatherPill extends ConsumerWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
-              AppStrings.get('failed_to_load', lang),
-              style: const TextStyle(color: Colors.white, fontSize: 11.5),
+              'Alınamadı',
+              style: TextStyle(color: Colors.white, fontSize: 11.5),
             ),
           ],
         ),
@@ -664,17 +647,17 @@ class _WeatherPill extends ConsumerWidget {
     );
   }
   
-  Widget _buildLoading(String lang) {
-    return Row(
+  Widget _buildLoading() {
+    return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(
+        SizedBox(
           width: 24,
           height: 24,
           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
         ),
-        const SizedBox(width: 12),
-        Text(AppStrings.get('loading', lang), style: const TextStyle(color: Colors.white, fontSize: 12)),
+        SizedBox(width: 12),
+        Text('Yükleniyor...', style: TextStyle(color: Colors.white, fontSize: 12)),
       ],
     );
   }
@@ -924,22 +907,21 @@ class _SectionRow extends StatelessWidget {
 
 // ───────────────────────── Alt Menü ─────────────────────────
 
-class _BottomNav extends ConsumerWidget {
+class _BottomNav extends StatelessWidget {
   final int index;
   final ValueChanged<int> onTap;
   const _BottomNav({required this.index, required this.onTap});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lang = ref.watch(appLanguageProvider);
-    final items = <_NavItem>[
-      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
-      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
-      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
-      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
-    ];
+  static const _items = <_NavItem>[
+    _NavItem('ANA SAYFA', Icons.home_rounded),
+    _NavItem('REHBER', Icons.explore_outlined),
+    _NavItem('BİLDİR', Icons.photo_camera_outlined),
+    _NavItem('HİZMETLER', Icons.grid_view_rounded),
+    _NavItem('PROFİL', Icons.person_outline_rounded),
+  ];
 
+  @override
+  Widget build(BuildContext context) {
     return Material(
       color: _C.navyDeep,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -951,7 +933,7 @@ class _BottomNav extends ConsumerWidget {
           padding: const EdgeInsets.only(top: 12, bottom: 6),
           child: Row(
             children: [
-              for (int i = 0; i < items.length; i++)
+              for (int i = 0; i < _items.length; i++)
                 Expanded(
                   child: InkWell(
                     onTap: () => onTap(i),
@@ -959,13 +941,13 @@ class _BottomNav extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          items[i].icon,
+                          _items[i].icon,
                           size: 28,
                           color: i == index ? _C.orange : Colors.white70,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          items[i].label,
+                          _items[i].label,
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
@@ -1006,8 +988,7 @@ class _NavItem {
 // ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
 
 class _EventsSection extends StatelessWidget {
-  final String lang;
-  const _EventsSection({required this.lang});
+  const _EventsSection();
 
   @override
   Widget build(BuildContext context) {
@@ -1037,7 +1018,7 @@ class _EventsSection extends StatelessWidget {
         }).toList();
 
         return _SectionCard(
-          title: AppStrings.get('events_title', lang),
+          title: 'YAKLAŞAN ETKİNLİKLER',
           icon: Icons.event_available_rounded,
           iconColor: _C.orange,
           rows: rows,
@@ -1050,8 +1031,7 @@ class _EventsSection extends StatelessWidget {
 // ───────────────────────── Haberler (Firestore) ─────────────────────────
 
 class _NewsSection extends StatelessWidget {
-  final String lang;
-  const _NewsSection({required this.lang});
+  const _NewsSection();
 
   @override
   Widget build(BuildContext context) {
@@ -1064,7 +1044,7 @@ class _NewsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  AppStrings.get('news_title', lang),
+                  'Gebze Haberleri',
                   style: Theme.of(context).textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
@@ -1077,7 +1057,7 @@ class _NewsSection extends StatelessWidget {
                     ),
                   );
                 },
-                child: Text(AppStrings.get('see_all', lang)),
+                child: const Text('Tümünü Gör'),
               ),
             ],
           ),

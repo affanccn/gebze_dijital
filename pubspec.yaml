@@ -10,8 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations:
-    sdk: flutter
   cupertino_icons: ^1.0.8
   firebase_core: ^4.15.0
   cloud_firestore: ^6.10.0
@@ -32,3 +30,4 @@ flutter:
   assets:
     - gorsel/
     - gorsel/pati/
+    - gorsel/tarihi_yerler/
