@@ -1,7 +1,7 @@
 
 workflows:
   gebze-dijital-ios:
-    name: Gebze Dijital iOS
+    name: Gebze Dijital iOS Unsigned
     max_build_duration: 60
     instance_type: mac_mini_m2
 
@@ -10,19 +10,19 @@ workflows:
       xcode: latest
       cocoapods: default
 
-    integrations:
-      app_store_connect: codemagic
-
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
 
-      - name: Build iOS IPA
+      - name: Install CocoaPods
+        script: |
+          find . -name Podfile -execdir pod install \;
+
+      - name: Build unsigned IPA
         script: flutter build ipa --release --no-codesign
 
     artifacts:
       - build/ios/ipa/*.ipa
-      - build/ios/archive/*.xcarchive
       - /tmp/xcodebuild_logs/*.log
 
     triggering:
