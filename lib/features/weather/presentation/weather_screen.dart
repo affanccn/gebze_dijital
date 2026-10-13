@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/app_strings.dart';
+import '../../../core/utils/gebze_time.dart';
 import '../models/weather_info.dart';
 import '../services/weather_provider.dart';
 
@@ -134,7 +135,7 @@ class WeatherScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 48, top: 4),
                   child: Text(
-                    '${AppStrings.get('last_updated', lang)}: ${syncedAt.hour.toString().padLeft(2, '0')}:${syncedAt.minute.toString().padLeft(2, '0')}',
+                    '${AppStrings.get('last_updated', lang)}: ${GebzeTime.formatHour(GebzeTime.toGebzeTime(syncedAt))}',
                     style: const TextStyle(fontSize: 11.5, color: Colors.white60, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -373,7 +374,7 @@ class _WeatherContent extends StatelessWidget {
           String timeText = nowText;
           if (!isNow) {
             try {
-              final parsed = DateTime.parse(h.time);
+              final parsed = GebzeTime.parseWeatherTime(h.time);
               timeText = '${parsed.hour.toString().padLeft(2, '0')}:00';
             } catch (_) {
               timeText = h.time.split(' ').last;
@@ -563,13 +564,13 @@ class _WeatherContent extends StatelessWidget {
   }
 
   List<WeatherForecast> _get5DaysForecast(List<WeatherForecast> forecast) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final now = GebzeTime.now();
+    final today = DateTime.utc(now.year, now.month, now.day);
 
     final valid = forecast.where((f) {
       try {
-        final d = DateTime.parse(f.date);
-        final itemDate = DateTime(d.year, d.month, d.day);
+        final d = GebzeTime.parseWeatherDate(f.date);
+        final itemDate = DateTime.utc(d.year, d.month, d.day);
         return !itemDate.isBefore(today);
       } catch (_) {
         return true;
@@ -580,8 +581,8 @@ class _WeatherContent extends StatelessWidget {
 
     if (result.length < 5) {
       final lastDate = result.isNotEmpty
-          ? DateTime.tryParse(result.last.date) ?? now
-          : now;
+          ? GebzeTime.parseWeatherDate(result.last.date)
+          : today;
 
       final lastMax = result.isNotEmpty ? result.last.maxtempC : 20.0;
       final lastMin = result.isNotEmpty ? result.last.mintempC : 12.0;
@@ -608,8 +609,8 @@ class _WeatherContent extends StatelessWidget {
   }
 
   List<HourlyForecast> _getUpcomingHourlyForecast(WeatherInfo weatherInfo) {
-    final now = DateTime.now();
-    final currentHourThreshold = DateTime(now.year, now.month, now.day, now.hour);
+    final now = GebzeTime.now();
+    final currentHourThreshold = DateTime.utc(now.year, now.month, now.day, now.hour);
 
     final allHourly = <HourlyForecast>[];
     for (final day in weatherInfo.forecast) {
@@ -618,7 +619,7 @@ class _WeatherContent extends StatelessWidget {
 
     final upcoming = allHourly.where((h) {
       try {
-        final itemTime = DateTime.parse(h.time);
+        final itemTime = GebzeTime.parseWeatherTime(h.time);
         return !itemTime.isBefore(currentHourThreshold);
       } catch (_) {
         return true;
@@ -633,15 +634,14 @@ class _WeatherContent extends StatelessWidget {
 
   _DateInfo _getDateInfo(String dateStr) {
     try {
-      final date = DateTime.parse(dateStr);
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final target = DateTime(date.year, date.month, date.day);
+      final date = GebzeTime.parseWeatherDate(dateStr);
+      final now = GebzeTime.now();
+      final today = DateTime.utc(now.year, now.month, now.day);
+      final target = DateTime.utc(date.year, date.month, date.day);
       final diff = target.difference(today).inDays;
 
       final dayName = AppStrings.getDayName(date.weekday, lang);
-      final dateText =
-          '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+      final dateText = GebzeTime.formatDate(date);
 
       return _DateInfo(
         dayName: dayName,
