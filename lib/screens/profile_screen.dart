@@ -282,7 +282,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       IconButton(
                         onPressed: () =>
-                            _openEditProfileDialog(context, profile),
+                            _openEditProfileDialog(context, profile, lang),
                         icon: const Icon(
                           Icons.edit_note_rounded,
                           color: Colors.white,
@@ -335,7 +335,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             right: 0,
                             bottom: 0,
                             child: GestureDetector(
-                              onTap: () => _openAvatarPicker(context, profile),
+                              onTap: () => _openAvatarPicker(context, profile, lang),
                               child: Container(
                                 width: 26,
                                 height: 26,
@@ -589,7 +589,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         iconColor: _C.navy,
         title: AppStrings.get('tile_my_info', lang),
         subtitle: '${profile.fullName} • ${profile.phoneNumber}',
-        onTap: () => _openEditProfileDialog(context, profile),
+        onTap: () => _openEditProfileDialog(context, profile, lang),
       ),
       _buildDivider(),
       _buildListTile(
@@ -598,7 +598,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         title: AppStrings.get('tile_neighborhood', lang),
         subtitle:
             '${profile.neighborhood} ${AppStrings.get('mahalle_suffix', lang)}',
-        onTap: () => _openNeighborhoodPicker(context, profile),
+        onTap: () => _openNeighborhoodPicker(context, profile, lang),
       ),
       _buildDivider(),
       _buildListTile(
@@ -751,7 +751,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         iconColor: const Color(0xFF6D4C41),
         title: AppStrings.get('tile_theme', lang),
         subtitle: themeLabel,
-        onTap: () => _openThemePicker(context, profile),
+        onTap: () => _openThemePicker(context, profile, lang),
       ),
     ]);
   }
@@ -765,7 +765,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         iconColor: const Color(0xFF2E7D32),
         title: AppStrings.get('tile_gim', lang),
         subtitle: AppStrings.get('tile_gim_sub', lang),
-        onTap: () => _callMunicipalCallCenter(),
+        onTap: () => _callMunicipalCallCenter(lang),
       ),
       _buildDivider(),
       _buildListTile(
@@ -945,7 +945,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // ───────────────────────── Modallar & Diyaloglar ─────────────────────────
 
-  void _openEditProfileDialog(BuildContext context, UserProfile profile) {
+  void _openEditProfileDialog(BuildContext context, UserProfile profile, [String lang = 'tr']) {
     final nameCtrl = TextEditingController(text: profile.fullName);
     final emailCtrl = TextEditingController(text: profile.email);
     final phoneCtrl = TextEditingController(text: profile.phoneNumber);
@@ -975,9 +975,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Bilgilerimi Düzenle',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('dialog_edit_profile', lang),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: _C.textDark,
@@ -991,23 +991,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 const SizedBox(height: 14),
                 _buildTextField(
-                  'Ad Soyad',
+                  AppStrings.get('field_full_name', lang),
                   nameCtrl,
                   Icons.person_outline_rounded,
                 ),
                 const SizedBox(height: 12),
-                _buildTextField('E-posta', emailCtrl, Icons.email_outlined),
+                _buildTextField(AppStrings.get('field_email', lang), emailCtrl, Icons.email_outlined),
                 const SizedBox(height: 12),
                 _buildTextField(
-                  'Telefon Numarası',
+                  AppStrings.get('field_phone', lang),
                   phoneCtrl,
                   Icons.phone_outlined,
                 ),
                 const SizedBox(height: 12),
-                _buildTextField('T.C. Kimlik No', tcCtrl, Icons.badge_outlined),
+                _buildTextField(AppStrings.get('field_tc', lang), tcCtrl, Icons.badge_outlined),
                 const SizedBox(height: 12),
                 _buildTextField(
-                  'Açık Adres',
+                  AppStrings.get('field_address', lang),
                   addrCtrl,
                   Icons.location_on_outlined,
                   maxLines: 2,
@@ -1029,7 +1029,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             tcNo: tcCtrl.text.trim(),
                           );
                       if (ctx.mounted) Navigator.of(ctx).pop();
-                      _showSnackBar('Profil bilgileriniz güncellendi.');
+                      _showSnackBar(AppStrings.get('profile_updated_toast', lang));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _C.navy,
@@ -1038,9 +1038,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
-                      'Kaydet ve Güncelle',
-                      style: TextStyle(
+                    child: Text(
+                      AppStrings.get('btn_save', lang),
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
@@ -1089,7 +1089,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openNeighborhoodPicker(BuildContext context, UserProfile profile) {
+  void _openNeighborhoodPicker(BuildContext context, UserProfile profile, [String lang = 'tr']) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1109,9 +1109,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Mahallenizi Seçin',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.get('dialog_select_neighborhood', lang),
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       color: _C.textDark,
@@ -1123,9 +1123,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ],
               ),
-              const Text(
-                'Mahallenize özel duyuru ve kesinti bildirimleri için mahallenizi kaydedin.',
-                style: TextStyle(fontSize: 12.5, color: _C.textMuted),
+              Text(
+                AppStrings.get('select_neighborhood_sub', lang),
+                style: const TextStyle(fontSize: 12.5, color: _C.textMuted),
               ),
               const SizedBox(height: 14),
               Expanded(
@@ -1144,7 +1144,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         vertical: 2,
                       ),
                       title: Text(
-                        '$n Mahallesi',
+                        '$n ${AppStrings.get('mahalle_suffix', lang)}',
                         style: TextStyle(
                           fontSize: 14.5,
                           fontWeight: isSelected
@@ -1164,7 +1164,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             .read(profileServiceProvider)
                             .updateNeighborhood(n);
                         if (ctx.mounted) Navigator.of(ctx).pop();
-                        _showSnackBar('Mahalleniz $n olarak güncellendi.');
+                        _showSnackBar(AppStrings.get('neighborhood_updated_toast', lang));
                       },
                     );
                   },
@@ -1202,9 +1202,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Bildirim Tercihleri',
-                        style: TextStyle(
+                      Text(
+                        AppStrings.get('tile_notifications', lang),
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: _C.textDark,
@@ -1218,7 +1218,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   _buildSwitchTile(
-                    'Anlık Bildirimler (Push)',
+                    AppStrings.get('notif_push', lang),
                     prefs['push'] ?? true,
                     (v) {
                       setModalState(() => prefs['push'] = v);
@@ -1227,7 +1227,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           .updateNotificationPreference('push', v);
                     },
                   ),
-                  _buildSwitchTile('SMS Bildirimleri', prefs['sms'] ?? true, (
+                  _buildSwitchTile(AppStrings.get('notif_sms', lang), prefs['sms'] ?? true, (
                     v,
                   ) {
                     setModalState(() => prefs['sms'] = v);
@@ -1236,7 +1236,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         .updateNotificationPreference('sms', v);
                   }),
                   _buildSwitchTile(
-                    'Kesinti Uyarıları (Su, Elektrik, Gaz)',
+                    AppStrings.get('notif_outages', lang),
                     prefs['outages'] ?? true,
                     (v) {
                       setModalState(() => prefs['outages'] = v);
@@ -1246,7 +1246,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     },
                   ),
                   _buildSwitchTile(
-                    'Acil Durum & Afet Bildirimleri',
+                    AppStrings.get('notif_emergency', lang),
                     prefs['emergency'] ?? true,
                     (v) {
                       setModalState(() => prefs['emergency'] = v);
@@ -1256,7 +1256,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     },
                   ),
                   _buildSwitchTile(
-                    'Söz Sende & Anket Bildirimleri',
+                    AppStrings.get('notif_soz_sende', lang),
                     prefs['sozSende'] ?? true,
                     (v) {
                       setModalState(() => prefs['sozSende'] = v);
@@ -1382,15 +1382,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         children: [
                           _buildActivityList(
                             list.where((a) => a.type == 'talep').toList(),
+                            lang,
                           ),
                           _buildActivityList(
                             list.where((a) => a.type == 'oneri').toList(),
+                            lang,
                           ),
                           _buildActivityList(
                             list.where((a) => a.type == 'destek').toList(),
+                            lang,
                           ),
                           _buildActivityList(
                             list.where((a) => a.type == 'kayit').toList(),
+                            lang,
                           ),
                         ],
                       );
@@ -1405,19 +1409,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildActivityList(List<UserActivityItem> items) {
+  Widget _buildActivityList(List<UserActivityItem> items, [String lang = 'tr']) {
     if (items.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.inbox_rounded, size: 40, color: Color(0xFF94A3B8)),
-              SizedBox(height: 10),
+            children: [
+              const Icon(Icons.inbox_rounded, size: 40, color: Color(0xFF94A3B8)),
+              const SizedBox(height: 10),
               Text(
-                'Henüz bu kategoride aktiviteniz yok',
-                style: TextStyle(
+                AppStrings.get('no_activities_found', lang),
+                style: const TextStyle(
                   fontSize: 14,
                   color: _C.textMuted,
                   fontWeight: FontWeight.w600,
@@ -1618,7 +1622,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _openThemePicker(BuildContext context, UserProfile profile) {
+  void _openThemePicker(BuildContext context, UserProfile profile, [String lang = 'tr']) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -1632,9 +1636,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Tema Tercihini Seçin',
-                style: TextStyle(
+              Text(
+                AppStrings.get('theme_picker_title', lang),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: _C.textDark,
@@ -1642,22 +1646,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(height: 14),
               _buildThemeOption(
-                'Açık Tema',
+                AppStrings.get('theme_light', lang),
                 'light',
                 Icons.light_mode_rounded,
                 profile.themeMode,
+                lang,
               ),
               _buildThemeOption(
-                'Koyu Tema',
+                AppStrings.get('theme_dark', lang),
                 'dark',
                 Icons.dark_mode_rounded,
                 profile.themeMode,
+                lang,
               ),
               _buildThemeOption(
-                'Sistem Varsayılanı',
+                AppStrings.get('theme_system', lang),
                 'system',
                 Icons.phone_android_rounded,
                 profile.themeMode,
+                lang,
               ),
             ],
           ),
@@ -1670,8 +1677,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String label,
     String mode,
     IconData icon,
-    String currentMode,
-  ) {
+    String currentMode, [
+    String lang = 'tr',
+  ]) {
     final isSelected = currentMode == mode;
 
     return ListTile(
@@ -1689,12 +1697,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       onTap: () {
         ref.read(profileServiceProvider).updateThemeMode(mode);
         Navigator.of(context).pop();
-        _showSnackBar('Tema tercihi $label olarak güncellendi.');
+        _showSnackBar(AppStrings.get('theme_updated_toast', lang));
       },
     );
   }
 
-  void _openAvatarPicker(BuildContext context, UserProfile profile) {
+  void _openAvatarPicker(BuildContext context, UserProfile profile, [String lang = 'tr']) {
     final urlCtrl = TextEditingController(text: profile.avatarUrl);
 
     showDialog(
@@ -1704,16 +1712,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
           ),
-          title: const Text(
-            'Profil Resmi Değiştir',
-            style: TextStyle(fontWeight: FontWeight.w800),
+          title: Text(
+            AppStrings.get('change_avatar_title', lang),
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Profil resminiz için bir görsel bağlantısı (URL) girebilirsiniz:',
-                style: TextStyle(fontSize: 13, color: _C.textMuted),
+              Text(
+                AppStrings.get('change_avatar_sub', lang),
+                style: const TextStyle(fontSize: 13, color: _C.textMuted),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1732,7 +1740,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('İptal'),
+              child: Text(AppStrings.get('btn_cancel', lang)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -1740,13 +1748,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     .read(profileServiceProvider)
                     .updateAvatarUrl(urlCtrl.text.trim());
                 Navigator.of(ctx).pop();
-                _showSnackBar('Profil resmi güncellendi.');
+                _showSnackBar(AppStrings.get('avatar_updated_toast', lang));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _C.navy,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Kaydet'),
+              child: Text(AppStrings.get('btn_save', lang)),
             ),
           ],
         );
@@ -1841,12 +1849,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Future<void> _callMunicipalCallCenter() async {
+  Future<void> _callMunicipalCallCenter([String lang = 'tr']) async {
     final uri = Uri.parse('tel:4440153');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      _showSnackBar('Telefon araması başlatılamadı: 444 0 153');
+      _showSnackBar(AppStrings.get('call_failed_toast', lang).replaceAll('{0}', '444 0 153'));
     }
   }
 

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/weather_provider.dart';
+import '../../../core/localization/app_strings.dart';
 import '../models/weather_info.dart';
+import '../services/weather_provider.dart';
 
 class WeatherScreen extends ConsumerWidget {
   const WeatherScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
     final weatherAsyncValue = ref.watch(weatherProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -17,29 +19,29 @@ class WeatherScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFFF1F5FD),
         body: Column(
           children: [
-            // ── Üst Başlık (Planlı Kesintiler & Gebze Pati tasarımıyla birebir uyumlu) ──
-            _buildHeader(context, ref, weatherAsyncValue.value?.syncedAt),
-
-            // ── İçerik Alanı (Bozulma ve overscroll esnemesi olmadan ClampingScrollPhysics) ──
+            _buildHeader(context, ref, weatherAsyncValue.value?.syncedAt, lang),
             Expanded(
               child: weatherAsyncValue.when(
                 data: (weatherInfo) {
                   if (weatherInfo == null) {
-                    return const Center(
+                    return Center(
                       child: Text(
-                        'Hava durumu bilgisi bulunamadı.',
-                        style: TextStyle(color: Color(0xFF0A1F44), fontWeight: FontWeight.bold),
+                        AppStrings.get('weather_not_found', lang),
+                        style: const TextStyle(
+                          color: Color(0xFF0A1F44),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     );
                   }
-                  return _WeatherContent(weatherInfo: weatherInfo);
+                  return _WeatherContent(weatherInfo: weatherInfo, lang: lang);
                 },
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: Color(0xFF0A2A66)),
                 ),
                 error: (error, stack) => Center(
                   child: Text(
-                    'Hata oluştu: $error',
+                    '${AppStrings.get('error_occurred', lang)}: $error',
                     style: const TextStyle(color: Color(0xFFE5231B)),
                   ),
                 ),
@@ -51,9 +53,7 @@ class WeatherScreen extends ConsumerWidget {
     );
   }
 
-  // ───────────── Üst Başlık (Kurumsal Gebze Başlığı) ─────────────
-
-  Widget _buildHeader(BuildContext context, WidgetRef ref, DateTime? syncedAt) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref, DateTime? syncedAt, String lang) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -85,13 +85,13 @@ class WeatherScreen extends ConsumerWidget {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'HAVA DURUMU',
-                          style: TextStyle(
+                          AppStrings.get('weather_screen_title', lang),
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
@@ -99,8 +99,8 @@ class WeatherScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          'Gebze anlık hava durumu ve 5 günlük tahmin',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                          AppStrings.get('weather_screen_sub', lang),
+                          style: const TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
                     ),
@@ -114,13 +114,13 @@ class WeatherScreen extends ConsumerWidget {
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      tooltip: 'Yenile',
+                      tooltip: AppStrings.get('refresh_weather', lang),
                       onPressed: () {
                         ref.invalidate(weatherProvider);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Hava durumu güncelleniyor...'),
-                            duration: Duration(seconds: 1),
+                          SnackBar(
+                            content: Text(AppStrings.get('refreshing_weather', lang)),
+                            duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
@@ -134,7 +134,7 @@ class WeatherScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 48, top: 4),
                   child: Text(
-                    'Son Güncelleme: ${syncedAt.hour.toString().padLeft(2, '0')}:${syncedAt.minute.toString().padLeft(2, '0')}',
+                    '${AppStrings.get('last_updated', lang)}: ${syncedAt.hour.toString().padLeft(2, '0')}:${syncedAt.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontSize: 11.5, color: Colors.white60, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -148,8 +148,9 @@ class WeatherScreen extends ConsumerWidget {
 
 class _WeatherContent extends StatelessWidget {
   final WeatherInfo weatherInfo;
+  final String lang;
 
-  const _WeatherContent({required this.weatherInfo});
+  const _WeatherContent({required this.weatherInfo, required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -160,23 +161,18 @@ class _WeatherContent extends StatelessWidget {
       physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 36),
       children: [
-        // ── Güncel Hava Durumu Kartı (Canlı degrade ve modern kart) ──
         _buildCurrentWeatherCard(weatherInfo.current),
         const SizedBox(height: 18),
-
-        // ── 24 Saatlik Akış ──
         if (upcomingHourly.isNotEmpty) ...[
-          _buildSectionTitle('Günün Saatlik Tahmini', Icons.access_time_rounded),
+          _buildSectionTitle(AppStrings.get('hourly_forecast', lang), Icons.access_time_rounded),
           const SizedBox(height: 10),
           _buildHourlyForecast(upcomingHourly),
           const SizedBox(height: 20),
         ],
-
-        // ── 5 Günlük Tahmin Başlığı & Kartları ──
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle('5 Günlük Hava Tahmini', Icons.calendar_today_rounded),
+            _buildSectionTitle(AppStrings.get('five_day_forecast', lang), Icons.calendar_today_rounded),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -184,7 +180,8 @@ class _WeatherContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '${forecastDays.length} Günlük',
+                AppStrings.get('forecast_days_badge', lang)
+                    .replaceAll('{0}', forecastDays.length.toString()),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -195,8 +192,6 @@ class _WeatherContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-
-        // 5 Günlük Tahmin Listesi
         ...forecastDays.map((f) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _buildForecastItem(f),
@@ -228,6 +223,8 @@ class _WeatherContent extends StatelessWidget {
       iconUrl = 'https:$iconUrl';
     }
 
+    final condition = AppStrings.translateWeatherCondition(current.condition, lang);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -257,9 +254,9 @@ class _WeatherContent extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Gebze, Kocaeli',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.get('gebze_location', lang),
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white70,
                       fontWeight: FontWeight.w600,
@@ -276,7 +273,7 @@ class _WeatherContent extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    current.condition,
+                    condition,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -311,11 +308,23 @@ class _WeatherContent extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildWeatherMiniDetail(Icons.thermostat_rounded, '${current.feelslikeC.round()}°C', 'Hissedilen'),
+                _buildWeatherMiniDetail(
+                  Icons.thermostat_rounded,
+                  '${current.feelslikeC.round()}°C',
+                  AppStrings.get('feels_like', lang),
+                ),
                 Container(width: 1, height: 26, color: Colors.white24),
-                _buildWeatherMiniDetail(Icons.water_drop_rounded, '${current.humidity}%', 'Nem'),
+                _buildWeatherMiniDetail(
+                  Icons.water_drop_rounded,
+                  '${current.humidity}%',
+                  AppStrings.get('humidity', lang),
+                ),
                 Container(width: 1, height: 26, color: Colors.white24),
-                _buildWeatherMiniDetail(Icons.air_rounded, '${current.windKph.round()} km/s', 'Rüzgar'),
+                _buildWeatherMiniDetail(
+                  Icons.air_rounded,
+                  '${current.windKph.round()} km/h',
+                  AppStrings.get('wind', lang),
+                ),
               ],
             ),
           ),
@@ -348,6 +357,7 @@ class _WeatherContent extends StatelessWidget {
   }
 
   Widget _buildHourlyForecast(List<HourlyForecast> hourly) {
+    final nowText = AppStrings.get('now', lang);
     return SizedBox(
       height: 104,
       child: ListView.builder(
@@ -360,7 +370,7 @@ class _WeatherContent extends StatelessWidget {
           if (iconUrl.startsWith('//')) iconUrl = 'https:$iconUrl';
 
           final isNow = index == 0;
-          String timeText = 'Şimdi';
+          String timeText = nowText;
           if (!isNow) {
             try {
               final parsed = DateTime.parse(h.time);
@@ -433,6 +443,7 @@ class _WeatherContent extends StatelessWidget {
     }
 
     final dateInfo = _getDateInfo(forecast.date);
+    final condition = AppStrings.translateWeatherCondition(forecast.condition, lang);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -450,7 +461,6 @@ class _WeatherContent extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Sol: Gün adı + tarih
           Expanded(
             flex: 5,
             child: Column(
@@ -474,9 +484,9 @@ class _WeatherContent extends StatelessWidget {
                           color: const Color(0xFF1E5BC6).withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'Bugün',
-                          style: TextStyle(
+                        child: Text(
+                          AppStrings.get('today', lang),
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1E5BC6),
@@ -497,8 +507,6 @@ class _WeatherContent extends StatelessWidget {
               ],
             ),
           ),
-
-          // Orta: İkon + Durum
           Expanded(
             flex: 5,
             child: Row(
@@ -515,7 +523,7 @@ class _WeatherContent extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    forecast.condition,
+                    condition,
                     style: const TextStyle(fontSize: 12, color: Color(0xFF4A5568), fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -524,8 +532,6 @@ class _WeatherContent extends StatelessWidget {
               ],
             ),
           ),
-
-          // Sağ: Min - Max Sıcaklık
           Expanded(
             flex: 4,
             child: Row(
@@ -556,7 +562,6 @@ class _WeatherContent extends StatelessWidget {
     );
   }
 
-  // ───────────── 5 Günlük Tahmin Listesi Sağlama ─────────────
   List<WeatherForecast> _get5DaysForecast(List<WeatherForecast> forecast) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -573,7 +578,6 @@ class _WeatherContent extends StatelessWidget {
 
     final result = valid.isNotEmpty ? valid : List<WeatherForecast>.from(forecast);
 
-    // Eğer API'den 5 günden az gelirse, kalan günleri sonraki günlerin tahmini olarak tamamla
     if (result.length < 5) {
       final lastDate = result.isNotEmpty
           ? DateTime.tryParse(result.last.date) ?? now
@@ -586,7 +590,7 @@ class _WeatherContent extends StatelessWidget {
         final nextDate = lastDate.add(Duration(days: i - result.length + 1));
         final dateStr =
             '${nextDate.year}-${nextDate.month.toString().padLeft(2, '0')}-${nextDate.day.toString().padLeft(2, '0')}';
-        
+
         result.add(
           WeatherForecast(
             date: dateStr,
@@ -635,16 +639,7 @@ class _WeatherContent extends StatelessWidget {
       final target = DateTime(date.year, date.month, date.day);
       final diff = target.difference(today).inDays;
 
-      const dayNames = [
-        'Pazartesi',
-        'Salı',
-        'Çarşamba',
-        'Perşembe',
-        'Cuma',
-        'Cumartesi',
-        'Pazar'
-      ];
-      final dayName = dayNames[date.weekday - 1];
+      final dayName = AppStrings.getDayName(date.weekday, lang);
       final dateText =
           '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
 

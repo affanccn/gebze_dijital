@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/municipal_news.dart';
 import '../services/news_service.dart';
 import '../news_preview_screen.dart';
+import '../../../../core/localization/app_strings.dart';
 
-class MunicipalNewsList extends StatefulWidget {
+class MunicipalNewsList extends ConsumerStatefulWidget {
   const MunicipalNewsList({
     super.key,
     this.itemLimit,
@@ -17,10 +19,10 @@ class MunicipalNewsList extends StatefulWidget {
   final bool isHorizontal;
 
   @override
-  State<MunicipalNewsList> createState() => _MunicipalNewsListState();
+  ConsumerState<MunicipalNewsList> createState() => _MunicipalNewsListState();
 }
 
-class _MunicipalNewsListState extends State<MunicipalNewsList> {
+class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
   // Stream bir kez oluşturulur: ekran yeniden çizilince tekrar okuma yapılmaz,
   // liste de yanıp sönmez.
   late final Stream<List<MunicipalNews>> _stream = NewsService().watchNews(
@@ -29,15 +31,17 @@ class _MunicipalNewsListState extends State<MunicipalNewsList> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
+
     return StreamBuilder<List<MunicipalNews>>(
       stream: _stream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           debugPrint('Haber akışı hatası: ${snapshot.error}');
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Haberler yüklenemedi.'),
+              padding: const EdgeInsets.all(16),
+              child: Text(AppStrings.get('news_load_failed', lang)),
             ),
           );
         }
@@ -54,10 +58,10 @@ class _MunicipalNewsListState extends State<MunicipalNewsList> {
         final news = snapshot.data!;
 
         if (news.isEmpty) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Henüz haber bulunmuyor.'),
+              padding: const EdgeInsets.all(16),
+              child: Text(AppStrings.get('news_empty_text', lang)),
             ),
           );
         }
@@ -90,7 +94,7 @@ class _MunicipalNewsListState extends State<MunicipalNewsList> {
                       width: double.infinity,
                       height: widget.isHorizontal ? 120 : 190,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => SizedBox(
+                      errorBuilder: (context, error, stackTrace) => SizedBox(
                         height: widget.isHorizontal ? 120 : 100,
                         child: const Center(child: Icon(Icons.image_not_supported)),
                       ),

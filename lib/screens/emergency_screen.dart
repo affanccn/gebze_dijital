@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../core/localization/app_strings.dart';
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -39,7 +42,7 @@ class AssemblyArea {
   final double distanceKm;
   final double latitude;
   final double longitude;
-  final String features; // örn: "Su Deposu • Elektrik • Çadır Alanı"
+  final String features;
 
   const AssemblyArea({
     required this.name,
@@ -52,60 +55,62 @@ class AssemblyArea {
   });
 }
 
-class EmergencyScreen extends StatefulWidget {
+class EmergencyScreen extends ConsumerStatefulWidget {
   const EmergencyScreen({super.key});
 
   @override
-  State<EmergencyScreen> createState() => _EmergencyScreenState();
+  ConsumerState<EmergencyScreen> createState() => _EmergencyScreenState();
 }
 
-class _EmergencyScreenState extends State<EmergencyScreen> {
-  // Gebze genelinde örnek acil toplanma alanları
-  static const List<AssemblyArea> _allAreas = [
-    AssemblyArea(
-      name: 'Gebze Kent Meydanı Park Alanı',
-      neighborhood: 'Hacıhalil Mahallesi',
-      address: 'Hükümet Konağı Önü, İsmet Paşa Cad.',
-      distanceKm: 0.6,
-      latitude: 40.8028,
-      longitude: 29.4307,
-      features: 'Açık Alan • İletişim Noktası • İlk Yardım',
-    ),
-    AssemblyArea(
-      name: 'Millet Bahçesi Toplanma Alanı',
-      neighborhood: 'Mevlana Mahallesi',
-      address: 'Mevlana Mah. Issıkgöl Cad. No:14',
-      distanceKm: 1.2,
-      latitude: 40.8155,
-      longitude: 29.4390,
-      features: 'Geniş Çadır Alanı • Su Hattı • WC',
-    ),
-    AssemblyArea(
-      name: 'Alaettin Kurt Stadyumu & Spor Kompleksi Çevresi',
-      neighborhood: 'Gaziler Mahallesi',
-      address: 'Şehit Fahrettin Çevik Parkı Yanı',
-      distanceKm: 1.9,
-      latitude: 40.8091,
-      longitude: 29.4442,
-      features: 'Helikopter Pisti • Kapalı Spor Salonu',
-    ),
-    AssemblyArea(
-      name: 'Eskihisar Sahil Parkı',
-      neighborhood: 'Eskihisar Mahallesi',
-      address: 'Eskihisar Sahil Yolu Cad.',
-      distanceKm: 4.1,
-      latitude: 40.7712,
-      longitude: 29.4285,
-      features: 'Açık Toplanma Alanı • Deniz Tahliye Noktası',
-    ),
-  ];
-
+class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
   String _searchAreaQuery = '';
 
-  List<AssemblyArea> get _filteredAreas {
+  List<AssemblyArea> _getAssemblyAreas(String lang) {
+    final mahalleSuffix = AppStrings.get('mahalle_suffix', lang);
+    return [
+      AssemblyArea(
+        name: AppStrings.get('area_square_name', lang),
+        neighborhood: 'Hacıhalil $mahalleSuffix',
+        address: 'Hükümet Konağı Önü, İsmet Paşa Cad.',
+        distanceKm: 0.6,
+        latitude: 40.8028,
+        longitude: 29.4307,
+        features: AppStrings.get('area_square_features', lang),
+      ),
+      AssemblyArea(
+        name: AppStrings.get('area_millet_name', lang),
+        neighborhood: 'Mevlana $mahalleSuffix',
+        address: 'Mevlana Mah. Issıkgöl Cad. No:14',
+        distanceKm: 1.2,
+        latitude: 40.8155,
+        longitude: 29.4390,
+        features: AppStrings.get('area_millet_features', lang),
+      ),
+      AssemblyArea(
+        name: AppStrings.get('area_stadium_name', lang),
+        neighborhood: 'Gaziler $mahalleSuffix',
+        address: 'Şehit Fahrettin Çevik Parkı Yanı',
+        distanceKm: 1.9,
+        latitude: 40.8091,
+        longitude: 29.4442,
+        features: AppStrings.get('area_stadium_features', lang),
+      ),
+      AssemblyArea(
+        name: AppStrings.get('area_eskihisar_name', lang),
+        neighborhood: 'Eskihisar $mahalleSuffix',
+        address: 'Eskihisar Sahil Yolu Cad.',
+        distanceKm: 4.1,
+        latitude: 40.7712,
+        longitude: 29.4285,
+        features: AppStrings.get('area_eskihisar_features', lang),
+      ),
+    ];
+  }
+
+  List<AssemblyArea> _filterAreas(List<AssemblyArea> areas) {
     final q = _searchAreaQuery.trim().toLowerCase();
-    if (q.isEmpty) return _allAreas;
-    return _allAreas
+    if (q.isEmpty) return areas;
+    return areas
         .where((a) =>
             a.name.toLowerCase().contains(q) ||
             a.neighborhood.toLowerCase().contains(q) ||
@@ -113,27 +118,28 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         .toList();
   }
 
-  void _callNumber(String title, String number) {
+  void _callNumber(String title, String number, String lang) {
+    final msg = AppStrings.get('calling_toast', lang)
+        .replaceAll('{0}', title)
+        .replaceAll('{1}', number);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('$title ($number) aranıyor...'),
+          content: Text(msg),
           backgroundColor: _C.navyDeep,
           behavior: SnackBarBehavior.floating,
         ),
       );
   }
 
-  void _openInMap(AssemblyArea area) {
-    // url_launcher ile harita açmak için:
-    // final uri = Uri.parse('geo:${area.latitude},${area.longitude}?q=${area.latitude},${area.longitude}(${Uri.encodeComponent(area.name)})');
-    // launchUrl(uri);
+  void _openInMap(AssemblyArea area, String lang) {
+    final msg = AppStrings.get('route_toast', lang).replaceAll('{0}', area.name);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${area.name} için haritada rota başlatılıyor...'),
+          content: Text(msg),
           backgroundColor: _C.navy,
           behavior: SnackBarBehavior.floating,
         ),
@@ -142,8 +148,10 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
-    final areas = _filteredAreas;
+    final allAreas = _getAssemblyAreas(lang);
+    final areas = _filterAreas(allAreas);
 
     return Theme(
       data: base.copyWith(
@@ -158,7 +166,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           backgroundColor: _C.bg,
           body: Column(
             children: [
-              const _Header(),
+              _Header(lang: lang),
               Expanded(
                 child: ListView(
                   physics: const BouncingScrollPhysics(),
@@ -166,37 +174,49 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   children: [
                     // 112 Butonu
                     _MainCallCard(
-                      title: '112 ACİL ÇAĞRI MERKEZİ',
-                      subtitle: 'Ambulans, İtfaiye, Polis, Jandarma, AFAD',
+                      title: AppStrings.get('call_center_112_title', lang),
+                      subtitle: AppStrings.get('call_center_112_sub', lang),
                       phone: '112',
-                      onTap: () => _callNumber('112 Acil', '112'),
+                      onTap: () => _callNumber(
+                        AppStrings.get('call_center_112_title', lang),
+                        '112',
+                        lang,
+                      ),
                     ),
                     const SizedBox(height: 22),
 
                     // Hızlı Yardım Numaraları
-                    const _SectionLabel('HIZLI ARAMA NUMARALARI'),
+                    _SectionLabel(AppStrings.get('quick_call_label', lang)),
                     const SizedBox(height: 10),
                     Row(
                       children: [
                         Expanded(
                           child: _QuickCallBox(
-                            title: 'Gebze Belediyesi',
-                            subtitle: 'Beyaz Masa Çağrı',
+                            title: AppStrings.get('gebze_bld_label', lang),
+                            subtitle: AppStrings.get('white_desk_sub', lang),
                             number: '444 1 890',
                             icon: Icons.account_balance_rounded,
                             color: _C.navy,
-                            onTap: () => _callNumber('Gebze Belediyesi', '4441890'),
+                            onTap: () => _callNumber(
+                              AppStrings.get('gebze_bld_label', lang),
+                              '4441890',
+                              lang,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _QuickCallBox(
-                            title: 'AFAD',
-                            subtitle: 'Afet ve Acil Durum',
+                            title: AppStrings.get('afad_label', lang),
+                            subtitle: AppStrings.get('afad_sub', lang),
                             number: '122',
                             icon: Icons.shield_rounded,
                             color: _C.orange,
-                            onTap: () => _callNumber('AFAD', '122'),
+                            onTap: () => _callNumber(
+                              AppStrings.get('afad_label', lang),
+                              '122',
+                              lang,
+                            ),
                           ),
                         ),
                       ],
@@ -207,7 +227,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const _SectionLabel('ACİL TOPLANMA ALANLARI'),
+                        _SectionLabel(AppStrings.get('assembly_areas_label', lang)),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
@@ -215,7 +235,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            '${areas.length} Alan',
+                            AppStrings.get('areas_count_badge', lang)
+                                .replaceAll('{0}', areas.length.toString()),
                             style: const TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w800,
@@ -234,12 +255,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                       child: TextField(
                         onChanged: (val) => setState(() => _searchAreaQuery = val),
                         style: const TextStyle(fontSize: 13, color: _C.textDark),
-                        decoration: const InputDecoration(
-                          hintText: 'Mahalle veya toplanma alanı ara...',
-                          hintStyle: TextStyle(fontSize: 12.5, color: _C.textMuted),
-                          prefixIcon: Icon(Icons.search_rounded, size: 20, color: _C.textMuted),
+                        decoration: InputDecoration(
+                          hintText: AppStrings.get('search_assembly_hint', lang),
+                          hintStyle: const TextStyle(fontSize: 12.5, color: _C.textMuted),
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: _C.textMuted),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 13),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 13),
                         ),
                       ),
                     ),
@@ -247,12 +268,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
 
                     // Toplanma Alanı Kartları
                     if (areas.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Center(
                           child: Text(
-                            'Aradığınız kritere uygun toplanma alanı bulunamadı.',
-                            style: TextStyle(fontSize: 12.5, color: _C.textMuted),
+                            AppStrings.get('no_assembly_found', lang),
+                            style: const TextStyle(fontSize: 12.5, color: _C.textMuted),
                           ),
                         ),
                       )
@@ -260,7 +281,8 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                       for (final area in areas) ...[
                         _AssemblyAreaCard(
                           area: area,
-                          onNavigate: () => _openInMap(area),
+                          directionsLabel: AppStrings.get('btn_directions', lang),
+                          onNavigate: () => _openInMap(area, lang),
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -310,7 +332,8 @@ class _SectionLabel extends StatelessWidget {
 // ───────────────────────── Üst Başlık ─────────────────────────
 
 class _Header extends StatelessWidget {
-  const _Header();
+  final String lang;
+  const _Header({required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -337,23 +360,23 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ACİL DURUM & TOPLANMA',
-                      style: TextStyle(
+                      AppStrings.get('emergency_screen_title', lang),
+                      style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                         letterSpacing: 0.4,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Gebze acil çağrı hatları ve en yakın güvenli toplanma bölgeleri.',
-                      style: TextStyle(fontSize: 11.5, color: Colors.white70),
+                      AppStrings.get('emergency_screen_sub', lang),
+                      style: const TextStyle(fontSize: 11.5, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -556,10 +579,12 @@ class _QuickCallBox extends StatelessWidget {
 
 class _AssemblyAreaCard extends StatelessWidget {
   final AssemblyArea area;
+  final String directionsLabel;
   final VoidCallback onNavigate;
 
   const _AssemblyAreaCard({
     required this.area,
+    required this.directionsLabel,
     required this.onNavigate,
   });
 
@@ -606,7 +631,6 @@ class _AssemblyAreaCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // Mesafe rozeti
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -655,11 +679,10 @@ class _AssemblyAreaCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // Haritada Yol Tarifi Butonu
               ElevatedButton.icon(
                 onPressed: onNavigate,
                 icon: const Icon(Icons.directions_rounded, size: 15),
-                label: const Text('Yol Tarifi'),
+                label: Text(directionsLabel),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _C.navy.withAlpha(16),
                   foregroundColor: _C.navy,

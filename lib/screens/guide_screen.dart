@@ -2,19 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../core/localization/app_strings.dart';
 
 /// Gebze Belediyesi - Şehir Rehberi
 /// Dosya yolu: lib/screens/guide_screen.dart
-///
-/// İki sekme:
-///  1) Kurumsal Hizmetler -> kategori listesi (tıklayınca kurum listesi açılır)
-///  2) Gebze'yi Keşfet    -> tarihi / doğa / müze / cami kartları
-///
-/// Firestore koleksiyonları (opsiyonel, yoksa yedek veriler gösterilir):
-///  - guide_places       : name, summary, category, image, detailUrl, distanceKm
-///  - guide_institutions : name, category (parklar|lokantalar|pazar|spor|kultur|belediye),
-///                         address, phone, description
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -43,7 +37,7 @@ Widget _withFont(BuildContext context, Widget child) {
   );
 }
 
-Future<void> _openUrl(BuildContext context, String url) async {
+Future<void> _openUrl(BuildContext context, String url, String lang) async {
   final ok = await launchUrl(
     Uri.parse(url),
     mode: LaunchMode.externalApplication,
@@ -52,8 +46,8 @@ Future<void> _openUrl(BuildContext context, String url) async {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('Sayfa açılamadı. Lütfen tekrar deneyin.'),
+        SnackBar(
+          content: Text(AppStrings.get('page_open_error', lang)),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -67,11 +61,7 @@ class HistoricPlace {
   final String name;
   final String summary;
   final String detailUrl;
-
-  /// Tarihi | Müzeler | Doğa | Camiler
   final String category;
-
-  /// `gorsel/...` asset yolu veya `https://...` adresi.
   final String? image;
   final double? distanceKm;
 
@@ -88,10 +78,16 @@ class HistoricPlace {
   IconData get icon {
     switch (category) {
       case 'Camiler':
+      case 'Mosques':
+      case 'مساجد':
         return Icons.mosque_rounded;
       case 'Müzeler':
+      case 'Museums':
+      case 'متاحف':
         return Icons.museum_rounded;
       case 'Doğa':
+      case 'Nature':
+      case 'طبيعة':
         return Icons.landscape_rounded;
       default:
         return Icons.castle_rounded;
@@ -119,153 +115,155 @@ class _Category {
   const _Category(this.id, this.title, this.icon, this.color);
 }
 
-const List<_Category> _categories = [
-  _Category('parklar', 'Parklar ve Kütüphaneler', Icons.park_rounded,
-      Color(0xFF43A047)),
-  _Category('lokantalar', 'Kent Lokantaları', Icons.restaurant_rounded,
-      Color(0xFFFB8C00)),
-  _Category('pazar', 'Pazar Yerleri', Icons.shopping_basket_rounded,
-      Color(0xFFFFB300)),
-  _Category('spor', 'Spor Tesisleri', Icons.sports_soccer_rounded,
-      Color(0xFF1E88E5)),
-  _Category('kultur', 'Kültür Merkezleri', Icons.museum_rounded,
-      Color(0xFF8E24AA)),
-  _Category('belediye', 'Belediye Tesisleri', Icons.account_balance_rounded,
-      Color(0xFF0A2A66)),
-];
+List<_Category> _getCategories(String lang) => [
+      _Category('parklar', AppStrings.get('cat_parks', lang), Icons.park_rounded,
+          const Color(0xFF43A047)),
+      _Category('lokantalar', AppStrings.get('cat_restaurants', lang),
+          Icons.restaurant_rounded, const Color(0xFFFB8C00)),
+      _Category('pazar', AppStrings.get('cat_markets', lang),
+          Icons.shopping_basket_rounded, const Color(0xFFFFB300)),
+      _Category('spor', AppStrings.get('cat_sports', lang),
+          Icons.sports_soccer_rounded, const Color(0xFF1E88E5)),
+      _Category('kultur', AppStrings.get('cat_culture', lang),
+          Icons.museum_rounded, const Color(0xFF8E24AA)),
+      _Category('belediye', AppStrings.get('cat_municipality', lang),
+          Icons.account_balance_rounded, _C.navy),
+    ];
 
-const List<HistoricPlace> _fallbackPlaces = [
-  HistoricPlace(
-    id: 'cmp_camii',
-    name: 'Çoban Mustafa Paşa Camii ve Külliyesi',
-    summary:
-        'Çoban Mustafa Paşa\'nın 1523\'te yaptırdığı cami ve külliye, Gebze\'nin en önemli Osmanlı eserlerinden biridir.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-camii-ve-kulliyesi_1.html',
-    image: 'gorsel/tarihi_yerler/cmpasa.jpg',
-    category: 'Camiler',
-  ),
-  HistoricPlace(
-    id: 'sultan_orhan',
-    name: 'Sultan Orhan Camii',
-    summary:
-        'Yaklaşık 1323-1331 yıllarında Orhan Bey tarafından yaptırılan, ilk dönem Osmanlı mimarisinin sade bir örneği.',
-    detailUrl: 'https://www.gebze.bel.tr/gebze/sultan-orhan-camii_2.html',
-    image: 'gorsel/tarihi_yerler/sorhan.jpg',
-    category: 'Camiler',
-  ),
-  HistoricPlace(
-    id: 'ilyas_bey',
-    name: 'İlyas Bey Camii',
-    summary:
-        'Osmanlı\'dan kalan en eski cami olarak kabul edilir. Kubbesizdir, girişinde sülüs yazılı bir kitabe bulunur.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_ilyas-bey-camii_3.html',
-    image: 'gorsel/tarihi_yerler/ilyasb.jpg',
-    category: 'Camiler',
-  ),
-  HistoricPlace(
-    id: 'anibal',
-    name: 'Anibal\'ın (Hannibal) Mezarı',
-    summary:
-        'Selvilerle çevrili alanda duran 24 tonluk taş lahit, beş dilde yazılmış kitabelerle komutanın hayatını anlatır.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_anibalin-mezari_4.html',
-    image: 'gorsel/tarihi_yerler/anibal.jpg',
-    category: 'Tarihi',
-  ),
-  HistoricPlace(
-    id: 'hunkar',
-    name: 'Hünkar Çayırı',
-    summary:
-        'Fatih Sultan Mehmet\'in 1481\'de ordusunu dinlendirdiği çayırlık alan. Bugün park olarak düzenlenmiştir.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_hunkar-cayiri_5.html',
-    image: 'gorsel/tarihi_yerler/hunkar.jpg',
-    category: 'Doğa',
-  ),
-  HistoricPlace(
-    id: 'osman_hamdi',
-    name: 'Osman Hamdi Bey Yalısı',
-    summary:
-        'Osman Hamdi Bey\'in 1884\'te Eskihisar\'da yaptırdığı iki katlı yalı, bugün müze olarak ziyaret edilebiliyor.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_osman-hamdi-bey-yalisi_6.html',
-    image: 'gorsel/tarihi_yerler/osmanbey.jpg',
-    category: 'Müzeler',
-  ),
-  HistoricPlace(
-    id: 'eskihisar_kalesi',
-    name: 'Eskihisar Kalesi',
-    summary:
-        'Bizans döneminden kalma tarihi kale. 10 burcu ve 4 kapısıyla özgün yapısını büyük ölçüde korur.',
-    detailUrl: 'https://www.gebze.bel.tr/gebze/eskihisar-kalesi_7.html',
-    image: 'gorsel/tarihi_yerler/eskale.jpg',
-    category: 'Tarihi',
-  ),
-  HistoricPlace(
-    id: 'ballikayalar',
-    name: 'Ballıkayalar',
-    summary:
-        'Karstik vadi; göletleri, şelaleleri, travertenleri ve çok sayıda mağarasıyla doğal güzelliğiyle öne çıkar.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_ballikayalar_8.html',
-    image: 'gorsel/tarihi_yerler/ballikaya.jpg',
-    category: 'Doğa',
-  ),
-  HistoricPlace(
-    id: 'ibrahim_pasa_cesmesi',
-    name: 'İbrahim Paşa Çeşmesi (Çarşı Çeşmesi)',
-    summary:
-        '1664\'te yaptırılan kare planlı çeşme, kent merkezinde Çoban Mustafa Paşa Hamamı\'nın yanındadır.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
-    image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg',
-    category: 'Tarihi',
-  ),
-  HistoricPlace(
-    id: 'sadirvan',
-    name: 'Çoban Mustafa Paşa Şadırvanı',
-    summary:
-        'Külliyenin ortasındaki on iki kenarlı şadırvan, her köşesinde bir musluk bulunur ve piramit çatıyla örtülüdür.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
-    image: 'gorsel/tarihi_yerler/sadirvan.jpg',
-    category: 'Tarihi',
-  ),
-  HistoricPlace(
-    id: 'eskihisar_cesmesi',
-    name: 'Eskihisar Çeşmesi',
-    summary:
-        '1772\'de yaptırılan, kare planlı ve piramit çatılı çeşme. 1850\'de kapsamlı bir onarım görmüştür.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_eskihisar-cesmesi_11.html',
-    image: 'gorsel/tarihi_yerler/escesme.jpg',
-    category: 'Tarihi',
-  ),
-  HistoricPlace(
-    id: 'hamam',
-    name: 'Çoban Mustafa Paşa Hamamı',
-    summary:
-        '1523\'te yaptırılan, Çarşı Hamamı ve Çifte Hamam olarak bilinen iki kubbeli yapı Gebze\'nin en büyüğüdür.',
-    detailUrl:
-        'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-hamami_12.html',
-    image: 'gorsel/tarihi_yerler/hamam.jpg',
-    category: 'Tarihi',
-  ),
-];
+List<HistoricPlace> _getFallbackPlaces(String lang) {
+  final isEn = lang == 'en';
+  final isAr = lang == 'ar';
+
+  final catCamiler = AppStrings.get('filter_mosques', lang);
+  final catTarihi = AppStrings.get('filter_historic', lang);
+  final catDoga = AppStrings.get('filter_nature', lang);
+  final catMuzeler = AppStrings.get('filter_museums', lang);
+
+  return [
+    HistoricPlace(
+      id: 'cmp_camii',
+      name: isEn
+          ? 'Coban Mustafa Pasha Mosque & Complex'
+          : isAr
+              ? 'جامع ومجمع جوبان مصطفى باشا'
+              : 'Çoban Mustafa Paşa Camii ve Külliyesi',
+      summary: isEn
+          ? 'Built in 1523 by Coban Mustafa Pasha, it is one of the most significant Ottoman works in Gebze.'
+          : isAr
+              ? 'شيده جوبان مصطفى باشا عام 1523، وهو من أهم الآثار العثمانية في جبزة.'
+              : 'Çoban Mustafa Paşa\'nın 1523\'te yaptırdığı cami ve külliye, Gebze\'nin en önemli Osmanlı eserlerinden biridir.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-camii-ve-kulliyesi_1.html',
+      image: 'gorsel/tarihi_yerler/cmpasa.jpg',
+      category: catCamiler,
+    ),
+    HistoricPlace(
+      id: 'sultan_orhan',
+      name: isEn
+          ? 'Sultan Orhan Mosque'
+          : isAr
+              ? 'جامع السلطان أورهان'
+              : 'Sultan Orhan Camii',
+      summary: isEn
+          ? 'Built around 1323-1331 by Orhan Bey, a prime example of early Ottoman architecture.'
+          : isAr
+              ? 'شيده أورهان باي في حوالي 1323-1331، وهو نموذج أنيق للعمارة العثمانية المبكرة.'
+              : 'Yaklaşık 1323-1331 yıllarında Orhan Bey tarafından yaptırılan, ilk dönem Osmanlı mimarisinin sade bir örneği.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze/sultan-orhan-camii_2.html',
+      image: 'gorsel/tarihi_yerler/sorhan.jpg',
+      category: catCamiler,
+    ),
+    HistoricPlace(
+      id: 'ilyas_bey',
+      name: isEn ? 'Ilyas Bey Mosque' : isAr ? 'جامع إلياس باي' : 'İlyas Bey Camii',
+      summary: isEn
+          ? 'Considered the oldest surviving Ottoman mosque in the district, featuring classic stonework.'
+          : isAr
+              ? 'يُعد أقدم مسجد عثماني قائم في المنطقة مع كتابة بخط الثلث عند مدخله.'
+              : 'Osmanlı\'dan kalan en eski cami olarak kabul edilir. Kubbesizdir, girişinde sülüs yazılı bir kitabe bulunur.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_ilyas-bey-camii_3.html',
+      image: 'gorsel/tarihi_yerler/ilyasb.jpg',
+      category: catCamiler,
+    ),
+    HistoricPlace(
+      id: 'anibal',
+      name: isEn ? "Hannibal's Tomb" : isAr ? 'قبر حنبعل' : 'Anibal\'ın (Hannibal) Mezarı',
+      summary: isEn
+          ? 'A 24-ton stone sarcophagus surrounded by cypresses explaining the commander\'s life in five languages.'
+          : isAr
+              ? 'ضريح صخري ضخم يزن 24 طناً محاط بأشجار السرو يشرح سيرة القائد بخمس لغات.'
+              : 'Selvilerle çevrili alanda duran 24 tonluk taş lahit, beş dilde yazılmış kitabelerle komutanın hayatını anlatır.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_anibalin-mezari_4.html',
+      image: 'gorsel/tarihi_yerler/anibal.jpg',
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'hunkar',
+      name: isEn ? 'Hunkar Cayiri' : isAr ? 'مرج هونكار' : 'Hünkar Çayırı',
+      summary: isEn
+          ? 'The historic meadow where Mehmed the Conqueror camped with his army in 1481.'
+          : isAr
+              ? 'المرج التاريخي الذي عسكر فيه السلطان محمد الفاتح بجيشه عام 1481.'
+              : 'Fatih Sultan Mehmet\'in 1481\'de ordusunu dinlendirdiği çayırlık alan. Bugün park olarak düzenlenmiştir.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_hunkar-cayiri_5.html',
+      image: 'gorsel/tarihi_yerler/hunkar.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'osman_hamdi',
+      name: isEn ? 'Osman Hamdi Bey Mansion' : isAr ? 'قصر عثمان حمدي باي' : 'Osman Hamdi Bey Yalısı',
+      summary: isEn
+          ? 'The historic mansion built in 1884 in Eskihisar, now serving as an art and historic museum.'
+          : isAr
+              ? 'القصر التاريخي الذي شيده عثمان حمدي باي عام 1884 في إسكي حصار كمتحف فني وتاريخي.'
+              : 'Osman Hamdi Bey\'in 1884\'te Eskihisar\'da yaptırdığı iki katlı yalı, bugün müze olarak ziyaret edilebiliyor.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_osman-hamdi-bey-yalisi_6.html',
+      image: 'gorsel/tarihi_yerler/osmanbey.jpg',
+      category: catMuzeler,
+    ),
+    HistoricPlace(
+      id: 'eskihisar_kalesi',
+      name: isEn ? 'Eskihisar Castle' : isAr ? 'قلعة إسكي حصار' : 'Eskihisar Kalesi',
+      summary: isEn
+          ? 'A historic fortress from the Byzantine era preserving its 10 bastions and 4 gates.'
+          : isAr
+              ? 'قلعة تاريخية تعود للعهد البيزنطي تحافظ على أبراجها العشرة وبواباتها الأربع.'
+              : 'Bizans döneminden kalma tarihi kale. 10 burcu ve 4 kapısıyla özgün yapısını büyük ölçüde korur.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze/eskihisar-kalesi_7.html',
+      image: 'gorsel/tarihi_yerler/eskale.jpg',
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'ballikayalar',
+      name: isEn ? 'Ballikayalar Nature Park' : isAr ? 'حديقة باليكايالار الطبيعية' : 'Ballıkayalar',
+      summary: isEn
+          ? 'A stunning karst canyon famous for waterfalls, caves, trekking paths, and climbing routes.'
+          : isAr
+              ? 'وادي كارستي خلاب يشتهر بشلالاته، كهوفه ومسارات التسلق والتنزه الطبيعي.'
+              : 'Karstik vadi; göletleri, şelaleleri, travertenleri ve çok sayıda mağarasıyla doğal güzelliğiyle öne çıkar.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_ballikayalar_8.html',
+      image: 'gorsel/tarihi_yerler/ballikaya.jpg',
+      category: catDoga,
+    ),
+  ];
+}
 
 // ───────────────────────── Ana Ekran ─────────────────────────
 
-class GuideScreen extends StatelessWidget {
-  /// Alt menüde başka sekmeye geçilmek istendiğinde çağrılır.
-  /// (0: Ana Sayfa, 1: Rehber, 2: Bildir, 3: Hizmetler, 4: Profil)
+class GuideScreen extends ConsumerWidget {
   final ValueChanged<int>? onNavTap;
 
   const GuideScreen({super.key, this.onNavTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
+
     return _withFont(
       context,
       AnnotatedRegion<SystemUiOverlayStyle>(
@@ -277,12 +275,12 @@ class GuideScreen extends StatelessWidget {
             backgroundColor: _C.bg,
             body: Column(
               children: [
-                const _Header(),
-                const Expanded(
+                _Header(lang: lang),
+                Expanded(
                   child: TabBarView(
                     children: [
-                      _InstitutionsTab(),
-                      _DiscoverTab(),
+                      _InstitutionsTab(lang: lang),
+                      _DiscoverTab(lang: lang),
                     ],
                   ),
                 ),
@@ -290,6 +288,7 @@ class GuideScreen extends StatelessWidget {
             ),
             bottomNavigationBar: _BottomNav(
               index: 1,
+              lang: lang,
               onTap: (i) => onNavTap?.call(i),
             ),
           ),
@@ -300,7 +299,8 @@ class GuideScreen extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header();
+  final String lang;
+  const _Header({required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -312,30 +312,30 @@ class _Header extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Text(
-                'Şehir Rehberi',
-                style: TextStyle(
+                AppStrings.get('guide_screen_title', lang),
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
             ),
-            const TabBar(
+            TabBar(
               indicatorColor: _C.orange,
               indicatorWeight: 3,
               indicatorSize: TabBarIndicatorSize.label,
               dividerColor: Colors.transparent,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white60,
-              labelStyle: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+              labelStyle: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
               unselectedLabelStyle:
-                  TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
+                  const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
               tabs: [
-                Tab(text: 'Kurumsal Hizmetler'),
-                Tab(text: 'Gebze\'yi Keşfet'),
+                Tab(text: AppStrings.get('tab_institutions', lang)),
+                Tab(text: AppStrings.get('tab_discover', lang)),
               ],
             ),
           ],
@@ -385,7 +385,8 @@ class _SearchField extends StatelessWidget {
 // ───────────────────────── Sekme 1: Kurumsal Hizmetler ─────────────────────────
 
 class _InstitutionsTab extends StatefulWidget {
-  const _InstitutionsTab();
+  final String lang;
+  const _InstitutionsTab({required this.lang});
 
   @override
   State<_InstitutionsTab> createState() => _InstitutionsTabState();
@@ -408,10 +409,11 @@ class _InstitutionsTabState extends State<_InstitutionsTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final categories = _getCategories(widget.lang);
     final q = _query.trim().toLowerCase();
     final items = q.isEmpty
-        ? _categories
-        : _categories.where((c) => c.title.toLowerCase().contains(q)).toList();
+        ? categories
+        : categories.where((c) => c.title.toLowerCase().contains(q)).toList();
 
     return Column(
       children: [
@@ -419,16 +421,16 @@ class _InstitutionsTabState extends State<_InstitutionsTab>
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: _SearchField(
             controller: _ctrl,
-            hint: 'Hizmet veya birim ara...',
+            hint: AppStrings.get('search_institution_hint', widget.lang),
             onChanged: (v) => setState(() => _query = v),
           ),
         ),
         Expanded(
           child: items.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'Aradığınız birim bulunamadı',
-                    style: TextStyle(
+                    AppStrings.get('no_institution_found', widget.lang),
+                    style: const TextStyle(
                         color: _C.textMuted, fontWeight: FontWeight.w600),
                   ),
                 )
@@ -441,8 +443,10 @@ class _InstitutionsTabState extends State<_InstitutionsTab>
                     category: items[i],
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) =>
-                            _InstitutionListScreen(category: items[i]),
+                        builder: (_) => _InstitutionListScreen(
+                          category: items[i],
+                          lang: widget.lang,
+                        ),
                       ),
                     ),
                   ),
@@ -503,10 +507,11 @@ class _CategoryTile extends StatelessWidget {
   }
 }
 
-/// Bir kategoriye tıklayınca açılan kurum listesi (Firestore: guide_institutions).
+/// Kurum listesi ekranı
 class _InstitutionListScreen extends StatelessWidget {
   final _Category category;
-  const _InstitutionListScreen({required this.category});
+  final String lang;
+  const _InstitutionListScreen({required this.category, required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -536,13 +541,13 @@ class _InstitutionListScreen extends StatelessWidget {
             }
             final docs = snap.data?.docs ?? [];
             if (snap.hasError || docs.isEmpty) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Text(
-                    'Bu kategori için henüz kayıt eklenmedi.',
+                    AppStrings.get('no_category_records', lang),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: _C.textMuted, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -552,8 +557,11 @@ class _InstitutionListScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: docs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) =>
-                  _InstitutionCard(data: docs[i].data(), color: category.color),
+              itemBuilder: (context, i) => _InstitutionCard(
+                data: docs[i].data(),
+                color: category.color,
+                lang: lang,
+              ),
             );
           },
         ),
@@ -565,7 +573,12 @@ class _InstitutionListScreen extends StatelessWidget {
 class _InstitutionCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final Color color;
-  const _InstitutionCard({required this.data, required this.color});
+  final String lang;
+  const _InstitutionCard({
+    required this.data,
+    required this.color,
+    required this.lang,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -613,7 +626,7 @@ class _InstitutionCard extends StatelessWidget {
           if (phone.isNotEmpty) ...[
             const SizedBox(height: 8),
             InkWell(
-              onTap: () => _openUrl(context, 'tel:$phone'),
+              onTap: () => _openUrl(context, 'tel:$phone', lang),
               child: Row(
                 children: [
                   Icon(Icons.phone_rounded, size: 16, color: color),
@@ -636,7 +649,8 @@ class _InstitutionCard extends StatelessWidget {
 // ───────────────────────── Sekme 2: Gebze'yi Keşfet ─────────────────────────
 
 class _DiscoverTab extends StatefulWidget {
-  const _DiscoverTab();
+  final String lang;
+  const _DiscoverTab({required this.lang});
 
   @override
   State<_DiscoverTab> createState() => _DiscoverTabState();
@@ -644,15 +658,27 @@ class _DiscoverTab extends StatefulWidget {
 
 class _DiscoverTabState extends State<_DiscoverTab>
     with AutomaticKeepAliveClientMixin {
-  static const _filters = ['Tümü', 'Tarihi', 'Müzeler', 'Doğa', 'Camiler'];
-
   final _ctrl = TextEditingController();
   String _query = '';
-  String _filter = 'Tümü';
+  String _filter = '';
   final Set<String> _favorites = {};
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _filter = AppStrings.get('filter_all', widget.lang);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DiscoverTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lang != widget.lang) {
+      _filter = AppStrings.get('filter_all', widget.lang);
+    }
+  }
 
   @override
   void dispose() {
@@ -660,10 +686,10 @@ class _DiscoverTabState extends State<_DiscoverTab>
     super.dispose();
   }
 
-  List<HistoricPlace> _applyFilters(List<HistoricPlace> all) {
+  List<HistoricPlace> _applyFilters(List<HistoricPlace> all, String filterAll) {
     final q = _query.trim().toLowerCase();
     return all.where((p) {
-      final okCat = _filter == 'Tümü' || p.category == _filter;
+      final okCat = _filter == filterAll || p.category == _filter;
       final okQuery = q.isEmpty ||
           p.name.toLowerCase().contains(q) ||
           p.summary.toLowerCase().contains(q);
@@ -674,6 +700,17 @@ class _DiscoverTabState extends State<_DiscoverTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final filterAll = AppStrings.get('filter_all', widget.lang);
+    final filters = [
+      filterAll,
+      AppStrings.get('filter_historic', widget.lang),
+      AppStrings.get('filter_museums', widget.lang),
+      AppStrings.get('filter_nature', widget.lang),
+      AppStrings.get('filter_mosques', widget.lang),
+    ];
+
+    final fallbackPlaces = _getFallbackPlaces(widget.lang);
+
     return Column(
       children: [
         Padding(
@@ -683,7 +720,7 @@ class _DiscoverTabState extends State<_DiscoverTab>
               Expanded(
                 child: _SearchField(
                   controller: _ctrl,
-                  hint: 'Mekan, müze veya park ara...',
+                  hint: AppStrings.get('search_places_hint', widget.lang),
                   onChanged: (v) => setState(() => _query = v),
                 ),
               ),
@@ -696,11 +733,12 @@ class _DiscoverTabState extends State<_DiscoverTab>
                   onTap: () => _openUrl(
                     context,
                     'https://www.google.com/maps/search/?api=1&query=Gebze+tarihi+yerler',
+                    widget.lang,
                   ),
                   child: const SizedBox(
                     width: 48,
                     height: 48,
-                    child: Icon(Icons.map_outlined, color: _C.textDark),
+                    child: Icon(Icons.map_rounded, color: _C.navy, size: 22),
                   ),
                 ),
               ),
@@ -708,71 +746,88 @@ class _DiscoverTabState extends State<_DiscoverTab>
           ),
         ),
         SizedBox(
-          height: 44,
+          height: 42,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
-            itemCount: _filters.length,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: filters.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
-              final selected = _filters[i] == _filter;
+              final cat = filters[i];
+              final isSel = cat == _filter;
               return ChoiceChip(
-                label: Text(_filters[i]),
-                selected: selected,
-                showCheckmark: false,
-                onSelected: (_) => setState(() => _filter = _filters[i]),
-                selectedColor: _C.navyDeep,
+                label: Text(
+                  cat,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    color: isSel ? Colors.white : _C.textDark,
+                  ),
+                ),
+                selected: isSel,
+                selectedColor: _C.navy,
                 backgroundColor: Colors.white,
-                labelStyle: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : _C.textDark,
+                side: BorderSide(
+                  color: isSel ? _C.navy : _C.line,
+                  width: 1,
                 ),
-                shape: StadiumBorder(
-                  side: BorderSide(color: selected ? _C.navyDeep : _C.line),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
+                showCheckmark: false,
+                onSelected: (_) => setState(() => _filter = cat),
               );
             },
           ),
         ),
+        const SizedBox(height: 8),
         Expanded(
           child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream:
-                FirebaseFirestore.instance.collection('guide_places').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('guide_places')
+                .snapshots(),
             builder: (context, snap) {
-              // Firestore'da kayıt varsa onu, yoksa yedek listeyi göster.
-              final List<HistoricPlace> all =
-                  (snap.hasData && snap.data!.docs.isNotEmpty)
-                      ? snap.data!.docs
-                          .map((d) => HistoricPlace.fromMap(d.id, d.data()))
-                          .toList()
-                      : _fallbackPlaces;
+              final List<HistoricPlace> basePlaces;
+              if (snap.hasData && snap.data!.docs.isNotEmpty) {
+                basePlaces = snap.data!.docs
+                    .map((d) => HistoricPlace.fromMap(d.id, d.data()))
+                    .toList();
+              } else {
+                basePlaces = fallbackPlaces;
+              }
 
-              final items = _applyFilters(all);
-              if (items.isEmpty) {
-                return const Center(
+              final filtered = _applyFilters(basePlaces, filterAll);
+
+              if (filtered.isEmpty) {
+                return Center(
                   child: Text(
-                    'Aradığınız yer bulunamadı',
-                    style: TextStyle(
-                        color: _C.textMuted, fontWeight: FontWeight.w600),
+                    AppStrings.get('no_places_found', widget.lang),
+                    style: const TextStyle(
+                      color: _C.textMuted,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 );
               }
+
               return ListView.builder(
-                physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                itemCount: items.length,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                itemCount: filtered.length,
                 itemBuilder: (context, i) {
-                  final p = items[i];
+                  final p = filtered[i];
                   return _PlaceCard(
                     place: p,
                     isFavorite: _favorites.contains(p.id),
                     onFavorite: () => setState(() {
-                      if (!_favorites.add(p.id)) _favorites.remove(p.id);
+                      if (_favorites.contains(p.id)) {
+                        _favorites.remove(p.id);
+                      } else {
+                        _favorites.add(p.id);
+                      }
                     }),
-                    onTap: p.detailUrl.isEmpty
-                        ? null
-                        : () => _openUrl(context, p.detailUrl),
+                    onTap: p.detailUrl.isNotEmpty
+                        ? () => _openUrl(context, p.detailUrl, widget.lang)
+                        : null,
                   );
                 },
               );
@@ -981,19 +1036,24 @@ class _PlaceCard extends StatelessWidget {
 
 class _BottomNav extends StatelessWidget {
   final int index;
+  final String lang;
   final ValueChanged<int> onTap;
-  const _BottomNav({required this.index, required this.onTap});
-
-  static const _items = <_NavItem>[
-    _NavItem('ANA SAYFA', Icons.home_rounded),
-    _NavItem('REHBER', Icons.explore_outlined),
-    _NavItem('BİLDİR', Icons.photo_camera_outlined),
-    _NavItem('HİZMETLER', Icons.grid_view_rounded),
-    _NavItem('PROFİL', Icons.person_outline_rounded),
-  ];
+  const _BottomNav({
+    required this.index,
+    required this.lang,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final items = <_NavItem>[
+      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
+      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
+      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
+      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
+      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+    ];
+
     return Material(
       color: _C.navyDeep,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
@@ -1005,7 +1065,7 @@ class _BottomNav extends StatelessWidget {
           padding: const EdgeInsets.only(top: 12, bottom: 6),
           child: Row(
             children: [
-              for (int i = 0; i < _items.length; i++)
+              for (int i = 0; i < items.length; i++)
                 Expanded(
                   child: InkWell(
                     onTap: () => onTap(i),
@@ -1013,13 +1073,13 @@ class _BottomNav extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _items[i].icon,
+                          items[i].icon,
                           size: 28,
                           color: i == index ? _C.orange : Colors.white70,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _items[i].label,
+                          items[i].label,
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,

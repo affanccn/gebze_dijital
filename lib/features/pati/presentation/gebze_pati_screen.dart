@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'tabs/center_ambulance_tab.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/localization/app_strings.dart';
 import 'tabs/adoption_tab.dart';
+import 'tabs/center_ambulance_tab.dart';
 import 'tabs/food_clinics_tab.dart';
 
-class GebzePatiScreen extends StatefulWidget {
+class GebzePatiScreen extends ConsumerStatefulWidget {
   final int initialIndex;
 
   const GebzePatiScreen({super.key, this.initialIndex = 0});
 
   @override
-  State<GebzePatiScreen> createState() => _GebzePatiScreenState();
+  ConsumerState<GebzePatiScreen> createState() => _GebzePatiScreenState();
 }
 
-class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProviderStateMixin {
+class _GebzePatiScreenState extends ConsumerState<GebzePatiScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -34,13 +38,15 @@ class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
       child: Scaffold(
         backgroundColor: const Color(0xFFF1F5FD),
         body: Column(
           children: [
-            _buildHeader(context),
+            _buildHeader(context, lang),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -57,7 +63,7 @@ class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String lang) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -89,13 +95,13 @@ class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProv
                     icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'GEBZE PATİ',
-                          style: TextStyle(
+                          AppStrings.get('pati_screen_title', lang),
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
@@ -103,8 +109,8 @@ class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProv
                           ),
                         ),
                         Text(
-                          'Sokak Hayvanları ve Can Dostlarımız',
-                          style: TextStyle(
+                          AppStrings.get('pati_screen_sub', lang),
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Colors.white70,
                           ),
@@ -153,21 +159,21 @@ class _GebzePatiScreenState extends State<GebzePatiScreen> with SingleTickerProv
                   unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 10.5),
                   labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   dividerColor: Colors.transparent,
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 52,
-                      icon: Icon(Icons.medical_services_rounded, size: 18),
-                      text: 'Ambulans & Merkez',
+                      icon: const Icon(Icons.medical_services_rounded, size: 18),
+                      text: AppStrings.get('tab_ambulance', lang),
                     ),
                     Tab(
                       height: 52,
-                      icon: Icon(Icons.favorite_rounded, size: 18),
-                      text: 'Sahiplendirme',
+                      icon: const Icon(Icons.favorite_rounded, size: 18),
+                      text: AppStrings.get('tab_adoption', lang),
                     ),
                     Tab(
                       height: 52,
-                      icon: Icon(Icons.food_bank_rounded, size: 18),
-                      text: 'Mama & Klinikler',
+                      icon: const Icon(Icons.food_bank_rounded, size: 18),
+                      text: AppStrings.get('tab_food_clinics', lang),
                     ),
                   ],
                 ),

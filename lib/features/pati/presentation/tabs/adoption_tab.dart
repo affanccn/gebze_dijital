@@ -4,21 +4,23 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/pati_data_provider.dart';
 import '../../models/pet_adoption.dart';
+import '../../../../core/localization/app_strings.dart';
 
 class AdoptionTab extends ConsumerWidget {
   const AdoptionTab({super.key});
 
   static const String _centerPhoneClean = '02626420430';
 
-  Future<void> _callCenter(BuildContext context, String phone) async {
+  Future<void> _callCenter(BuildContext context, String phone, String lang) async {
     final clean = phone.replaceAll(RegExp(r'[^0-9+]'), '');
     final uri = Uri.parse('tel:$clean');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
       if (context.mounted) {
+        final msg = AppStrings.get('call_failed_toast', lang).replaceAll('{0}', phone);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Arama başlatılamadı: $phone')),
+          SnackBar(content: Text(msg)),
         );
       }
     }
@@ -26,6 +28,7 @@ class AdoptionTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(appLanguageProvider);
     final petState = ref.watch(petAdoptionsStreamProvider);
 
     return ListView(
@@ -33,7 +36,7 @@ class AdoptionTab extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       children: [
         // 1. SAHİPLENDİRME SÜRECİ NASIL İŞLER? BANNER & AŞAMALAR
-        _buildProcessCard(context),
+        _buildProcessCard(context, lang),
         const SizedBox(height: 20),
 
         // 2. YUVA ARAYAN CAN DOSTLARIMIZ BAŞLIĞI
@@ -48,21 +51,21 @@ class AdoptionTab extends ConsumerWidget {
               child: const Icon(Icons.favorite_rounded, color: Color(0xFFFF7A00), size: 22),
             ),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Yuva Arayan Can Dostlarımız',
-                    style: TextStyle(
+                    AppStrings.get('adoption_header_title', lang),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF0A1F44),
                     ),
                   ),
                   Text(
-                    'Bir cana sıcacık bir yuva olun, satın almayın sahiplenin!',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
+                    AppStrings.get('adoption_header_sub', lang),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
                   ),
                 ],
               ),
@@ -75,10 +78,10 @@ class AdoptionTab extends ConsumerWidget {
         petState.when(
           data: (pets) {
             if (pets.isEmpty) {
-              return _buildEmptyState();
+              return _buildEmptyState(lang);
             }
             return Column(
-              children: pets.map((pet) => _buildPetCard(context, pet)).toList(),
+              children: pets.map((pet) => _buildPetCard(context, pet, lang)).toList(),
             );
           },
           loading: () => const Center(
@@ -87,33 +90,33 @@ class AdoptionTab extends ConsumerWidget {
               child: CircularProgressIndicator(),
             ),
           ),
-          error: (error, stack) => _buildPetErrorState(ref),
+          error: (error, stack) => _buildPetErrorState(ref, lang),
         ),
       ],
     );
   }
 
-  Widget _buildProcessCard(BuildContext context) {
+  Widget _buildProcessCard(BuildContext context, String lang) {
     final steps = [
       {
         'step': '1',
-        'title': 'Dostunuzu Seçin & Arayın',
-        'desc': 'Uygulamadan ilanı inceleyin ve "Telefon Et" butonu ile belediye merkezimizle görüşün.',
+        'title': AppStrings.get('step1_title', lang),
+        'desc': AppStrings.get('step1_desc', lang),
       },
       {
         'step': '2',
-        'title': 'Merkezimizi Ziyaret Edin',
-        'desc': 'Pelitli Sokak Hayvanları Rehabilitasyon Merkezi\'ne gelip can dostumuzla tanışın.',
+        'title': AppStrings.get('step2_title', lang),
+        'desc': AppStrings.get('step2_desc', lang),
       },
       {
         'step': '3',
-        'title': 'Kimlik & Sahiplendirme Sözleşmesi',
-        'desc': '18 yaşını doldurmuş vatandaşlarımız kimlik belgesiyle ücretsiz sahiplendirme formunu doldurur.',
+        'title': AppStrings.get('step3_title', lang),
+        'desc': AppStrings.get('step3_desc', lang),
       },
       {
         'step': '4',
-        'title': 'Aşı, Çip & Yuvasına Yolculuk',
-        'desc': 'Mikroçip, aşı karnesi ve pasaportu belediye veteriner hekimlerimizce teslim edilip dostunuz evinize uğurlanır.',
+        'title': AppStrings.get('step4_title', lang),
+        'desc': AppStrings.get('step4_desc', lang),
       },
     ];
 
@@ -144,10 +147,10 @@ class AdoptionTab extends ConsumerWidget {
                 child: const Icon(Icons.rule_folder_rounded, color: Color(0xFF2E7D32), size: 22),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Sahiplendirme Süreci Nasıl İşler?',
-                  style: TextStyle(
+                  AppStrings.get('adoption_process_title', lang),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0A1F44),
@@ -205,14 +208,14 @@ class AdoptionTab extends ConsumerWidget {
               color: const Color(0xFFF1F5FD),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF0A2A66)),
-                SizedBox(width: 8),
+                const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF0A2A66)),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Belediyemizde sahiplendirme tamamen ücretsizdir.',
-                    style: TextStyle(fontSize: 11.5, color: Color(0xFF0A2A66), fontWeight: FontWeight.w600),
+                    AppStrings.get('free_adoption_badge', lang),
+                    style: const TextStyle(fontSize: 11.5, color: Color(0xFF0A2A66), fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -223,7 +226,13 @@ class AdoptionTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildPetCard(BuildContext context, PetAdoption pet) {
+  Widget _buildPetCard(BuildContext context, PetAdoption pet, String lang) {
+    final speciesText = pet.species == 'Köpek'
+        ? AppStrings.get('pet_dog', lang)
+        : pet.species == 'Kedi'
+            ? AppStrings.get('pet_cat', lang)
+            : pet.species;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -276,7 +285,7 @@ class AdoptionTab extends ConsumerWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        '${pet.species} • ${pet.breed}',
+                        '$speciesText • ${pet.breed}',
                         style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -322,9 +331,9 @@ class AdoptionTab extends ConsumerWidget {
                         color: const Color(0xFFE8F5E9),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Yuva Arıyor',
-                        style: TextStyle(color: Color(0xFF2E7D32), fontSize: 11, fontWeight: FontWeight.bold),
+                      child: Text(
+                        AppStrings.get('looking_for_home', lang),
+                        style: const TextStyle(color: Color(0xFF2E7D32), fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -356,25 +365,25 @@ class AdoptionTab extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Sahiplenmek İçin:',
-                            style: TextStyle(fontSize: 11, color: Color(0xFF5F6F8A)),
+                            AppStrings.get('adopt_contact_label', lang),
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF5F6F8A)),
                           ),
                           Text(
-                            'Gebze Hayvan Merkezi',
-                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF0A1F44)),
+                            AppStrings.get('adopt_center_name', lang),
+                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF0A1F44)),
                           ),
                         ],
                       ),
                     ),
                     ElevatedButton.icon(
-                      onPressed: () => _callCenter(context, pet.centerPhone.isNotEmpty ? pet.centerPhone : _centerPhoneClean),
+                      onPressed: () => _callCenter(context, pet.centerPhone.isNotEmpty ? pet.centerPhone : _centerPhoneClean, lang),
                       icon: const Icon(Icons.call_rounded, size: 17),
-                      label: const Text('Telefon Et'),
+                      label: Text(AppStrings.get('btn_call', lang)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2E7D32),
                         foregroundColor: Colors.white,
@@ -422,30 +431,30 @@ class AdoptionTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String lang) {
     return Container(
       padding: const EdgeInsets.all(28),
       alignment: Alignment.center,
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.pets_rounded, size: 48, color: Color(0xFF5F6F8A)),
-          SizedBox(height: 12),
+          const Icon(Icons.pets_rounded, size: 48, color: Color(0xFF5F6F8A)),
+          const SizedBox(height: 12),
           Text(
-            'Şu anda yuva arayan can dostumuz bulunmuyor.',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0A1F44)),
+            AppStrings.get('no_pets_found', lang),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0A1F44)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPetErrorState(WidgetRef ref) {
+  Widget _buildPetErrorState(WidgetRef ref, String lang) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Center(
         child: ElevatedButton(
           onPressed: () => ref.refresh(petAdoptionsStreamProvider),
-          child: const Text('Yeniden Dene'),
+          child: Text(AppStrings.get('btn_retry', lang)),
         ),
       ),
     );

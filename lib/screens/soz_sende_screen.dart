@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../core/localization/app_strings.dart';
 
 /// Gebze Belediyesi - Söz Sende (Fikir, Öneri ve Oylamalar)
 /// Dosya yolu: lib/screens/soz_sende_screen.dart
-///
-/// Firestore koleksiyonları:
-///  - polls:       { question, neighborhood, endDate, options: [ {text, votes} ] }
-///  - suggestions: { title, description, neighborhood, category, status, likes, createdAt }
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -45,80 +44,130 @@ const List<String> _kNeighborhoods = [
   'Eskihisar',
 ];
 
-const List<String> _kCategories = [
-  'Ulaşım',
-  'Çevre',
-  'Park & Bahçe',
-  'Altyapı',
-  'Sosyal Hizmet',
-  'Diğer',
-];
-
-class SozSendeScreen extends StatefulWidget {
+class SozSendeScreen extends ConsumerStatefulWidget {
   const SozSendeScreen({super.key});
 
   @override
-  State<SozSendeScreen> createState() => _SozSendeScreenState();
+  ConsumerState<SozSendeScreen> createState() => _SozSendeScreenState();
 }
 
-class _SozSendeScreenState extends State<SozSendeScreen>
+class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tab;
   int _neighborhoodIndex = 0;
 
-  // Bu oturumda verilen oylar / beğeniler (aynı cihazdan tekrar oy vermeyi engeller).
   final Map<String, int> _votedPolls = {};
   final Set<String> _likedSuggestions = {};
 
-  // Veritabanı boşsa gösterilecek demo veriler
-  static const _fallbackPolls = <Map<String, dynamic>>[
-    {
-      'question': 'Mustafapaşa Mahallesi\'ne hangi sosyal tesis yapılsın?',
-      'neighborhood': 'Mustafapaşa',
-      'endDate': '30.10.2026',
-      'options': [
-        {'text': 'Kütüphane & Etüt Merkezi', 'votes': 128},
-        {'text': 'Spor Kompleksi', 'votes': 94},
-        {'text': 'Yaşlı Yaşam Merkezi', 'votes': 61},
-      ],
-    },
-    {
-      'question': 'Gebze Sahil Parkı\'nda hangi düzenleme öncelikli olmalı?',
-      'neighborhood': 'Eskihisar',
-      'endDate': '25.10.2026',
-      'options': [
-        {'text': 'Yürüyüş ve bisiklet yolu', 'votes': 210},
-        {'text': 'Çocuk oyun alanı', 'votes': 143},
-        {'text': 'Aydınlatma', 'votes': 87},
-      ],
-    },
-  ];
+  List<Map<String, dynamic>> _getFallbackPolls(String lang) {
+    final isEn = lang == 'en';
+    final isAr = lang == 'ar';
+    return [
+      {
+        'question': isEn
+            ? 'Which social facility should be built in Mustafapasa Neighborhood?'
+            : isAr
+                ? 'ما هو المرفق الاجتماعي الذي ينبغي إنشاؤه في حي مصطفى باشا؟'
+                : "Mustafapaşa Mahallesi'ne hangi sosyal tesis yapılsın?",
+        'neighborhood': 'Mustafapaşa',
+        'endDate': '30.10.2026',
+        'options': [
+          {
+            'text': isEn
+                ? 'Library & Study Center'
+                : isAr
+                    ? 'مكتبة ومركز دراسة'
+                    : 'Kütüphane & Etüt Merkezi',
+            'votes': 128,
+          },
+          {
+            'text': isEn ? 'Sports Complex' : isAr ? 'مجمع رياضي' : 'Spor Kompleksi',
+            'votes': 94,
+          },
+          {
+            'text': isEn
+                ? 'Elderly Care & Activity Center'
+                : isAr
+                    ? 'مركز رعاية المسنين'
+                    : 'Yaşlı Yaşam Merkezi',
+            'votes': 61,
+          },
+        ],
+      },
+      {
+        'question': isEn
+            ? 'Which improvement should be prioritized in Gebze Beach Park?'
+            : isAr
+                ? 'ما هو التطوير ذو الأولوية في حديقة شاطئ جبزة؟'
+                : "Gebze Sahil Parkı'nda hangi düzenleme öncelikli olmalı?",
+        'neighborhood': 'Eskihisar',
+        'endDate': '25.10.2026',
+        'options': [
+          {
+            'text': isEn
+                ? 'Walking & Cycling Path'
+                : isAr
+                    ? 'مسار المشي والدراجات'
+                    : 'Yürüyüş ve bisiklet yolu',
+            'votes': 210,
+          },
+          {
+            'text': isEn ? "Children's Playground" : isAr ? 'منطقة ألعاب أطفال' : 'Çocuk oyun alanı',
+            'votes': 143,
+          },
+          {
+            'text': isEn ? 'Lighting & Safety' : isAr ? 'الإنارة والأمان' : 'Aydınlatma',
+            'votes': 87,
+          },
+        ],
+      },
+    ];
+  }
 
-  static const _fallbackSuggestions = <Map<String, dynamic>>[
-    {
-      'title': 'Hacıhalil\'e ek otobüs durağı',
-      'description':
-          'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
-      'neighborhood': 'Hacıhalil',
-      'category': 'Ulaşım',
-      'status': 'İnceleniyor',
-      'likes': 34,
-    },
-    {
-      'title': 'Mevlana Mahallesi parkına çöp kutusu',
-      'description': 'Parkta yeterli çöp kutusu yok, çevre kirliliği artıyor.',
-      'neighborhood': 'Mevlana',
-      'category': 'Çevre',
-      'status': 'Beklemede',
-      'likes': 19,
-    },
-  ];
+  List<Map<String, dynamic>> _getFallbackSuggestions(String lang) {
+    final isEn = lang == 'en';
+    final isAr = lang == 'ar';
+    return [
+      {
+        'title': isEn
+            ? 'Additional bus stop for Hacıhalil'
+            : isAr
+                ? 'موقف حافلات إضافي لحي حاجي خليل'
+                : "Hacıhalil'e ek otobüs durağı",
+        'description': isEn
+            ? 'The stop is overcrowded during morning hours, requesting extra buses and stops.'
+            : isAr
+                ? 'الموقف مزدحم جداً في الصباح، أطلب موقفاً إضافياً ورحلات أكثر.'
+                : 'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
+        'neighborhood': 'Hacıhalil',
+        'category': AppStrings.get('cat_transport', lang),
+        'status': AppStrings.get('status_reviewing', lang),
+        'likes': 34,
+      },
+      {
+        'title': isEn
+            ? 'Trash bins for Mevlana neighborhood park'
+            : isAr
+                ? 'سلات نفايات لحديقة حي مولانا'
+                : 'Mevlana Mahallesi parkına çöp kutusu',
+        'description': isEn
+            ? 'Insufficient trash bins in the park, requesting more for cleanliness.'
+            : isAr
+                ? 'لا توجد سلات نفايات كافية في الحديقة مما يسبب التلوث.'
+                : 'Parkta yeterli çöp kutusu yok, çevre kirliliği artıyor.',
+        'neighborhood': 'Mevlana',
+        'category': AppStrings.get('cat_environment', lang),
+        'status': AppStrings.get('status_pending', lang),
+        'likes': 19,
+      },
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
-    _tab.addListener(() => setState(() {})); // FAB görünürlüğü için
+    _tab.addListener(() => setState(() {}));
   }
 
   @override
@@ -134,14 +183,12 @@ class _SozSendeScreenState extends State<SozSendeScreen>
     return n == selected || n == 'Tüm Gebze';
   }
 
-  // ───────────── Oy verme ─────────────
-
   Future<void> _vote(String key, String? docId, int optionIndex) async {
     if (_votedPolls.containsKey(key)) return;
     setState(() => _votedPolls[key] = optionIndex);
     HapticFeedback.lightImpact();
 
-    if (docId == null) return; // demo veri: sadece yerelde göster
+    if (docId == null) return;
 
     try {
       final ref = FirebaseFirestore.instance.collection('polls').doc(docId);
@@ -159,11 +206,8 @@ class _SozSendeScreenState extends State<SozSendeScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _votedPolls.remove(key));
-      _snack('Oy kaydedilemedi: $e');
     }
   }
-
-  // ───────────── Beğeni ─────────────
 
   Future<void> _toggleLike(String key, String? docId) async {
     final liked = _likedSuggestions.contains(key);
@@ -181,36 +225,33 @@ class _SozSendeScreenState extends State<SozSendeScreen>
       setState(() {
         liked ? _likedSuggestions.add(key) : _likedSuggestions.remove(key);
       });
-      _snack('İşlem başarısız: $e');
     }
   }
 
-  void _snack(String msg) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(msg),
-        backgroundColor: _C.navyDeep,
-        behavior: SnackBarBehavior.floating,
-      ));
-  }
-
-  void _openNewSuggestion() {
+  void _openNewSuggestion(String lang) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _NewSuggestionSheet(),
+      builder: (_) => _NewSuggestionSheet(lang: lang),
     ).then((sent) {
-      if (sent == true) {
-        _snack('Teşekkürler! Öneriniz belediyeye iletildi.');
+      if (sent == true && mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(AppStrings.get('suggestion_sent_toast', lang)),
+            backgroundColor: _C.navyDeep,
+            behavior: SnackBarBehavior.floating,
+          ));
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
@@ -224,26 +265,26 @@ class _SozSendeScreenState extends State<SozSendeScreen>
           backgroundColor: _C.bg,
           floatingActionButton: _tab.index == 1
               ? FloatingActionButton.extended(
-                  onPressed: _openNewSuggestion,
+                  onPressed: () => _openNewSuggestion(lang),
                   backgroundColor: _C.orange,
                   foregroundColor: Colors.white,
                   icon: const Icon(Icons.edit_rounded),
-                  label: const Text(
-                    'Fikir Paylaş',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+                  label: Text(
+                    AppStrings.get('btn_new_suggestion', lang),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 )
               : null,
           body: Column(
             children: [
-              _Header(controller: _tab),
-              _buildNeighborhoodChips(),
+              _Header(controller: _tab, lang: lang),
+              _buildNeighborhoodChips(lang),
               Expanded(
                 child: TabBarView(
                   controller: _tab,
                   children: [
-                    _buildPollsTab(),
-                    _buildSuggestionsTab(),
+                    _buildPollsTab(lang),
+                    _buildSuggestionsTab(lang),
                   ],
                 ),
               ),
@@ -254,7 +295,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
     );
   }
 
-  Widget _buildNeighborhoodChips() {
+  Widget _buildNeighborhoodChips(String lang) {
     return Container(
       height: 44,
       margin: const EdgeInsets.only(top: 14, bottom: 4),
@@ -265,8 +306,9 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = _neighborhoodIndex == i;
+          final label = i == 0 ? AppStrings.get('filter_all', lang) : _kNeighborhoods[i];
           return ChoiceChip(
-            label: Text(_kNeighborhoods[i]),
+            label: Text(label),
             selected: isSelected,
             showCheckmark: false,
             onSelected: (_) => setState(() => _neighborhoodIndex = i),
@@ -287,14 +329,14 @@ class _SozSendeScreenState extends State<SozSendeScreen>
     );
   }
 
-  // ───────────── Oylamalar sekmesi ─────────────
+  Widget _buildPollsTab(String lang) {
+    final fallbackPolls = _getFallbackPolls(lang);
 
-  Widget _buildPollsTab() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('polls').snapshots(),
       builder: (context, snap) {
         if (snap.hasError) {
-          return Center(child: Text('Veri yüklenemedi: ${snap.error}'));
+          return Center(child: Text('${AppStrings.get('error_occurred', lang)}: ${snap.error}'));
         }
         if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -304,14 +346,14 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         if (snap.hasData && snap.data!.docs.isNotEmpty) {
           items = snap.data!.docs.map((d) => {...d.data(), '_id': d.id}).toList();
         } else {
-          items = _fallbackPolls.map((e) => Map<String, dynamic>.from(e)).toList();
+          items = fallbackPolls.map((e) => Map<String, dynamic>.from(e)).toList();
         }
 
         final filtered = items.where(_matchesNeighborhood).toList();
         if (filtered.isEmpty) {
-          return const _EmptyState(
+          return _EmptyState(
             icon: Icons.how_to_vote_outlined,
-            text: 'Bu mahalle için aktif oylama bulunmuyor.',
+            text: AppStrings.get('no_outages_found', lang),
           );
         }
 
@@ -325,6 +367,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
             final key = id ?? (p['question'] ?? '').toString();
             return _PollCard(
               data: p,
+              lang: lang,
               votedIndex: _votedPolls[key],
               isDemo: id == null,
               onVote: (idx) => _vote(key, id, idx),
@@ -335,14 +378,14 @@ class _SozSendeScreenState extends State<SozSendeScreen>
     );
   }
 
-  // ───────────── Fikir & Öneriler sekmesi ─────────────
+  Widget _buildSuggestionsTab(String lang) {
+    final fallbackSuggestions = _getFallbackSuggestions(lang);
 
-  Widget _buildSuggestionsTab() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('suggestions').snapshots(),
       builder: (context, snap) {
         if (snap.hasError) {
-          return Center(child: Text('Veri yüklenemedi: ${snap.error}'));
+          return Center(child: Text('${AppStrings.get('error_occurred', lang)}: ${snap.error}'));
         }
         if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -351,7 +394,6 @@ class _SozSendeScreenState extends State<SozSendeScreen>
         List<Map<String, dynamic>> items;
         if (snap.hasData && snap.data!.docs.isNotEmpty) {
           items = snap.data!.docs.map((d) => {...d.data(), '_id': d.id}).toList();
-          // Index gerektirmemesi için istemci tarafında sırala (yeni → eski)
           items.sort((a, b) {
             final ta = a['createdAt'];
             final tb = b['createdAt'];
@@ -361,14 +403,14 @@ class _SozSendeScreenState extends State<SozSendeScreen>
             return 0;
           });
         } else {
-          items = _fallbackSuggestions.map((e) => Map<String, dynamic>.from(e)).toList();
+          items = fallbackSuggestions.map((e) => Map<String, dynamic>.from(e)).toList();
         }
 
         final filtered = items.where(_matchesNeighborhood).toList();
         if (filtered.isEmpty) {
-          return const _EmptyState(
+          return _EmptyState(
             icon: Icons.lightbulb_outline_rounded,
-            text: 'Henüz öneri yok. İlk fikri sen paylaş!',
+            text: AppStrings.get('no_places_found', lang),
           );
         }
 
@@ -382,6 +424,7 @@ class _SozSendeScreenState extends State<SozSendeScreen>
             final key = id ?? (s['title'] ?? '').toString();
             return _SuggestionCard(
               data: s,
+              lang: lang,
               liked: _likedSuggestions.contains(key),
               onLike: () => _toggleLike(key, id),
             );
@@ -396,7 +439,8 @@ class _SozSendeScreenState extends State<SozSendeScreen>
 
 class _Header extends StatelessWidget {
   final TabController controller;
-  const _Header({required this.controller});
+  final String lang;
+  const _Header({required this.controller, required this.lang});
 
   @override
   Widget build(BuildContext context) {
@@ -425,10 +469,10 @@ class _Header extends StatelessWidget {
                         color: Colors.white, size: 22),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'SÖZ SENDE',
-                      style: TextStyle(
+                      AppStrings.get('soz_sende_title', lang),
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
@@ -448,11 +492,11 @@ class _Header extends StatelessWidget {
                   ),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 48, top: 2, bottom: 12),
+              Padding(
+                padding: const EdgeInsets.only(left: 48, top: 2, bottom: 12),
                 child: Text(
-                  'Mahallen için fikir paylaş, oylamalara katıl',
-                  style: TextStyle(fontSize: 12.5, color: Colors.white70),
+                  AppStrings.get('soz_sende_subtitle', lang),
+                  style: const TextStyle(fontSize: 12.5, color: Colors.white70),
                 ),
               ),
               Container(
@@ -473,9 +517,9 @@ class _Header extends StatelessWidget {
                   unselectedLabelColor: Colors.white70,
                   labelStyle:
                       const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                  tabs: const [
-                    Tab(text: 'Oylamalar'),
-                    Tab(text: 'Fikir & Öneriler'),
+                  tabs: [
+                    Tab(text: AppStrings.get('tab_polls', lang)),
+                    Tab(text: AppStrings.get('tab_suggestions', lang)),
                   ],
                 ),
               ),
@@ -491,12 +535,14 @@ class _Header extends StatelessWidget {
 
 class _PollCard extends StatelessWidget {
   final Map<String, dynamic> data;
+  final String lang;
   final int? votedIndex;
   final bool isDemo;
   final ValueChanged<int> onVote;
 
   const _PollCard({
     required this.data,
+    required this.lang,
     required this.votedIndex,
     required this.isDemo,
     required this.onVote,
@@ -508,7 +554,6 @@ class _PollCard extends StatelessWidget {
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
 
-    // Demo veride oy Firestore'a yazılmadığı için ekranda +1 gösteriyoruz.
     int votesOf(int i) {
       final base = ((options[i]['votes'] ?? 0) as num).toInt();
       return base + (isDemo && votedIndex == i ? 1 : 0);
@@ -532,13 +577,13 @@ class _PollCard extends StatelessWidget {
             children: [
               _Badge(
                 icon: Icons.location_on_rounded,
-                text: (data['neighborhood'] ?? 'Tüm Gebze').toString(),
+                text: (data['neighborhood'] ?? 'Gebze').toString(),
                 color: _C.navy,
               ),
               const Spacer(),
               if (data['endDate'] != null)
                 Text(
-                  'Bitiş: ${data['endDate']}',
+                  '${AppStrings.get('poll_deadline', lang)} ${data['endDate']}',
                   style: const TextStyle(
                       fontSize: 11, color: _C.textMuted, fontWeight: FontWeight.w600),
                 ),
@@ -571,7 +616,7 @@ class _PollCard extends StatelessWidget {
               const Icon(Icons.people_alt_rounded, size: 14, color: _C.textMuted),
               const SizedBox(width: 5),
               Text(
-                '$total oy',
+                '$total ${AppStrings.get('poll_total_votes', lang)}',
                 style: const TextStyle(
                     fontSize: 11.5, color: _C.textMuted, fontWeight: FontWeight.w700),
               ),
@@ -579,9 +624,9 @@ class _PollCard extends StatelessWidget {
                 const Spacer(),
                 const Icon(Icons.check_circle_rounded, size: 15, color: _C.green),
                 const SizedBox(width: 4),
-                const Text(
-                  'Oyunuz kaydedildi',
-                  style: TextStyle(
+                Text(
+                  AppStrings.get('poll_btn_voted', lang),
+                  style: const TextStyle(
                       fontSize: 11.5, color: _C.green, fontWeight: FontWeight.w700),
                 ),
               ],
@@ -605,34 +650,36 @@ class _PollOption extends StatelessWidget {
     required this.percent,
     required this.showResult,
     required this.selected,
-    required this.onTap,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = selected ? _C.orange : Colors.grey.withAlpha(60);
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 46,
+        height: 44,
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: _C.bg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor, width: selected ? 1.6 : 1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? _C.orange : const Color(0xFFE4E9F2),
+            width: selected ? 1.5 : 1,
+          ),
         ),
-        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
             if (showResult)
               FractionallySizedBox(
                 widthFactor: percent.clamp(0.0, 1.0),
                 child: Container(
-                  color: (selected ? _C.orange : _C.navy).withAlpha(30),
+                  color: selected ? _C.orange.withAlpha(35) : const Color(0xFFE3EDFC),
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 children: [
                   Expanded(
@@ -651,14 +698,11 @@ class _PollOption extends StatelessWidget {
                     Text(
                       '%${(percent * 100).round()}',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        color: selected ? _C.orange : _C.navy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: selected ? _C.orange : _C.textMuted,
                       ),
-                    )
-                  else
-                    const Icon(Icons.radio_button_unchecked_rounded,
-                        size: 18, color: _C.textMuted),
+                    ),
                 ],
               ),
             ),
@@ -673,33 +717,37 @@ class _PollOption extends StatelessWidget {
 
 class _SuggestionCard extends StatelessWidget {
   final Map<String, dynamic> data;
+  final String lang;
   final bool liked;
   final VoidCallback onLike;
 
   const _SuggestionCard({
     required this.data,
+    required this.lang,
     required this.liked,
     required this.onLike,
   });
 
-  Color _statusColor(String s) {
-    switch (s) {
-      case 'Hayata Geçti':
-        return _C.green;
-      case 'İnceleniyor':
-        return _C.navy;
-      default:
-        return _C.orange;
-    }
+  Color _statusColor(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('onay') || s.contains('approv')) return _C.green;
+    if (s.contains('ince') || s.contains('review')) return _C.orange;
+    return _C.textMuted;
+  }
+
+  String _formatStatus(String raw) {
+    final s = raw.toLowerCase();
+    if (s.contains('onay') || s.contains('approv')) return AppStrings.get('status_approved', lang);
+    if (s.contains('ince') || s.contains('review')) return AppStrings.get('status_reviewing', lang);
+    if (s.contains('bekle') || s.contains('pend')) return AppStrings.get('status_pending', lang);
+    return raw;
   }
 
   @override
   Widget build(BuildContext context) {
-    final status = (data['status'] ?? 'Beklemede').toString();
-    final likes = ((data['likes'] ?? 0) as num).toInt();
-    // Demo veride beğeni yerelde +1 gösterilsin
-    final shownLikes = likes + ((data['_id'] == null && liked) ? 1 : 0);
+    final status = _formatStatus((data['status'] ?? 'Beklemede').toString());
     final sc = _statusColor(status);
+    final likes = ((data['likes'] ?? 0) as num).toInt();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -716,17 +764,32 @@ class _SuggestionCard extends StatelessWidget {
             children: [
               _Badge(
                 icon: Icons.location_on_rounded,
-                text: (data['neighborhood'] ?? 'Tüm Gebze').toString(),
+                text: (data['neighborhood'] ?? 'Gebze').toString(),
                 color: _C.navy,
               ),
               const SizedBox(width: 6),
-              _Badge(
-                icon: Icons.label_rounded,
-                text: (data['category'] ?? 'Diğer').toString(),
-                color: _C.textMuted,
-              ),
+              if (data['category'] != null)
+                _Badge(
+                  icon: Icons.category_rounded,
+                  text: data['category'].toString(),
+                  color: _C.textMuted,
+                ),
               const Spacer(),
-              _Badge(icon: Icons.flag_rounded, text: status, color: sc),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: sc.withAlpha(24),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: sc,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -743,29 +806,27 @@ class _SuggestionCard extends StatelessWidget {
             (data['description'] ?? '').toString(),
             style: const TextStyle(fontSize: 12.5, color: _C.textMuted, height: 1.35),
           ),
-          const SizedBox(height: 10),
-          Divider(height: 1, color: Colors.grey.withAlpha(35)),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Row(
             children: [
               InkWell(
-                borderRadius: BorderRadius.circular(10),
                 onTap: onLike,
+                borderRadius: BorderRadius.circular(10),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
                     children: [
                       Icon(
-                        liked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
-                        size: 18,
+                        liked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
+                        size: 16,
                         color: liked ? _C.orange : _C.textMuted,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '$shownLikes Destek',
+                        '$likes ${liked ? AppStrings.get('btn_supported', lang) : AppStrings.get('btn_support', lang)}',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           color: liked ? _C.orange : _C.textMuted,
                         ),
                       ),
@@ -790,9 +851,9 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withAlpha(22),
+        color: color.withAlpha(18),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -837,7 +898,8 @@ class _EmptyState extends StatelessWidget {
 // ───────────────────────── Yeni Öneri Formu ─────────────────────────
 
 class _NewSuggestionSheet extends StatefulWidget {
-  const _NewSuggestionSheet();
+  final String lang;
+  const _NewSuggestionSheet({required this.lang});
 
   @override
   State<_NewSuggestionSheet> createState() => _NewSuggestionSheetState();
@@ -847,9 +909,24 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
   final _title = TextEditingController();
   final _desc = TextEditingController();
   String _neighborhood = _kNeighborhoods[1];
-  String _category = _kCategories.first;
+  late String _category;
   bool _sending = false;
   String? _error;
+
+  List<String> _getCategories() => [
+        AppStrings.get('cat_transport', widget.lang),
+        AppStrings.get('cat_environment', widget.lang),
+        AppStrings.get('cat_parks_gardens', widget.lang),
+        AppStrings.get('cat_infrastructure', widget.lang),
+        AppStrings.get('cat_social_service', widget.lang),
+        AppStrings.get('cat_other', widget.lang),
+      ];
+
+  @override
+  void initState() {
+    super.initState();
+    _category = _getCategories().first;
+  }
 
   @override
   void dispose() {
@@ -862,7 +939,7 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
     final title = _title.text.trim();
     final desc = _desc.text.trim();
     if (title.length < 5 || desc.length < 10) {
-      setState(() => _error = 'Başlık en az 5, açıklama en az 10 karakter olmalı.');
+      setState(() => _error = AppStrings.get('fill_fields_warning', widget.lang));
       return;
     }
     setState(() {
@@ -884,7 +961,7 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
       if (!mounted) return;
       setState(() {
         _sending = false;
-        _error = 'Gönderilemedi: $e';
+        _error = '${AppStrings.get('error_occurred', widget.lang)}: $e';
       });
     }
   }
@@ -904,6 +981,8 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final categories = _getCategories();
+
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottom),
       decoration: const BoxDecoration(
@@ -926,32 +1005,33 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Fikrini Paylaş',
-              style: TextStyle(
+            Text(
+              AppStrings.get('dialog_new_suggestion_title', widget.lang),
+              style: const TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w900, color: _C.navy),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _title,
               maxLength: 80,
-              decoration: _dec('Başlık (örn. Parka bank konulsun)').copyWith(counterText: ''),
+              decoration: _dec(AppStrings.get('input_suggestion_title', widget.lang))
+                  .copyWith(counterText: ''),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _desc,
               maxLines: 4,
               maxLength: 400,
-              decoration: _dec('Detaylı açıklama...'),
+              decoration: _dec(AppStrings.get('input_suggestion_desc', widget.lang)),
             ),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _neighborhood,
+                    initialValue: _neighborhood,
                     isExpanded: true,
-                    decoration: _dec('Mahalle'),
+                    decoration: _dec(AppStrings.get('input_neighborhood', widget.lang)),
                     items: _kNeighborhoods
                         .skip(1)
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -962,10 +1042,10 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _category,
+                    initialValue: _category,
                     isExpanded: true,
-                    decoration: _dec('Kategori'),
-                    items: _kCategories
+                    decoration: _dec(AppStrings.get('input_category', widget.lang)),
+                    items: categories
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (v) => setState(() => _category = v ?? _category),
@@ -1000,7 +1080,7 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Gönder'),
+                    : Text(AppStrings.get('btn_send', widget.lang)),
               ),
             ),
           ],
