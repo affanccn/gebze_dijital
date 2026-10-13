@@ -84,7 +84,9 @@ class UserProfile {
     );
   }
 
-  factory UserProfile.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory UserProfile.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data() ?? {};
     final notifs = data['notificationPreferences'];
     Map<String, bool> parsedNotifs = {
@@ -150,7 +152,9 @@ class UserProfile {
       'totalSuggestions': totalSuggestions,
       'totalSupported': totalSupported,
       'totalSaved': totalSaved,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
@@ -188,7 +192,8 @@ class UserProfile {
       language: language ?? this.language,
       isLargeFont: isLargeFont ?? this.isLargeFont,
       themeMode: themeMode ?? this.themeMode,
-      notificationPreferences: notificationPreferences ?? this.notificationPreferences,
+      notificationPreferences:
+          notificationPreferences ?? this.notificationPreferences,
       totalRequests: totalRequests ?? this.totalRequests,
       totalSuggestions: totalSuggestions ?? this.totalSuggestions,
       totalSupported: totalSupported ?? this.totalSupported,
@@ -205,7 +210,8 @@ class UserActivityItem {
   final String title;
   final String description;
   final String date;
-  final String status; // 'İnceleniyor', 'İşleme Alındı', 'Çözüldü', 'Yayında', 'Desteklendi'
+  final String
+  status; // 'İnceleniyor', 'İşleme Alındı', 'Çözüldü', 'Yayında', 'Desteklendi'
   final String category;
 
   const UserActivityItem({

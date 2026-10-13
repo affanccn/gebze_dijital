@@ -44,6 +44,45 @@ const List<String> _kNeighborhoods = [
   'Eskihisar',
 ];
 
+/// Firestore'daki anket seçeneklerini güvenli şekilde ayrıştırır.
+/// Desteklenen formatlar:
+///  - options: [{text: 'A', votes: 3}, ...]
+///  - options: ['A', 'B'] + votes: [3, 5]  veya votes: {'A': 3, 'B': 5}
+List<Map<String, dynamic>> _parseOptions(Map<String, dynamic> data) {
+  final raw = data['options'];
+  if (raw is! List) return [];
+  final votes = data['votes'];
+  final result = <Map<String, dynamic>>[];
+  for (int i = 0; i < raw.length; i++) {
+    final e = raw[i];
+    if (e is Map) {
+      final m = Map<String, dynamic>.from(e);
+      m['text'] = (m['text'] ?? m['title'] ?? m['label'] ?? m['name'] ?? '')
+          .toString();
+      m['votes'] = (m['votes'] is num) ? m['votes'] : 0;
+      result.add(m);
+    } else {
+      final text = e.toString();
+      num v = 0;
+      if (votes is List && i < votes.length && votes[i] is num) {
+        v = votes[i] as num;
+      } else if (votes is Map && votes[text] is num) {
+        v = votes[text] as num;
+      }
+      result.add({'text': text, 'votes': v});
+    }
+  }
+  return result;
+}
+
+String _fmtDate(dynamic v) {
+  if (v is Timestamp) {
+    final d = v.toDate();
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  }
+  return v.toString();
+}
+
 class SozSendeScreen extends ConsumerStatefulWidget {
   const SozSendeScreen({super.key});
 
@@ -67,8 +106,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         'question': isEn
             ? 'Which social facility should be built in Mustafapasa Neighborhood?'
             : isAr
-                ? 'ما هو المرفق الاجتماعي الذي ينبغي إنشاؤه في حي مصطفى باشا؟'
-                : "Mustafapaşa Mahallesi'ne hangi sosyal tesis yapılsın?",
+            ? 'ما هو المرفق الاجتماعي الذي ينبغي إنشاؤه في حي مصطفى باشا؟'
+            : "Mustafapaşa Mahallesi'ne hangi sosyal tesis yapılsın?",
         'neighborhood': 'Mustafapaşa',
         'endDate': '30.10.2026',
         'options': [
@@ -76,20 +115,24 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             'text': isEn
                 ? 'Library & Study Center'
                 : isAr
-                    ? 'مكتبة ومركز دراسة'
-                    : 'Kütüphane & Etüt Merkezi',
+                ? 'مكتبة ومركز دراسة'
+                : 'Kütüphane & Etüt Merkezi',
             'votes': 128,
           },
           {
-            'text': isEn ? 'Sports Complex' : isAr ? 'مجمع رياضي' : 'Spor Kompleksi',
+            'text': isEn
+                ? 'Sports Complex'
+                : isAr
+                ? 'مجمع رياضي'
+                : 'Spor Kompleksi',
             'votes': 94,
           },
           {
             'text': isEn
                 ? 'Elderly Care & Activity Center'
                 : isAr
-                    ? 'مركز رعاية المسنين'
-                    : 'Yaşlı Yaşam Merkezi',
+                ? 'مركز رعاية المسنين'
+                : 'Yaşlı Yaşam Merkezi',
             'votes': 61,
           },
         ],
@@ -98,8 +141,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         'question': isEn
             ? 'Which improvement should be prioritized in Gebze Beach Park?'
             : isAr
-                ? 'ما هو التطوير ذو الأولوية في حديقة شاطئ جبزة؟'
-                : "Gebze Sahil Parkı'nda hangi düzenleme öncelikli olmalı?",
+            ? 'ما هو التطوير ذو الأولوية في حديقة شاطئ جبزة؟'
+            : "Gebze Sahil Parkı'nda hangi düzenleme öncelikli olmalı?",
         'neighborhood': 'Eskihisar',
         'endDate': '25.10.2026',
         'options': [
@@ -107,16 +150,24 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             'text': isEn
                 ? 'Walking & Cycling Path'
                 : isAr
-                    ? 'مسار المشي والدراجات'
-                    : 'Yürüyüş ve bisiklet yolu',
+                ? 'مسار المشي والدراجات'
+                : 'Yürüyüş ve bisiklet yolu',
             'votes': 210,
           },
           {
-            'text': isEn ? "Children's Playground" : isAr ? 'منطقة ألعاب أطفال' : 'Çocuk oyun alanı',
+            'text': isEn
+                ? "Children's Playground"
+                : isAr
+                ? 'منطقة ألعاب أطفال'
+                : 'Çocuk oyun alanı',
             'votes': 143,
           },
           {
-            'text': isEn ? 'Lighting & Safety' : isAr ? 'الإنارة والأمان' : 'Aydınlatma',
+            'text': isEn
+                ? 'Lighting & Safety'
+                : isAr
+                ? 'الإنارة والأمان'
+                : 'Aydınlatma',
             'votes': 87,
           },
         ],
@@ -132,13 +183,13 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         'title': isEn
             ? 'Additional bus stop for Hacıhalil'
             : isAr
-                ? 'موقف حافلات إضافي لحي حاجي خليل'
-                : "Hacıhalil'e ek otobüs durağı",
+            ? 'موقف حافلات إضافي لحي حاجي خليل'
+            : "Hacıhalil'e ek otobüs durağı",
         'description': isEn
             ? 'The stop is overcrowded during morning hours, requesting extra buses and stops.'
             : isAr
-                ? 'الموقف مزدحم جداً في الصباح، أطلب موقفاً إضافياً ورحلات أكثر.'
-                : 'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
+            ? 'الموقف مزدحم جداً في الصباح، أطلب موقفاً إضافياً ورحلات أكثر.'
+            : 'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
         'neighborhood': 'Hacıhalil',
         'category': AppStrings.get('cat_transport', lang),
         'status': AppStrings.get('status_reviewing', lang),
@@ -148,13 +199,13 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         'title': isEn
             ? 'Trash bins for Mevlana neighborhood park'
             : isAr
-                ? 'سلات نفايات لحديقة حي مولانا'
-                : 'Mevlana Mahallesi parkına çöp kutusu',
+            ? 'سلات نفايات لحديقة حي مولانا'
+            : 'Mevlana Mahallesi parkına çöp kutusu',
         'description': isEn
             ? 'Insufficient trash bins in the park, requesting more for cleanliness.'
             : isAr
-                ? 'لا توجد سلات نفايات كافية في الحديقة مما يسبب التلوث.'
-                : 'Parkta yeterli çöp kutusu yok, çevre kirliliği artıyor.',
+            ? 'لا توجد سلات نفايات كافية في الحديقة مما يسبب التلوث.'
+            : 'Parkta yeterli çöp kutusu yok, çevre kirliliği artıyor.',
         'neighborhood': 'Mevlana',
         'category': AppStrings.get('cat_environment', lang),
         'status': AppStrings.get('status_pending', lang),
@@ -196,12 +247,38 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         final snap = await tx.get(ref);
         final data = snap.data();
         if (data == null) return;
-        final options = List<Map<String, dynamic>>.from(
-          (data['options'] as List).map((e) => Map<String, dynamic>.from(e as Map)),
-        );
-        options[optionIndex]['votes'] =
-            ((options[optionIndex]['votes'] ?? 0) as num).toInt() + 1;
-        tx.update(ref, {'options': options});
+        final rawOptions = data['options'];
+        if (rawOptions is! List || optionIndex >= rawOptions.length) return;
+
+        if (rawOptions[optionIndex] is Map) {
+          // options: [{text, votes}]
+          final options = rawOptions
+              .map(
+                (e) => e is Map
+                    ? Map<String, dynamic>.from(e)
+                    : <String, dynamic>{'text': e.toString(), 'votes': 0},
+              )
+              .toList();
+          options[optionIndex]['votes'] =
+              ((options[optionIndex]['votes'] ?? 0) as num).toInt() + 1;
+          tx.update(ref, {'options': options});
+        } else {
+          // options: ['A','B'] + votes (List veya Map)
+          final votes = data['votes'];
+          if (votes is Map) {
+            final key = rawOptions[optionIndex].toString();
+            tx.update(ref, {'votes.$key': FieldValue.increment(1)});
+          } else {
+            final list = List<int>.generate(rawOptions.length, (i) {
+              if (votes is List && i < votes.length && votes[i] is num) {
+                return (votes[i] as num).toInt();
+              }
+              return 0;
+            });
+            list[optionIndex] += 1;
+            tx.update(ref, {'votes': list});
+          }
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -238,11 +315,13 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
       if (sent == true && mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(
-            content: Text(AppStrings.get('suggestion_sent_toast', lang)),
-            backgroundColor: _C.navyDeep,
-            behavior: SnackBarBehavior.floating,
-          ));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(AppStrings.get('suggestion_sent_toast', lang)),
+              backgroundColor: _C.navyDeep,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
       }
     });
   }
@@ -260,7 +339,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: Scaffold(
           backgroundColor: _C.bg,
           floatingActionButton: _tab.index == 1
@@ -282,10 +363,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
               Expanded(
                 child: TabBarView(
                   controller: _tab,
-                  children: [
-                    _buildPollsTab(lang),
-                    _buildSuggestionsTab(lang),
-                  ],
+                  children: [_buildPollsTab(lang), _buildSuggestionsTab(lang)],
                 ),
               ),
             ],
@@ -306,7 +384,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = _neighborhoodIndex == i;
-          final label = i == 0 ? AppStrings.get('filter_all', lang) : _kNeighborhoods[i];
+          final label = i == 0
+              ? AppStrings.get('filter_all', lang)
+              : _kNeighborhoods[i];
           return ChoiceChip(
             label: Text(label),
             selected: isSelected,
@@ -321,7 +401,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: isSelected ? _C.navy : Colors.grey.withAlpha(50)),
+              side: BorderSide(
+                color: isSelected ? _C.navy : Colors.grey.withAlpha(50),
+              ),
             ),
           );
         },
@@ -336,7 +418,11 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
       stream: FirebaseFirestore.instance.collection('polls').snapshots(),
       builder: (context, snap) {
         if (snap.hasError) {
-          return Center(child: Text('${AppStrings.get('error_occurred', lang)}: ${snap.error}'));
+          return Center(
+            child: Text(
+              '${AppStrings.get('error_occurred', lang)}: ${snap.error}',
+            ),
+          );
         }
         if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -344,9 +430,13 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
 
         final List<Map<String, dynamic>> items;
         if (snap.hasData && snap.data!.docs.isNotEmpty) {
-          items = snap.data!.docs.map((d) => {...d.data(), '_id': d.id}).toList();
+          items = snap.data!.docs
+              .map((d) => {...d.data(), '_id': d.id})
+              .toList();
         } else {
-          items = fallbackPolls.map((e) => Map<String, dynamic>.from(e)).toList();
+          items = fallbackPolls
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
 
         final filtered = items.where(_matchesNeighborhood).toList();
@@ -363,8 +453,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
           itemCount: filtered.length,
           itemBuilder: (context, i) {
             final p = filtered[i];
-            final id = p['_id'] as String?;
-            final key = id ?? (p['question'] ?? '').toString();
+            final id = p['_id']?.toString();
+            final key = id ?? (p['question'] ?? p['title'] ?? '').toString();
             return _PollCard(
               data: p,
               lang: lang,
@@ -385,7 +475,11 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
       stream: FirebaseFirestore.instance.collection('suggestions').snapshots(),
       builder: (context, snap) {
         if (snap.hasError) {
-          return Center(child: Text('${AppStrings.get('error_occurred', lang)}: ${snap.error}'));
+          return Center(
+            child: Text(
+              '${AppStrings.get('error_occurred', lang)}: ${snap.error}',
+            ),
+          );
         }
         if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -393,7 +487,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
 
         List<Map<String, dynamic>> items;
         if (snap.hasData && snap.data!.docs.isNotEmpty) {
-          items = snap.data!.docs.map((d) => {...d.data(), '_id': d.id}).toList();
+          items = snap.data!.docs
+              .map((d) => {...d.data(), '_id': d.id})
+              .toList();
           items.sort((a, b) {
             final ta = a['createdAt'];
             final tb = b['createdAt'];
@@ -403,7 +499,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             return 0;
           });
         } else {
-          items = fallbackSuggestions.map((e) => Map<String, dynamic>.from(e)).toList();
+          items = fallbackSuggestions
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
 
         final filtered = items.where(_matchesNeighborhood).toList();
@@ -420,7 +518,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
           itemCount: filtered.length,
           itemBuilder: (context, i) {
             final s = filtered[i];
-            final id = s['_id'] as String?;
+            final id = s['_id']?.toString();
             final key = id ?? (s['title'] ?? '').toString();
             return _SuggestionCard(
               data: s,
@@ -465,8 +563,11 @@ class _Header extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -487,8 +588,11 @@ class _Header extends StatelessWidget {
                       gradient: const LinearGradient(colors: _C.orangeGradient),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.record_voice_over_rounded,
-                        color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.record_voice_over_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),
@@ -515,8 +619,10 @@ class _Header extends StatelessWidget {
                   ),
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white70,
-                  labelStyle:
-                      const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
                   tabs: [
                     Tab(text: AppStrings.get('tab_polls', lang)),
                     Tab(text: AppStrings.get('tab_suggestions', lang)),
@@ -550,16 +656,17 @@ class _PollCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final options = (data['options'] as List? ?? [])
-        .map((e) => Map<String, dynamic>.from(e as Map))
-        .toList();
+    final options = _parseOptions(data);
 
     int votesOf(int i) {
       final base = ((options[i]['votes'] ?? 0) as num).toInt();
       return base + (isDemo && votedIndex == i ? 1 : 0);
     }
 
-    final total = List.generate(options.length, votesOf).fold<int>(0, (a, b) => a + b);
+    final total = List.generate(
+      options.length,
+      votesOf,
+    ).fold<int>(0, (a, b) => a + b);
     final hasVoted = votedIndex != null;
 
     return Container(
@@ -583,15 +690,18 @@ class _PollCard extends StatelessWidget {
               const Spacer(),
               if (data['endDate'] != null)
                 Text(
-                  '${AppStrings.get('poll_deadline', lang)} ${data['endDate']}',
+                  '${AppStrings.get('poll_deadline', lang)} ${_fmtDate(data['endDate'])}',
                   style: const TextStyle(
-                      fontSize: 11, color: _C.textMuted, fontWeight: FontWeight.w600),
+                    fontSize: 11,
+                    color: _C.textMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            (data['question'] ?? '').toString(),
+            (data['question'] ?? data['title'] ?? '').toString(),
             style: const TextStyle(
               fontSize: 14.5,
               fontWeight: FontWeight.w800,
@@ -613,21 +723,35 @@ class _PollCard extends StatelessWidget {
           const SizedBox(height: 2),
           Row(
             children: [
-              const Icon(Icons.people_alt_rounded, size: 14, color: _C.textMuted),
+              const Icon(
+                Icons.people_alt_rounded,
+                size: 14,
+                color: _C.textMuted,
+              ),
               const SizedBox(width: 5),
               Text(
                 '$total ${AppStrings.get('poll_total_votes', lang)}',
                 style: const TextStyle(
-                    fontSize: 11.5, color: _C.textMuted, fontWeight: FontWeight.w700),
+                  fontSize: 11.5,
+                  color: _C.textMuted,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               if (hasVoted) ...[
                 const Spacer(),
-                const Icon(Icons.check_circle_rounded, size: 15, color: _C.green),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 15,
+                  color: _C.green,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   AppStrings.get('poll_btn_voted', lang),
                   style: const TextStyle(
-                      fontSize: 11.5, color: _C.green, fontWeight: FontWeight.w700),
+                    fontSize: 11.5,
+                    color: _C.green,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ],
@@ -675,7 +799,9 @@ class _PollOption extends StatelessWidget {
               FractionallySizedBox(
                 widthFactor: percent.clamp(0.0, 1.0),
                 child: Container(
-                  color: selected ? _C.orange.withAlpha(35) : const Color(0xFFE3EDFC),
+                  color: selected
+                      ? _C.orange.withAlpha(35)
+                      : const Color(0xFFE3EDFC),
                 ),
               ),
             Padding(
@@ -689,7 +815,9 @@ class _PollOption extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: selected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         color: _C.textDark,
                       ),
                     ),
@@ -737,9 +865,12 @@ class _SuggestionCard extends StatelessWidget {
 
   String _formatStatus(String raw) {
     final s = raw.toLowerCase();
-    if (s.contains('onay') || s.contains('approv')) return AppStrings.get('status_approved', lang);
-    if (s.contains('ince') || s.contains('review')) return AppStrings.get('status_reviewing', lang);
-    if (s.contains('bekle') || s.contains('pend')) return AppStrings.get('status_pending', lang);
+    if (s.contains('onay') || s.contains('approv'))
+      return AppStrings.get('status_approved', lang);
+    if (s.contains('ince') || s.contains('review'))
+      return AppStrings.get('status_reviewing', lang);
+    if (s.contains('bekle') || s.contains('pend'))
+      return AppStrings.get('status_pending', lang);
     return raw;
   }
 
@@ -804,7 +935,11 @@ class _SuggestionCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             (data['description'] ?? '').toString(),
-            style: const TextStyle(fontSize: 12.5, color: _C.textMuted, height: 1.35),
+            style: const TextStyle(
+              fontSize: 12.5,
+              color: _C.textMuted,
+              height: 1.35,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -813,11 +948,16 @@ class _SuggestionCard extends StatelessWidget {
                 onTap: onLike,
                 borderRadius: BorderRadius.circular(10),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Row(
                     children: [
                       Icon(
-                        liked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
+                        liked
+                            ? Icons.thumb_up_alt_rounded
+                            : Icons.thumb_up_alt_outlined,
                         size: 16,
                         color: liked ? _C.orange : _C.textMuted,
                       ),
@@ -863,7 +1003,11 @@ class _Badge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: color),
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -887,7 +1031,10 @@ class _EmptyState extends StatelessWidget {
           Text(
             text,
             style: const TextStyle(
-                fontSize: 13.5, color: _C.textMuted, fontWeight: FontWeight.w600),
+              fontSize: 13.5,
+              color: _C.textMuted,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -914,13 +1061,13 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
   String? _error;
 
   List<String> _getCategories() => [
-        AppStrings.get('cat_transport', widget.lang),
-        AppStrings.get('cat_environment', widget.lang),
-        AppStrings.get('cat_parks_gardens', widget.lang),
-        AppStrings.get('cat_infrastructure', widget.lang),
-        AppStrings.get('cat_social_service', widget.lang),
-        AppStrings.get('cat_other', widget.lang),
-      ];
+    AppStrings.get('cat_transport', widget.lang),
+    AppStrings.get('cat_environment', widget.lang),
+    AppStrings.get('cat_parks_gardens', widget.lang),
+    AppStrings.get('cat_infrastructure', widget.lang),
+    AppStrings.get('cat_social_service', widget.lang),
+    AppStrings.get('cat_other', widget.lang),
+  ];
 
   @override
   void initState() {
@@ -939,7 +1086,9 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
     final title = _title.text.trim();
     final desc = _desc.text.trim();
     if (title.length < 5 || desc.length < 10) {
-      setState(() => _error = AppStrings.get('fill_fields_warning', widget.lang));
+      setState(
+        () => _error = AppStrings.get('fill_fields_warning', widget.lang),
+      );
       return;
     }
     setState(() {
@@ -967,16 +1116,16 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontSize: 13, color: _C.textMuted),
-        filled: true,
-        fillColor: _C.bg,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      );
+    hintText: hint,
+    hintStyle: const TextStyle(fontSize: 13, color: _C.textMuted),
+    filled: true,
+    fillColor: _C.bg,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1008,21 +1157,27 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
             Text(
               AppStrings.get('dialog_new_suggestion_title', widget.lang),
               style: const TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w900, color: _C.navy),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: _C.navy,
+              ),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _title,
               maxLength: 80,
-              decoration: _dec(AppStrings.get('input_suggestion_title', widget.lang))
-                  .copyWith(counterText: ''),
+              decoration: _dec(
+                AppStrings.get('input_suggestion_title', widget.lang),
+              ).copyWith(counterText: ''),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _desc,
               maxLines: 4,
               maxLength: 400,
-              decoration: _dec(AppStrings.get('input_suggestion_desc', widget.lang)),
+              decoration: _dec(
+                AppStrings.get('input_suggestion_desc', widget.lang),
+              ),
             ),
             const SizedBox(height: 10),
             Row(
@@ -1031,12 +1186,15 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _neighborhood,
                     isExpanded: true,
-                    decoration: _dec(AppStrings.get('input_neighborhood', widget.lang)),
+                    decoration: _dec(
+                      AppStrings.get('input_neighborhood', widget.lang),
+                    ),
                     items: _kNeighborhoods
                         .skip(1)
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => setState(() => _neighborhood = v ?? _neighborhood),
+                    onChanged: (v) =>
+                        setState(() => _neighborhood = v ?? _neighborhood),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1044,20 +1202,28 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _category,
                     isExpanded: true,
-                    decoration: _dec(AppStrings.get('input_category', widget.lang)),
+                    decoration: _dec(
+                      AppStrings.get('input_category', widget.lang),
+                    ),
                     items: categories
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (v) => setState(() => _category = v ?? _category),
+                    onChanged: (v) =>
+                        setState(() => _category = v ?? _category),
                   ),
                 ),
               ],
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!,
-                  style: const TextStyle(
-                      color: _C.danger, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(
+                _error!,
+                style: const TextStyle(
+                  color: _C.danger,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
             const SizedBox(height: 14),
             SizedBox(
@@ -1069,16 +1235,22 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                   backgroundColor: _C.navy,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  textStyle:
-                      const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
                 ),
                 child: _sending
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : Text(AppStrings.get('btn_send', widget.lang)),
               ),
