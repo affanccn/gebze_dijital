@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+<string>Şikayet ve önerilerinize fotoğraf eklemek için kameranıza erişim gerekiyor.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Şikayet ve önerilerinize fotoğraf eklemek için galerinize erişim gerekiyor.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Video çekimi için mikrofon erişimi gerekir.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Bildirdiğiniz sorunun konumunu belirlemek için konum bilgisine ihtiyaç duyuyoruz.</string>
 </dict>
 </plist>
