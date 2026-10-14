@@ -617,6 +617,22 @@
         padding: 0 16px;
       }
     }
+
+    /* ── Yönetici giriş ekranı ── */
+    #loginOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--navy), var(--navy-deep));
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%; max-width: 380px; background: var(--card-bg);
+      border-radius: var(--radius); padding: 28px 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .login-card h2 { margin: 0 0 4px; color: var(--text-dark); font-size: 20px; }
+    .login-card p  { margin: 0 0 18px; color: var(--text-muted); font-size: 13px; }
+    #loginError { color: var(--danger); font-size: 12.5px; min-height: 18px; margin: 4px 0 10px; }
   </style>
 
   <!-- Firebase Modular SDK -->
@@ -624,6 +640,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
       getFirestore, 
+      setDoc, 
+      Timestamp, 
       collection, 
       addDoc, 
       getDocs, 
@@ -634,6 +652,12 @@
       query, 
       orderBy 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD4CqNJxmmKPTTnFqjzHbFvvH3FZN8VIRM",
@@ -647,6 +671,48 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     window.db = db;
+
+    // ───────────────── YÖNETİCİ GİRİŞİ (Firebase Authentication) ─────────────────
+    // Firestore kuralları yazmayı sadece giriş yapmış yöneticiye açar.
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      const overlay = document.getElementById('loginOverlay');
+      const who = document.getElementById('adminWho');
+      if (overlay) overlay.style.display = user ? 'none' : 'flex';
+      if (who) who.innerText = user ? user.email : '';
+      const out = document.getElementById('btnSignOut');
+      if (out) out.style.display = user ? 'inline-flex' : 'none';
+    });
+
+    window.adminSignIn = async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById('loginError');
+      const btn = document.getElementById('loginBtn');
+      errBox.innerText = '';
+      btn.disabled = true;
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          document.getElementById('loginEmail').value.trim(),
+          document.getElementById('loginPassword').value
+        );
+        document.getElementById('loginPassword').value = '';
+      } catch (err) {
+        const msgs = {
+          'auth/invalid-credential': 'E-posta veya şifre hatalı.',
+          'auth/invalid-email': 'Geçerli bir e-posta girin.',
+          'auth/user-disabled': 'Bu hesap devre dışı bırakılmış.',
+          'auth/too-many-requests': 'Çok fazla deneme yapıldı, biraz bekleyip tekrar deneyin.',
+          'auth/network-request-failed': 'İnternet bağlantısı kurulamadı.',
+          'auth/operation-not-allowed': 'Firebase Authentication\'da E-posta/Şifre girişi açık değil.'
+        };
+        errBox.innerText = msgs[err.code] || ('Giriş yapılamadı: ' + err.message);
+      }
+      btn.disabled = false;
+    };
+
+    window.adminSignOut = async () => { await signOut(auth); };
 
     // Sekme Değişimi
     window.switchNav = (tabId, title, subtitle) => {
@@ -669,6 +735,7 @@
       if (tabId === 'polls') loadPolls();
       if (tabId === 'suggestions') loadSuggestions();
       if (tabId === 'outages') loadOutages();
+      if (tabId === 'works') loadWorks();
       if (tabId === 'pharmacies') loadPharmacies();
       if (tabId === 'pets') loadPatiData();
       if (tabId === 'ebelediye') loadEBelediye();
@@ -684,13 +751,14 @@
     // ───────────────── 1. DASHBOARD ─────────────────
     async function loadDashboard() {
       try {
-        const [newsSnap, suggSnap, pollsSnap, outSnap, petsSnap, pharmSnap] = await Promise.all([
+        const [newsSnap, suggSnap, pollsSnap, outSnap, petsSnap, pharmSnap, worksSnap] = await Promise.all([
           getDocs(collection(db, "municipal_news")),
           getDocs(collection(db, "suggestions")),
           getDocs(collection(db, "polls")),
           getDocs(collection(db, "outages")),
           getDocs(collection(db, "pet_adoptions")),
-          getDocs(collection(db, "pharmacies_on_duty"))
+          getDocs(collection(db, "pharmacies_on_duty")),
+          getDocs(collection(db, "neighborhood_works"))
         ]);
 
         document.getElementById('kpiNews').innerText = newsSnap.size;
@@ -703,6 +771,16 @@
         document.getElementById('kpiOutages').innerText = outSnap.size;
         document.getElementById('kpiPets').innerText = petsSnap.size;
         document.getElementById('kpiPharmacies').innerText = pharmSnap.size;
+
+        // Mahallemde: sadece bitiş tarihi geçmemiş (mobilde görünen) çalışmalar
+        let activeWorks = 0;
+        const nowMs = Date.now();
+        worksSnap.forEach(d => {
+          const e = d.data().endDate;
+          if (e && e.toMillis && e.toMillis() >= nowMs) activeWorks++;
+        });
+        const kpiWorksEl = document.getElementById('kpiWorks');
+        if (kpiWorksEl) kpiWorksEl.innerText = activeWorks;
 
         const badge = document.getElementById('badgePendingSugg');
         if (badge) {
@@ -915,6 +993,174 @@
         container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
       }
     }
+
+// ───────────────── MAHALLEMDE (neighborhood_works) ─────────────────
+    const WORK_CATS = {
+      kazi:      { label: 'Kazı',       icon: '🚧' },
+      altyapi:   { label: 'Altyapı',    icon: '🔧' },
+      cevre:     { label: 'Çevre',      icon: '🌳' },
+      yol_bakim: { label: 'Yol Bakım',  icon: '🛣️' }
+    };
+
+    const escW = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+    // Tüm saatler Türkiye saati (UTC+3) olarak yorumlanır; mobil uygulama ile aynı kural.
+    const fmtTR = (d) => d.toLocaleString('tr-TR', {
+      timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit',
+      year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    const trInputToDate = (v) => new Date(v + ':00+03:00'); // "2026-10-14T12:30"
+    const trNowInputValue = () => new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 16);
+
+    async function loadWorks() {
+      const container = document.getElementById("worksGrid");
+      container.innerHTML = '<div class="empty-state">Çalışmalar yükleniyor...</div>';
+
+      const startInput = document.getElementById("workStart");
+      if (startInput && !startInput.value) startInput.value = trNowInputValue();
+
+      try {
+        const snap = await getDocs(query(collection(db, "neighborhood_works"), orderBy("endDate")));
+        const catFilter = document.getElementById("workFilterCategory").value;
+        const hoodFilter = document.getElementById("workFilterNeighborhood").value;
+        const now = Date.now();
+
+        const rows = [];
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          if (!d.startDate?.toMillis || !d.endDate?.toMillis) return;
+          if (catFilter && d.category !== catFilter) return;
+          if (hoodFilter && d.neighborhood !== hoodFilter) return;
+          const start = d.startDate.toMillis(), end = d.endDate.toMillis();
+          const state = end < now ? 'expired' : (start <= now ? 'ongoing' : 'planned');
+          rows.push({ id: docSnap.id, d, start, end, state });
+        });
+
+        if (rows.length === 0) {
+          container.innerHTML = '<div class="empty-state">Kayıtlı mahalle çalışması bulunamadı.</div>';
+          return;
+        }
+
+        const order = { ongoing: 0, planned: 1, expired: 2 };
+        rows.sort((a, b) => order[a.state] - order[b.state] || a.start - b.start);
+
+        container.innerHTML = '';
+        rows.forEach(({ id, d, start, end, state }) => {
+          const cat = WORK_CATS[d.category] || WORK_CATS.kazi;
+          const badge = state === 'ongoing'
+            ? '<span class="badge badge-warning">Devam Ediyor</span>'
+            : state === 'planned'
+              ? '<span class="badge badge-primary">Planlandı</span>'
+              : '<span class="badge badge-danger">Süresi Doldu • mobilde gizli</span>';
+
+          const card = document.createElement("div");
+          card.className = "item-card";
+          if (state === 'expired') card.style.opacity = '0.6';
+          card.innerHTML = `
+            <div class="item-card-body">
+              <div class="item-card-meta">${cat.icon} ${cat.label}${d.unit ? ' • ' + escW(d.unit) : ''}</div>
+              <div class="item-card-title">${escW(d.title)}</div>
+              <div class="item-card-desc">📍 ${escW(d.neighborhood)}${d.address ? ' – ' + escW(d.address) : ''}</div>
+              ${d.description ? `<div style="font-size:12px; color:var(--text-muted); line-height:1.4; margin-bottom:6px;">${escW(d.description)}</div>` : ''}
+              <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+                🕒 Başlangıç: ${fmtTR(new Date(start))}<br>
+                🏁 Bitiş: ${fmtTR(new Date(end))}
+              </div>
+            </div>
+            <div class="item-card-footer">
+              ${badge}
+              <div style="display:flex; gap:6px;">
+                ${state !== 'expired' ? `<button class="btn btn-primary btn-sm" onclick="window.finishWork('${id}')">Bitir</button>` : ''}
+                <button class="btn btn-danger btn-sm" onclick="window.deleteDocItem('neighborhood_works', '${id}', window.loadWorks)">Sil</button>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">Hata: ${escW(e.message)}</div>`;
+      }
+    }
+    window.loadWorks = loadWorks;
+
+    // Çalışmayı şimdi bitir: bitiş zamanı "şimdi" olur, mobilde listeden kalkar.
+    window.finishWork = async (id) => {
+      if (!confirm("Çalışma tamamlandı olarak işaretlensin mi? Mobil uygulamada listeden kalkacak.")) return;
+      try {
+        await updateDoc(doc(db, "neighborhood_works", id), { endDate: Timestamp.now() });
+        showToast("Çalışma tamamlandı olarak işaretlendi.");
+        loadWorks();
+        loadDashboard();
+      } catch (e) { alert("Hata: " + e.message); }
+    };
+
+    // Süresi dolmuş tüm kayıtları veritabanından kalıcı olarak siler.
+    window.cleanupExpiredWorks = async () => {
+      try {
+        const snap = await getDocs(collection(db, "neighborhood_works"));
+        const now = Date.now();
+        const expired = [];
+        snap.forEach(d => {
+          const e = d.data().endDate;
+          if (e?.toMillis && e.toMillis() < now) expired.push(d.id);
+        });
+        if (expired.length === 0) { showToast("Süresi dolmuş kayıt yok."); return; }
+        if (!confirm(`${expired.length} adet süresi dolmuş kayıt kalıcı olarak silinsin mi?`)) return;
+        await Promise.all(expired.map(id => deleteDoc(doc(db, "neighborhood_works", id))));
+        showToast(`${expired.length} kayıt silindi.`);
+        loadWorks();
+        loadDashboard();
+      } catch (e) { alert("Temizlik hatası: " + e.message); }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("formAddWork")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type=submit]");
+        const start = trInputToDate(document.getElementById("workStart").value);
+        const end = trInputToDate(document.getElementById("workEnd").value);
+        if (isNaN(start) || isNaN(end)) { alert("Başlangıç ve bitiş zamanı girin."); return; }
+        if (end <= start) { alert("Bitiş zamanı başlangıçtan sonra olmalıdır."); return; }
+        btn.disabled = true;
+        try {
+          await addDoc(collection(db, "neighborhood_works"), {
+            category: document.getElementById("workCategory").value,
+            title: document.getElementById("workTitle").value.trim(),
+            description: document.getElementById("workDesc").value.trim(),
+            neighborhood: document.getElementById("workNeighborhood").value,
+            address: document.getElementById("workAddress").value.trim(),
+            unit: document.getElementById("workUnit").value.trim(),
+            startDate: Timestamp.fromDate(start),
+            endDate: Timestamp.fromDate(end),
+            createdAt: serverTimestamp()
+          });
+          e.target.reset();
+          document.getElementById("workStart").value = trNowInputValue();
+          showToast("Mahalle çalışması kaydedildi!");
+          loadWorks();
+          loadDashboard();
+        } catch (err) { alert(err.message); }
+        btn.disabled = false;
+      });
+    });
+
+    // Mobil uygulamadaki NeighborhoodSeeder ile aynı veri ve aynı ID'ler (demo_01...).
+    // Tekrar çalıştırmak kopya üretmez; tarihler "bugüne göre" yenilenir.
+    window.seedNeighborhoodWorks = async () => {
+      const t = new Date(Date.now() + 3 * 3600 * 1000);
+      const at = (off, hour) => Timestamp.fromMillis(
+        Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + off, hour - 3)
+      );
+      const items = [["kazi", "Doğalgaz Hattı Kazı Çalışması", "Yeni doğalgaz bağlantı hattı için cadde boyunca kazı yapılacaktır. Geçici trafik düzenlemesi uygulanır.", "Güzeller", "Bahar Cd.", "Fen İşleri Müdürlüğü", -2, 9, 3, 18], ["altyapi", "Yağmur Suyu Hattı Yenileme", "Sık su baskını yaşanan bölgede eski yağmur suyu hattı değiştirilmektedir.", "Mustafapaşa", "712. Sokak", "İSU", -1, 9, 5, 17], ["yol_bakim", "Asfalt Yenileme ve Yol Bakımı", "Bozulan asfalt tabakası sıyrılıp yeniden serilecektir. Çalışma süresince yol tek şeritten kullanılabilir.", "Osman Yılmaz", "Atatürk Cd.", "Yol Bakım Birimi", 0, 8, 2, 19], ["cevre", "Park Peyzaj ve Ağaç Budama", "Mahalle parkında peyzaj düzenlemesi ve tehlike oluşturan dalların budanması yapılacaktır.", "Arapçeşme", "Çınar Parkı", "Park ve Bahçeler Müdürlüğü", -3, 9, 1, 16], ["kazi", "Elektrik Kablo Kanalı Kazısı", "Yeraltı elektrik kablo kanalı için kaldırım ve yol kenarında kazı yapılacaktır.", "Hacıhalil", "Fatih Cd.", "Fen İşleri Müdürlüğü", -1, 9, 4, 18], ["altyapi", "İçme Suyu Ana Hat Bakımı", "Ana isale hattında bakım yapılacaktır. Kısa süreli su kesintisi yaşanabilir.", "Güzeller", "Gül Sk.", "İSU", 0, 10, 1, 15], ["altyapi", "Kanalizasyon Hattı Genişletme", "Artan nüfus nedeniyle mevcut kanalizasyon hattı daha büyük çapta yenilenecektir.", "Mevlana", "Sanayi Cd.", "İSU", 2, 9, 9, 18], ["yol_bakim", "Kaldırım Düzenleme ve Bordür Yenileme", "Yaya güvenliği için bozulan kaldırımlar ve bordürler yenilenecektir.", "Mustafapaşa", "İstasyon Cd.", "Yol Bakım Birimi", 3, 9, 8, 18], ["yol_bakim", "Cadde Çizgi ve Yaya Geçidi Boyama", "Silinen yol çizgileri ve yaya geçitleri yeniden boyanacaktır.", "Güzeller", "Bahar Cd. ve çevresi", "Trafik Hizmetleri", 4, 7, 5, 12], ["cevre", "Çöp Konteyneri Yenileme ve Yer Altı Sistemi", "Eski konteynerler kaldırılarak yer altı çöp toplama sistemi kurulacaktır.", "Osman Yılmaz", "Meydan Sk.", "Temizlik İşleri Müdürlüğü", 5, 9, 7, 17], ["kazi", "Fiber Altyapı Kazısı", "Mahallede fiber internet altyapısı için kaldırım kenarında kazı yapılacaktır.", "Köşklü Çeşme", "Dere Sk.", "Fen İşleri Müdürlüğü", 6, 9, 12, 18], ["cevre", "Dere Yatağı Temizliği", "Taşkın riskine karşı dere yatağındaki tortu ve atıklar temizlenecektir.", "Eskihisar", "Sahil Yolu", "Çevre Koruma Müdürlüğü", 7, 9, 10, 17], ["altyapi", "Sokak Aydınlatma Kablo Değişimi", "Arızalı sokak aydınlatma kabloları değiştirilecek, lambalar LED ile yenilenecektir.", "Arapçeşme", "Lale Sk.", "Elektrik İşleri", 8, 9, 11, 18], ["yol_bakim", "Parke Taşı Yol Onarımı", "Çöken parke taşı yol kesimleri sökülüp yeniden döşenecektir.", "Hacıhalil", "Çarşı Sk.", "Yol Bakım Birimi", 9, 9, 14, 18], ["cevre", "Mahalle Parkı Fidan Dikimi", "Mahalle sakinlerinin katılımıyla fidan dikim etkinliği.", "Mevlana", "Yeşil Park", "Park ve Bahçeler Müdürlüğü", 10, 10, 10, 14], ["yol_bakim", "[GEÇMİŞ] Asfalt Yama Çalışması", "Tamamlanmış çalışma. Listede görünmemesi gerekir.", "Güzeller", "Eski Cd.", "Yol Bakım Birimi", -15, 9, -10, 18], ["kazi", "[GEÇMİŞ] Su Hattı Kazısı", "Tamamlanmış çalışma. Listede görünmemesi gerekir.", "Mustafapaşa", "Eski Sk.", "İSU", -20, 9, -14, 18], ["cevre", "[GEÇMİŞ] Park Temizlik Çalışması", "Tamamlanmış çalışma. Listede görünmemesi gerekir.", "Osman Yılmaz", "Merkez Park", "Temizlik İşleri Müdürlüğü", -8, 9, -5, 17], ["altyapi", "[GEÇMİŞ] Kablo Değişimi", "Dün biten çalışma. Listede görünmemesi gerekir.", "Arapçeşme", "Eski Cd.", "Elektrik İşleri", -4, 9, -1, 8]];
+      let i = 0;
+      for (const [category, title, description, neighborhood, address, unit, so, sh, eo, eh] of items) {
+        i++;
+        await setDoc(doc(db, "neighborhood_works", "demo_" + String(i).padStart(2, '0')), {
+          category, title, description, neighborhood, address, unit,
+          startDate: at(so, sh), endDate: at(eo, eh)
+        });
+      }
+    };
 
     // ───────────────── 7. NÖBETÇİ ECZANELER ─────────────────
     async function loadPharmacies() {
@@ -1412,6 +1658,11 @@
           });
         });
 
+        // 7b. Mahallemde
+        await runModuleSeed("Mahallemde (neighborhood_works)", async () => {
+          await window.seedNeighborhoodWorks();
+        });
+
         // 8. E-Belediye Kategorileri
         await runModuleSeed("E-Belediye", async () => {
           await window.seedEBelediyeOnly();
@@ -1522,6 +1773,10 @@
         <span class="icon">⚡</span>
         <span>Kesintiler</span>
       </div>
+      <div class="nav-item" id="nav-works" onclick="switchNav('works', 'Mahallemde', 'Mahalle bazlı kazı, altyapı, çevre ve yol bakım çalışmaları')">
+        <span class="icon">🚧</span>
+        <span>Mahallemde</span>
+      </div>
       <div class="nav-item" id="nav-pharmacies" onclick="switchNav('pharmacies', 'Nöbetçi Eczaneler', 'Bugün ve bu hafta Gebze nöbetçi eczaneleri')">
         <span class="icon">💊</span>
         <span>Nöbetçi Eczaneler</span>
@@ -1560,6 +1815,8 @@
         </div>
       </div>
       <div class="topbar-right">
+        <span id="adminWho" style="font-size:12px; color:var(--text-muted); margin-right:8px;"></span>
+        <button id="btnSignOut" class="btn btn-danger btn-sm" style="display:none; margin-right:8px;" onclick="window.adminSignOut()">Çıkış</button>
         <button id="btnSeedAll" class="btn btn-seed" onclick="window.seedAllData()">
           ⚡ Demo Verileri Yükle (Seed All)
         </button>
@@ -1613,6 +1870,13 @@
             <div class="kpi-info">
               <h3 id="kpiPharmacies">0</h3>
               <p>Kayıtlı Nöbetçi Eczane</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('works', 'Mahallemde', 'Mahalle bazlı kazı, altyapı, çevre ve yol bakım çalışmaları')">
+            <div class="kpi-icon" style="background:#FFEDD5; color:#C2410C;">🚧</div>
+            <div class="kpi-info">
+              <h3 id="kpiWorks">0</h3>
+              <p>Aktif / Planlı Mahalle Çalışması</p>
             </div>
           </div>
         </div>
@@ -1806,6 +2070,127 @@
         </div>
       </section>
 
+      <!-- ════════ MAHALLEMDE TAB ════════ -->
+      <section class="tab-view" id="view-works">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">🚧 Yeni Mahalle Çalışması</div></div>
+            <form id="formAddWork">
+              <div class="form-group">
+                <label>Çalışma Türü *</label>
+                <select id="workCategory" required>
+                  <option value="kazi">🚧 Kazı</option>
+                  <option value="altyapi">🔧 Altyapı</option>
+                  <option value="cevre">🌳 Çevre</option>
+                  <option value="yol_bakim">🛣️ Yol Bakım</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Başlık *</label>
+                <input type="text" id="workTitle" placeholder="Örn: Doğalgaz Hattı Kazı Çalışması" required>
+              </div>
+              <div class="form-group">
+                <label>Açıklama</label>
+                <textarea id="workDesc" rows="3" placeholder="Vatandaşın göreceği kısa bilgilendirme metni"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Mahalle *</label>
+                  <select id="workNeighborhood" required>
+                    <option value="">Mahalle seçin</option>
+                  <option value="Mustafapaşa">Mustafapaşa</option>
+                  <option value="Osman Yılmaz">Osman Yılmaz</option>
+                  <option value="Arapçeşme">Arapçeşme</option>
+                  <option value="Hacıhalil">Hacıhalil</option>
+                  <option value="Mevlana">Mevlana</option>
+                  <option value="Gaziler">Gaziler</option>
+                  <option value="Eskihisar">Eskihisar</option>
+                  <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+                  <option value="Güzeller">Güzeller</option>
+                  <option value="Yenikent">Yenikent</option>
+                  <option value="İnönü">İnönü</option>
+                  <option value="İstasyon">İstasyon</option>
+                  <option value="Tatlıkuyu">Tatlıkuyu</option>
+                  <option value="Barış">Barış</option>
+                  <option value="Kirazpınar">Kirazpınar</option>
+                  <option value="Sultan Orhan">Sultan Orhan</option>
+                  <option value="Ulus">Ulus</option>
+                  <option value="Yavuz Selim">Yavuz Selim</option>
+                  <option value="Cumhuriyet">Cumhuriyet</option>
+                  <option value="Beylikbağı">Beylikbağı</option>
+                  <option value="Hürriyet">Hürriyet</option>
+                  <option value="Mimar Sinan">Mimar Sinan</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Cadde / Sokak</label>
+                  <input type="text" id="workAddress" placeholder="Örn: Bahar Cd.">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Sorumlu Birim</label>
+                <input type="text" id="workUnit" placeholder="Örn: Fen İşleri Müdürlüğü, İSU">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Başlangıç (TR saati) *</label>
+                  <input type="datetime-local" id="workStart" required>
+                </div>
+                <div class="form-group">
+                  <label>Bitiş (TR saati) *</label>
+                  <input type="datetime-local" id="workEnd" required>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px; line-height:1.4;">
+                ℹ️ Bitiş zamanı geçen çalışmalar mobil uygulamada otomatik olarak listeden kalkar.
+              </p>
+              <button type="submit" class="btn btn-primary" style="width:100%;">Çalışmayı Kaydet</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header">
+              <div class="panel-title">Kayıtlı Mahalle Çalışmaları</div>
+              <button class="btn btn-danger btn-sm" onclick="window.cleanupExpiredWorks()">🧹 Süresi Dolanları Sil</button>
+            </div>
+            <div class="form-row" style="margin-bottom:12px;">
+              <select id="workFilterCategory" onchange="window.loadWorks()">
+                <option value="">Tüm Türler</option>
+                <option value="kazi">Kazı</option>
+                <option value="altyapi">Altyapı</option>
+                <option value="cevre">Çevre</option>
+                <option value="yol_bakim">Yol Bakım</option>
+              </select>
+              <select id="workFilterNeighborhood" onchange="window.loadWorks()">
+                <option value="">Tüm Mahalleler</option>
+              <option value="Mustafapaşa">Mustafapaşa</option>
+              <option value="Osman Yılmaz">Osman Yılmaz</option>
+              <option value="Arapçeşme">Arapçeşme</option>
+              <option value="Hacıhalil">Hacıhalil</option>
+              <option value="Mevlana">Mevlana</option>
+              <option value="Gaziler">Gaziler</option>
+              <option value="Eskihisar">Eskihisar</option>
+              <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+              <option value="Güzeller">Güzeller</option>
+              <option value="Yenikent">Yenikent</option>
+              <option value="İnönü">İnönü</option>
+              <option value="İstasyon">İstasyon</option>
+              <option value="Tatlıkuyu">Tatlıkuyu</option>
+              <option value="Barış">Barış</option>
+              <option value="Kirazpınar">Kirazpınar</option>
+              <option value="Sultan Orhan">Sultan Orhan</option>
+              <option value="Ulus">Ulus</option>
+              <option value="Yavuz Selim">Yavuz Selim</option>
+              <option value="Cumhuriyet">Cumhuriyet</option>
+              <option value="Beylikbağı">Beylikbağı</option>
+              <option value="Hürriyet">Hürriyet</option>
+              <option value="Mimar Sinan">Mimar Sinan</option>
+              </select>
+            </div>
+            <div class="items-grid" id="worksGrid"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ════════ 7. ECZANELER TAB ════════ -->
       <section class="tab-view" id="view-pharmacies">
         <div class="panel">
@@ -1916,6 +2301,24 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- Yönetici Giriş Ekranı -->
+  <div id="loginOverlay">
+    <form class="login-card" onsubmit="window.adminSignIn(event)">
+      <h2>🏛️ Gebze Dijital Yönetim</h2>
+      <p>Devam etmek için yönetici hesabınızla giriş yapın.</p>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label>Şifre</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </div>
+      <div id="loginError"></div>
+      <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;">Giriş Yap</button>
+    </form>
   </div>
 
   <!-- Toast Notification -->
