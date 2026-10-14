@@ -1,41 +1,343 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. Genel Belediye Koleksiyonları (Mobil okur, Yönetim Paneli okur & yazar)
-    match /events/{id}                { allow read, write: if true; }
-    match /places/{id}                { allow read, write: if true; }
-    match /municipal_news/{id}        { allow read, write: if true; }
-    match /outages/{id}               { allow read, write: if true; }
-    match /pharmacies_on_duty/{id}    { allow read, write: if true; }
-    match /weather_info/{id}          { allow read, write: if true; }
+    // --------------------------------------------------
+    // YARDIMCI FONKSİYONLAR
+    // --------------------------------------------------
 
-    // 2. Şehir Rehberi Koleksiyonları (Kurumsal Hizmetler & Gebze'yi Keşfet)
-    match /guide_institutions/{id}    { allow read, write: if true; }
-    match /guide_places/{id}          { allow read, write: if true; }
+    function signedIn() {
+      return request.auth != null;
+    }
 
-    // 3. E-Belediye ve Gebze Pati Koleksiyonları
-    match /ebelediye_categories/{id}  { allow read, write: if true; }
-    match /pet_adoptions/{id}         { allow read, write: if true; }
-    match /feeding_points/{id}        { allow read, write: if true; }
-    match /vet_clinics/{id}           { allow read, write: if true; }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
 
-    // 4. Söz Sende - Anketler / Oylamalar
-    match /polls/{id}                 { allow read, write: if true; }
+    function pollPath(pollId) {
+      return /databases/$(database)/documents/polls/$(pollId);
+    }
 
-    // 5. Söz Sende - Fikir ve Öneriler
-    match /suggestions/{id}           { allow read, write: if true; }
+    function votePath(pollId) {
+      return /databases/$(database)/documents/users/$(request.auth.uid)/votes/$(pollId);
+    }
 
-    // 6. Çek & Gönder - Vatandaş Bildirimleri / Talepler
-    // (Mobil oluşturur ve takip eder, Yönetim Paneli durumu günceller)
-    match /reports/{id}               { allow read, write: if true; }
+    function supportPath(suggestionId) {
+      return /databases/$(database)/documents/users/$(request.auth.uid)/supported/$(suggestionId);
+    }
 
-    // 7. Kullanıcı Profili ve Aktiviteler (Mobil & Yönetim Paneli)
-    match /users/{id}                 { allow read, write: if true; }
-    match /users/{userId}/activities/{activityId} { allow read, write: if true; }
-    match /user_activities/{id}       { allow read, write: if true; }
+    function oldCounts() {
+      return resource.data.get('voteCounts', {});
+    }
 
-    // Geri kalan her şey kapalı
-    match /{document=**}              { allow read, write: if false; }
+    // --------------------------------------------------
+    // ANKET OYU: OY KAYDI VE SAYAÇ AYNI İŞLEMDE OLMALI
+    // --------------------------------------------------
+
+    function validVoteCreate(pollId) {
+      let optionIndex = request.resource.data.optionIndex;
+      let before = get(pollPath(pollId)).data;
+      let after = getAfter(pollPath(pollId)).data;
+      let key = string(optionIndex);
+      let beforeCounts = before.get('voteCounts', {});
+
+      return before.options is list
+        && optionIndex >= 0
+        && optionIndex < before.options.size()
+        && after.diff(before).affectedKeys().hasOnly(['voteCounts'])
+        && after.voteCounts.diff(beforeCounts).affectedKeys().hasOnly([key])
+        && after.voteCounts[key] == beforeCounts.get(key, 0) + 1;
+    }
+
+    function validVoteBump(pollId) {
+      let vote = getAfter(votePath(pollId)).data;
+      let key = string(vote.optionIndex);
+
+      return request.resource.data.voteCounts is map
+        && request.resource.data.voteCounts.diff(oldCounts())
+            .affectedKeys().hasOnly([key])
+        && request.resource.data.voteCounts[key]
+            == oldCounts().get(key, 0) + 1;
+    }
+
+    // --------------------------------------------------
+    // ÖNERİ DESTEĞİ: KAYIT VE LIKE AYNI İŞLEMDE OLMALI
+    // --------------------------------------------------
+
+    function validSupportCreate(suggestionId) {
+      let before = get(
+        /databases/$(database)/documents/suggestions/$(suggestionId)
+      ).data;
+
+      let after = getAfter(
+        /databases/$(database)/documents/suggestions/$(suggestionId)
+      ).data;
+
+      return after.diff(before).affectedKeys().hasOnly(['likes'])
+        && after.likes == before.likes + 1;
+    }
+
+    function validSupportDelete(suggestionId) {
+      let before = get(
+        /databases/$(database)/documents/suggestions/$(suggestionId)
+      ).data;
+
+      let after = getAfter(
+        /databases/$(database)/documents/suggestions/$(suggestionId)
+      ).data;
+
+      return after.diff(before).affectedKeys().hasOnly(['likes'])
+        && after.likes == before.likes - 1;
+    }
+
+    // --------------------------------------------------
+    // 1. GENEL BELEDİYE VERİLERİ
+    // Herkes okuyabilir, istemci doğrudan yazamaz.
+    // Yönetim yazmaları güvenilir sunucu üzerinden yapılmalı.
+    // --------------------------------------------------
+
+    match /events/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /places/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /municipal_news/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /outages/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /pharmacies_on_duty/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /weather_info/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --------------------------------------------------
+    // 2. ŞEHİR REHBERİ
+    // --------------------------------------------------
+
+    match /guide_institutions/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /guide_places/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --------------------------------------------------
+    // 3. E-BELEDİYE VE GEBZE PATİ
+    // --------------------------------------------------
+
+    match /ebelediye_categories/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /pet_adoptions/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /feeding_points/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /vet_clinics/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --------------------------------------------------
+    // 4. SÖZ SENDE: ANKETLER
+    // --------------------------------------------------
+
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, delete: if false;
+
+      // Sayaç yalnızca yeni oy kaydıyla birlikte ve +1 artabilir.
+      allow update: if signedIn()
+        && !exists(votePath(pollId))
+        && existsAfter(votePath(pollId))
+        && request.resource.data.diff(resource.data)
+            .affectedKeys().hasOnly(['voteCounts'])
+        && validVoteBump(pollId);
+    }
+
+    // Bir kullanıcı aynı ankete yalnızca bir kez oy verebilir.
+    match /users/{uid}/votes/{pollId} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && request.resource.data.keys()
+            .hasOnly(['optionIndex', 'createdAt'])
+        && request.resource.data.optionIndex is int
+        && request.resource.data.createdAt == request.time
+        && !exists(/databases/$(database)/documents/users/$(uid)/votes/$(pollId))
+        && exists(pollPath(pollId))
+        && validVoteCreate(pollId);
+
+      allow update, delete: if false;
+    }
+
+    // --------------------------------------------------
+    // 5. SÖZ SENDE: FİKİR VE ÖNERİLER
+    // --------------------------------------------------
+
+    match /suggestions/{id} {
+      allow read: if true;
+      allow delete: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.likes == 0
+        && request.resource.data.status == 'Beklemede';
+
+      // Yalnızca destek ekleme veya kaldırma ile +1/-1 değişebilir.
+      allow update: if signedIn()
+        && request.resource.data.likes is int
+        && resource.data.likes is int
+        && request.resource.data.diff(resource.data)
+            .affectedKeys().hasOnly(['likes'])
+        && (
+          (
+            !exists(supportPath(id))
+            && existsAfter(supportPath(id))
+            && request.resource.data.likes == resource.data.likes + 1
+          )
+          ||
+          (
+            exists(supportPath(id))
+            && !existsAfter(supportPath(id))
+            && request.resource.data.likes == resource.data.likes - 1
+          )
+        );
+    }
+
+    // Kullanıcının desteklediği öneriler.
+    match /users/{uid}/supported/{suggestionId} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && exists(/databases/$(database)/documents/suggestions/$(suggestionId))
+        && validSupportCreate(suggestionId);
+
+      allow delete: if isOwner(uid)
+        && exists(/databases/$(database)/documents/suggestions/$(suggestionId))
+        && validSupportDelete(suggestionId);
+
+      allow update: if false;
+    }
+
+    // --------------------------------------------------
+    // 6. KAYDEDİLEN İÇERİKLER
+    // --------------------------------------------------
+
+    match /users/{uid}/saved/{itemId} {
+      allow read, write: if isOwner(uid);
+    }
+
+    // --------------------------------------------------
+    // 7. VATANDAŞ BİLDİRİMLERİ
+    // --------------------------------------------------
+
+    // Bu kurallar reports belgelerinde authorUid alanı
+    // kullanıldığını varsayar. Gerçek belge şemanı kontrol et.
+    match /reports/{id} {
+      allow read: if signedIn()
+        && resource.data.authorUid == request.auth.uid;
+
+      allow create: if signedIn()
+        && request.resource.data.authorUid == request.auth.uid;
+
+      allow update: if signedIn()
+        && resource.data.authorUid == request.auth.uid
+        && request.resource.data.authorUid == resource.data.authorUid
+        && request.resource.data.diff(resource.data)
+            .affectedKeys().hasOnly([
+              'title',
+              'description',
+              'updatedAt'
+            ]);
+
+      allow delete: if false;
+    }
+
+    // --------------------------------------------------
+    // 8. KULLANICI PROFİLLERİ
+    // --------------------------------------------------
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      // Kullanıcı kendi profilini oluşturabilir ve güncelleyebilir.
+      // Yetki yükseltme alanları istemciden yazılamaz.
+      allow create, update: if isOwner(uid)
+        && !request.resource.data.keys().hasAny([
+          'role',
+          'isAdmin',
+          'admin',
+          'isModerator',
+          'permissions'
+        ]);
+
+      allow delete: if false;
+    }
+
+    // --------------------------------------------------
+    // 9. KULLANICI AKTİVİTELERİ
+    // --------------------------------------------------
+
+    match /users/{uid}/activities/{activityId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update, delete: if false;
+    }
+
+    match /user_activities/{id} {
+      allow read: if signedIn()
+        && resource.data.ownerUid == request.auth.uid;
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+
+    // --------------------------------------------------
+    // 10. MAHALLE ÇALIŞMALARI
+    // --------------------------------------------------
+
+    match /neighborhood_works/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // --------------------------------------------------
+    // DİĞER TÜM KOLEKSİYONLAR KAPALI
+    // --------------------------------------------------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

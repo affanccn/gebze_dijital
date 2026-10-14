@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'auth_guard.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/localization/app_strings.dart';
+import '../features/soz_sende/application/soz_sende_providers.dart';
 
 /// Gebze Belediyesi - Söz Sende (Fikir, Öneri ve Oylamalar)
 /// Dosya yolu: lib/screens/soz_sende_screen.dart
@@ -53,14 +58,20 @@ List<Map<String, dynamic>> _parseOptions(Map<String, dynamic> data) {
   final raw = data['options'];
   if (raw is! List) return [];
   final votes = data['votes'];
+  // Yeni oylar `voteCounts.{şıkIndex}` altında sayılır; eski oylara eklenir.
+  final counts = data['voteCounts'];
   final result = <Map<String, dynamic>>[];
   for (int i = 0; i < raw.length; i++) {
+    final extra = (counts is Map && counts['$i'] is num)
+        ? (counts['$i'] as num)
+        : 0;
     final e = raw[i];
     if (e is Map) {
       final m = Map<String, dynamic>.from(e);
       m['text'] = (m['text'] ?? m['title'] ?? m['label'] ?? m['name'] ?? '')
           .toString();
-      m['votes'] = (m['votes'] is num) ? m['votes'] : 0;
+      final base = (m['votes'] is num) ? (m['votes'] as num) : 0;
+      m['votes'] = base + extra;
       result.add(m);
     } else {
       final text = e.toString();
@@ -70,7 +81,7 @@ List<Map<String, dynamic>> _parseOptions(Map<String, dynamic> data) {
       } else if (votes is Map && votes[text] is num) {
         v = votes[text] as num;
       }
-      result.add({'text': text, 'votes': v});
+      result.add({'text': text, 'votes': v + extra});
     }
   }
   return result;
@@ -96,8 +107,11 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
   late final TabController _tab;
   int _neighborhoodIndex = 0;
 
-  final Map<String, int> _votedPolls = {};
-  final Set<String> _likedSuggestions = {};
+  // Oy / destek durumu artık Firestore'dan gelir (myVotesProvider,
+  // mySupportedProvider). Burada yalnızca çift dokunma koruması ve
+  // demo (Firestore'da olmayan) öneri destekleri tutulur.
+  final Set<String> _voting = {};
+  final Set<String> _demoLiked = {};
 
   List<Map<String, dynamic>> _getFallbackPolls(String lang) {
     final isEn = lang == 'en';
@@ -235,78 +249,71 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     return n == selected || n == 'Tüm Gebze';
   }
 
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(msg)));
+  }
+
   Future<void> _vote(String key, String? docId, int optionIndex) async {
     if (!requireLogin(context, ref)) return;
-    setState(() => _votedPolls[key] = optionIndex);
+    final uid = ref.read(sozUidProvider);
+    if (uid == null) return;
+
+    // Zaten oy verilmişse (Firestore + yerel kayıt) ya da işlem sürüyorsa dur.
+    final voted = ref.read(myVotesProvider).value ?? const <String, int>{};
+    if (voted.containsKey(key) || !_voting.add(key)) return;
     HapticFeedback.lightImpact();
 
-    if (docId == null) return;
-
-    try {
-      final pollRef =
-          FirebaseFirestore.instance.collection('polls').doc(docId);
-      await FirebaseFirestore.instance.runTransaction((tx) async {
-        final snap = await tx.get(pollRef);
-        final data = snap.data();
-        if (data == null) return;
-        final rawOptions = data['options'];
-        if (rawOptions is! List || optionIndex >= rawOptions.length) return;
-
-        if (rawOptions[optionIndex] is Map) {
-          // options: [{text, votes}]
-          final options = rawOptions
-              .map(
-                (e) => e is Map
-                    ? Map<String, dynamic>.from(e)
-                    : <String, dynamic>{'text': e.toString(), 'votes': 0},
-              )
-              .toList();
-          options[optionIndex]['votes'] =
-              ((options[optionIndex]['votes'] ?? 0) as num).toInt() + 1;
-          tx.update(pollRef, {'options': options});
-        } else {
-          // options: ['A','B'] + votes (List veya Map)
-          final votes = data['votes'];
-          if (votes is Map) {
-            final key = rawOptions[optionIndex].toString();
-            tx.update(pollRef, {'votes.$key': FieldValue.increment(1)});
-          } else {
-            final list = List<int>.generate(rawOptions.length, (i) {
-              if (votes is List && i < votes.length && votes[i] is num) {
-                return (votes[i] as num).toInt();
-              }
-              return 0;
-            });
-            list[optionIndex] += 1;
-            tx.update(pollRef, {'votes': list});
-          }
-        }
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _votedPolls.remove(key));
+    if (docId == null) {
+      // Demo anket: Firestore'da yok, yalnızca yerelde hatırlanır.
+      await ref.read(voteLocalStoreProvider).setVote(uid, key, optionIndex);
+      _voting.remove(key);
+      ref.invalidate(myVotesProvider);
+      return;
     }
+
+    // Batch çevrimdışıyken de kuyruğa alınır; arayüz Firestore'un yerel
+    // önbellek akışından anında güncellenir. Commit'i beklemiyoruz.
+    unawaited(
+      ref.read(sozRepoProvider).vote(uid, docId, optionIndex).catchError((
+        Object e,
+      ) {
+        _voting.remove(key);
+        _snack(
+          e is FirebaseException && e.code == 'permission-denied'
+              ? 'Bu ankete daha önce oy verdiniz.'
+              : 'Oy kaydedilemedi, lütfen tekrar deneyin.',
+        );
+      }),
+    );
   }
 
   Future<void> _toggleLike(String key, String? docId) async {
     if (!requireLogin(context, ref)) return;
-    final liked = !_likedSuggestions.contains(key);
-    setState(() {
-      liked ? _likedSuggestions.add(key) : _likedSuggestions.remove(key);
-    });
+    final uid = ref.read(sozUidProvider);
+    if (uid == null) return;
     HapticFeedback.selectionClick();
-    if (docId == null) return;
-    try {
-      await FirebaseFirestore.instance
-          .collection('suggestions')
-          .doc(docId)
-          .update({'likes': FieldValue.increment(liked ? 1 : -1)});
-    } catch (e) {
-      if (!mounted) return;
+
+    if (docId == null) {
+      // Demo öneri: yalnızca ekranda.
       setState(() {
-        liked ? _likedSuggestions.remove(key) : _likedSuggestions.add(key);
+        _demoLiked.contains(key) ? _demoLiked.remove(key) : _demoLiked.add(key);
       });
+      return;
     }
+
+    final supported = ref.read(mySupportedProvider).value ?? const <String>{};
+    final nowSupport = !supported.contains(docId);
+    unawaited(
+      ref
+          .read(sozRepoProvider)
+          .setSupport(uid, docId, support: nowSupport)
+          .catchError((Object e) {
+            _snack('İşlem tamamlanamadı, lütfen tekrar deneyin.');
+          }),
+    );
   }
 
   void _openNewSuggestion(String lang) {
@@ -418,6 +425,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
 
   Widget _buildPollsTab(String lang) {
     final fallbackPolls = _getFallbackPolls(lang);
+    final myVotes = ref.watch(myVotesProvider).value ?? const <String, int>{};
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('polls').snapshots(),
@@ -463,7 +471,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             return _PollCard(
               data: p,
               lang: lang,
-              votedIndex: _votedPolls[key],
+              votedIndex: myVotes[key],
               isDemo: id == null,
               onVote: (idx) => _vote(key, id, idx),
             );
@@ -475,6 +483,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
 
   Widget _buildSuggestionsTab(String lang) {
     final fallbackSuggestions = _getFallbackSuggestions(lang);
+
+    final supported = ref.watch(mySupportedProvider).value ?? const <String>{};
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('suggestions').snapshots(),
@@ -528,7 +538,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             return _SuggestionCard(
               data: s,
               lang: lang,
-              liked: _likedSuggestions.contains(key),
+              liked: id != null
+                  ? supported.contains(id)
+                  : _demoLiked.contains(key),
               onLike: () => _toggleLike(key, id),
             );
           },
@@ -1101,7 +1113,16 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
       _error = null;
     });
     try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) {
+        setState(() {
+          _sending = false;
+          _error = AppStrings.get('error_occurred', widget.lang);
+        });
+        return;
+      }
       await FirebaseFirestore.instance.collection('suggestions').add({
+        'authorUid': uid,
         'title': title,
         'description': desc,
         'neighborhood': _neighborhood,
