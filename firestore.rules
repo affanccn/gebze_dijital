@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -14,6 +13,12 @@ service cloud.firestore {
 
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
+    }
+
+    // Yönetim paneline giriş yapan yönetici hesabı.
+    // Yeni yönetici eklemek için UID'yi listeye virgülle ekle.
+    function isAdmin() {
+      return signedIn() && request.auth.uid in ['y6QJ63E265RZYjfLI4HlOfS22Fo1'];
     }
 
     function pollPath(pollId) {
@@ -94,38 +99,37 @@ service cloud.firestore {
 
     // --------------------------------------------------
     // 1. GENEL BELEDİYE VERİLERİ
-    // Herkes okuyabilir, istemci doğrudan yazamaz.
-    // Yönetim yazmaları güvenilir sunucu üzerinden yapılmalı.
+    // Herkes okuyabilir, yalnızca yönetici yazabilir.
     // --------------------------------------------------
 
     match /events/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /places/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /municipal_news/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /outages/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /pharmacies_on_duty/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /weather_info/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // --------------------------------------------------
@@ -134,12 +138,12 @@ service cloud.firestore {
 
     match /guide_institutions/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /guide_places/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // --------------------------------------------------
@@ -148,22 +152,22 @@ service cloud.firestore {
 
     match /ebelediye_categories/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /pet_adoptions/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /feeding_points/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /vet_clinics/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // --------------------------------------------------
@@ -181,6 +185,10 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data)
             .affectedKeys().hasOnly(['voteCounts'])
         && validVoteBump(pollId);
+
+      // Yönetici anket ekleyebilir, düzenleyebilir ve silebilir.
+      // (Aynı işlem için birden fazla allow, VEYA ile birleşir.)
+      allow write: if isAdmin();
     }
 
     // Bir kullanıcı aynı ankete yalnızca bir kez oy verebilir.
@@ -231,6 +239,9 @@ service cloud.firestore {
             && request.resource.data.likes == resource.data.likes - 1
           )
         );
+
+      // Yönetici öneri onaylayabilir, düzenleyebilir ve silebilir.
+      allow write: if isAdmin();
     }
 
     // Kullanıcının desteklediği öneriler.
@@ -325,11 +336,12 @@ service cloud.firestore {
 
     // --------------------------------------------------
     // 10. MAHALLE ÇALIŞMALARI
+    // Herkes okuyabilir, yalnızca yönetici yazabilir.
     // --------------------------------------------------
 
     match /neighborhood_works/{id} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // --------------------------------------------------
