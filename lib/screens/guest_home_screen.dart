@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/parking/presentation/parking_screen.dart';
 import '../core/localization/app_strings.dart';
 import '../features/ebelediye/presentation/ebelediye_screen.dart';
 import '../features/news/municipal_news_screen.dart';
@@ -122,7 +123,9 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
       AppStrings.get('qa_parking', lang),
       Icons.local_parking_rounded,
       _C.orangeGradient,
-      onTap: () => _handleNav(3),
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const ParkingScreen())),
     ),
   ];
 

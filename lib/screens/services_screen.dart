@@ -11,6 +11,7 @@ import '../features/weather/presentation/weather_screen.dart';
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
 import 'soz_sende_screen.dart';
+import '../features/parking/presentation/parking_screen.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
 /// Dosya yolu: lib/screens/services_screen.dart
@@ -46,7 +47,13 @@ class _ServiceData {
   final String subtitle;
   final IconData icon;
   final List<Color> gradient;
-  const _ServiceData(this.id, this.title, this.subtitle, this.icon, this.gradient);
+  const _ServiceData(
+    this.id,
+    this.title,
+    this.subtitle,
+    this.icon,
+    this.gradient,
+  );
 }
 
 class ServicesScreen extends ConsumerStatefulWidget {
@@ -68,85 +75,85 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   String _query = '';
 
   _ServiceData _getEmergencyData(String lang) => _ServiceData(
-        'acil_durum',
-        AppStrings.get('service_emergency', lang),
-        AppStrings.get('service_emergency_sub', lang),
-        Icons.emergency_rounded,
-        const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
-      );
+    'acil_durum',
+    AppStrings.get('service_emergency', lang),
+    AppStrings.get('service_emergency_sub', lang),
+    Icons.emergency_rounded,
+    const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
+  );
 
   List<_ServiceData> _getServices(String lang) => [
-        _ServiceData(
-          'kesintiler',
-          AppStrings.get('service_outages', lang),
-          AppStrings.get('service_outages_sub', lang),
-          Icons.power_off_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'otopark',
-          AppStrings.get('service_parking', lang),
-          AppStrings.get('service_parking_sub', lang),
-          Icons.local_parking_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'soz_sende',
-          AppStrings.get('service_soz_sende', lang),
-          AppStrings.get('service_soz_sende_sub', lang),
-          Icons.record_voice_over_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'gebze_pati',
-          AppStrings.get('service_pati', lang),
-          AppStrings.get('service_pati_sub', lang),
-          Icons.pets_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'nobetci_eczane',
-          AppStrings.get('service_pharmacy', lang),
-          AppStrings.get('service_pharmacy_sub', lang),
-          Icons.local_pharmacy_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'hava_durumu',
-          AppStrings.get('service_weather', lang),
-          AppStrings.get('service_weather_sub', lang),
-          Icons.wb_cloudy_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'mahallemde',
-          AppStrings.get('service_neighborhood', lang),
-          AppStrings.get('service_neighborhood_sub', lang),
-          Icons.location_city_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'e_belediye',
-          AppStrings.get('service_ebelediye', lang),
-          AppStrings.get('service_ebelediye_sub', lang),
-          Icons.account_balance_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'asistan_bot',
-          AppStrings.get('service_assistant', lang),
-          AppStrings.get('service_assistant_sub', lang),
-          Icons.smart_toy_rounded,
-          _C.navyGradient,
-        ),
-        _ServiceData(
-          'haberler',
-          AppStrings.get('service_news', lang),
-          AppStrings.get('service_news_sub', lang),
-          Icons.menu_book_rounded,
-          _C.navyGradient,
-        ),
-      ];
+    _ServiceData(
+      'kesintiler',
+      AppStrings.get('service_outages', lang),
+      AppStrings.get('service_outages_sub', lang),
+      Icons.power_off_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'otopark',
+      AppStrings.get('service_parking', lang),
+      AppStrings.get('service_parking_sub', lang),
+      Icons.local_parking_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'soz_sende',
+      AppStrings.get('service_soz_sende', lang),
+      AppStrings.get('service_soz_sende_sub', lang),
+      Icons.record_voice_over_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'gebze_pati',
+      AppStrings.get('service_pati', lang),
+      AppStrings.get('service_pati_sub', lang),
+      Icons.pets_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'nobetci_eczane',
+      AppStrings.get('service_pharmacy', lang),
+      AppStrings.get('service_pharmacy_sub', lang),
+      Icons.local_pharmacy_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'hava_durumu',
+      AppStrings.get('service_weather', lang),
+      AppStrings.get('service_weather_sub', lang),
+      Icons.wb_cloudy_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'mahallemde',
+      AppStrings.get('service_neighborhood', lang),
+      AppStrings.get('service_neighborhood_sub', lang),
+      Icons.location_city_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'e_belediye',
+      AppStrings.get('service_ebelediye', lang),
+      AppStrings.get('service_ebelediye_sub', lang),
+      Icons.account_balance_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'asistan_bot',
+      AppStrings.get('service_assistant', lang),
+      AppStrings.get('service_assistant_sub', lang),
+      Icons.smart_toy_rounded,
+      _C.navyGradient,
+    ),
+    _ServiceData(
+      'haberler',
+      AppStrings.get('service_news', lang),
+      AppStrings.get('service_news_sub', lang),
+      Icons.menu_book_rounded,
+      _C.navyGradient,
+    ),
+  ];
 
   @override
   void dispose() {
@@ -158,40 +165,41 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return services;
     return services
-        .where((s) =>
-            s.title.toLowerCase().contains(q) || s.subtitle.toLowerCase().contains(q))
+        .where(
+          (s) =>
+              s.title.toLowerCase().contains(q) ||
+              s.subtitle.toLowerCase().contains(q),
+        )
         .toList();
   }
 
   void _open(_ServiceData s, String lang) {
     if (s.id == 'acil_durum') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const EmergencyScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const EmergencyScreen()));
       return;
     }
     if (s.id == 'kesintiler') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const OutagesScreen()),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const OutagesScreen()));
       return;
     }
     if (s.id == 'soz_sende') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const SozSendeScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const SozSendeScreen()));
       return;
     }
     if (s.id == 'nobetci_eczane') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const PharmaciesScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const PharmaciesScreen()));
       return;
     }
     if (s.id == 'hava_durumu') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const WeatherScreen()),
-      );
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const WeatherScreen()));
       return;
     }
     if (s.id == 'haberler') {
@@ -201,15 +209,20 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       return;
     }
     if (s.id == 'gebze_pati') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const GebzePatiScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const GebzePatiScreen()));
+      return;
+    }
+    if (s.id == 'otopark') {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const ParkingScreen()));
       return;
     }
     if (s.id == 'e_belediye') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const EBelediyeScreen()));
       return;
     }
     if (widget.onServiceTap != null) {
@@ -247,11 +260,14 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     final allServices = _getServices(lang);
     final items = _filter(allServices);
 
-    final showEmergency = _query.trim().isEmpty ||
+    final showEmergency =
+        _query.trim().isEmpty ||
         emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
         backgroundColor: _C.bg,
         body: Column(
@@ -281,12 +297,13 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                       padding: EdgeInsets.zero,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: items.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 14,
-                        crossAxisSpacing: 14,
-                        mainAxisExtent: 158,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 14,
+                            crossAxisSpacing: 14,
+                            mainAxisExtent: 158,
+                          ),
                       itemBuilder: (_, i) => _ServiceCard(
                         data: items[i],
                         onTap: () => _open(items[i], lang),
@@ -351,7 +368,11 @@ class _Header extends StatelessWidget {
                       ),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 24),
+                    child: const Icon(
+                      Icons.grid_view_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -370,7 +391,10 @@ class _Header extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           AppStrings.get('services_screen_subtitle', lang),
-                          style: const TextStyle(fontSize: 12, color: Colors.white70),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
                         ),
                       ],
                     ),
@@ -400,8 +424,14 @@ class _Header extends StatelessWidget {
                   style: const TextStyle(fontSize: 14, color: _C.textDark),
                   decoration: InputDecoration(
                     hintText: AppStrings.get('search_services_hint', lang),
-                    hintStyle: const TextStyle(color: _C.textMuted, fontSize: 14),
-                    prefixIcon: const Icon(Icons.search_rounded, color: _C.textMuted),
+                    hintStyle: const TextStyle(
+                      color: _C.textMuted,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: _C.textMuted,
+                    ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 13),
                   ),
@@ -476,12 +506,19 @@ class _EmergencyCard extends StatelessWidget {
                       data.subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Colors.white70),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 18),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.white70,
+                size: 18,
+              ),
             ],
           ),
         ),
@@ -604,7 +641,10 @@ class _BottomNav extends StatelessWidget {
       _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
       _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
       _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+      _NavItem(
+        AppStrings.get('nav_profile', lang),
+        Icons.person_outline_rounded,
+      ),
     ];
 
     return Material(
@@ -636,7 +676,9 @@ class _BottomNav extends StatelessWidget {
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
-                            fontWeight: i == index ? FontWeight.w800 : FontWeight.w500,
+                            fontWeight: i == index
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: i == index ? _C.orange : Colors.white70,
                           ),
                         ),
