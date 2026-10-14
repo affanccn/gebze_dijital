@@ -67,8 +67,14 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
         }
 
         final listView = ListView.builder(
-          scrollDirection: widget.isHorizontal ? Axis.horizontal : Axis.vertical,
+          scrollDirection: widget.isHorizontal
+              ? Axis.horizontal
+              : Axis.vertical,
           shrinkWrap: widget.shrinkWrap && !widget.isHorizontal,
+          // Tam ekran haber sayfasında sistem üst boşluğunu kaldır (başlık SafeArea'yı zaten karşılıyor).
+          padding: (!widget.shrinkWrap && !widget.isHorizontal)
+              ? const EdgeInsets.only(top: 8, bottom: 24)
+              : null,
           physics: widget.shrinkWrap && !widget.isHorizontal
               ? const NeverScrollableScrollPhysics()
               : const ClampingScrollPhysics(),
@@ -96,7 +102,9 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => SizedBox(
                         height: widget.isHorizontal ? 120 : 100,
-                        child: const Center(child: Icon(Icons.image_not_supported)),
+                        child: const Center(
+                          child: Icon(Icons.image_not_supported),
+                        ),
                       ),
                     ),
                   Padding(
@@ -106,11 +114,14 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                       children: [
                         Text(
                           item.title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
                                 fontSize: widget.isHorizontal ? 14 : null,
                               ),
                           maxLines: widget.isHorizontal ? 3 : null,
-                          overflow: widget.isHorizontal ? TextOverflow.ellipsis : null,
+                          overflow: widget.isHorizontal
+                              ? TextOverflow.ellipsis
+                              : null,
                         ),
                         if (item.publishedAtText.isNotEmpty) ...[
                           const SizedBox(height: 6),
@@ -131,10 +142,11 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                 width: 240,
                 child: Card(
                   margin: EdgeInsets.only(
-                      left: index == 0 ? 16 : 8,
-                      right: index == news.length - 1 ? 16 : 8,
-                      top: 6,
-                      bottom: 6),
+                    left: index == 0 ? 16 : 8,
+                    right: index == news.length - 1 ? 16 : 8,
+                    top: 6,
+                    bottom: 6,
+                  ),
                   clipBehavior: Clip.antiAlias,
                   child: cardContent,
                 ),
@@ -150,10 +162,7 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
         );
 
         if (widget.isHorizontal) {
-          return SizedBox(
-            height: 260,
-            child: listView,
-          );
+          return SizedBox(height: 260, child: listView);
         }
 
         return listView;
