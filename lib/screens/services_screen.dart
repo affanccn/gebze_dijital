@@ -1,3 +1,4 @@
+import 'neighborhood_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -212,6 +213,13 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       );
       return;
     }
+    if (s.id == 'mahallemde') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const NeighborhoodScreen()),
+      );
+     return;
+    }
+    
     if (widget.onServiceTap != null) {
       widget.onServiceTap!(s.id);
       return;
