@@ -1,3 +1,4 @@
+import 'auth_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -220,11 +221,12 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       return;
     }
     if (s.id == 'e_belediye') {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => const EBelediyeScreen()));
-      return;
-    }
+     if (!requireLogin(context, ref)) return;
+     Navigator.of(context).push(
+     MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
+  );
+  return;
+}
     if (widget.onServiceTap != null) {
       widget.onServiceTap!(s.id);
       return;

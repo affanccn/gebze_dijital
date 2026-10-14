@@ -1,3 +1,4 @@
+import 'auth_guard.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -115,9 +116,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
       AppStrings.get('qa_complaint', lang),
       Icons.report_problem_rounded,
       _C.navyGradient,
-      onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const ReportScreen())),
+      onTap: () => _handleNav(2),
     ),
     _QuickActionData(
       AppStrings.get('qa_parking', lang),
@@ -167,7 +166,8 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
 
   /// Alt menü yönlendirmesi
   void _handleNav(int i) {
-    if (i == 1) {
+  if ((i == 2 || i == 4) && !requireLogin(context, ref)) return;
+  if (i == 1) {
       _openGuide();
     } else if (i == 2) {
       Navigator.of(context)

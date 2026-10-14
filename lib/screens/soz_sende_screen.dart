@@ -1,3 +1,4 @@
+import 'auth_guard.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -235,16 +236,17 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
   }
 
   Future<void> _vote(String key, String? docId, int optionIndex) async {
-    if (_votedPolls.containsKey(key)) return;
+    if (!requireLogin(context, ref)) return;
     setState(() => _votedPolls[key] = optionIndex);
     HapticFeedback.lightImpact();
 
     if (docId == null) return;
 
     try {
-      final ref = FirebaseFirestore.instance.collection('polls').doc(docId);
+      final pollRef =
+          FirebaseFirestore.instance.collection('polls').doc(docId);
       await FirebaseFirestore.instance.runTransaction((tx) async {
-        final snap = await tx.get(ref);
+        final snap = await tx.get(pollRef);
         final data = snap.data();
         if (data == null) return;
         final rawOptions = data['options'];
@@ -261,13 +263,13 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
               .toList();
           options[optionIndex]['votes'] =
               ((options[optionIndex]['votes'] ?? 0) as num).toInt() + 1;
-          tx.update(ref, {'options': options});
+          tx.update(pollRef, {'options': options});
         } else {
           // options: ['A','B'] + votes (List veya Map)
           final votes = data['votes'];
           if (votes is Map) {
             final key = rawOptions[optionIndex].toString();
-            tx.update(ref, {'votes.$key': FieldValue.increment(1)});
+            tx.update(pollRef, {'votes.$key': FieldValue.increment(1)});
           } else {
             final list = List<int>.generate(rawOptions.length, (i) {
               if (votes is List && i < votes.length && votes[i] is num) {
@@ -276,7 +278,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
               return 0;
             });
             list[optionIndex] += 1;
-            tx.update(ref, {'votes': list});
+            tx.update(pollRef, {'votes': list});
           }
         }
       });
@@ -287,26 +289,29 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
   }
 
   Future<void> _toggleLike(String key, String? docId) async {
-    final liked = _likedSuggestions.contains(key);
+    if (!requireLogin(context, ref)) return;
+    final liked = !_likedSuggestions.contains(key);
     setState(() {
-      liked ? _likedSuggestions.remove(key) : _likedSuggestions.add(key);
+      liked ? _likedSuggestions.add(key) : _likedSuggestions.remove(key);
     });
+    HapticFeedback.selectionClick();
     if (docId == null) return;
     try {
       await FirebaseFirestore.instance
           .collection('suggestions')
           .doc(docId)
-          .update({'likes': FieldValue.increment(liked ? -1 : 1)});
+          .update({'likes': FieldValue.increment(liked ? 1 : -1)});
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        liked ? _likedSuggestions.add(key) : _likedSuggestions.remove(key);
+        liked ? _likedSuggestions.remove(key) : _likedSuggestions.add(key);
       });
     }
   }
 
   void _openNewSuggestion(String lang) {
-    showModalBottomSheet(
+    if (!requireLogin(context, ref)) return;
+    showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

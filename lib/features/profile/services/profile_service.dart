@@ -1,17 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../screens/auth_service.dart' show authStateProvider;
 import '../models/user_profile.dart';
 
-const String kCurrentUserId = 'default_citizen';
+/// Giriş yapmış kullanıcının uid'si. Misafirse eski sabit kimlik döner
+/// (misafir Firestore'a yazamaz, sadece varsayılan profili görür).
+String get kCurrentUserId =>
+    FirebaseAuth.instance.currentUser?.uid ?? 'default_citizen';
 
 final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
-  final docRef = FirebaseFirestore.instance.collection('users').doc(kCurrentUserId);
+  // Oturum değişince (giriş/çıkış) profil akışı yeniden kurulur.
+  final user = ref.watch(authStateProvider).value;
+
+  if (user == null) {
+    // Misafir: Firestore'a dokunma, varsayılan profili göster.
+    return Stream.value(UserProfile.defaultProfile());
+  }
+
+  final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
   return docRef.snapshots().asyncMap((doc) async {
     if (!doc.exists) {
-      // Döküman henüz yoksa başlangıç profilini Firestore'a yazıyoruz
+      // Döküman henüz yoksa (kayıt yazımı gecikti/başarısız) oluştur.
       final defaultProfile = UserProfile.defaultProfile();
-      await docRef.set(defaultProfile.toFirestore());
+      try {
+        await docRef.set(defaultProfile.toFirestore());
+      } catch (_) {}
       return defaultProfile;
     }
     return UserProfile.fromFirestore(doc);

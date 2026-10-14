@@ -1,3 +1,4 @@
+import 'auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -816,7 +817,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           width: double.infinity,
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: () => _confirmSignOut(context, lang),
+            onPressed: () async {
+              final nav = Navigator.of(context);
+              await ref.read(authServiceProvider).signOut();
+              ref.read(guestModeProvider.notifier).state = false;
+              if (mounted) nav.popUntil((r) => r.isFirst);
+            },
             icon: const Icon(Icons.logout_rounded, size: 20),
             label: Text(
               AppStrings.get('btn_logout', lang),
