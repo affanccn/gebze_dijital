@@ -16,6 +16,7 @@ import 'guide_screen.dart';
 import 'profile_screen.dart';
 import 'report_screen.dart';
 import 'services_screen.dart';
+import 'neighborhood_screen.dart';
 
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu: lib/screens/guest_home_screen.dart
@@ -126,6 +127,14 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
           Navigator.of(context)
               .push(MaterialPageRoute(builder: (_) => const ParkingScreen())),
     ),
+    _QuickActionData(
+  AppStrings.get('service_neighborhood', lang),
+  Icons.location_city_rounded,
+  _C.orangeGradient,
+  onTap: () => Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) => const NeighborhoodScreen()),
+  ),
+),
   ];
 
   List<_RowData> _getHistoricPlaces(String lang) => [

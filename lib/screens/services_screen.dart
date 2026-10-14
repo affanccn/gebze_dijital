@@ -12,6 +12,7 @@ import '../features/weather/presentation/weather_screen.dart';
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
 import 'soz_sende_screen.dart';
+import 'neighborhood_screen.dart';
 import '../features/parking/presentation/parking_screen.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
@@ -224,9 +225,19 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
      if (!requireLogin(context, ref)) return;
      Navigator.of(context).push(
      MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
+
+     
   );
   return;
+  
 }
+    if (s.id == 'mahallemde') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const NeighborhoodScreen()),
+      );
+      return;
+    }
+
     if (widget.onServiceTap != null) {
       widget.onServiceTap!(s.id);
       return;
