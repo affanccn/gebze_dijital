@@ -1,4 +1,5 @@
 import 'auth_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import '../features/profile/models/user_profile.dart';
 import '../features/profile/services/profile_service.dart';
 import '../core/localization/app_strings.dart';
 import '../core/accessibility/font_scale_provider.dart';
+import '../core/theme/theme_provider.dart';
 import 'my_requests_screen.dart';
 import 'report_common.dart';
 import 'services_screen.dart';
@@ -103,12 +105,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
     final base = Theme.of(context);
+    final isDark = context.isDark;
 
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -116,7 +121,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           statusBarColor: Colors.transparent,
         ),
         child: Scaffold(
-          backgroundColor: _C.bg,
+          backgroundColor: context.isDark ? const Color(0xFF0F172A) : _C.bg,
           body: profileAsync.when(
             data: (profile) => _buildProfileContent(context, profile),
             loading: () =>
@@ -496,12 +501,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile,
     String lang,
   ) {
+    final isDark = context.isDark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark ? [] : _softShadow(),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -544,6 +551,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     IconData icon,
     VoidCallback onTap,
   ) {
+    final isDark = context.isDark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -551,23 +559,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Column(
           children: [
-            Icon(icon, size: 20, color: _C.navy),
+            Icon(
+              icon,
+              size: 20,
+              color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+            ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w900,
-                color: _C.textDark,
+                color: isDark ? Colors.white : _C.textDark,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: _C.textMuted,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
               ),
             ),
           ],
@@ -577,23 +589,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildStatDivider() {
-    return Container(width: 1, height: 34, color: const Color(0xFFE2E8F0));
+    final isDark = context.isDark;
+    return Container(
+      width: 1,
+      height: 34,
+      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+    );
   }
 
   // ───────────────────────── Bölüm Başlığı ─────────────────────────
 
   Widget _buildSectionTitle(String title, IconData icon) {
+    final isDark = context.isDark;
     return Row(
       children: [
-        Icon(icon, size: 17, color: _C.navy),
+        Icon(icon, size: 17, color: isDark ? const Color(0xFF60A5FA) : _C.navy),
         const SizedBox(width: 6),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.5,
-            color: _C.textMuted,
+            color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
           ),
         ),
       ],
@@ -687,8 +705,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile,
     String lang,
   ) {
+    final activeLang = ref.watch(appLanguageProvider);
+    final activeTheme = ref.watch(appThemeModeProvider);
+
     String langLabel;
-    switch (profile.language) {
+    switch (activeLang) {
       case 'en':
         langLabel = 'English (EN)';
         break;
@@ -700,15 +721,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     String themeLabel;
-    switch (profile.themeMode) {
-      case 'dark':
-        themeLabel = AppStrings.get('theme_dark', lang);
+    switch (activeTheme) {
+      case ThemeMode.dark:
+        themeLabel = AppStrings.get('theme_dark', activeLang);
         break;
-      case 'system':
-        themeLabel = AppStrings.get('theme_system', lang);
+      case ThemeMode.system:
+        themeLabel = AppStrings.get('theme_system', activeLang);
         break;
       default:
-        themeLabel = AppStrings.get('theme_light', lang);
+        themeLabel = AppStrings.get('theme_light', activeLang);
     }
 
     return _buildGroupCard([
@@ -744,16 +765,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     AppStrings.get('tile_large_font', lang),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
-                      color: _C.textDark,
+                      color: context.isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     AppStrings.get('tile_large_font_sub', lang),
-                    style: const TextStyle(fontSize: 12, color: _C.textMuted),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.isDark
+                          ? const Color(0xFF94A3B8)
+                          : _C.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -810,6 +836,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile,
     String lang,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         // Çıkış Yap Butonu
@@ -817,22 +844,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           width: double.infinity,
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: () async {
-              final nav = Navigator.of(context);
-              await ref.read(authServiceProvider).signOut();
-              ref.read(guestModeProvider.notifier).state = false;
-              if (mounted) nav.popUntil((r) => r.isFirst);
-            },
+            onPressed: () => _confirmSignOut(context, lang),
             icon: const Icon(Icons.logout_rounded, size: 20),
             label: Text(
               AppStrings.get('btn_logout', lang),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: _C.navy,
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              foregroundColor: isDark ? Colors.white : _C.navy,
               elevation: 0,
-              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+              side: BorderSide(
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
+                width: 1.2,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -868,18 +895,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // ───────────────────────── Yardımcı Widget'lar ─────────────────────────
 
   Widget _buildGroupCard(List<Widget> children) {
+    final isDark = context.isDark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _softShadow(),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark ? [] : _softShadow(),
       ),
       child: Column(children: children),
     );
   }
 
   Widget _buildDivider() {
-    return const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5FD));
+    final isDark = context.isDark;
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5FD),
+    );
   }
 
   Widget _buildListTile({
@@ -889,6 +923,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = context.isDark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -900,7 +935,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: iconColor.withAlpha(25),
+                color: isDark
+                    ? iconColor.withAlpha(50)
+                    : iconColor.withAlpha(25),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 22),
@@ -912,27 +949,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w700,
-                      color: _C.textDark,
+                      color: isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: _C.textMuted,
+                      color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: Color(0xFF94A3B8),
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               size: 22,
             ),
           ],
@@ -986,10 +1023,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final addrCtrl = TextEditingController(text: profile.address);
     final tcCtrl = TextEditingController(text: profile.tcNo);
 
+    final isDark = context.isDark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1011,14 +1050,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Text(
                       AppStrings.get('dialog_edit_profile', lang),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: _C.textDark,
+                        color: isDark ? Colors.white : _C.textDark,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
                   ],
@@ -1096,7 +1138,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         );
       },
-    );
+    ).then((_) {
+      nameCtrl.dispose();
+      emailCtrl.dispose();
+      phoneCtrl.dispose();
+      addrCtrl.dispose();
+      tcCtrl.dispose();
+    });
   }
 
   Widget _buildTextField(
@@ -1105,29 +1153,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     IconData icon, {
     int maxLines = 1,
   }) {
+    final isDark = context.isDark;
     return TextField(
       controller: ctrl,
       maxLines: maxLines,
+      style: TextStyle(color: isDark ? Colors.white : null),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 20, color: _C.navy),
+        labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : null),
+        prefixIcon: Icon(
+          icon,
+          size: 20,
+          color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+        ),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 12,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _C.navy, width: 1.5),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+            width: 1.5,
+          ),
         ),
       ),
     );
@@ -1138,10 +1200,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile, [
     String lang = 'tr',
   ]) {
+    final isDark = context.isDark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1159,28 +1223,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     AppStrings.get('dialog_select_neighborhood', lang),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: _C.textDark,
+                      color: isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                     onPressed: () => Navigator.of(ctx).pop(),
                   ),
                 ],
               ),
               Text(
                 AppStrings.get('select_neighborhood_sub', lang),
-                style: const TextStyle(fontSize: 12.5, color: _C.textMuted),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                ),
               ),
               const SizedBox(height: 14),
               Expanded(
                 child: ListView.separated(
                   itemCount: _kGebzeNeighborhoods.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1, color: Color(0xFFF1F5FD)),
+                  separatorBuilder: (context, index) => Divider(
+                    height: 1,
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFF1F5FD),
+                  ),
                   itemBuilder: (context, index) {
                     final n = _kGebzeNeighborhoods[index];
                     final isSelected =
@@ -1198,13 +1272,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           fontWeight: isSelected
                               ? FontWeight.w800
                               : FontWeight.w600,
-                          color: isSelected ? _C.navy : _C.textDark,
+                          color: isSelected
+                              ? (isDark ? const Color(0xFF60A5FA) : _C.navy)
+                              : (isDark ? Colors.white : _C.textDark),
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(
+                          ? Icon(
                               Icons.check_circle_rounded,
-                              color: _C.navy,
+                              color: isDark ? const Color(0xFF60A5FA) : _C.navy,
                             )
                           : null,
                       onTap: () async {
@@ -1232,11 +1308,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile,
     String lang,
   ) {
+    final isDark = context.isDark;
     final prefs = Map<String, bool>.from(profile.notificationPreferences);
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1254,14 +1331,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     children: [
                       Text(
                         AppStrings.get('tile_notifications', lang),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: _C.textDark,
+                          color: isDark ? Colors.white : _C.textDark,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
                         onPressed: () => Navigator.of(ctx).pop(),
                       ),
                     ],
@@ -1331,6 +1411,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     bool val,
     ValueChanged<bool> onChanged,
   ) {
+    final isDark = context.isDark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1339,10 +1420,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: _C.textDark,
+                color: isDark ? Colors.white : _C.textDark,
               ),
             ),
           ),
@@ -1362,6 +1443,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String initialType, [
     String lang = 'tr',
   ]) {
+    final isDark = context.isDark;
     final activitiesStream = ref
         .read(profileServiceProvider)
         .getActivitiesStream();
@@ -1369,7 +1451,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1395,14 +1477,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Text(
                       AppStrings.get('section_activities', lang),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: _C.textDark,
+                        color: isDark ? Colors.white : _C.textDark,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
                   ],
@@ -1410,9 +1495,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 TabBar(
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
-                  labelColor: _C.navy,
-                  unselectedLabelColor: _C.textMuted,
-                  indicatorColor: _C.navy,
+                  labelColor: isDark ? const Color(0xFF60A5FA) : _C.navy,
+                  unselectedLabelColor: isDark
+                      ? const Color(0xFF94A3B8)
+                      : _C.textMuted,
+                  indicatorColor: isDark ? const Color(0xFF60A5FA) : _C.navy,
                   labelStyle: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
@@ -1489,6 +1576,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
     }
 
+    final isDark = context.isDark;
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: items.length,
@@ -1513,9 +1601,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1529,15 +1619,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: _C.navy.withAlpha(20),
+                      color: (isDark ? const Color(0xFF60A5FA) : _C.navy)
+                          .withAlpha(30),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       item.category,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _C.navy,
+                        color: isDark ? const Color(0xFF93C5FD) : _C.navy,
                       ),
                     ),
                   ),
@@ -1564,16 +1655,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const SizedBox(height: 8),
               Text(
                 item.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w800,
-                  color: _C.textDark,
+                  color: isDark ? Colors.white : _C.textDark,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 item.description,
-                style: const TextStyle(fontSize: 12.5, color: _C.textMuted),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -1606,9 +1700,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile,
     String lang,
   ) {
+    final isDark = context.isDark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1621,10 +1717,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Text(
                 AppStrings.get('tile_language', lang),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: _C.textDark,
+                  color: isDark ? Colors.white : _C.textDark,
                 ),
               ),
               const SizedBox(height: 14),
@@ -1660,6 +1756,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String currentCode,
     ValueChanged<String> onSelect,
   ) {
+    final isDark = context.isDark;
     final isSelected = currentCode == code;
 
     return ListTile(
@@ -1668,11 +1765,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         label,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-          color: isSelected ? _C.navy : _C.textDark,
+          color: isSelected
+              ? (isDark ? const Color(0xFF60A5FA) : _C.navy)
+              : (isDark ? Colors.white : _C.textDark),
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check_circle_rounded, color: _C.navy)
+          ? Icon(
+              Icons.check_circle_rounded,
+              color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+            )
           : null,
       onTap: () => onSelect(code),
     );
@@ -1683,9 +1785,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile, [
     String lang = 'tr',
   ]) {
+    final isDark = context.isDark;
+    final currentAppTheme = ref.read(appThemeModeProvider);
+    final activeThemeStr = currentAppTheme == ThemeMode.dark
+        ? 'dark'
+        : (currentAppTheme == ThemeMode.system ? 'system' : 'light');
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1698,10 +1806,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Text(
                 AppStrings.get('theme_picker_title', lang),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: _C.textDark,
+                  color: isDark ? Colors.white : _C.textDark,
                 ),
               ),
               const SizedBox(height: 14),
@@ -1709,21 +1817,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 AppStrings.get('theme_light', lang),
                 'light',
                 Icons.light_mode_rounded,
-                profile.themeMode,
+                activeThemeStr,
                 lang,
               ),
               _buildThemeOption(
                 AppStrings.get('theme_dark', lang),
                 'dark',
                 Icons.dark_mode_rounded,
-                profile.themeMode,
+                activeThemeStr,
                 lang,
               ),
               _buildThemeOption(
                 AppStrings.get('theme_system', lang),
                 'system',
                 Icons.phone_android_rounded,
-                profile.themeMode,
+                activeThemeStr,
                 lang,
               ),
             ],
@@ -1740,21 +1848,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String currentMode, [
     String lang = 'tr',
   ]) {
+    final isDark = context.isDark;
     final isSelected = currentMode == mode;
 
     return ListTile(
-      leading: Icon(icon, color: isSelected ? _C.navy : _C.textMuted),
+      leading: Icon(
+        icon,
+        color: isSelected
+            ? (isDark ? const Color(0xFF60A5FA) : _C.navy)
+            : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+      ),
       title: Text(
         label,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-          color: isSelected ? _C.navy : _C.textDark,
+          color: isSelected
+              ? (isDark ? const Color(0xFF60A5FA) : _C.navy)
+              : (isDark ? Colors.white : _C.textDark),
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check_circle_rounded, color: _C.navy)
+          ? Icon(
+              Icons.check_circle_rounded,
+              color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+            )
           : null,
       onTap: () {
+        ref.read(appThemeModeProvider.notifier).setThemeMode(mode);
         ref.read(profileServiceProvider).updateThemeMode(mode);
         Navigator.of(context).pop();
         _showSnackBar(AppStrings.get('theme_updated_toast', lang));
@@ -1767,35 +1887,62 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile, [
     String lang = 'tr',
   ]) {
+    final isDark = context.isDark;
     final urlCtrl = TextEditingController(text: profile.avatarUrl);
 
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
           ),
           title: Text(
             AppStrings.get('change_avatar_title', lang),
-            style: const TextStyle(fontWeight: FontWeight.w800),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : _C.textDark,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 AppStrings.get('change_avatar_sub', lang),
-                style: const TextStyle(fontSize: 13, color: _C.textMuted),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: urlCtrl,
+                style: TextStyle(color: isDark ? Colors.white : null),
                 decoration: InputDecoration(
                   hintText: 'https://...',
+                  hintStyle: TextStyle(
+                    color: isDark ? const Color(0xFF94A3B8) : null,
+                  ),
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
+                  fillColor: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
                   ),
                 ),
               ),
@@ -1823,7 +1970,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         );
       },
-    );
+    ).then((_) {
+      urlCtrl.dispose();
+    });
   }
 
   void _confirmSignOut(BuildContext context, String lang) {
@@ -1845,9 +1994,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Text(AppStrings.get('btn_cancel', lang)),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                final nav = Navigator.of(context);
                 Navigator.of(ctx).pop();
-                _showSnackBar(AppStrings.get('logged_out_msg', lang));
+                await ref.read(authServiceProvider).signOut();
+                ref.read(guestModeProvider.notifier).state = false;
+                if (mounted) nav.popUntil((r) => r.isFirst);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _C.navy,
@@ -1928,10 +2080,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _openPrivacySheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -1947,22 +2100,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'KVKK ve Gizlilik Politikası',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
-                      color: _C.textDark,
+                      color: isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                     onPressed: () => Navigator.of(ctx).pop(),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              const Expanded(
+              Expanded(
                 child: SingleChildScrollView(
                   child: Text(
                     'Gebze Belediyesi olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında vatandaşlarımızın kişisel verilerinin güvenliğini en üst düzeyde korumayı taahhüt ediyoruz.\n\n'
@@ -1974,7 +2130,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.5,
-                      color: _C.textMuted,
+                      color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                     ),
                   ),
                 ),

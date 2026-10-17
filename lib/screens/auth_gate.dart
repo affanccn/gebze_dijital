@@ -20,12 +20,12 @@ class AuthGate extends ConsumerWidget {
     final guest = ref.watch(guestModeProvider);
 
     return auth.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => const AuthScreen(),
-      data: (user) =>
-          (user != null || guest) ? const GuestHomeScreen() : const AuthScreen(),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) => const AuthScreen(),
+      data: (user) => (user != null || guest)
+          ? const GuestHomeScreen()
+          : const AuthScreen(),
     );
   }
 }

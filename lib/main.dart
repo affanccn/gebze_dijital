@@ -1,17 +1,21 @@
 import 'screens/auth_gate.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'features/news/municipal_news_screen.dart';
 import 'core/services/push_service.dart';
 import 'firebase_options.dart';
-import 'screens/guest_home_screen.dart';
+import 'features/chatbot/chatbot.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'core/localization/app_strings.dart';
 import 'core/accessibility/font_scale_provider.dart';
-import 'features/profile/models/user_profile.dart';
-import 'features/profile/services/profile_service.dart';
+import 'core/theme/theme_provider.dart';
+
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -32,6 +36,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
+    ChatbotNavigator.navigatorKey = navigatorKey;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       PushService.init(
         onNewsOpened: () {
@@ -40,28 +45,194 @@ class _MyAppState extends ConsumerState<MyApp> {
           if (navigator == null) return;
 
           navigator.push(
-            MaterialPageRoute(
-              builder: (_) => const MunicipalNewsScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const MunicipalNewsScreen()),
           );
         },
       );
     });
   }
 
+  ThemeData _buildTheme(bool isLargeFont, bool isDark) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: isDark ? const Color(0xFF2563EB) : const Color(0xFF0A2A66),
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      surface: isDark ? const Color(0xFF1E293B) : Colors.white,
+      onSurface: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0A1F44),
+      primary: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0A2A66),
+      onPrimary: isDark ? const Color(0xFF0F172A) : Colors.white,
+      outline: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+    );
+
+    final baseTextTheme =
+        (isDark ? ThemeData.dark() : ThemeData.light()).textTheme;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      colorScheme: colorScheme,
+      textTheme: baseTextTheme.apply(
+        bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+        displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+      ),
+      scaffoldBackgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF6F8FC),
+      cardColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      dividerColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5FD),
+      appBarTheme: AppBarTheme(
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF6F8FC),
+        foregroundColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(
+          color: isDark ? Colors.white : const Color(0xFF0A1F44),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        elevation: isDark ? 0 : 2,
+        shadowColor: const Color(0xFF0A2A66).withAlpha(20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: isDark
+              ? const BorderSide(color: Color(0xFF334155))
+              : BorderSide.none,
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: isDark
+              ? const BorderSide(color: Color(0xFF334155))
+              : BorderSide.none,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: isDark
+            ? const Color(0xFF1E293B)
+            : const Color(0xFF0A2A66),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        behavior: SnackBarBehavior.floating,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        textStyle: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF0A1F44),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: isDark
+              ? const BorderSide(color: Color(0xFF334155))
+              : BorderSide.none,
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: isDark ? Colors.white : const Color(0xFF0A2A66),
+        unselectedLabelColor: isDark
+            ? const Color(0xFF94A3B8)
+            : const Color(0xFF5F6F8A),
+        indicatorColor: const Color(0xFFFF7A00),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        selectedColor: const Color(0xFF0A2A66),
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF0A1F44),
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+        side: BorderSide(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dividerTheme: DividerThemeData(
+        color: isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2),
+        thickness: 1,
+        space: 1,
+      ),
+      iconTheme: IconThemeData(
+        color: isDark ? Colors.white : const Color(0xFF0A1F44),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(
+          color: isDark ? const Color(0xFF64748B) : const Color(0xFF5F6F8A),
+          fontSize: 14,
+        ),
+        labelStyle: TextStyle(
+          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5F6F8A),
+          fontSize: 14,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: isLargeFont ? const Size(64, 52) : const Size(64, 44),
+          padding: isLargeFont
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: isLargeFont ? const Size(64, 52) : const Size(64, 44),
+          padding: isLargeFont
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: isLargeFont ? const Size(64, 52) : const Size(64, 44),
+          padding: isLargeFont
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: isLargeFont ? const Size(48, 48) : const Size(40, 40),
+          padding: isLargeFont
+              ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
+              : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Firestore'daki profil dili ve büyük yazı tercihi yüklendiğinde provider'ları eşitle
-    ref.listen<AsyncValue<UserProfile>>(profileProvider, (prev, next) {
-      final lang = next.value?.language;
-      if (lang != null && lang.isNotEmpty && lang != ref.read(appLanguageProvider)) {
-        ref.read(appLanguageProvider.notifier).setLanguage(lang);
-      }
-      final isLarge = next.value?.isLargeFont;
-      if (isLarge != null && isLarge != ref.read(appLargeFontProvider)) {
-        ref.read(appLargeFontProvider.notifier).setLargeFont(isLarge);
-      }
-    });
+    final currentThemeMode = ref.watch(appThemeModeProvider);
 
     final activeLang = ref.watch(appLanguageProvider);
     final isLargeFont = ref.watch(appLargeFontProvider);
@@ -71,53 +242,15 @@ class _MyAppState extends ConsumerState<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Gebze Dijital',
       locale: Locale(activeLang),
-      supportedLocales: const [
-        Locale('tr'),
-        Locale('en'),
-        Locale('ar'),
-      ],
+      supportedLocales: const [Locale('tr'), Locale('en'), Locale('ar')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF0B5FA5),
-        // Yaşlılar ve az görenler için buton dokunma alanlarını ve yazılarını büyütme
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            minimumSize: isLargeFont ? const Size(64, 52) : const Size(64, 44),
-            padding: isLargeFont
-                ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
-                : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          ),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            minimumSize: isLargeFont ? const Size(64, 52) : const Size(64, 44),
-            padding: isLargeFont
-                ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
-                : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            minimumSize: isLargeFont ? const Size(64, 52) : const Size(64, 44),
-            padding: isLargeFont
-                ? const EdgeInsets.symmetric(horizontal: 20, vertical: 14)
-                : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            minimumSize: isLargeFont ? const Size(48, 48) : const Size(40, 40),
-            padding: isLargeFont
-                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
-                : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-        ),
-      ),
+      themeMode: currentThemeMode,
+      theme: _buildTheme(isLargeFont, false),
+      darkTheme: _buildTheme(isLargeFont, true),
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
         // Büyük yazı modu: Tüm uygulama genelinde metinleri %25 oranında büyütür
@@ -126,14 +259,14 @@ class _MyAppState extends ConsumerState<MyApp> {
             : const TextScaler.linear(1.0);
 
         return MediaQuery(
-          data: mediaQuery.copyWith(
-            textScaler: textScaler,
+          data: mediaQuery.copyWith(textScaler: textScaler),
+          child: Bot82Overlay(
+            navigatorKey: navigatorKey,
+            child: child ?? const SizedBox.shrink(),
           ),
-          child: child ?? const SizedBox.shrink(),
         );
       },
       home: const AuthGate(),
     );
   }
 }
-

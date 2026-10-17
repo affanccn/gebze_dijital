@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/weather_info.dart';
 
 final weatherProvider = StreamProvider.autoDispose<WeatherInfo?>((ref) {
@@ -8,7 +9,7 @@ final weatherProvider = StreamProvider.autoDispose<WeatherInfo?>((ref) {
       .doc('gebze')
       .snapshots()
       .map((doc) {
-    if (!doc.exists) return null;
-    return WeatherInfo.fromFirestore(doc);
-  });
+        if (!doc.exists) return null;
+        return WeatherInfo.fromFirestore(doc);
+      });
 });

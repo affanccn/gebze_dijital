@@ -23,8 +23,11 @@ bool requireLogin(BuildContext context, WidgetRef ref) {
     context: context,
     builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      icon: const Icon(Icons.lock_outline_rounded,
-          color: Color(0xFFFF7A00), size: 44),
+      icon: const Icon(
+        Icons.lock_outline_rounded,
+        color: Color(0xFFFF7A00),
+        size: 44,
+      ),
       title: Text(
         at(lang, 'gate_title'),
         textAlign: TextAlign.center,
@@ -43,12 +46,13 @@ bool requireLogin(BuildContext context, WidgetRef ref) {
         ),
         FilledButton(
           style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF0A2A66)),
+            backgroundColor: const Color(0xFF0A2A66),
+          ),
           onPressed: () {
             Navigator.of(ctx).pop();
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AuthScreen()),
-            );
+            if (!context.mounted) return;
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const AuthScreen()));
           },
           child: Text(at(lang, 'gate_go')),
         ),

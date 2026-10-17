@@ -33,11 +33,14 @@ const List<String> _kBodyFontFallback = [
 
 Widget _withFont(BuildContext context, Widget child) {
   final base = Theme.of(context);
+  final isDark = base.brightness == Brightness.dark;
   return Theme(
     data: base.copyWith(
       textTheme: base.textTheme.apply(
         fontFamily: _kBodyFont,
         fontFamilyFallback: _kBodyFontFallback,
+        bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+        displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
       ),
     ),
     child: child,
@@ -49,30 +52,37 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Image.asset(
       'gorsel/gebze_logo.png',
       height: 76,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Row(
+      errorBuilder: (_, _, _) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.account_balance_rounded, color: _C.orange, size: 44),
-          SizedBox(width: 8),
+          const Icon(Icons.account_balance_rounded, color: _C.orange, size: 44),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('GEBZE',
-                  style: TextStyle(
-                      fontSize: 28,
-                      height: 1,
-                      fontWeight: FontWeight.w900,
-                      color: _C.navy)),
-              Text('BELEDİYESİ',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: _C.navy,
-                      letterSpacing: 1)),
+              Text(
+                'GEBZE',
+                style: TextStyle(
+                  fontSize: 28,
+                  height: 1,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : _C.navy,
+                ),
+              ),
+              Text(
+                'BELEDİYESİ',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.navy,
+                  letterSpacing: 1,
+                ),
+              ),
             ],
           ),
         ],
@@ -89,6 +99,7 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, top: 16),
       child: Row(
@@ -97,120 +108,152 @@ class _Label extends StatelessWidget {
           Text.rich(
             TextSpan(
               text: text,
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: _C.textDark),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : _C.textDark,
+              ),
               children: [
                 if (required)
                   const TextSpan(
-                      text: ' *', style: TextStyle(color: _C.danger)),
+                    text: ' *',
+                    style: TextStyle(color: _C.danger),
+                  ),
               ],
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );
   }
 }
 
-InputDecoration _dec({String? hint, Widget? suffix}) => InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: _C.textMuted, fontSize: 14),
-      filled: true,
-      fillColor: _C.field,
-      suffixIcon: suffix,
-      counterText: '',
-      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+InputDecoration _dec(BuildContext context, {String? hint, Widget? suffix}) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return InputDecoration(
+    hintText: hint,
+    hintStyle: TextStyle(
+      color: isDark ? const Color(0xFF64748B) : _C.textMuted,
+      fontSize: 14,
+    ),
+    filled: true,
+    fillColor: isDark ? const Color(0xFF0F172A) : _C.field,
+    suffixIcon: suffix,
+    counterText: '',
+    contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: isDark ? const Color(0xFF334155) : Colors.transparent,
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _C.navy, width: 1.4),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: isDark ? const Color(0xFF334155) : Colors.transparent,
       ),
-    );
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: isDark ? const Color(0xFF38BDF8) : _C.navy,
+        width: 1.4,
+      ),
+    ),
+  );
+}
 
 final _phoneFormatters = <TextInputFormatter>[
   FilteringTextInputFormatter.allow(RegExp(r'[0-9 +]')),
 ];
 
-Widget _softButton(String text, VoidCallback onTap) => Material(
-      color: const Color(0xFFF6F7FA),
+Widget _softButton(BuildContext context, String text, VoidCallback onTap) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return Material(
+    color: isDark ? const Color(0xFF334155) : const Color(0xFFF6F7FA),
+    borderRadius: BorderRadius.circular(12),
+    child: InkWell(
       borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 17),
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: _C.textMuted),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 17),
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isDark ? const Color(0xFFE2E8F0) : _C.textMuted,
           ),
         ),
       ),
-    );
+    ),
+  );
+}
 
-Widget _card({required Widget child}) => Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 460),
-      padding: const EdgeInsets.fromLTRB(26, 30, 26, 28),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: _C.navy.withAlpha(22),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: child,
-    );
+Widget _card(BuildContext context, {required Widget child}) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return Container(
+    width: double.infinity,
+    constraints: const BoxConstraints(maxWidth: 460),
+    padding: const EdgeInsets.fromLTRB(26, 30, 26, 28),
+    decoration: BoxDecoration(
+      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+      boxShadow: [
+        BoxShadow(
+          color: isDark ? Colors.black.withAlpha(50) : _C.navy.withAlpha(22),
+          blurRadius: 28,
+          offset: const Offset(0, 10),
+        ),
+      ],
+    ),
+    child: child,
+  );
+}
 
 Widget _errorRow(String text) => Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.error_outline, size: 16, color: _C.danger),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                  color: _C.danger,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600),
-            ),
+  padding: const EdgeInsets.only(top: 12),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Icon(Icons.error_outline, size: 16, color: _C.danger),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: _C.danger,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
           ),
-        ],
+        ),
       ),
-    );
+    ],
+  ),
+);
 
-Widget _eyeButton(bool hide, VoidCallback onTap) => IconButton(
-      icon: Icon(
-        hide ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-        color: _C.textMuted,
-        size: 20,
-      ),
-      onPressed: onTap,
-    );
+Widget _eyeButton(BuildContext context, bool hide, VoidCallback onTap) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return IconButton(
+    icon: Icon(
+      hide ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+      color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+      size: 20,
+    ),
+    onPressed: onTap,
+  );
+}
 
 Widget _spinner() => const SizedBox(
-      width: 22,
-      height: 22,
-      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
-    );
+  width: 22,
+  height: 22,
+  child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
+);
 
 // ───────────────────────── Giriş ─────────────────────────
 
@@ -262,26 +305,49 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   void _forgot(String lang) {
     final c = TextEditingController(text: _email.text.trim());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        icon: const Icon(Icons.lock_reset_rounded, color: _C.navy, size: 44),
-        title: Text(at(lang, 'forgot_title'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w800)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: isDark
+              ? const BorderSide(color: Color(0xFF334155))
+              : BorderSide.none,
+        ),
+        icon: Icon(
+          Icons.lock_reset_rounded,
+          color: isDark ? const Color(0xFF38BDF8) : _C.navy,
+          size: 44,
+        ),
+        title: Text(
+          at(lang, 'forgot_title'),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : _C.textDark,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(at(lang, 'forgot_msg'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, height: 1.4)),
+            Text(
+              at(lang, 'forgot_msg'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.4,
+                color: isDark ? const Color(0xFFCBD5E1) : _C.textDark,
+              ),
+            ),
             const SizedBox(height: 14),
             TextField(
               controller: c,
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
-              decoration: _dec(hint: at(lang, 'email_hint')),
+              style: TextStyle(color: isDark ? Colors.white : _C.textDark),
+              decoration: _dec(context, hint: at(lang, 'email_hint')),
             ),
           ],
         ),
@@ -289,10 +355,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(at(lang, 'close')),
+            child: Text(
+              at(lang, 'close'),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : null),
+            ),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: _C.navy),
+            style: FilledButton.styleFrom(
+              backgroundColor: isDark ? const Color(0xFF2563EB) : _C.navy,
+            ),
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
               final nav = Navigator.of(ctx);
@@ -300,18 +371,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 await ref.read(authServiceProvider).sendReset(c.text);
                 nav.pop();
                 messenger.showSnackBar(
-                    SnackBar(content: Text(at(lang, 'reset_sent'))));
+                  SnackBar(content: Text(at(lang, 'reset_sent'))),
+                );
               } catch (e) {
                 nav.pop();
                 messenger.showSnackBar(
-                    SnackBar(content: Text(at(lang, authErrorKey(e)))));
+                  SnackBar(content: Text(at(lang, authErrorKey(e)))),
+                );
               }
             },
             child: Text(at(lang, 'send')),
           ),
         ],
       ),
-    );
+    ).then((_) {
+      c.dispose();
+    });
   }
 
   void _guest() {
@@ -323,16 +398,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return _withFont(
       context,
       Scaffold(
-        backgroundColor: _C.bg,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: _card(
+                context,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -341,11 +418,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     Center(
                       child: Text(
                         at(lang, 'login_title'),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFB4B9C6),
-                            letterSpacing: 0.4),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFFB4B9C6),
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
                     _Label(at(lang, 'email')),
@@ -354,7 +434,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       keyboardType: TextInputType.emailAddress,
                       autocorrect: false,
                       textInputAction: TextInputAction.next,
-                      decoration: _dec(hint: at(lang, 'email_hint')),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                      decoration: _dec(context, hint: at(lang, 'email_hint')),
                     ),
                     _Label(
                       at(lang, 'password'),
@@ -363,9 +446,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         child: Text(
                           at(lang, 'forgot'),
                           style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: _C.orange),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: _C.orange,
+                          ),
                         ),
                       ),
                     ),
@@ -373,9 +457,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       controller: _pass,
                       obscureText: _hide,
                       onSubmitted: (_) => _login(lang),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
                       decoration: _dec(
+                        context,
                         suffix: _eyeButton(
-                            _hide, () => setState(() => _hide = !_hide)),
+                          context,
+                          _hide,
+                          () => setState(() => _hide = !_hide),
+                        ),
                       ),
                     ),
                     if (_error != null) _errorRow(_error!),
@@ -386,13 +477,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       child: ElevatedButton(
                         onPressed: _busy ? null : () => _login(lang),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _C.navy,
+                          backgroundColor: isDark
+                              ? const Color(0xFF2563EB)
+                              : _C.navy,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           textStyle: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w800),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         child: _busy ? _spinner() : Text(at(lang, 'login')),
                       ),
@@ -401,18 +497,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     Center(
                       child: Text(
                         at(lang, 'or'),
-                        style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFB4B9C6)),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFFB4B9C6),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 14),
                     _softButton(
+                      context,
                       at(lang, 'go_register'),
                       () => Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (_) => const RegisterScreen()),
+                          builder: (_) => const RegisterScreen(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -425,9 +526,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           foregroundColor: _C.orange,
                           side: const BorderSide(color: _C.orange, width: 1.4),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           textStyle: const TextStyle(
-                              fontSize: 14.5, fontWeight: FontWeight.w800),
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         child: Text(at(lang, 'guest')),
                       ),
@@ -504,7 +608,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _error = null;
     });
     try {
-      await ref.read(authServiceProvider).register(
+      await ref
+          .read(authServiceProvider)
+          .register(
             fullName: _name.text,
             email: _email.text,
             phone: _phone.text,
@@ -530,14 +636,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return _withFont(
       context,
       Scaffold(
-        backgroundColor: _C.bg,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
         appBar: AppBar(
-          backgroundColor: _C.bg,
-          foregroundColor: _C.navy,
+          backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
+          foregroundColor: isDark ? Colors.white : _C.navy,
           elevation: 0,
           scrolledUnderElevation: 0,
         ),
@@ -546,6 +653,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               child: _card(
+                context,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -554,11 +662,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Center(
                       child: Text(
                         at(lang, 'register_title'),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFB4B9C6),
-                            letterSpacing: 0.4),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFFB4B9C6),
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
                     _Label(at(lang, 'full_name')),
@@ -566,7 +677,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _name,
                       textCapitalization: TextCapitalization.words,
                       textInputAction: TextInputAction.next,
-                      decoration: _dec(),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                      decoration: _dec(context),
                     ),
                     _Label(at(lang, 'email')),
                     TextField(
@@ -574,7 +688,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       keyboardType: TextInputType.emailAddress,
                       autocorrect: false,
                       textInputAction: TextInputAction.next,
-                      decoration: _dec(hint: at(lang, 'email_hint')),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                      decoration: _dec(context, hint: at(lang, 'email_hint')),
                     ),
                     _Label(at(lang, 'phone'), required: false),
                     TextField(
@@ -583,16 +700,36 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       inputFormatters: _phoneFormatters,
                       maxLength: 16,
                       textInputAction: TextInputAction.next,
-                      decoration: _dec(hint: at(lang, 'phone_hint')),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                      decoration: _dec(context, hint: at(lang, 'phone_hint')),
                     ),
                     _Label(at(lang, 'neighborhood')),
                     DropdownButtonFormField<String>(
                       initialValue: _hood,
                       isExpanded: true,
-                      decoration: _dec(),
+                      dropdownColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : Colors.white,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                        fontSize: 14,
+                        fontFamily: _kBodyFont,
+                      ),
+                      decoration: _dec(context),
                       items: kReportNeighborhoods
-                          .map((e) =>
-                              DropdownMenuItem(value: e, child: Text(e)))
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(
+                                e,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : _C.textDark,
+                                ),
+                              ),
+                            ),
+                          )
                           .toList(),
                       onChanged: (v) => setState(() => _hood = v),
                     ),
@@ -601,9 +738,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _pass,
                       obscureText: _hide,
                       textInputAction: TextInputAction.next,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
                       decoration: _dec(
+                        context,
                         suffix: _eyeButton(
-                            _hide, () => setState(() => _hide = !_hide)),
+                          context,
+                          _hide,
+                          () => setState(() => _hide = !_hide),
+                        ),
                       ),
                     ),
                     _Label(at(lang, 'password2')),
@@ -611,7 +755,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _pass2,
                       obscureText: _hide,
                       onSubmitted: (_) => _register(lang),
-                      decoration: _dec(),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                      decoration: _dec(context),
                     ),
                     const SizedBox(height: 14),
                     InkWell(
@@ -624,7 +771,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             height: 24,
                             child: Checkbox(
                               value: _kvkk,
-                              activeColor: _C.navy,
+                              activeColor: isDark
+                                  ? const Color(0xFF2563EB)
+                                  : _C.navy,
+                              checkColor: Colors.white,
+                              side: isDark
+                                  ? const BorderSide(color: Color(0xFF64748B))
+                                  : null,
                               onChanged: (v) =>
                                   setState(() => _kvkk = v ?? false),
                             ),
@@ -633,10 +786,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           Expanded(
                             child: Text(
                               at(lang, 'kvkk'),
-                              style: const TextStyle(
-                                  fontSize: 12.5,
-                                  height: 1.35,
-                                  color: _C.textMuted),
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                height: 1.35,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : _C.textMuted,
+                              ),
                             ),
                           ),
                         ],
@@ -654,15 +810,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           textStyle: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w800),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         child: _busy ? _spinner() : Text(at(lang, 'create')),
                       ),
                     ),
                     const SizedBox(height: 14),
                     _softButton(
+                      context,
                       at(lang, 'have_account'),
                       () => Navigator.of(context).pop(),
                     ),

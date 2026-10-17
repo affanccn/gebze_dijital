@@ -83,30 +83,30 @@ class AuthService {
     // gösterme (kurallar yüzünden "hata oluştu" deyip oturum açık kalıyordu).
     try {
       await _db.collection('users').doc(user.uid).set({
-      'uid': user.uid,
-      'fullName': fullName.trim(),
-      'email': mail,
-      'phoneNumber': p == null ? '' : '0$p',
-      'neighborhood': neighborhood,
-      'address': '',
-      'tcNo': '',
-      'avatarUrl': '',
-      'isVerified': false,
-      'language': language,
-      'themeMode': 'light',
-      'largeFont': false,
-      'notificationPreferences': {
-        'push': true,
-        'sms': true,
-        'outages': true,
-        'emergency': true,
-        'sozSende': true,
-      },
-      'totalSuggestions': 0,
-      'totalSupported': 0,
-      'totalSaved': 0,
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+        'uid': user.uid,
+        'fullName': fullName.trim(),
+        'email': mail,
+        'phoneNumber': p == null ? '' : '0$p',
+        'neighborhood': neighborhood,
+        'address': '',
+        'tcNo': '',
+        'avatarUrl': '',
+        'isVerified': false,
+        'language': language,
+        'themeMode': 'light',
+        'largeFont': false,
+        'notificationPreferences': {
+          'push': true,
+          'sms': true,
+          'outages': true,
+          'emergency': true,
+          'sozSende': true,
+        },
+        'totalSuggestions': 0,
+        'totalSupported': 0,
+        'totalSaved': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (_) {}
   }
 
@@ -142,8 +142,7 @@ String authErrorKey(Object e) {
 }
 
 /// Auth ekranlarının metinleri (tr / en / ar). Bulunamazsa tr'ye düşer.
-String at(String lang, String key) =>
-    _s[lang]?[key] ?? _s['tr']![key] ?? key;
+String at(String lang, String key) => _s[lang]?[key] ?? _s['tr']![key] ?? key;
 
 const Map<String, Map<String, String>> _s = {
   'tr': {
@@ -159,8 +158,7 @@ const Map<String, Map<String, String>> _s = {
     'password': 'Şifre',
     'forgot': 'Şifremi Unuttum ?',
     'forgot_title': 'Şifremi Unuttum',
-    'forgot_msg':
-        'Kayıtlı e-posta adresinizi yazın, şifre sıfırlama bağlantısı gönderelim.',
+    'forgot_msg': 'Kayıtlı e-posta adresinizi yazın, şifre sıfırlama bağlantısı gönderelim.',
     'call': 'Ara',
     'close': 'Kapat',
     'login': 'Giriş Yap',
@@ -185,8 +183,7 @@ const Map<String, Map<String, String>> _s = {
     'err_invalid': 'E-posta veya şifre hatalı.',
     'err_exists': 'Bu e-posta ile zaten bir hesap var.',
     'err_weak': 'Şifre en az 6 karakter olmalıdır.',
-    'err_disabled':
-        'Giriş yöntemi kapalı. (Firebase > Authentication > E-posta/Şifre açılmalı)',
+    'err_disabled': 'Giriş yöntemi kapalı. (Firebase > Authentication > E-posta/Şifre açılmalı)',
     'err_network': 'Bağlantı hatası. İnternetinizi kontrol edin.',
     'err_many': 'Çok fazla deneme yapıldı. Biraz sonra tekrar deneyin.',
     'err_generic': 'Bir hata oluştu. Lütfen tekrar deneyin.',
@@ -248,8 +245,7 @@ const Map<String, Map<String, String>> _s = {
     'password': 'كلمة المرور',
     'forgot': 'نسيت كلمة المرور ؟',
     'forgot_title': 'نسيت كلمة المرور',
-    'forgot_msg':
-        'اكتب بريدك الإلكتروني المسجل وسنرسل لك رابط إعادة التعيين.',
+    'forgot_msg': 'اكتب بريدك الإلكتروني المسجل وسنرسل لك رابط إعادة التعيين.',
     'call': 'اتصال',
     'close': 'إغلاق',
     'login': 'تسجيل الدخول',

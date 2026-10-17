@@ -15,15 +15,87 @@ class MyRequestsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lang = ref.watch(appLanguageProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: RC.bg,
-      appBar: AppBar(
-        backgroundColor: RC.navy,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          rt(lang, 'my_title'),
-          style: const TextStyle(fontWeight: FontWeight.w900),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : RC.bg,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(74),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [RC.navy, RC.navyDeep],
+            ),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x330A2A66),
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 16, 12),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          rt(lang, 'my_title'),
+                          style: const TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          lang == 'en'
+                              ? 'Track status of your complaints'
+                              : (lang == 'ar'
+                                    ? 'تتبع حالة طلباتك وشكاواك'
+                                    : 'Şikayet ve taleplerinizin durumunu takip edin'),
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(25),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.assignment_turned_in_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
       body: const MyRequestsList(),
@@ -103,6 +175,7 @@ class _MyRequestsListState extends ConsumerState<MyRequestsList> {
       'active': rt(lang, 'filter_active'),
       'done': rt(lang, 'filter_done'),
     };
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
@@ -113,15 +186,21 @@ class _MyRequestsListState extends ConsumerState<MyRequestsList> {
               selected: _filter == e.key,
               showCheckmark: false,
               selectedColor: RC.navy,
-              backgroundColor: Colors.white,
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               labelStyle: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: _filter == e.key ? Colors.white : RC.textDark,
+                color: _filter == e.key
+                    ? Colors.white
+                    : (isDark ? Colors.white : RC.textDark),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: _filter == e.key ? RC.navy : RC.border),
+                side: BorderSide(
+                  color: _filter == e.key
+                      ? RC.navy
+                      : (isDark ? const Color(0xFF334155) : RC.border),
+                ),
               ),
               onSelected: (_) => setState(() => _filter = e.key),
             ),
@@ -164,6 +243,7 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusKey = reportStatusKey(data['status']);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: onTap,
@@ -171,9 +251,11 @@ class _RequestCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: RC.border),
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : RC.border,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,10 +276,10 @@ class _RequestCard extends StatelessWidget {
                           _categoryLabel(data, lang),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w800,
-                            color: RC.textDark,
+                            color: isDark ? Colors.white : RC.textDark,
                           ),
                         ),
                       ),
@@ -207,9 +289,9 @@ class _RequestCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     '${data['ticketNo'] ?? ''}  •  ${data['neighborhood'] ?? ''}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
-                      color: RC.textMuted,
+                      color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -218,16 +300,19 @@ class _RequestCard extends StatelessWidget {
                     (data['description'] ?? '').toString(),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12.5,
-                      color: RC.textMuted,
+                      color: isDark ? const Color(0xFFCBD5E1) : RC.textMuted,
                       height: 1.3,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     fmtDateTime(data['createdAt']),
-                    style: const TextStyle(fontSize: 11, color: RC.textMuted),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? const Color(0xFF64748B) : RC.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -297,6 +382,7 @@ class _DetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusKey = reportStatusKey(data['status']);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasPhoto =
         (data['photoUrl'] ?? '').toString().isNotEmpty ||
         (data['photoBase64'] ?? '').toString().isNotEmpty;
@@ -310,9 +396,9 @@ class _DetailSheet extends StatelessWidget {
       maxChildSize: 0.95,
       expand: false,
       builder: (context, controller) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: ListView(
           controller: controller,
@@ -334,10 +420,10 @@ class _DetailSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     _categoryLabel(data, lang),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
-                      color: RC.navy,
+                      color: isDark ? Colors.white : RC.navy,
                     ),
                   ),
                 ),
@@ -347,9 +433,9 @@ class _DetailSheet extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '${rt(lang, 'ticket')}: ${data['ticketNo'] ?? '-'}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
-                color: RC.textMuted,
+                color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -363,17 +449,19 @@ class _DetailSheet extends StatelessWidget {
             _kv(
               Icons.location_on_rounded,
               '${data['neighborhood'] ?? '-'}${address.isNotEmpty ? ' • $address' : ''}',
+              isDark,
             ),
             _kv(
               Icons.schedule_rounded,
               '${rt(lang, 'created')}: ${fmtDateTime(data['createdAt'])}',
+              isDark,
             ),
             const SizedBox(height: 8),
             Text(
               (data['description'] ?? '').toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13.5,
-                color: RC.textDark,
+                color: isDark ? const Color(0xFFE2E8F0) : RC.textDark,
                 height: 1.4,
               ),
             ),
@@ -398,7 +486,13 @@ class _DetailSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(note, style: const TextStyle(fontSize: 13)),
+                    Text(
+                      note,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white : RC.textDark,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -406,10 +500,10 @@ class _DetailSheet extends StatelessWidget {
             const SizedBox(height: 18),
             Text(
               rt(lang, 'history'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w800,
-                color: RC.textDark,
+                color: isDark ? Colors.white : RC.textDark,
               ),
             ),
             const SizedBox(height: 10),
@@ -427,17 +521,24 @@ class _DetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _kv(IconData icon, String text) => Padding(
+  Widget _kv(IconData icon, String text, bool isDark) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: RC.textMuted),
+        Icon(
+          icon,
+          size: 16,
+          color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
+        ),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 12.5, color: RC.textMuted),
+            style: TextStyle(
+              fontSize: 12.5,
+              color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
+            ),
           ),
         ),
       ],
@@ -462,6 +563,7 @@ class _TimelineTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = reportStatusColor(statusKey);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -473,10 +575,17 @@ class _TimelineTile extends StatelessWidget {
                 Icon(
                   reportStatusIcon(statusKey),
                   size: 20,
-                  color: isFirst ? color : RC.textMuted,
+                  color: isFirst
+                      ? color
+                      : (isDark ? const Color(0xFF64748B) : RC.textMuted),
                 ),
                 if (!isLast)
-                  Expanded(child: Container(width: 2, color: RC.border)),
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      color: isDark ? const Color(0xFF334155) : RC.border,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -492,12 +601,17 @@ class _TimelineTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w800,
-                      color: isFirst ? color : RC.textDark,
+                      color: isFirst
+                          ? color
+                          : (isDark ? Colors.white : RC.textDark),
                     ),
                   ),
                   Text(
                     fmtDateTime(at),
-                    style: const TextStyle(fontSize: 11.5, color: RC.textMuted),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -517,20 +631,25 @@ class _Empty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 52, color: RC.textMuted),
+            Icon(
+              icon,
+              size: 52,
+              color: isDark ? const Color(0xFF64748B) : RC.textMuted,
+            ),
             const SizedBox(height: 10),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: RC.textDark,
+                color: isDark ? Colors.white : RC.textDark,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -539,7 +658,10 @@ class _Empty extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12.5, color: RC.textMuted),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
+                ),
               ),
             ],
           ],

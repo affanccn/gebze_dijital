@@ -49,8 +49,8 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         'title': lang == 'en'
             ? 'Main Transmission Line Maintenance'
             : lang == 'ar'
-                ? 'صيانة خط النقل الرئيسي'
-                : 'Ana İsale Hattı Bakım Çalışması',
+            ? 'صيانة خط النقل الرئيسي'
+            : 'Ana İsale Hattı Bakım Çalışması',
         'neighborhood': 'Osman Yılmaz & Köşklü Çeşme $mahalleSuffix',
         'startDate': '09.10.2026 10:00',
         'endDate': '09.10.2026 18:00',
@@ -62,8 +62,8 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         'title': lang == 'en'
             ? 'Transformer Renewal & Grid Improvement'
             : lang == 'ar'
-                ? 'تجديد المحولات وتحسين الشبكة'
-                : 'Trafo Yenileme ve Şebeke İyileştirme',
+            ? 'تجديد المحولات وتحسين الشبكة'
+            : 'Trafo Yenileme ve Şebeke İyileştirme',
         'neighborhood': 'Arapçeşme $mahalleSuffix',
         'startDate': '10.10.2026 09:00',
         'endDate': '10.10.2026 14:00',
@@ -75,8 +75,8 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         'title': lang == 'en'
             ? 'Infrastructure Connection & Valve Replacement'
             : lang == 'ar'
-                ? 'ربط البنية التحتية واستبدال الصمامات'
-                : 'Altyapı Bağlantı ve Vana Değişimi',
+            ? 'ربط البنية التحتية واستبدال الصمامات'
+            : 'Altyapı Bağlantı ve Vana Değişimi',
         'neighborhood': 'Mustafapaşa $mahalleSuffix 712. Sokak',
         'startDate': '11.10.2026 13:00',
         'endDate': '11.10.2026 17:00',
@@ -90,6 +90,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final isDark = base.brightness == Brightness.dark;
     final fallbackOutages = _getFallbackOutages(lang);
 
     return Theme(
@@ -97,23 +98,33 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: Scaffold(
-          backgroundColor: _C.bg,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF0F172A)
+              : _C.bg,
           body: Column(
             children: [
               _Header(lang: lang),
               _buildFilterChips(lang),
               Expanded(
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance.collection('outages').snapshots(),
+                  stream: FirebaseFirestore.instance
+                      .collection('outages')
+                      .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return Center(
-                        child: Text('${AppStrings.get('error_occurred', lang)}: ${snapshot.error}'),
+                        child: Text(
+                          '${AppStrings.get('error_occurred', lang)}: ${snapshot.error}',
+                        ),
                       );
                     }
 
@@ -126,10 +137,18 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                     }
 
                     final filtered = items.where((item) {
-                      final type = (item['type'] ?? '').toString().toLowerCase();
-                      if (_selectedFilter == 1) return type == 'su';
-                      if (_selectedFilter == 2) return type == 'elektrik';
-                      if (_selectedFilter == 3) return type == 'gaz' || type == 'dogalgaz';
+                      final type = (item['type'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                      if (_selectedFilter == 1) {
+                        return type == 'su';
+                      }
+                      if (_selectedFilter == 2) {
+                        return type == 'elektrik';
+                      }
+                      if (_selectedFilter == 3) {
+                        return type == 'gaz' || type == 'dogalgaz';
+                      }
                       return true;
                     }).toList();
 
@@ -140,8 +159,11 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.check_circle_outline_rounded,
-                                  size: 48, color: Color(0xFF2E7D32)),
+                              const Icon(
+                                Icons.check_circle_outline_rounded,
+                                size: 48,
+                                color: Color(0xFF2E7D32),
+                              ),
                               const SizedBox(height: 12),
                               Text(
                                 AppStrings.get('no_outages_found', lang),
@@ -183,6 +205,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
       AppStrings.get('filter_electric', lang),
       AppStrings.get('filter_gas', lang),
     ];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 52,
@@ -192,7 +215,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = _selectedFilter == i;
           return ChoiceChip(
@@ -201,17 +224,25 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? Colors.white : _C.textDark,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white : _C.textDark),
               ),
             ),
             selected: isSelected,
-            selectedColor: _C.navy,
-            backgroundColor: Colors.white,
+            selectedColor: isDark ? const Color(0xFF2563EB) : _C.navy,
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             side: BorderSide(
-              color: isSelected ? _C.navy : const Color(0xFFE4E9F2),
+              color: isSelected
+                  ? (isDark ? const Color(0xFF2563EB) : _C.navy)
+                  : (isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE4E9F2)),
               width: 1,
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             showCheckmark: false,
             onSelected: (_) => setState(() => _selectedFilter = i),
           );
@@ -250,7 +281,11 @@ class _Header extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -271,7 +306,11 @@ class _Header extends StatelessWidget {
                       color: Colors.white.withAlpha(25),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.power_off_rounded, color: Colors.white, size: 24),
+                    child: const Icon(
+                      Icons.power_off_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ],
               ),
@@ -345,14 +384,17 @@ class _OutageCard extends StatelessWidget {
     final color = _getTypeColor(type);
     final icon = _getTypeIcon(type);
     final statusText = _formatStatus((data['status'] ?? '').toString());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE4E9F2)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +405,7 @@ class _OutageCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: color.withAlpha(30),
+                  color: color.withAlpha(isDark ? 50 : 30),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -375,10 +417,10 @@ class _OutageCard extends StatelessWidget {
                   children: [
                     Text(
                       data['title'] ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
-                        color: _C.textDark,
+                        color: isDark ? Colors.white : _C.textDark,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -394,9 +436,14 @@ class _OutageCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0),
+                  color: isDark
+                      ? const Color(0xFF332010)
+                      : const Color(0xFFFFF3E0),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -411,17 +458,28 @@ class _OutageCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Divider(height: 1, color: Colors.grey.withAlpha(35)),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF334155) : Colors.grey.withAlpha(35),
+          ),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on_rounded, size: 16, color: _C.textMuted),
+              Icon(
+                Icons.location_on_rounded,
+                size: 16,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   data['neighborhood'] ?? '',
-                  style: const TextStyle(fontSize: 12.5, color: _C.textDark, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: isDark ? const Color(0xFFCBD5E1) : _C.textDark,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -429,11 +487,19 @@ class _OutageCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.schedule_rounded, size: 16, color: _C.textMuted),
+              Icon(
+                Icons.schedule_rounded,
+                size: 16,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+              ),
               const SizedBox(width: 6),
               Text(
                 '${data['startDate'] ?? '-'}  ➔  ${data['endDate'] ?? '-'}',
-                style: const TextStyle(fontSize: 11.5, color: _C.textMuted, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

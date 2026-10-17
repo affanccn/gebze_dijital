@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../screens/auth_service.dart' show authStateProvider;
 import '../models/user_profile.dart';
 
@@ -53,90 +54,120 @@ class ProfileService {
     required String neighborhood,
     String? tcNo,
   }) async {
-    final updateData = <String, dynamic>{
-      'fullName': fullName,
-      'email': email,
-      'phoneNumber': phoneNumber,
-      'address': address,
-      'neighborhood': neighborhood,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    if (tcNo != null && tcNo.isNotEmpty) {
-      updateData['tcNo'] = tcNo;
-    }
-    await _userRef.set(updateData, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      final updateData = <String, dynamic>{
+        'fullName': fullName,
+        'email': email,
+        'phoneNumber': phoneNumber,
+        'address': address,
+        'neighborhood': neighborhood,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (tcNo != null && tcNo.isNotEmpty) {
+        updateData['tcNo'] = tcNo;
+      }
+      await _userRef.set(updateData, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Mahalle seçimini doğrudan güncelle
   Future<void> updateNeighborhood(String neighborhood) async {
-    await _userRef.set({
-      'neighborhood': neighborhood,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'neighborhood': neighborhood,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Bildirim tercihlerini güncelle
   Future<void> updateNotificationPreference(String key, bool enabled) async {
-    await _userRef.set({
-      'notificationPreferences.$key': enabled,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'notificationPreferences.$key': enabled,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Dil tercihini güncelle ('tr', 'en', 'ar')
   Future<void> updateLanguage(String languageCode) async {
-    await _userRef.set({
-      'language': languageCode,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'language': languageCode,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Büyük yazı tipi tercihini güncelle
   Future<void> updateLargeFont(bool isLarge) async {
-    await _userRef.set({
-      'isLargeFont': isLarge,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'isLargeFont': isLarge,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Tema modunu güncelle ('light', 'dark', 'system')
   Future<void> updateThemeMode(String themeMode) async {
-    await _userRef.set({
-      'themeMode': themeMode,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'themeMode': themeMode,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Profil resmini güncelle
   Future<void> updateAvatarUrl(String avatarUrl) async {
-    await _userRef.set({
-      'avatarUrl': avatarUrl,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'avatarUrl': avatarUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Hesabı sil
   Future<void> deleteAccount() async {
-    await _userRef.set({
-      'status': 'deleted',
-      'fullName': 'Silinmiş Kullanıcı',
-      'email': '',
-      'phoneNumber': '',
-      'deletedAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _userRef.set({
+        'status': 'deleted',
+        'fullName': 'Silinmiş Kullanıcı',
+        'email': '',
+        'phoneNumber': '',
+        'deletedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Kullanıcı aktivitelerini getir
   Stream<List<UserActivityItem>> getActivitiesStream() {
-    return _activitiesRef.snapshots().map((snap) {
-      if (snap.docs.isEmpty) {
-        return _fallbackActivities;
-      }
-      return snap.docs
-          .map((d) => UserActivityItem.fromMap(d.data(), d.id))
-          .toList();
-    });
+    if (FirebaseAuth.instance.currentUser == null) {
+      return Stream.value(_fallbackActivities);
+    }
+    return _activitiesRef
+        .snapshots()
+        .map((snap) {
+          if (snap.docs.isEmpty) {
+            return _fallbackActivities;
+          }
+          return snap.docs
+              .map((d) => UserActivityItem.fromMap(d.data(), d.id))
+              .toList();
+        })
+        .handleError((_) => _fallbackActivities);
   }
 
   static const List<UserActivityItem> _fallbackActivities = [
@@ -171,7 +202,8 @@ class ProfileService {
       id: 'oneri_1',
       type: 'oneri',
       title: 'Sahil Yolu Akıllı Bisiklet İstasyonu',
-      description: 'Eskihisar sahil şeridine kiralık bisiklet istasyonu kurulması.',
+      description:
+          'Eskihisar sahil şeridine kiralık bisiklet istasyonu kurulması.',
       date: '08 Ekim 2026',
       status: 'Yayında',
       category: 'Ulaşım',
@@ -189,7 +221,8 @@ class ProfileService {
       id: 'destek_1',
       type: 'destek',
       title: 'Mustafapaşa Mahallesi Kütüphane & Etüt Projesi',
-      description: 'Sosyal tesis anketinde Kütüphane & Etüt Merkezini desteklediniz.',
+      description:
+          'Sosyal tesis anketinde Kütüphane & Etüt Merkezini desteklediniz.',
       date: '09 Ekim 2026',
       status: 'Oylandı',
       category: 'Sosyal Hizmet',
@@ -198,7 +231,8 @@ class ProfileService {
       id: 'destek_2',
       type: 'destek',
       title: 'Sahil Parkı Yürüyüş ve Bisiklet Yolu',
-      description: 'Eskihisar Sahil Parkı anketinde yürüyüş yolunu desteklediniz.',
+      description:
+          'Eskihisar Sahil Parkı anketinde yürüyüş yolunu desteklediniz.',
       date: '05 Ekim 2026',
       status: 'Oylandı',
       category: 'Çevre',

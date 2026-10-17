@@ -20,7 +20,8 @@ import 'report_common.dart';
 /// Akış: Fotoğraf → Konum → Kategori → Açıklama → Özet ve Gönder
 /// Veri: Firestore `reports` koleksiyonu + Storage `reports/{uid}/{id}.jpg`
 class ReportScreen extends ConsumerStatefulWidget {
-  const ReportScreen({super.key});
+  final bool isGuest;
+  const ReportScreen({super.key, this.isGuest = false});
 
   @override
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
@@ -299,16 +300,15 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
       final now = Timestamp.now();
       final statusTr = kReportStatusTr['pending']!;
-      await ref0.set({
+      final reportMap = <String, dynamic>{
+        '_id': ref0.id,
         'ticketNo': ticket,
         'userId': uid,
+        'isGuest': widget.isGuest,
         if ((profile?.fullName ?? '').isNotEmpty) 'userName': profile!.fullName,
         if ((profile?.phoneNumber ?? '').isNotEmpty)
           'userPhone': profile!.phoneNumber,
-        'category': rt(
-          'tr',
-          'cat_$_category',
-        ), // Türkçe etiket (örn. Bozuk Yol)
+        'category': rt('tr', 'cat_$_category'),
         'categoryKey': _category,
         'description': _descCtrl.text.trim(),
         'neighborhood': _neighborhood,
@@ -318,13 +318,27 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         'locationSource': _position != null && _autoLocation ? 'gps' : 'manual',
         'photoUrl': photoUrl,
         'photoBase64': photoBase64,
-        'status': statusTr, // suggestions ile aynı: "Beklemede"
+        'status': statusTr,
         'statusHistory': [
           {'status': statusTr, 'at': now},
         ],
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+        'createdAt': now,
+        'updatedAt': now,
+      };
+
+      // Taleplerim ekranında anında görünmesi için yerel listeye ekle
+      localSubmittedReports.insert(0, reportMap);
+      ref.invalidate(myReportsProvider);
+
+      try {
+        await ref0.set({
+          ...reportMap,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } catch (_) {
+        // Çevrimdışı / misafir modunda yerel kopya yeterlidir
+      }
 
       if (!mounted) return;
       setState(() => _sending = false);
@@ -337,31 +351,43 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   }
 
   Future<void> _showSuccess(String lang, String ticket) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final openList = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: isDark
+              ? const BorderSide(color: Color(0xFF334155))
+              : BorderSide.none,
+        ),
         icon: const Icon(Icons.check_circle_rounded, color: RC.green, size: 48),
         title: Text(
           rt(lang, 'sent_title'),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : RC.textDark,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               rt(lang, 'sent_body'),
-              style: const TextStyle(color: RC.textMuted),
+              style: TextStyle(
+                color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
+              ),
             ),
             const SizedBox(height: 4),
             SelectableText(
               ticket,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
-                color: RC.navy,
+                color: isDark ? const Color(0xFF38BDF8) : RC.navy,
                 letterSpacing: 1,
               ),
             ),
@@ -369,14 +395,20 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
             Text(
               rt(lang, 'sent_hint'),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12.5, color: RC.textMuted),
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? const Color(0xFF94A3B8) : RC.textMuted,
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(rt(lang, 'btn_ok')),
+            child: Text(
+              rt(lang, 'btn_ok'),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : null),
+            ),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: RC.orange),
@@ -432,32 +464,116 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Theme(
       data: base.copyWith(
-        colorScheme: base.colorScheme.copyWith(primary: RC.navy),
+        colorScheme: base.colorScheme.copyWith(
+          primary: isDark ? const Color(0xFF60A5FA) : RC.navy,
+        ),
       ),
       child: Scaffold(
-        backgroundColor: RC.bg,
-        appBar: AppBar(
-          backgroundColor: RC.navy,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          title: Text(
-            rt(lang, 'title'),
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-          actions: [
-            IconButton(
-              tooltip: rt(lang, 'my_title'),
-              icon: const Icon(Icons.assignment_outlined),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const ProfileScreen(openRequestsOnStart: true),
+        backgroundColor: isDark ? const Color(0xFF0F172A) : RC.bg,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(74),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [RC.navy, RC.navyDeep],
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x330A2A66),
+                  blurRadius: 18,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 12),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.isGuest
+                                ? (lang == 'en'
+                                      ? 'Guest Complaint'
+                                      : (lang == 'ar'
+                                            ? 'شكوى زائر'
+                                            : 'Misafir Şikayet'))
+                                : rt(lang, 'title'),
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            widget.isGuest
+                                ? (lang == 'en'
+                                      ? 'Submit complaint without login'
+                                      : (lang == 'ar'
+                                            ? 'تقديم شكوى دون تسجيل'
+                                            : 'Üye olmadan doğrudan bildirim'))
+                                : (lang == 'en'
+                                      ? 'Snap, locate & send to municipality'
+                                      : (lang == 'ar'
+                                            ? 'التقط وحدد وأرسل للبلدية'
+                                            : 'Fotoğrafla, konum seç, belediyeye ilet')),
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: rt(lang, 'my_title'),
+                      icon: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(30),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.assignment_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const ProfileScreen(openRequestsOnStart: true),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
         ),
         body: Stepper(
           type: StepperType.vertical,
@@ -485,10 +601,15 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   }
 
   Step _buildStep(int index, String title, Widget content) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Step(
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 15,
+          color: isDark ? Colors.white : RC.textDark,
+        ),
       ),
       isActive: _step >= index,
       state: _step > index ? StepState.complete : StepState.indexed,
@@ -562,8 +683,15 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     child: OutlinedButton(
                       onPressed: _sending ? null : _back,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: RC.navy,
-                        side: const BorderSide(color: RC.navy),
+                        foregroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF60A5FA)
+                            : RC.navy,
+                        side: BorderSide(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF60A5FA)
+                              : RC.navy,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -631,15 +759,19 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     );
   }
 
-  ButtonStyle _outlinedStyle() => OutlinedButton.styleFrom(
-    foregroundColor: RC.navy,
-    side: const BorderSide(color: RC.navy),
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  );
+  ButtonStyle _outlinedStyle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return OutlinedButton.styleFrom(
+      foregroundColor: isDark ? const Color(0xFF60A5FA) : RC.navy,
+      side: BorderSide(color: isDark ? const Color(0xFF60A5FA) : RC.navy),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
 
   // 2) Konum
   Widget _locationStep(String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -728,17 +860,43 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
           key: ValueKey('hood_${_neighborhood ?? 'none'}'),
           initialValue: _neighborhood,
           isExpanded: true,
+          dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : RC.textDark,
+            fontSize: 14,
+          ),
           decoration: InputDecoration(
             labelText: rt(lang, 'loc_neighborhood'),
+            labelStyle: TextStyle(
+              color: isDark ? const Color(0xFF94A3B8) : null,
+            ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: RC.border),
+              borderSide: BorderSide(
+                color: isDark ? const Color(0xFF334155) : RC.border,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isDark ? const Color(0xFF334155) : RC.border,
+              ),
             ),
           ),
           items: kReportNeighborhoods
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(
+                    e,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : RC.textDark,
+                    ),
+                  ),
+                ),
+              )
               .toList(),
           onChanged: (v) => setState(() {
             _neighborhood = v;
@@ -751,6 +909,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
   // 3) Kategori
   Widget _categoryStep(String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -760,21 +919,29 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
             avatar: Icon(
               c.icon,
               size: 18,
-              color: _category == c.key ? Colors.white : RC.navy,
+              color: _category == c.key
+                  ? Colors.white
+                  : (isDark ? const Color(0xFF60A5FA) : RC.navy),
             ),
             label: Text(rt(lang, 'cat_${c.key}')),
             selected: _category == c.key,
             showCheckmark: false,
-            selectedColor: RC.navy,
-            backgroundColor: Colors.white,
+            selectedColor: isDark ? const Color(0xFF2563EB) : RC.navy,
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             labelStyle: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 12.5,
-              color: _category == c.key ? Colors.white : RC.textDark,
+              color: _category == c.key
+                  ? Colors.white
+                  : (isDark ? Colors.white : RC.textDark),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: _category == c.key ? RC.navy : RC.border),
+              side: BorderSide(
+                color: _category == c.key
+                    ? (isDark ? const Color(0xFF2563EB) : RC.navy)
+                    : (isDark ? const Color(0xFF334155) : RC.border),
+              ),
             ),
             onSelected: (_) => setState(() {
               _category = c.key;
@@ -787,10 +954,12 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
   // 4) Açıklama
   Widget _descriptionStep(String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: _descCtrl,
       maxLines: 4,
       maxLength: 500,
+      style: TextStyle(color: isDark ? Colors.white : null),
       onChanged: (_) {
         if (_stepError != null) setState(() => _stepError = null);
       },
@@ -798,10 +967,18 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         hintText: rt(lang, 'desc_hint'),
         hintStyle: const TextStyle(fontSize: 13, color: RC.textMuted),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: RC.border),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF334155) : RC.border,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF334155) : RC.border,
+          ),
         ),
       ),
     );

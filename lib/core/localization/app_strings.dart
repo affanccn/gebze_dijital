@@ -54,6 +54,11 @@ class AppStrings {
       'ar': 'حفظ وتحديث',
     },
     'btn_send': {'tr': 'Gönder', 'en': 'Submit', 'ar': 'إرسال'},
+    'btn_retry': {
+      'tr': 'Tekrar Dene',
+      'en': 'Try Again',
+      'ar': 'إعادة المحاولة',
+    },
     'btn_back': {'tr': 'Geri', 'en': 'Back', 'ar': 'رجوع'},
     'btn_call': {'tr': 'Ara', 'en': 'Call', 'ar': 'اتصال'},
     'btn_directions': {
@@ -538,6 +543,11 @@ class AppStrings {
       'tr': 'Belediye Tesisleri',
       'en': 'Municipal Facilities',
       'ar': 'المنشآت البلدية',
+    },
+    'cat_events': {
+      'tr': 'Yaklaşan Etkinlikler',
+      'en': 'Upcoming Events',
+      'ar': 'الفعاليات القادمة',
     },
     'filter_historic': {'tr': 'Tarihi', 'en': 'Historic', 'ar': 'تاريخي'},
     'filter_museums': {'tr': 'Müzeler', 'en': 'Museums', 'ar': 'متاحف'},
@@ -1343,7 +1353,6 @@ class AppStrings {
       'en': 'Gebze Animal Center',
       'ar': 'مركز جبزة لرعاية الحيوانات',
     },
-    'btn_retry': {'tr': 'Yeniden Dene', 'en': 'Retry', 'ar': 'إعادة المحاولة'},
 
     // ───────────────────────── Mama & Klinikler İlave ─────────────────────────
     'feeding_network_title': {

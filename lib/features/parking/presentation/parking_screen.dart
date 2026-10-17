@@ -39,19 +39,45 @@ class ParkingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(parkingSnapshotProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: _C.bg,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
       body: Column(
         children: [
           const _Header(),
           Expanded(
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => const Center(
-                child: Text(
-                  'Otopark bilgisi yüklenemedi.',
-                  style: TextStyle(color: _C.textMuted),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.local_parking_rounded,
+                        color: _C.orange,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Otopark bilgisi yüklenemedi.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : _C.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(backgroundColor: _C.navy),
+                        onPressed: () => ref.refresh(parkingSnapshotProvider),
+                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                        label: const Text('Tekrar Dene'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               data: (snap) => ListView(
@@ -120,7 +146,7 @@ class _Header extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(.12),
+                      color: Colors.white.withValues(alpha: .12),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -137,7 +163,7 @@ class _Header extends StatelessWidget {
                 child: Text(
                   'Gebze genelindeki otoparkların tahmini doluluk durumu ve yol tarifi.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(.75),
+                    color: Colors.white.withValues(alpha: .75),
                     fontSize: 13,
                     height: 1.4,
                   ),
@@ -151,17 +177,19 @@ class _Header extends StatelessWidget {
   }
 }
 
-BoxDecoration _cardDecoration() => BoxDecoration(
-  color: Colors.white,
+BoxDecoration _cardDecoration(bool isDark) => BoxDecoration(
+  color: isDark ? const Color(0xFF1E293B) : Colors.white,
   borderRadius: BorderRadius.circular(18),
-  border: Border.all(color: _C.border),
-  boxShadow: [
-    BoxShadow(
-      color: _C.navy.withOpacity(.05),
-      blurRadius: 14,
-      offset: const Offset(0, 6),
-    ),
-  ],
+  border: Border.all(color: isDark ? const Color(0xFF334155) : _C.border),
+  boxShadow: isDark
+      ? null
+      : [
+          BoxShadow(
+            color: _C.navy.withValues(alpha: .05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
 );
 
 class _SummaryCard extends StatelessWidget {
@@ -170,20 +198,22 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Gebze Genel Doluluk',
                   style: TextStyle(
-                    color: _C.textDark,
+                    color: isDark ? Colors.white : _C.textDark,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -191,8 +221,8 @@ class _SummaryCard extends StatelessWidget {
               ),
               Text(
                 '%${snap.totalPercent}',
-                style: const TextStyle(
-                  color: _C.navy,
+                style: TextStyle(
+                  color: isDark ? const Color(0xFF60A5FA) : _C.navy,
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
                 ),
@@ -200,7 +230,11 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          _Bar(value: snap.totalPercent / 100, color: _C.navy, height: 10),
+          _Bar(
+            value: snap.totalPercent / 100,
+            color: isDark ? const Color(0xFF3B82F6) : _C.navy,
+            height: 10,
+          ),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -214,7 +248,10 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: _C.border),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF334155) : _C.border,
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -241,23 +278,29 @@ class _Stat extends StatelessWidget {
   const _Stat({required this.label, required this.value, this.color});
 
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: _C.textMuted, fontSize: 12)),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            color: color ?? _C.textDark,
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: _C.textMuted, fontSize: 12),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              color: color ?? (isDark ? Colors.white : _C.textDark),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Bar extends StatelessWidget {
@@ -267,15 +310,20 @@ class _Bar extends StatelessWidget {
   const _Bar({required this.value, required this.color, this.height = 8});
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(8),
-    child: LinearProgressIndicator(
-      value: value.clamp(0.0, 1.0),
-      minHeight: height,
-      color: color,
-      backgroundColor: const Color(0xFFE6ECF7),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: LinearProgressIndicator(
+        value: value.clamp(0.0, 1.0),
+        minHeight: height,
+        color: color,
+        backgroundColor: isDark
+            ? const Color(0xFF334155)
+            : const Color(0xFFE6ECF7),
+      ),
+    );
+  }
 }
 
 class _LotCard extends StatelessWidget {
@@ -285,10 +333,11 @@ class _LotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _statusColor(item.status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
+      decoration: _cardDecoration(isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -299,12 +348,14 @@ class _LotCard extends StatelessWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F0FC),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE8F0FC),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.local_parking_rounded,
-                  color: _C.navy,
+                  color: isDark ? const Color(0xFF93C5FD) : _C.navy,
                   size: 26,
                 ),
               ),
@@ -315,8 +366,8 @@ class _LotCard extends StatelessWidget {
                   children: [
                     Text(
                       item.lot.name,
-                      style: const TextStyle(
-                        color: _C.textDark,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         height: 1.25,
@@ -341,7 +392,7 @@ class _LotCard extends StatelessWidget {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(.12),
+                  color: color.withValues(alpha: .15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -356,7 +407,10 @@ class _LotCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: _C.border),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF334155) : _C.border,
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -385,7 +439,9 @@ class _LotCard extends StatelessWidget {
                   label: 'Boş Yer Sayısı',
                   value: '${item.free}',
                   color: color,
-                  tint: color.withOpacity(.08),
+                  tint: isDark
+                      ? const Color(0xFF0F2D20)
+                      : color.withValues(alpha: .08),
                 ),
               ),
               const SizedBox(width: 10),
@@ -393,7 +449,9 @@ class _LotCard extends StatelessWidget {
                 child: _Box(
                   label: 'Toplam Kapasite',
                   value: '${item.lot.capacity}',
-                  tint: const Color(0xFFF4F7FC),
+                  tint: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF4F7FC),
                 ),
               ),
             ],
@@ -435,29 +493,35 @@ class _Box extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    decoration: BoxDecoration(
-      color: tint,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: _C.border),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: _C.textMuted, fontSize: 11)),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            color: color ?? _C.textDark,
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: tint,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : _C.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: _C.textMuted, fontSize: 11),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              color: color ?? (isDark ? Colors.white : _C.textDark),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DirectionsButton extends StatelessWidget {

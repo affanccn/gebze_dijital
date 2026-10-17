@@ -1,4 +1,6 @@
 import 'auth_guard.dart';
+import 'auth_service.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,12 +13,13 @@ import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import '../features/weather/services/weather_provider.dart';
-import 'emergency_screen.dart';
 import 'guide_screen.dart';
 import 'profile_screen.dart';
 import 'report_screen.dart';
 import 'services_screen.dart';
 import 'neighborhood_screen.dart';
+import 'notifications_screen.dart';
+import '../core/theme/theme_provider.dart';
 
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu: lib/screens/guest_home_screen.dart
@@ -64,7 +67,7 @@ class GuestHomeScreen extends ConsumerStatefulWidget {
 
 class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   // Hero görseli: proje kökündeki gorsel/ klasörü (pubspec.yaml'da tanımlı olmalı).
-  static const String? _heroAsset = 'gorsel/gebze_gorsel.jpg';
+  static const String _heroAsset = 'gorsel/gebze_gorsel.jpg';
 
   int _navIndex = 0;
   double? _heroAspect; // görselin genişlik / yükseklik oranı
@@ -76,85 +79,98 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   }
 
   void _resolveHeroAspect() {
-    final asset = _heroAsset;
-    if (asset == null) return;
-    final stream = AssetImage(asset).resolve(const ImageConfiguration());
+    final stream = AssetImage(_heroAsset).resolve(const ImageConfiguration());
     late final ImageStreamListener listener;
     listener = ImageStreamListener((info, _) {
       final aspect = info.image.width / info.image.height;
       if (mounted) setState(() => _heroAspect = aspect);
       stream.removeListener(listener);
-    }, onError: (_, __) => stream.removeListener(listener));
+    }, onError: (_, _) => stream.removeListener(listener));
     stream.addListener(listener);
   }
 
-  List<_QuickActionData> _getQuickActions(String lang) => [
-    _QuickActionData(
-      AppStrings.get('qa_places', lang),
-      Icons.map_rounded,
-      _C.orangeGradient,
-      onTap: () => _openGuide(initialTab: 1),
-    ),
-    _QuickActionData(
-      AppStrings.get('qa_food', lang),
-      Icons.restaurant_rounded,
-      _C.navyGradient,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const GuideCategoryScreen(categoryId: 'lokantalar'),
+  List<_QuickActionData> _getQuickActions(String lang) {
+    final isLoggedIn = ref.watch(isLoggedInProvider);
+    final complaintTitle = isLoggedIn
+        ? (lang == 'en'
+              ? 'Snap & Report'
+              : (lang == 'ar' ? 'التقط وبلّغ' : 'Çek / Bildir'))
+        : (lang == 'en'
+              ? 'Guest Complaint'
+              : (lang == 'ar' ? 'شكوى زائر' : 'Misafir Şikayet'));
+
+    return [
+      _QuickActionData(
+        AppStrings.get('qa_places', lang),
+        Icons.map_rounded,
+        _C.orangeGradient,
+        onTap: () => _openGuide(initialTab: 1),
+      ),
+      _QuickActionData(
+        AppStrings.get('qa_food', lang),
+        Icons.restaurant_rounded,
+        _C.navyGradient,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const GuideCategoryScreen(categoryId: 'lokantalar'),
+          ),
         ),
       ),
-    ),
-    _QuickActionData(
-      AppStrings.get('qa_ebel', lang),
-      Icons.account_balance_rounded,
-      _C.orangeGradient,
-      onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const EBelediyeScreen())),
-    ),
-    _QuickActionData(
-      AppStrings.get('qa_complaint', lang),
-      Icons.report_problem_rounded,
-      _C.navyGradient,
-      onTap: () => _handleNav(2),
-    ),
-    _QuickActionData(
-      AppStrings.get('qa_parking', lang),
-      Icons.local_parking_rounded,
-      _C.orangeGradient,
-      onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const ParkingScreen())),
-    ),
-    _QuickActionData(
-  AppStrings.get('service_neighborhood', lang),
-  Icons.location_city_rounded,
-  _C.orangeGradient,
-  onTap: () => Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) => const NeighborhoodScreen()),
-  ),
-),
-  ];
+      _QuickActionData(
+        AppStrings.get('qa_ebel', lang),
+        Icons.account_balance_rounded,
+        _C.orangeGradient,
+        onTap: () => Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const EBelediyeScreen())),
+      ),
+      _QuickActionData(
+        complaintTitle,
+        Icons.report_problem_rounded,
+        _C.navyGradient,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => ReportScreen(isGuest: !isLoggedIn)),
+        ),
+      ),
+      _QuickActionData(
+        AppStrings.get('qa_parking', lang),
+        Icons.local_parking_rounded,
+        _C.orangeGradient,
+        onTap: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const ParkingScreen())),
+      ),
+      _QuickActionData(
+        AppStrings.get('service_neighborhood', lang),
+        Icons.location_city_rounded,
+        _C.orangeGradient,
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const NeighborhoodScreen())),
+      ),
+    ];
+  }
 
   List<_RowData> _getHistoricPlaces(String lang) => [
     _RowData(
       AppStrings.get('hp_eskihisar_title', lang),
       AppStrings.get('hp_eskihisar_sub', lang),
       Icons.castle_rounded,
-      onTap: () => _handleNav(1),
+      imageAsset: 'gorsel/tarihi_yerler/eskale.jpg',
+      onTap: () => _openGuide(initialTab: 1),
     ),
     _RowData(
       AppStrings.get('hp_cmp_title', lang),
       AppStrings.get('hp_cmp_sub', lang),
       Icons.mosque_rounded,
-      onTap: () => _handleNav(1),
+      imageAsset: 'gorsel/tarihi_yerler/cmpasa.jpg',
+      onTap: () => _openGuide(initialTab: 1),
     ),
     _RowData(
       AppStrings.get('hp_hannibal_title', lang),
       AppStrings.get('hp_hannibal_sub', lang),
       Icons.account_balance_rounded,
-      onTap: () => _handleNav(1),
+      imageAsset: 'gorsel/tarihi_yerler/anibal.jpg',
+      onTap: () => _openGuide(initialTab: 1),
     ),
   ];
 
@@ -175,12 +191,14 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
 
   /// Alt menü yönlendirmesi
   void _handleNav(int i) {
-  if ((i == 2 || i == 4) && !requireLogin(context, ref)) return;
-  if (i == 1) {
+    if (i == 4 && !requireLogin(context, ref)) return;
+    if (i == 1) {
       _openGuide();
     } else if (i == 2) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const ReportScreen()));
+      final isLoggedIn = ref.read(isLoggedInProvider);
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ReportScreen(isGuest: !isLoggedIn)),
+      );
     } else if (i == 3) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -212,12 +230,15 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final isDark = context.isDark;
 
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: _buildScreen(context, lang),
@@ -234,12 +255,14 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     final quickActions = _getQuickActions(lang);
     final historicPlaces = _getHistoricPlaces(lang);
 
+    final isDark = context.isDark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: _C.bg,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Stack(
@@ -262,9 +285,9 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                   ),
                   Container(
                     width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: _C.bg,
-                      borderRadius: BorderRadius.vertical(
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : _C.bg,
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(overlap),
                       ),
                     ),
@@ -300,43 +323,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
             ],
           ),
         ),
-
-        // Acil durum butonu (sağ altta sabit)
-        floatingActionButton: SizedBox(
-          width: 78,
-          height: 78,
-          child: FloatingActionButton(
-            heroTag: 'emergency_fab',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const EmergencyScreen(),
-                ),
-              );
-            },
-            backgroundColor: _C.danger,
-            foregroundColor: Colors.white,
-            elevation: 8,
-            shape: const CircleBorder(),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.emergency_rounded, size: 28),
-                const SizedBox(height: 2),
-                Text(
-                  AppStrings.get('emergency_btn', lang),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    height: 1.05,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         bottomNavigationBar: _BottomNav(
           index: _navIndex,
           lang: lang,
@@ -365,7 +351,7 @@ class _HeroBackground extends StatelessWidget {
             alignment: Alignment.topCenter,
             width: double.infinity,
             height: double.infinity,
-            errorBuilder: (_, __, ___) => const _HeroPlaceholder(),
+            errorBuilder: (_, _, _) => const _HeroPlaceholder(),
           ),
         ),
       );
@@ -415,6 +401,7 @@ class _HeroContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDark;
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -431,15 +418,22 @@ class _HeroContent extends StatelessWidget {
                     AppStrings.get('welcome_gebze', lang),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       height: 1.15,
                       fontWeight: FontWeight.w800,
-                      color: _C.navy,
+                      color: isDark ? Colors.white : _C.navy,
                     ),
                   ),
                 ),
-                GestureDetector(onTap: () {}, child: const _BellIcon()),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  ),
+                  child: const _BellIcon(),
+                ),
               ],
             ),
             Positioned(
@@ -493,7 +487,7 @@ class _Logo extends StatelessWidget {
         'gorsel/gebze_logo.png',
         height: 58,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const _LogoFallback(),
+        errorBuilder: (_, _, _) => const _LogoFallback(),
       ),
     );
   }
@@ -504,11 +498,12 @@ class _LogoFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final isDark = context.isDark;
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.account_balance_rounded, color: _C.orange, size: 38),
-        SizedBox(width: 8),
+        const Icon(Icons.account_balance_rounded, color: _C.orange, size: 38),
+        const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -518,7 +513,7 @@ class _LogoFallback extends StatelessWidget {
                 fontSize: 26,
                 height: 1,
                 fontWeight: FontWeight.w900,
-                color: _C.navy,
+                color: isDark ? Colors.white : _C.navy,
                 letterSpacing: 0.5,
               ),
             ),
@@ -528,7 +523,7 @@ class _LogoFallback extends StatelessWidget {
                 fontSize: 13,
                 height: 1.1,
                 fontWeight: FontWeight.w800,
-                color: _C.navy,
+                color: isDark ? Colors.white : _C.navy,
                 letterSpacing: 1,
               ),
             ),
@@ -626,7 +621,7 @@ class _WeatherPill extends ConsumerWidget {
                       ? Image.network(
                           iconUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (_, _, _) => const Icon(
                             Icons.cloud_rounded,
                             color: Colors.white,
                             size: 36,
@@ -703,7 +698,7 @@ class _WeatherPill extends ConsumerWidget {
             );
           },
           loading: () => _buildLoading(),
-          error: (_, __) => _buildPlaceholder(),
+          error: (_, _) => _buildPlaceholder(),
         ),
       ),
     );
@@ -777,12 +772,15 @@ class _QuickActionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: _softShadow(),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark ? [] : _softShadow(),
       ),
       child: Row(
         children: [
@@ -822,11 +820,11 @@ class _QuickActionsCard extends StatelessWidget {
                         maxLines: 2,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 9.5,
                           height: 1.2,
                           fontWeight: FontWeight.w800,
-                          color: _C.textDark,
+                          color: isDark ? Colors.white : _C.textDark,
                         ),
                       ),
                     ),
@@ -846,8 +844,15 @@ class _RowData {
   final String title;
   final String subtitle;
   final IconData icon;
+  final String? imageAsset;
   final VoidCallback? onTap;
-  const _RowData(this.title, this.subtitle, this.icon, {this.onTap});
+  const _RowData(
+    this.title,
+    this.subtitle,
+    this.icon, {
+    this.imageAsset,
+    this.onTap,
+  });
 }
 
 class _SectionCard extends StatelessWidget {
@@ -869,13 +874,16 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: _softShadow(),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark ? [] : _softShadow(),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -887,10 +895,10 @@ class _SectionCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: _C.textDark,
+                    color: isDark ? Colors.white : _C.textDark,
                     letterSpacing: 0.3,
                   ),
                 ),
@@ -923,7 +931,12 @@ class _SectionCard extends StatelessWidget {
           for (int i = 0; i < rows.length; i++) ...[
             _SectionRow(data: rows[i]),
             if (i != rows.length - 1)
-              Divider(height: 1, color: Colors.grey.withAlpha(40)),
+              Divider(
+                height: 1,
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : Colors.grey.withAlpha(40),
+              ),
           ],
         ],
       ),
@@ -937,6 +950,8 @@ class _SectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDark;
+
     return InkWell(
       onTap: data.onTap,
       borderRadius: BorderRadius.circular(12),
@@ -949,14 +964,42 @@ class _SectionRow extends StatelessWidget {
               height: 58,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
-                ),
                 borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(data.icon, color: Colors.white, size: 26),
+              child: data.imageAsset != null
+                  ? Image.asset(
+                      data.imageAsset!,
+                      width: 58,
+                      height: 58,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
+                          ),
+                        ),
+                        child: Icon(data.icon, color: Colors.white, size: 26),
+                      ),
+                    )
+                  : Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
+                        ),
+                      ),
+                      child: Icon(data.icon, color: Colors.white, size: 26),
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -967,10 +1010,10 @@ class _SectionRow extends StatelessWidget {
                     data.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w800,
-                      color: _C.textDark,
+                      color: isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -978,12 +1021,18 @@ class _SectionRow extends StatelessWidget {
                     data.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: _C.textMuted),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: _C.textMuted),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+            ),
           ],
         ),
       ),
@@ -1107,14 +1156,50 @@ class _EventsSection extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        final rows = snap.data!.docs.map((d) {
-          final m = d.data();
-          return _RowData(
-            m['title'] ?? '',
-            m['subtitle'] ?? '',
-            Icons.event_rounded,
+        final docs = snap.data?.docs ?? [];
+        final List<_RowData> rows;
+
+        void navigateToEvents() {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  const GuideCategoryScreen(categoryId: 'etkinlikler'),
+            ),
           );
-        }).toList();
+        }
+
+        if (docs.isEmpty) {
+          rows = [
+            _RowData(
+              'Gebze Kültür Sanat Buluşmaları',
+              'Osman Hamdi Bey Kültür Merkezi - 24 Ekim',
+              Icons.event_rounded,
+              onTap: navigateToEvents,
+            ),
+            _RowData(
+              'Gençlik & Spor Festivali',
+              'Gebze Kapalı Spor Salonu - 28 Ekim',
+              Icons.event_rounded,
+              onTap: navigateToEvents,
+            ),
+            _RowData(
+              'Doğa Yürüyüşü & Bisiklet Günü',
+              'Gaziler Dağı Tabiat Parkı - 2 Kasım',
+              Icons.event_rounded,
+              onTap: navigateToEvents,
+            ),
+          ];
+        } else {
+          rows = docs.map((d) {
+            final m = d.data();
+            return _RowData(
+              m['title'] ?? '',
+              m['subtitle'] ?? '',
+              Icons.event_rounded,
+              onTap: navigateToEvents,
+            );
+          }).toList();
+        }
 
         return _SectionCard(
           title: AppStrings.get('events_title', lang),
@@ -1122,6 +1207,7 @@ class _EventsSection extends StatelessWidget {
           icon: Icons.event_available_rounded,
           iconColor: _C.orange,
           rows: rows,
+          onSeeAll: navigateToEvents,
         );
       },
     );
@@ -1136,6 +1222,7 @@ class _NewsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1146,8 +1233,11 @@ class _NewsSection extends StatelessWidget {
               Expanded(
                 child: Text(
                   AppStrings.get('news_title', lang),
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : _C.textDark,
+                  ),
                 ),
               ),
               TextButton(
@@ -1160,7 +1250,10 @@ class _NewsSection extends StatelessWidget {
                 },
                 child: Text(
                   AppStrings.get('see_all', lang),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFF38BDF8) : _C.navy,
+                  ),
                 ),
               ),
             ],

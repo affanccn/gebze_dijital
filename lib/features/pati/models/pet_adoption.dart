@@ -10,7 +10,8 @@ class PetAdoption {
   final String imageUrl;
   final String description;
   final String healthStatus; // 'Aşılı, Kısırlaştırılmış, Çipli'
-  final String centerPhone; // Her zaman belediye barınağı aranır: '(0262) 642 04 30'
+  final String
+  centerPhone; // Her zaman belediye barınağı aranır: '(0262) 642 04 30'
   final bool isAdopted;
   final DateTime? createdAt;
 
@@ -40,7 +41,9 @@ class PetAdoption {
       age: data['age'] as String? ?? 'Genç',
       imageUrl: data['imageUrl'] as String? ?? '',
       description: data['description'] as String? ?? '',
-      healthStatus: data['healthStatus'] as String? ?? 'Sağlık kontrolü ve aşıları yapıldı',
+      healthStatus:
+          data['healthStatus'] as String? ??
+          'Sağlık kontrolü ve aşıları yapıldı',
       centerPhone: data['centerPhone'] as String? ?? '(0262) 642 04 30',
       isAdopted: data['isAdopted'] as bool? ?? false,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
@@ -59,7 +62,9 @@ class PetAdoption {
       'healthStatus': healthStatus,
       'centerPhone': centerPhone,
       'isAdopted': isAdopted,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 }

@@ -1,4 +1,3 @@
-
 class MunicipalNews {
   final String id;
   final String title;
@@ -18,20 +17,15 @@ class MunicipalNews {
     required this.itemIndex,
   });
 
-  factory MunicipalNews.fromMap(
-    String id,
-    Map<String, dynamic> data,
-  ) {
+  factory MunicipalNews.fromMap(String id, Map<String, dynamic> data) {
     return MunicipalNews(
       id: id,
       title: data['title'] as String? ?? '',
       image: data['image'] as String? ?? '',
       url: data['url'] as String? ?? '',
-      publishedAtText:
-          data['publishedAtText'] as String? ?? '',
+      publishedAtText: data['publishedAtText'] as String? ?? '',
       pageIndex: (data['pageIndex'] as num?)?.toInt() ?? 999,
       itemIndex: (data['itemIndex'] as num?)?.toInt() ?? 999,
     );
   }
-  
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/ebelediye_model.dart';
 
 /// Fallback / Varsayılan Gebze Belediyesi E-Belediye Kategorileri
@@ -173,7 +175,8 @@ final List<EBelediyeCategory> kFallbackEBelediyeCategories = [
       EBelediyeService(
         id: 45,
         name: 'e-Eksper',
-        description: 'Gayrimenkul değerleme ve ekspertiz raporu belge başvuruları',
+        description:
+            'Gayrimenkul değerleme ve ekspertiz raporu belge başvuruları',
         url: 'https://ulakbel.gebze.bel.tr/WebBasvuru/eeksper#/',
         hasModal: false,
       ),
@@ -250,40 +253,51 @@ final List<EBelediyeCategory> kFallbackEBelediyeCategories = [
 ];
 
 /// E-Belediye Kategorileri Provider (Firestore 'ebelediye_categories' veya JSON fallback)
-final eBelediyeCategoriesProvider = FutureProvider.autoDispose<List<EBelediyeCategory>>((ref) async {
-  try {
-    // 1. Önce Firestore'dan kontrol et (Admin panelinden güncellenmişse oradan gelir)
-    final snapshot = await FirebaseFirestore.instance
-        .collection('ebelediye_categories')
-        .get();
+final eBelediyeCategoriesProvider =
+    FutureProvider.autoDispose<List<EBelediyeCategory>>((ref) async {
+      try {
+        // 1. Önce Firestore'dan kontrol et (Admin panelinden güncellenmişse oradan gelir)
+        final snapshot = await FirebaseFirestore.instance
+            .collection('ebelediye_categories')
+            .get();
 
-    if (snapshot.docs.isNotEmpty) {
-      return snapshot.docs.map((doc) => EBelediyeCategory.fromMap(doc.data())).toList();
-    }
-  } catch (_) {
-    // Firestore hatası durumunda devam et
-  }
-
-  // 2. Canlı web servisinden çekmeyi dene (dart:io HttpClient)
-  try {
-    final client = HttpClient();
-    client.connectionTimeout = const Duration(seconds: 4);
-    final request = await client.getUrl(Uri.parse('https://www.gebze.bel.tr/json/ebelediye.json'));
-    final response = await request.close().timeout(const Duration(seconds: 4));
-
-    if (response.statusCode == 200) {
-      final responseBody = await response.transform(utf8.decoder).join();
-      final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
-      final catList = decoded['categories'] as List<dynamic>?;
-      if (catList != null && catList.isNotEmpty) {
-        return catList.map((c) => EBelediyeCategory.fromMap(c as Map<String, dynamic>)).toList();
+        if (snapshot.docs.isNotEmpty) {
+          return snapshot.docs
+              .map((doc) => EBelediyeCategory.fromMap(doc.data()))
+              .toList();
+        }
+      } catch (_) {
+        // Firestore hatası durumunda devam et
       }
-    }
-    client.close();
-  } catch (_) {
-    // Offline veya zaman aşımı durumunda fallback verisi döner
-  }
 
-  // 3. Fallback hazır liste
-  return kFallbackEBelediyeCategories;
-});
+      // 2. Canlı web servisinden çekmeyi dene (dart:io HttpClient)
+      try {
+        final client = HttpClient();
+        client.connectionTimeout = const Duration(seconds: 4);
+        final request = await client.getUrl(
+          Uri.parse('https://www.gebze.bel.tr/json/ebelediye.json'),
+        );
+        final response = await request.close().timeout(
+          const Duration(seconds: 4),
+        );
+
+        if (response.statusCode == 200) {
+          final responseBody = await response.transform(utf8.decoder).join();
+          final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+          final catList = decoded['categories'] as List<dynamic>?;
+          if (catList != null && catList.isNotEmpty) {
+            return catList
+                .map(
+                  (c) => EBelediyeCategory.fromMap(c as Map<String, dynamic>),
+                )
+                .toList();
+          }
+        }
+        client.close();
+      } catch (_) {
+        // Offline veya zaman aşımı durumunda fallback verisi döner
+      }
+
+      // 3. Fallback hazır liste
+      return kFallbackEBelediyeCategories;
+    });

@@ -1,4 +1,5 @@
 import 'auth_guard.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,7 @@ import 'outages_screen.dart';
 import 'soz_sende_screen.dart';
 import 'neighborhood_screen.dart';
 import '../features/parking/presentation/parking_screen.dart';
+import '../features/chatbot/chatbot.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
 /// Dosya yolu: lib/screens/services_screen.dart
@@ -222,18 +224,23 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       return;
     }
     if (s.id == 'e_belediye') {
-     if (!requireLogin(context, ref)) return;
-     Navigator.of(context).push(
-     MaterialPageRoute(builder: (context) => const EBelediyeScreen()),
-
-     
-  );
-  return;
-  
-}
+      if (!requireLogin(context, ref)) return;
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const EBelediyeScreen()));
+      return;
+    }
     if (s.id == 'mahallemde') {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => const NeighborhoodScreen()),
+      );
+      return;
+    }
+    if (s.id == 'asistan_bot') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const ChatbotScreen(isMini: false),
+        ),
       );
       return;
     }
@@ -256,12 +263,15 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final isDark = base.brightness == Brightness.dark;
 
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: _buildScreen(context, lang),
@@ -277,12 +287,14 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
         _query.trim().isEmpty ||
         emergency.title.toLowerCase().contains(_query.trim().toLowerCase());
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: _C.bg,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
         body: Column(
           children: [
             _Header(
@@ -424,31 +436,53 @@ class _Header extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: TextField(
-                  controller: controller,
-                  onChanged: onChanged,
-                  textInputAction: TextInputAction.search,
-                  style: const TextStyle(fontSize: 14, color: _C.textDark),
-                  decoration: InputDecoration(
-                    hintText: AppStrings.get('search_services_hint', lang),
-                    hintStyle: const TextStyle(
-                      color: _C.textMuted,
-                      fontSize: 14,
+              Builder(
+                builder: (context) {
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+                  return Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: isDark
+                          ? Border.all(color: const Color(0xFF334155))
+                          : null,
                     ),
-                    prefixIcon: const Icon(
-                      Icons.search_rounded,
-                      color: _C.textMuted,
+                    child: TextField(
+                      controller: controller,
+                      onChanged: onChanged,
+                      textInputAction: TextInputAction.search,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                      decoration: InputDecoration(
+                        filled: false,
+                        fillColor: Colors.transparent,
+                        hintText: AppStrings.get('search_services_hint', lang),
+                        hintStyle: TextStyle(
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : _C.textMuted,
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : _C.textMuted,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 13,
+                        ),
+                      ),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
@@ -549,11 +583,17 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      elevation: 2,
+      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+      elevation: isDark ? 0 : 2,
       shadowColor: _C.navy.withAlpha(20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: isDark
+            ? const BorderSide(color: Color(0xFF334155))
+            : BorderSide.none,
+      ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
@@ -580,10 +620,10 @@ class _ServiceCard extends StatelessWidget {
                 data.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
-                  color: _C.textDark,
+                  color: isDark ? Colors.white : _C.textDark,
                 ),
               ),
               const SizedBox(height: 3),
@@ -591,10 +631,10 @@ class _ServiceCard extends StatelessWidget {
                 data.subtitle,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   height: 1.25,
-                  color: _C.textMuted,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                 ),
               ),
             ],

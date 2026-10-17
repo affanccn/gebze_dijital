@@ -342,12 +342,15 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final isDark = base.brightness == Brightness.dark;
 
     return Theme(
       data: base.copyWith(
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -355,7 +358,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
           statusBarColor: Colors.transparent,
         ),
         child: Scaffold(
-          backgroundColor: _C.bg,
+          backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
           floatingActionButton: _tab.index == 1
               ? FloatingActionButton.extended(
                   onPressed: () => _openNewSuggestion(lang),
@@ -386,6 +389,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
   }
 
   Widget _buildNeighborhoodChips(String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 44,
       margin: const EdgeInsets.only(top: 14, bottom: 4),
@@ -393,7 +397,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: _kNeighborhoods.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = _neighborhoodIndex == i;
           final label = i == 0
@@ -404,17 +408,23 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             selected: isSelected,
             showCheckmark: false,
             onSelected: (_) => setState(() => _neighborhoodIndex = i),
-            selectedColor: _C.navy,
-            backgroundColor: Colors.white,
+            selectedColor: isDark ? const Color(0xFF2563EB) : _C.navy,
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             labelStyle: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: isSelected ? Colors.white : _C.textDark,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white70 : _C.textDark),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(
-                color: isSelected ? _C.navy : Colors.grey.withAlpha(50),
+                color: isSelected
+                    ? (isDark ? const Color(0xFF2563EB) : _C.navy)
+                    : (isDark
+                          ? const Color(0xFF334155)
+                          : Colors.grey.withAlpha(50)),
               ),
             ),
           );
@@ -673,6 +683,7 @@ class _PollCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final options = _parseOptions(data);
 
     int votesOf(int i) {
@@ -690,9 +701,11 @@ class _PollCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE4E9F2)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,15 +715,15 @@ class _PollCard extends StatelessWidget {
               _Badge(
                 icon: Icons.location_on_rounded,
                 text: (data['neighborhood'] ?? 'Gebze').toString(),
-                color: _C.navy,
+                color: isDark ? const Color(0xFF60A5FA) : _C.navy,
               ),
               const Spacer(),
               if (data['endDate'] != null)
                 Text(
                   '${AppStrings.get('poll_deadline', lang)} ${_fmtDate(data['endDate'])}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: _C.textMuted,
+                    color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -719,10 +732,10 @@ class _PollCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             (data['question'] ?? data['title'] ?? '').toString(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14.5,
               fontWeight: FontWeight.w800,
-              color: _C.textDark,
+              color: isDark ? Colors.white : _C.textDark,
               height: 1.25,
             ),
           ),
@@ -740,17 +753,17 @@ class _PollCard extends StatelessWidget {
           const SizedBox(height: 2),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.people_alt_rounded,
                 size: 14,
-                color: _C.textMuted,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
               ),
               const SizedBox(width: 5),
               Text(
                 '$total ${AppStrings.get('poll_total_votes', lang)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11.5,
-                  color: _C.textMuted,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -796,6 +809,8 @@ class _PollOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -803,10 +818,12 @@ class _PollOption extends StatelessWidget {
         height: 44,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: _C.bg,
+          color: isDark ? const Color(0xFF0F172A) : _C.bg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? _C.orange : const Color(0xFFE4E9F2),
+            color: selected
+                ? _C.orange
+                : (isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2)),
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -817,8 +834,10 @@ class _PollOption extends StatelessWidget {
                 widthFactor: percent.clamp(0.0, 1.0),
                 child: Container(
                   color: selected
-                      ? _C.orange.withAlpha(35)
-                      : const Color(0xFFE3EDFC),
+                      ? _C.orange.withAlpha(45)
+                      : (isDark
+                            ? const Color(0xFF1E3A8A).withAlpha(100)
+                            : const Color(0xFFE3EDFC)),
                 ),
               ),
             Padding(
@@ -835,7 +854,7 @@ class _PollOption extends StatelessWidget {
                         fontWeight: selected
                             ? FontWeight.w800
                             : FontWeight.w600,
-                        color: _C.textDark,
+                        color: isDark ? Colors.white : _C.textDark,
                       ),
                     ),
                   ),
@@ -845,7 +864,9 @@ class _PollOption extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: selected ? _C.orange : _C.textMuted,
+                        color: selected
+                            ? _C.orange
+                            : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
                       ),
                     ),
                 ],
@@ -882,17 +903,21 @@ class _SuggestionCard extends StatelessWidget {
 
   String _formatStatus(String raw) {
     final s = raw.toLowerCase();
-    if (s.contains('onay') || s.contains('approv'))
+    if (s.contains('onay') || s.contains('approv')) {
       return AppStrings.get('status_approved', lang);
-    if (s.contains('ince') || s.contains('review'))
+    }
+    if (s.contains('ince') || s.contains('review')) {
       return AppStrings.get('status_reviewing', lang);
-    if (s.contains('bekle') || s.contains('pend'))
+    }
+    if (s.contains('bekle') || s.contains('pend')) {
       return AppStrings.get('status_pending', lang);
+    }
     return raw;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final status = _formatStatus((data['status'] ?? 'Beklemede').toString());
     final sc = _statusColor(status);
     final likes = ((data['likes'] ?? 0) as num).toInt();
@@ -901,9 +926,11 @@ class _SuggestionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE4E9F2)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -913,14 +940,14 @@ class _SuggestionCard extends StatelessWidget {
               _Badge(
                 icon: Icons.location_on_rounded,
                 text: (data['neighborhood'] ?? 'Gebze').toString(),
-                color: _C.navy,
+                color: isDark ? const Color(0xFF60A5FA) : _C.navy,
               ),
               const SizedBox(width: 6),
               if (data['category'] != null)
                 _Badge(
                   icon: Icons.category_rounded,
                   text: data['category'].toString(),
-                  color: _C.textMuted,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                 ),
               const Spacer(),
               Container(
@@ -943,18 +970,18 @@ class _SuggestionCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             (data['title'] ?? '').toString(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14.5,
               fontWeight: FontWeight.w800,
-              color: _C.textDark,
+              color: isDark ? Colors.white : _C.textDark,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             (data['description'] ?? '').toString(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12.5,
-              color: _C.textMuted,
+              color: isDark ? const Color(0xFFCBD5E1) : _C.textMuted,
               height: 1.35,
             ),
           ),
@@ -976,7 +1003,9 @@ class _SuggestionCard extends StatelessWidget {
                             ? Icons.thumb_up_alt_rounded
                             : Icons.thumb_up_alt_outlined,
                         size: 16,
-                        color: liked ? _C.orange : _C.textMuted,
+                        color: liked
+                            ? _C.orange
+                            : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -984,7 +1013,11 @@ class _SuggestionCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: liked ? _C.orange : _C.textMuted,
+                          color: liked
+                              ? _C.orange
+                              : (isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : _C.textMuted),
                         ),
                       ),
                     ],
@@ -1100,6 +1133,7 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
   }
 
   Future<void> _submit() async {
+    if (_sending) return;
     final title = _title.text.trim();
     final desc = _desc.text.trim();
     if (title.length < 5 || desc.length < 10) {
@@ -1141,28 +1175,47 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
     }
   }
 
-  InputDecoration _dec(String hint) => InputDecoration(
-    hintText: hint,
-    hintStyle: const TextStyle(fontSize: 13, color: _C.textMuted),
-    filled: true,
-    fillColor: _C.bg,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide.none,
-    ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-  );
+  InputDecoration _dec(BuildContext context, String hint) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        fontSize: 13,
+        color: isDark ? const Color(0xFF64748B) : _C.textMuted,
+      ),
+      filled: true,
+      fillColor: isDark ? const Color(0xFF0F172A) : _C.bg,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: isDark ? const Color(0xFF334155) : Colors.transparent,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: isDark ? const Color(0xFF334155) : Colors.transparent,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFF38BDF8), width: 1.4),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     final categories = _getCategories();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottom),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -1182,17 +1235,19 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
             const SizedBox(height: 14),
             Text(
               AppStrings.get('dialog_new_suggestion_title', widget.lang),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
-                color: _C.navy,
+                color: isDark ? Colors.white : _C.navy,
               ),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _title,
               maxLength: 80,
+              style: TextStyle(color: isDark ? Colors.white : _C.textDark),
               decoration: _dec(
+                context,
                 AppStrings.get('input_suggestion_title', widget.lang),
               ).copyWith(counterText: ''),
             ),
@@ -1201,7 +1256,9 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
               controller: _desc,
               maxLines: 4,
               maxLength: 400,
+              style: TextStyle(color: isDark ? Colors.white : _C.textDark),
               decoration: _dec(
+                context,
                 AppStrings.get('input_suggestion_desc', widget.lang),
               ),
             ),
@@ -1212,12 +1269,30 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _neighborhood,
                     isExpanded: true,
+                    dropdownColor: isDark
+                        ? const Color(0xFF1E293B)
+                        : Colors.white,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : _C.textDark,
+                      fontSize: 13,
+                    ),
                     decoration: _dec(
+                      context,
                       AppStrings.get('input_neighborhood', widget.lang),
                     ),
                     items: _kNeighborhoods
                         .skip(1)
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(
+                              e,
+                              style: TextStyle(
+                                color: isDark ? Colors.white : _C.textDark,
+                              ),
+                            ),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) =>
                         setState(() => _neighborhood = v ?? _neighborhood),
@@ -1228,11 +1303,29 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _category,
                     isExpanded: true,
+                    dropdownColor: isDark
+                        ? const Color(0xFF1E293B)
+                        : Colors.white,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : _C.textDark,
+                      fontSize: 13,
+                    ),
                     decoration: _dec(
+                      context,
                       AppStrings.get('input_category', widget.lang),
                     ),
                     items: categories
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(
+                              e,
+                              style: TextStyle(
+                                color: isDark ? Colors.white : _C.textDark,
+                              ),
+                            ),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) =>
                         setState(() => _category = v ?? _category),

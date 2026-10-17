@@ -1,0 +1,1851 @@
+{
+  "project": "Gebze Dijital",
+  "version": "2.0",
+  "language": "tr-TR",
+  "purpose": "Gebze Dijital Vatandaş Platformu yerel asistanı Bot82 için kapsamlı niyet ve rota eşleştirme kataloğu.",
+  "matching": {
+    "strategy": "hybrid_local_intent",
+    "weights": {
+      "exact_phrase": 10,
+      "contains_phrase": 8,
+      "multiword_keyword": 6,
+      "exact_keyword": 5,
+      "stem_keyword": 3,
+      "context_bonus": 1,
+      "multiple_keyword_bonus": 2
+    }
+  },
+  "route_registry": {
+    "water_outages": "/services/disruptions",
+    "power_outages": "/services/disruptions",
+    "disruptions": "/services/disruptions",
+    "pharmacies": "/services/pharmacies",
+    "weather": "/services/weather",
+    "news": "/services/content",
+    "events": "/services/content",
+    "neighborhood": "/services/neighborhood",
+    "roadworks": "/services/neighborhood",
+    "animals": "/services/animals",
+    "parking": "/services/parking",
+    "soz_sende": "/soz_sende",
+    "request_create": "/report",
+    "complaints": "/report",
+    "my_requests": "/report/my_requests",
+    "ebelediye": "/ebelediye",
+    "payments": "/ebelediye",
+    "property_tax": "/ebelediye",
+    "emergency": "/services/emergency",
+    "places": "/places",
+    "kent_lokantasi": "/places/lokantalar",
+    "markets": "/places/pazar",
+    "parks": "/places/parklar",
+    "sports_facilities": "/places/spor",
+    "cultural_facilities": "/places/kultur",
+    "historical_places": "/places",
+    "profile": "/profile",
+    "accessibility": "/profile",
+    "services": "/services",
+    "contact": "/services"
+  },
+  "intents": [
+    {
+      "id": "greeting",
+      "category": "general",
+      "action": "suggest",
+      "priority": 2,
+      "keywords": [
+        "merhaba",
+        "selam",
+        "selamlar",
+        "günaydın",
+        "iyi günler",
+        "iyi akşamlar",
+        "naber",
+        "hey"
+      ],
+      "phrases": [
+        "merhaba",
+        "selam",
+        "iyi günler",
+        "günaydın",
+        "iyi akşamlar",
+        "merhaba bot82",
+        "selam asistan",
+        "nasılsın"
+      ],
+      "response": "Merhaba 👋 Ben Gebze Dijital Asistanı Bot82. Gebze'deki tüm belediye hizmetleri, kesintiler, nöbetçi eczaneler, mahalle çalışmaları ve etkinlikler konusunda size yardımcı olmak için buradayım. Size nasıl yardımcı olabilirim?",
+      "choices": [
+        {
+          "label": "Su Kesintileri",
+          "value": "su kesintisi"
+        },
+        {
+          "label": "Nöbetçi Eczaneler",
+          "value": "nöbetçi eczaneler"
+        },
+        {
+          "label": "Mahallemde Ne Var?",
+          "value": "mahallemde"
+        },
+        {
+          "label": "Talep Bildir",
+          "value": "talep bildir"
+        }
+      ]
+    },
+    {
+      "id": "help",
+      "category": "general",
+      "action": "suggest",
+      "priority": 3,
+      "keywords": [
+        "yardım",
+        "neler yapabilirsin",
+        "ne yapabilirsin",
+        "kullanım",
+        "nasıl kullanılır",
+        "özellikler",
+        "menü",
+        "komutlar"
+      ],
+      "phrases": [
+        "yardım",
+        "neler yapabilirsin",
+        "bana nasıl yardım edebilirsin",
+        "ne işe yararsın",
+        "yardım et",
+        "yardım menüsü"
+      ],
+      "response": "Bot82 olarak Gebze Belediyesi'nin tüm dijital hizmetlerinde yanınızdayım:\n\n💧 Su ve elektrik kesintilerini kontrol edebilir,\n💊 Nöbetçi eczaneleri bulabilir,\n⛅ Güncel hava durumunu öğrenebilir,\n🚧 Mahallenizdeki kazı ve yol çalışmalarını görebilir,\n🐾 Gebze Pati ile sokak hayvanları ve sahiplendirmeyi inceleyebilir,\n🚗 Otopark doluluklarını takip edebilir,\n🗳️ Söz Sende ile anketlerde oy kullanabilir,\n📸 Çek & Gönder ile belediyemize talep iletebilirsiniz.",
+      "choices": [
+        {
+          "label": "Kesintileri Gör",
+          "value": "kesintiler"
+        },
+        {
+          "label": "E-Belediye",
+          "value": "e-belediye"
+        },
+        {
+          "label": "Gebze Pati",
+          "value": "gebze pati"
+        },
+        {
+          "label": "Söz Sende",
+          "value": "söz sende"
+        }
+      ]
+    },
+    {
+      "id": "about_bot82",
+      "category": "general",
+      "action": "answer",
+      "priority": 3,
+      "keywords": [
+        "bot82",
+        "kimsin",
+        "adın ne",
+        "nesin",
+        "sen kimsin",
+        "robot"
+      ],
+      "phrases": [
+        "bot82 kimdir",
+        "sen kimsin",
+        "adın ne",
+        "bot82 nedir",
+        "kimsin sen"
+      ],
+      "response": "Ben Bot82 🤖 Gebze Belediyesi Dijital Vatandaş Platformu'nun akıllı şehir asistanıyım. Gebze'nin 82 numaralı il vizyonundan ilham alarak tasarlandım. Şehrimizdeki tüm hizmetlere hızlıca ulaşmanız için buradayım!",
+      "choices": [
+        {
+          "label": "Hizmetleri Keşfet",
+          "value": "hizmetler"
+        },
+        {
+          "label": "Şehir Rehberi",
+          "value": "gezilecek yerler"
+        }
+      ]
+    },
+    {
+      "id": "water_outage",
+      "category": "disruptions",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "water_outages",
+      "keywords": [
+        "su",
+        "sular",
+        "kesinti",
+        "musluk",
+        "susuz",
+        "arıza",
+        "iski",
+        "isu",
+        "su kesintisi",
+        "su patlağı"
+      ],
+      "phrases": [
+        "su kesintisi",
+        "sular kesildi",
+        "suyum kesildi",
+        "su ne zaman gelecek",
+        "musluktan su akmıyor",
+        "gebzede su yok",
+        "su arızası",
+        "su kesintileri"
+      ],
+      "response": "Gebze genelindeki aktif ve planlı su kesintilerini, arıza detaylarını ve tahmini su verilme saatlerini Kesintiler sayfamızdan anlık olarak takip edebilirsiniz.",
+      "choices": [
+        {
+          "label": "Elektrik Kesintileri",
+          "value": "elektrik kesintisi"
+        },
+        {
+          "label": "Arıza Bildir",
+          "value": "talep bildir"
+        }
+      ]
+    },
+    {
+      "id": "power_outage",
+      "category": "disruptions",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "power_outages",
+      "keywords": [
+        "elektrik",
+        "sedas",
+        "sedaş",
+        "trafo",
+        "kesinti",
+        "voltaj",
+        "elektrikler",
+        "karanlık"
+      ],
+      "phrases": [
+        "elektrik kesintisi",
+        "elektrikler kesildi",
+        "elektrik ne zaman gelecek",
+        "sedaş arıza",
+        "elektrik kesildi",
+        "elektrik arızası",
+        "elektrik yok"
+      ],
+      "response": "Gebze ilçemizdeki planlı bakım ve arıza kaynaklı elektrik kesintilerini Kesintiler sayfamızdan görüntüleyebilirsiniz.",
+      "choices": [
+        {
+          "label": "Su Kesintileri",
+          "value": "su kesintisi"
+        },
+        {
+          "label": "SEDAŞ İletişim",
+          "value": "iletişim"
+        }
+      ]
+    },
+    {
+      "id": "disruptions",
+      "category": "disruptions",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "disruptions",
+      "keywords": [
+        "kesintiler",
+        "arızalar",
+        "arıza",
+        "kesinti",
+        "çalışma"
+      ],
+      "phrases": [
+        "kesintiler",
+        "güncel kesintiler",
+        "arıza takibi",
+        "kesinti listesi"
+      ],
+      "response": "Gebze genelindeki su ve elektrik kesintilerini tek ekranda incelemek için Kesintiler sayfasına yönlendiriliyorsunuz.",
+      "choices": [
+        {
+          "label": "Su Kesintileri",
+          "value": "su kesintisi"
+        },
+        {
+          "label": "Elektrik Kesintileri",
+          "value": "elektrik kesintisi"
+        }
+      ]
+    },
+    {
+      "id": "pharmacy",
+      "category": "health",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "pharmacies",
+      "keywords": [
+        "eczane",
+        "nöbetçi",
+        "ilaç",
+        "sağlık",
+        "hastane",
+        "gece açık eczane",
+        "eczaneler",
+        "eczanem"
+      ],
+      "phrases": [
+        "nöbetçi eczaneler",
+        "bugün nöbetçi eczane hangisi",
+        "gece açık eczane",
+        "eczane nerede",
+        "en yakın eczane",
+        "gebze nöbetçi eczane",
+        "nöbetçi eczane listesi"
+      ],
+      "response": "Gebze'de bugün ve bu gece nöbetçi olan tüm eczanelerin güncel adresleri, telefon numaraları ve harita konumlarına Nöbetçi Eczaneler sayfasından anında ulaşabilirsiniz.",
+      "choices": [
+        {
+          "label": "Acil Durumlar",
+          "value": "acil durum"
+        },
+        {
+          "label": "Hava Durumu",
+          "value": "hava durumu"
+        }
+      ]
+    },
+    {
+      "id": "weather",
+      "category": "environment",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "weather",
+      "keywords": [
+        "hava",
+        "hava durumu",
+        "yağmur",
+        "kar",
+        "sıcaklık",
+        "derece",
+        "soğuk",
+        "güneş",
+        "rüzgar",
+        "fırtına",
+        "don",
+        "nem"
+      ],
+      "phrases": [
+        "hava durumu",
+        "bugün hava nasıl",
+        "yağmur yağacak mı",
+        "kar yağacak mı",
+        "hava kaç derece",
+        "gebze hava tahmini",
+        "yarın hava nasıl"
+      ],
+      "response": "Gebze için anlık hava durumu, saatlik sıcaklık değişimleri ve 5 günlük hava tahminini Hava Durumu sayfasından inceleyebilirsiniz.",
+      "choices": [
+        {
+          "label": "Nöbetçi Eczaneler",
+          "value": "nöbetçi eczaneler"
+        },
+        {
+          "label": "Hafta Sonu Etkinlikleri",
+          "value": "etkinlikler"
+        }
+      ]
+    },
+    {
+      "id": "neighborhood",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "neighborhood",
+      "keywords": [
+        "mahallemde",
+        "mahalle",
+        "muhtar",
+        "muhtarlık",
+        "çalışmalar",
+        "belediye çalışması",
+        "mahallemdeki yenilikler",
+        "kazı",
+        "altyapı",
+        "asfalt",
+        "yol bakım",
+        "park yenileme"
+      ],
+      "phrases": [
+        "mahallemde ne var",
+        "mahalle çalışmaları",
+        "mahallendeki çalışmalar",
+        "sokağımda kazı var",
+        "yol çalışması nerede",
+        "asfalt çalışması",
+        "altyapı çalışmaları",
+        "muhtarlık bilgileri"
+      ],
+      "response": "Gebze Belediyesi'nin mahallenizde yürüttüğü veya planladığı kazı, altyapı, asfalt serimi, kaldırım onarımı ve çevre düzenleme çalışmalarını Mahallemde ekranından filtreleyerek takip edebilirsiniz.",
+      "choices": [
+        {
+          "label": "Talep Bildir",
+          "value": "talep bildir"
+        },
+        {
+          "label": "Kesintileri Gör",
+          "value": "kesintiler"
+        }
+      ]
+    },
+    {
+      "id": "roadworks",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "roadworks",
+      "keywords": [
+        "yol çalışması",
+        "asfalt",
+        "kaldırım",
+        "yol yapımı",
+        "asfaltlama",
+        "kazı",
+        "hendek",
+        "yol bakım"
+      ],
+      "phrases": [
+        "yol çalışması var mı",
+        "yol ne zaman açılacak",
+        "asfalt ne zaman dökülecek",
+        "kaldırım çalışması",
+        "yol bakım çalışmaları"
+      ],
+      "response": "Gebze genelindeki yol bakım, asfalt kaplama ve altyapı çalışmalarının güncel durumunu Mahallemde sayfamız üzerinden inceleyebilirsiniz.",
+      "choices": [
+        {
+          "label": "Bozuk Yol Bildir",
+          "value": "yol bozuk"
+        },
+        {
+          "label": "Tüm Mahalleler",
+          "value": "mahallemde"
+        }
+      ]
+    },
+    {
+      "id": "animals",
+      "category": "animals",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "animals",
+      "keywords": [
+        "hayvan",
+        "sokak hayvanı",
+        "pati",
+        "gebze pati",
+        "kedi",
+        "köpek",
+        "barınak",
+        "veteriner",
+        "mama",
+        "besleme"
+      ],
+      "phrases": [
+        "gebze pati",
+        "sokak hayvanları",
+        "hayvan hizmetleri",
+        "barınak nerede",
+        "veterinerlik hizmetleri",
+        "hayvan barınağı"
+      ],
+      "response": "Gebze Belediyesi Sokak Hayvanları Tedavi, Rehabilitasyon ve Eğitim Merkezi hizmetlerine Gebze Pati üzerinden ulaşabilirsiniz. Sahiplendirme, hayvan ambulansı, veteriner klinikleri ve mama besleme noktaları tek çatı altında!",
+      "choices": [
+        {
+          "label": "Kedi/Köpek Sahiplen",
+          "value": "hayvan sahiplenme"
+        },
+        {
+          "label": "Hayvan Ambulansı",
+          "value": "yaralı hayvan"
+        },
+        {
+          "label": "Mama Noktaları",
+          "value": "mama noktaları"
+        }
+      ]
+    },
+    {
+      "id": "pet_adoption",
+      "category": "animals",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "animals",
+      "keywords": [
+        "sahiplen",
+        "sahiplenme",
+        "kedi sahiplenmek",
+        "köpek sahiplenmek",
+        "ücretsiz kedi",
+        "yavru kedi",
+        "yavru köpek",
+        "yuva arayanlar"
+      ],
+      "phrases": [
+        "hayvan sahiplenmek istiyorum",
+        "kedi sahiplenme",
+        "köpek sahiplenme",
+        "ücretsiz hayvan sahiplen",
+        "barınaktan kedi al",
+        "yuva olmak istiyorum"
+      ],
+      "response": "Gebze Pati Sahiplendirme sayfamızda sıcak bir yuva bekleyen sevimli can dostlarımızın fotoğraflarını, yaş ve cinsiyet bilgilerini inceleyebilir ve sahiplenme başvurusunda bulunabilirsiniz 🐾",
+      "choices": [
+        {
+          "label": "Sahiplendirme İlanları",
+          "value": "gebze pati"
+        },
+        {
+          "label": "Mama Odakları",
+          "value": "mama noktaları"
+        }
+      ]
+    },
+    {
+      "id": "animal_ambulance",
+      "category": "animals",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "animals",
+      "keywords": [
+        "yaralı hayvan",
+        "hayvan ambulansı",
+        "araba çarptı",
+        "hasta kedi",
+        "hasta köpek",
+        "acil hayvan",
+        "veteriner ambulans"
+      ],
+      "phrases": [
+        "yaralı kedi gördüm",
+        "yaralı köpek var",
+        "hayvan ambulansı çağır",
+        "sokak hayvanı acil",
+        "yaralı hayvan bildir"
+      ],
+      "response": "🚨 Yaralı veya acil müdahaleye muhtaç sokak hayvanları için Gebze Belediyesi Hayvan Ambulansı hizmet vermektedir. Gebze Pati ekranından doğrudan çağrı yapabilir veya 444 04 43 hattını arayabilirsiniz.",
+      "choices": [
+        {
+          "label": "Hemen Ara (444 04 43)",
+          "value": "iletişim"
+        },
+        {
+          "label": "Gebze Pati'yi Aç",
+          "value": "gebze pati"
+        }
+      ]
+    },
+    {
+      "id": "feeding_points",
+      "category": "animals",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "animals",
+      "keywords": [
+        "mama",
+        "besleme",
+        "mama odağı",
+        "mama noktası",
+        "su kabı",
+        "yem",
+        "veteriner kliniği",
+        "klinikler"
+      ],
+      "phrases": [
+        "mama noktaları nerede",
+        "besleme odakları",
+        "sokak hayvanları mama",
+        "veteriner klinikleri nerede"
+      ],
+      "response": "Gebze genelindeki resmi kedi ve köpek mama besleme odaklarını ve anlaşmalı veteriner kliniklerini Gebze Pati Besleme & Klinikler sekmesinde harita üzerinde görebilirsiniz.",
+      "choices": [
+        {
+          "label": "Gebze Pati Haritası",
+          "value": "gebze pati"
+        },
+        {
+          "label": "Sahiplenme",
+          "value": "hayvan sahiplenme"
+        }
+      ]
+    },
+    {
+      "id": "parking",
+      "category": "services",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "parking",
+      "keywords": [
+        "otopark",
+        "park",
+        "araç",
+        "araba",
+        "katlı otopark",
+        "ücretsiz otopark",
+        "park yeri",
+        "otopark ücreti",
+        "doluluk"
+      ],
+      "phrases": [
+        "otopark nerede",
+        "arabayı nereye park edebilirim",
+        "boş otopark var mı",
+        "otopark doluluk oranları",
+        "kent meydanı otoparkı",
+        "katlı otopark nerede",
+        "otopark fiyatları"
+      ],
+      "response": "Gebze'deki katlı ve açık otoparkların güncel doluluk oranları, boş kapasiteleri, adresleri ve saatlik tarife bilgilerine Otopark sayfasından anlık olarak ulaşabilirsiniz.",
+      "choices": [
+        {
+          "label": "Şehir Rehberi",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "Ulaşım Bilgisi",
+          "value": "ulaşım"
+        }
+      ]
+    },
+    {
+      "id": "soz_sende",
+      "category": "civic",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "soz_sende",
+      "keywords": [
+        "söz sende",
+        "anket",
+        "oylama",
+        "fikir",
+        "proje önerisi",
+        "vatandaş katılımı",
+        "oy kullan",
+        "fikir bildir",
+        "belediye anketi"
+      ],
+      "phrases": [
+        "söz sende nedir",
+        "anketlere katıl",
+        "anket var mı",
+        "belediyeye önerim var",
+        "oy kullanmak istiyorum",
+        "proje fikrim var",
+        "söz sende"
+      ],
+      "response": "Gebze Belediyesi Söz Sende platformu ile şehrimizin geleceğine dair anketlerde oy kullanabilir, mahalleniz ve ilçemiz için yeni fikirlerinizi doğrudan belediye yönetimine sunabilirsiniz 🗳️",
+      "choices": [
+        {
+          "label": "Anketlere Git",
+          "value": "söz sende"
+        },
+        {
+          "label": "Talep Bildir",
+          "value": "talep bildir"
+        }
+      ]
+    },
+    {
+      "id": "report_create",
+      "category": "civic",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "request_create",
+      "keywords": [
+        "talep",
+        "şikayet",
+        "bildir",
+        "çek gönder",
+        "sorun bildir",
+        "istek",
+        "fotoğraf gönder",
+        "şikayetim var",
+        "belediyeye bildir"
+      ],
+      "phrases": [
+        "talep oluştur",
+        "şikayet bildir",
+        "çek gönder",
+        "belediyeye şikayet",
+        "sorun bildirmek istiyorum",
+        "şikayetim var",
+        "talep bildir"
+      ],
+      "response": "Çek & Gönder özelliği ile karşılaştığınız sorunları fotoğraflayıp konumunuzu ekleyerek saniyeler içinde belediye ekiplerimize iletebilirsiniz.",
+      "choices": [
+        {
+          "label": "Taleplerimi Gör",
+          "value": "taleplerim"
+        },
+        {
+          "label": "Çöp Sorunu Bildir",
+          "value": "çöp alınmadı"
+        }
+      ]
+    },
+    {
+      "id": "my_requests",
+      "category": "civic",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "my_requests",
+      "keywords": [
+        "taleplerim",
+        "başvurularım",
+        "başvuru takip",
+        "şikayetim ne oldu",
+        "talep durumu",
+        "başvuru durumu",
+        "şikayet takibi"
+      ],
+      "phrases": [
+        "taleplerim nerede",
+        "başvurum ne durumda",
+        "şikayetimin sonucu",
+        "yaptığım başvurular",
+        "taleplerimin durumu",
+        "başvuru takip"
+      ],
+      "response": "Daha önce oluşturduğunuz talep ve şikayetlerin inceleme, işlem ve çözüme kavuşturulma süreçlerini Taleplerim ekranından durum bazında (İnceleniyor, İşleme Alındı, Çözüldü) takip edebilirsiniz.",
+      "choices": [
+        {
+          "label": "Yeni Talep Aç",
+          "value": "talep bildir"
+        },
+        {
+          "label": "Profilim",
+          "value": "profil"
+        }
+      ]
+    },
+    {
+      "id": "complaint_garbage",
+      "category": "civic",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "request_create",
+      "keywords": [
+        "çöp",
+        "konteyner",
+        "temizlik",
+        "çöpler",
+        "süpürme",
+        "atık",
+        "pislik",
+        "koku",
+        "çöp doldu"
+      ],
+      "phrases": [
+        "çöpler alınmadı",
+        "çöp konteyneri doldu",
+        "sokak çok pis",
+        "çöp kokuyor",
+        "sokağımız temizlenmedi",
+        "çöp şikayeti"
+      ],
+      "response": "Çöp ve çevre temizliği sorunlarını Çek & Gönder ekranından Temizlik kategorisini seçerek fotoğrafıyla birlikte iletebilirsiniz; ekiplerimiz hızla müdahale edecektir.",
+      "choices": [
+        {
+          "label": "Hemen Bildir",
+          "value": "talep bildir"
+        },
+        {
+          "label": "E-Moloz Hattı",
+          "value": "moloz"
+        }
+      ]
+    },
+    {
+      "id": "complaint_lighting",
+      "category": "civic",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "request_create",
+      "keywords": [
+        "lamba",
+        "aydınlatma",
+        "sokak lambası",
+        "direk",
+        "karanlık",
+        "ışık",
+        "yanmıyor"
+      ],
+      "phrases": [
+        "sokak lambası yanmıyor",
+        "sokak aydınlatması arızalı",
+        "ışık yanmıyor",
+        "sokak karanlık",
+        "lamba patladı"
+      ],
+      "response": "Yanmayan sokak lambaları ve aydınlatma arızalarını Çek & Gönder ekranındaki Aydınlatma kategorisinden konumuyla bildirebilirsiniz.",
+      "choices": [
+        {
+          "label": "Aydınlatma Bildir",
+          "value": "talep bildir"
+        },
+        {
+          "label": "Elektrik Kesintileri",
+          "value": "elektrik kesintisi"
+        }
+      ]
+    },
+    {
+      "id": "complaint_pothole",
+      "category": "civic",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "request_create",
+      "keywords": [
+        "çukur",
+        "delik",
+        "yol bozuk",
+        "asfalt çöktü",
+        "tümsek",
+        "kaldırım kırık",
+        "parke taşı",
+        "yol hasarı"
+      ],
+      "phrases": [
+        "yolda çukur var",
+        "asfalt bozuk",
+        "yol çöktü",
+        "kaldırım taşları kırık",
+        "çukur bildir",
+        "bozuk yol"
+      ],
+      "response": "Bozuk yolları ve çukurları Çek & Gönder ekranında Yol kategorisini seçip konum paylaşarak iletebilirsiniz. Fen İşleri ekiplerimiz bölgeye yönlendirilecektir.",
+      "choices": [
+        {
+          "label": "Çukur Bildir",
+          "value": "talep bildir"
+        },
+        {
+          "label": "Mahalle Çalışmaları",
+          "value": "mahallemde"
+        }
+      ]
+    },
+    {
+      "id": "ebelediye_general",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "ebelediye",
+      "keywords": [
+        "e-belediye",
+        "ebelediye",
+        "online işlemler",
+        "belediye portalı",
+        "elektronik belediye",
+        "belediye işlemleri",
+        "internet belediyeciliği"
+      ],
+      "phrases": [
+        "e-belediye",
+        "e belediye hizmetleri",
+        "online belediye işlemleri",
+        "belediye portalına git",
+        "ebelediye girişi"
+      ],
+      "response": "Gebze Belediyesi E-Belediye platformu üzerinden vergi borcu sorgulama ve ödeme, e-beyan, imar durumu, işyeri ruhsatı, moloz alımı ve sosyal yardım gibi tüm resmi işlemlerinizi online gerçekleştirebilirsiniz.",
+      "choices": [
+        {
+          "label": "Vergi / Borç Öde",
+          "value": "vergi ödeme"
+        },
+        {
+          "label": "e-Beyan",
+          "value": "e-beyan"
+        },
+        {
+          "label": "İmar Durumu",
+          "value": "imar durumu"
+        },
+        {
+          "label": "Sosyal Yardım",
+          "value": "sosyal yardım"
+        }
+      ]
+    },
+    {
+      "id": "property_tax",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "property_tax",
+      "keywords": [
+        "vergi",
+        "emlak vergisi",
+        "çevre temizlik vergisi",
+        "çtv",
+        "borç",
+        "borç ödeme",
+        "vergi borcu",
+        "harç",
+        "ceza ödeme",
+        "online ödeme",
+        "borç sorgulama"
+      ],
+      "phrases": [
+        "vergi ödeme",
+        "emlak vergisi nasıl ödenir",
+        "belediye borcu sorgulama",
+        "vergi borcum var mı",
+        "çevre temizlik vergisi ödeme",
+        "borç öde",
+        "vergi ödemesi"
+      ],
+      "response": "Emlak vergisi, çevre temizlik vergisi, ilan-reklam vergisi ve belediye harç borçlarınızı E-Belediye > Vergi / Borç Ödeme portalı üzerinden kredi kartıyla güvenle sorgulayabilir ve ödeyebilirsiniz.",
+      "choices": [
+        {
+          "label": "Borç Ödeme Portalı",
+          "value": "e-belediye"
+        },
+        {
+          "label": "e-Rayiç Belgesi",
+          "value": "rayiç bedel"
+        }
+      ]
+    },
+    {
+      "id": "e_beyan",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "ebelediye",
+      "keywords": [
+        "e-beyan",
+        "beyan",
+        "mesken beyanı",
+        "arsa beyanı",
+        "arazi beyanı",
+        "işyeri beyanı",
+        "beyan verme",
+        "beyan takip",
+        "tüzel beyan"
+      ],
+      "phrases": [
+        "e-beyan nasıl verilir",
+        "mesken beyanı verme",
+        "arsa beyanı bildirimi",
+        "işyeri beyanı",
+        "beyan takibi",
+        "e beyan başvurusu"
+      ],
+      "response": "Arsa, arazi, mesken, işyeri ve çevre temizlik e-beyan bildirimlerinizi E-Belediye e-Beyan formları üzerinden gerçek veya tüzel kişi olarak kolayca doldurabilir ve takip edebilirsiniz.",
+      "choices": [
+        {
+          "label": "e-Beyan Başvurusu",
+          "value": "e-belediye"
+        },
+        {
+          "label": "Vergi Borcu Öde",
+          "value": "vergi ödeme"
+        }
+      ]
+    },
+    {
+      "id": "e_ruhsat",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "ebelediye",
+      "keywords": [
+        "ruhsat",
+        "işyeri ruhsatı",
+        "dükkan açma",
+        "açılış ruhsatı",
+        "sıhhi ruhsat",
+        "gayrisıhhi",
+        "ruhsat başvurusu"
+      ],
+      "phrases": [
+        "işyeri ruhsatı nasıl alınır",
+        "işyeri açma ruhsatı",
+        "e-işyeri ruhsat başvurusu",
+        "dükkan ruhsatı",
+        "ruhsat başvuru formu"
+      ],
+      "response": "Sıhhi ve gayrisıhhi müesseseler için online işyeri açma ruhsatı başvurularınızı E-Belediye > e-İşyeri Ruhsat servisi ile dijital ortamda tamamlayabilirsiniz.",
+      "choices": [
+        {
+          "label": "E-Belediye'ye Git",
+          "value": "e-belediye"
+        },
+        {
+          "label": "İmar Durumu",
+          "value": "imar durumu"
+        }
+      ]
+    },
+    {
+      "id": "imar_durumu",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "ebelediye",
+      "keywords": [
+        "imar",
+        "imar durumu",
+        "parsel",
+        "yapı ruhsatı",
+        "inşaat ruhsatı",
+        "mimari proje",
+        "ada parsel",
+        "e-imar",
+        "çap"
+      ],
+      "phrases": [
+        "imar durumu belgesi",
+        "parsel imar durumu nasıl alınır",
+        "yapı ruhsatı başvurusu",
+        "e-imar sorgulama",
+        "inşaat ruhsatı"
+      ],
+      "response": "İnşaat veya tevhit-ifraz amaçlı resmi parsel imar durumu belgesi ve yapı ruhsatı proje onay süreçlerine E-Belediye İmar Yönetim Sistemi üzerinden e-Devlet ile erişebilirsiniz.",
+      "choices": [
+        {
+          "label": "İmar Portalına Git",
+          "value": "e-belediye"
+        },
+        {
+          "label": "e-Eksper",
+          "value": "eksper"
+        }
+      ]
+    },
+    {
+      "id": "e_moloz",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "ebelediye",
+      "keywords": [
+        "moloz",
+        "tadilat atığı",
+        "inşaat atığı",
+        "moloz hattı",
+        "moloz attırmak",
+        "moloz alma",
+        "hafriyat"
+      ],
+      "phrases": [
+        "moloz attırmak istiyorum",
+        "moloz hattı",
+        "ev tadilatı molozları",
+        "belediye moloz alıyor mu",
+        "e-moloz başvurusu"
+      ],
+      "response": "Ev veya işyerinizdeki inşaat ve tadilat atıklarının kapınızdan alınması için E-Belediye > E-Moloz Hattı üzerinden online talep oluşturabilirsiniz.",
+      "choices": [
+        {
+          "label": "Moloz Talebi Oluştur",
+          "value": "e-belediye"
+        },
+        {
+          "label": "Geri Dönüşüm Hattı",
+          "value": "geri dönüşüm"
+        }
+      ]
+    },
+    {
+      "id": "e_geridonusum",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "ebelediye",
+      "keywords": [
+        "geri dönüşüm",
+        "tekstil atığı",
+        "elektronik atık",
+        "eski eşya",
+        "plastik atık",
+        "atık pil",
+        "kağıt atık"
+      ],
+      "phrases": [
+        "geri dönüşüm talebi",
+        "eski kıyafetleri nereye verebilirim",
+        "elektronik atık toplama",
+        "e-geri dönüşüm hattı"
+      ],
+      "response": "Tekstil atıkları, elektronik eşyalar ve geri dönüştürülebilir atıklar için E-Belediye > e-Geri Dönüşüm servisi üzerinden belediyemizden toplama talebinde bulunabilirsiniz ♻️",
+      "choices": [
+        {
+          "label": "Geri Dönüşüm Talebi",
+          "value": "e-belediye"
+        },
+        {
+          "label": "Çek & Gönder",
+          "value": "talep bildir"
+        }
+      ]
+    },
+    {
+      "id": "sosyal_yardim",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "ebelediye",
+      "keywords": [
+        "sosyal yardım",
+        "yardım",
+        "erzak",
+        "gıda yardımı",
+        "maddi yardım",
+        "ihtiyaç sahibi",
+        "nakdi yardım",
+        "yakacak yardımı",
+        "koli"
+      ],
+      "phrases": [
+        "sosyal yardım başvurusu",
+        "belediyeden erzak yardımı",
+        "maddi yardım başvurusu",
+        "gıda kolisi",
+        "sosyal destek nasıl alınır"
+      ],
+      "response": "İhtiyaç sahibi aileler için belediyemiz gıda kolisi, nakdi destek ve sosyal yardım başvurularını E-Belediye > Sosyal Yardım Başvurusu formu üzerinden kabul etmektedir.",
+      "choices": [
+        {
+          "label": "Sosyal Yardım Formu",
+          "value": "e-belediye"
+        },
+        {
+          "label": "İletişim Merkezi",
+          "value": "iletişim"
+        }
+      ]
+    },
+    {
+      "id": "gesmek_kurslar",
+      "category": "municipal",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "ebelediye",
+      "keywords": [
+        "gesmek",
+        "kurs",
+        "eğitim",
+        "spor okulu",
+        "kış okulu",
+        "yaz okulu",
+        "atölye",
+        "sende",
+        "çocuk kursu",
+        "yüzme kursu",
+        "el sanatları"
+      ],
+      "phrases": [
+        "gesmek kursları ne zaman",
+        "belediye kurs başvurusu",
+        "spor okulları kayıt",
+        "kış spor okulları",
+        "sende eğitim portalı",
+        "ücretsiz kurslar"
+      ],
+      "response": "GESMEK meslek edindirme kursları, kış ve yaz spor okulları, yüzme ve çocuk atölyeleri kayıtları SENDE Eğitim Portalı üzerinden online yapılmaktadır.",
+      "choices": [
+        {
+          "label": "SENDE Portalı",
+          "value": "e-belediye"
+        },
+        {
+          "label": "Kültür Etkinlikleri",
+          "value": "etkinlikler"
+        }
+      ]
+    },
+    {
+      "id": "emergency",
+      "category": "emergency",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "emergency",
+      "keywords": [
+        "acil",
+        "toplanma alanı",
+        "deprem",
+        "afet",
+        "yangın",
+        "kaza",
+        "112",
+        "afad",
+        "acil durum",
+        "siren",
+        "sığınak"
+      ],
+      "phrases": [
+        "acil toplanma alanı nerede",
+        "deprem toplanma alanları",
+        "acil durum",
+        "acil durum numaraları",
+        "deprem anında ne yapmalı",
+        "afet toplanma"
+      ],
+      "response": "🚨 Afet ve Acil Durum ekranından Gebze'deki onaylı toplanma alanlarını harita üzerinde görebilir, acil numaraları tek tuşla arayabilir ve deprem çantası kontrol listesine ulaşabilirsiniz.",
+      "choices": [
+        {
+          "label": "Toplanma Alanları",
+          "value": "acil toplanma"
+        },
+        {
+          "label": "Belediye İletişim",
+          "value": "iletişim"
+        }
+      ]
+    },
+    {
+      "id": "news",
+      "category": "info",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "news",
+      "keywords": [
+        "haber",
+        "haberler",
+        "duyuru",
+        "duyurular",
+        "belediye haberi",
+        "baskan",
+        "açıklama",
+        "basın bülteni"
+      ],
+      "phrases": [
+        "belediye haberleri",
+        "güncel haberler",
+        "duyurular",
+        "belediyeden duyuru var mı",
+        "gebze haberleri"
+      ],
+      "response": "Gebze Belediyesi'nin en güncel haberleri, resmi duyuruları ve hayata geçirilen projeleri Haberler ekranından okuyabilirsiniz.",
+      "choices": [
+        {
+          "label": "Etkinlikler",
+          "value": "etkinlikler"
+        },
+        {
+          "label": "Söz Sende",
+          "value": "söz sende"
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "category": "info",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "events",
+      "keywords": [
+        "etkinlik",
+        "konser",
+        "tiyatro",
+        "kültür",
+        "sanat",
+        "sinema",
+        "festival",
+        "program",
+        "çocuk tiyatrosu"
+      ],
+      "phrases": [
+        "bugün etkinlik var mı",
+        "bu hafta konser var mı",
+        "kültür sanat etkinlikleri",
+        "tiyatro oyunu",
+        "hafta sonu ne yapabilirim",
+        "gebzede konser"
+      ],
+      "response": "Gebze'deki konserler, yetişkin ve çocuk tiyatroları, sergiler ve söyleşi programları Haberler & Etkinlikler sayfamızda güncel olarak yayınlanmaktadır 🎭",
+      "choices": [
+        {
+          "label": "Etkinlikleri Gör",
+          "value": "etkinlikler"
+        },
+        {
+          "label": "Şehir Rehberi",
+          "value": "gezilecek yerler"
+        }
+      ]
+    },
+    {
+      "id": "kent_lokantasi",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "kent_lokantasi",
+      "keywords": [
+        "kent lokantası",
+        "lokanta",
+        "yemek",
+        "ucuz yemek",
+        "sosyal tesis",
+        "belediye yemekhanesi",
+        "öğle yemeği",
+        "menü"
+      ],
+      "phrases": [
+        "kent lokantası nerede",
+        "belediye lokantası",
+        "kent lokantası menü",
+        "uygun fiyatlı yemek nerede",
+        "sosyal tesisler nerede yemek"
+      ],
+      "response": "Gebze Belediyesi Kent Lokantaları ve sosyal tesislerinde uygun fiyatlı, lezzetli ve hijyenik yemek hizmeti sunulmaktadır. Lokasyonlar ve adresler Şehir Rehberi > Kent Lokantaları bölümündedir 🍲",
+      "choices": [
+        {
+          "label": "Kent Lokantalarını Gör",
+          "value": "kent lokantası"
+        },
+        {
+          "label": "Tüm Tesisler",
+          "value": "sosyal tesisler"
+        }
+      ]
+    },
+    {
+      "id": "markets",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "markets",
+      "keywords": [
+        "pazar",
+        "semt pazarı",
+        "halk pazarı",
+        "pazar yeri",
+        "cuma pazarı",
+        "cumartesi pazarı",
+        "pazar günü pazar"
+      ],
+      "phrases": [
+        "bugün pazar nerede kuruluyor",
+        "gebze semt pazarları",
+        "cuma pazarı nerede",
+        "hangi mahallede pazar var",
+        "semt pazarı günleri"
+      ],
+      "response": "Gebze'deki tüm semt pazarlarının kurulduğu günler, mahalleleri ve açık konum bilgileri Şehir Rehberi > Semt Pazarları listesinde yer almaktadır 🛒",
+      "choices": [
+        {
+          "label": "Semt Pazarlarını Aç",
+          "value": "semt pazarları"
+        },
+        {
+          "label": "Mahalle Çalışmaları",
+          "value": "mahallemde"
+        }
+      ]
+    },
+    {
+      "id": "places",
+      "category": "places",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "places",
+      "keywords": [
+        "gezilecek yer",
+        "gezi",
+        "keşfet",
+        "rehber",
+        "nereler var",
+        "turistik",
+        "tur",
+        "ziyaret"
+      ],
+      "phrases": [
+        "gebzede gezilecek yerler",
+        "nereye gidebilirim",
+        "gebze şehir rehberi",
+        "tarihi ve turistik yerler",
+        "gebzeyi keşfet"
+      ],
+      "response": "Gebze Şehir Rehberi ile tarihi mekanları, tabiat parklarını, müzeleri, spor ve kültür komplekslerini adresleri ve detaylarıyla keşfedebilirsiniz.",
+      "choices": [
+        {
+          "label": "Eskihisar Kalesi",
+          "value": "eskihisar kalesi"
+        },
+        {
+          "label": "Ballıkayalar",
+          "value": "ballıkayalar"
+        },
+        {
+          "label": "Çoban Mustafa Paşa",
+          "value": "çoban mustafa paşa"
+        }
+      ]
+    },
+    {
+      "id": "parks",
+      "category": "places",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "parks",
+      "keywords": [
+        "park",
+        "parklar",
+        "millet bahçesi",
+        "yeşil alan",
+        "yürüyüş",
+        "çocuk parkı",
+        "mesire alanı"
+      ],
+      "phrases": [
+        "parklar nerede",
+        "gebzede hangi parklar var",
+        "millet bahçesi",
+        "yürüyüş yapılacak park",
+        "en yakın park"
+      ],
+      "response": "Gebze Millet Bahçesi ve ilçemizdeki tüm tematik parklar, koşu yolları ve dinlenme alanları Şehir Rehberi > Parklar kategorisinde listelenmektedir 🌳",
+      "choices": [
+        {
+          "label": "Parkları Listele",
+          "value": "parklar"
+        },
+        {
+          "label": "Ballıkayalar Kanyonu",
+          "value": "ballıkayalar"
+        }
+      ]
+    },
+    {
+      "id": "historical_places",
+      "category": "places",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "historical_places",
+      "keywords": [
+        "tarihi",
+        "tarih",
+        "osmanlı",
+        "bizans",
+        "eser",
+        "tarihi eser",
+        "anıtsal"
+      ],
+      "phrases": [
+        "tarihi yerler",
+        "gebzenin tarihi eserleri",
+        "osmanlı eserleri",
+        "tarihi yapılar"
+      ],
+      "response": "Gebze zengin tarihiyle Çoban Mustafa Paşa Camii, Sultan Orhan Camii, İlyas Bey Camii, Eskihisar Kalesi, Hünkar Çayırı ve Anibal'ın Mezarı gibi çok sayıda mirasa ev sahipliği yapar 🏛️",
+      "choices": [
+        {
+          "label": "Tarihi Yerleri Aç",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "Eskihisar Kalesi",
+          "value": "eskihisar"
+        }
+      ]
+    },
+    {
+      "id": "coban_mustafa_pasa",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "çoban mustafa",
+        "mustafapaşa camii",
+        "külliye",
+        "mimar sinan külliye",
+        "1523"
+      ],
+      "phrases": [
+        "çoban mustafa paşa camii",
+        "çoban mustafa paşa külliyesi nerede",
+        "çoban mustafa paşa camisine nasıl gidilir"
+      ],
+      "response": "Çoban Mustafa Paşa Camii ve Külliyesi (1523), Gebze merkezinde yer alan, Mimar Sinan'ın baş mimarlığını üstlendiği en görkemli Osmanlı eserlerindendir. Cami, medrese, kütüphane ve kervansaraydan oluşur 🕌",
+      "choices": [
+        {
+          "label": "Haritada Gör",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "Sultan Orhan Camii",
+          "value": "sultan orhan camii"
+        }
+      ]
+    },
+    {
+      "id": "sultan_orhan",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "sultan orhan",
+        "orhan camii",
+        "orhan bey",
+        "1323",
+        "erken dönem osmanlı"
+      ],
+      "phrases": [
+        "sultan orhan camii nerede",
+        "sultan orhan camiine nasıl gidilir",
+        "orhan bey camii"
+      ],
+      "response": "Sultan Orhan Camii, 1323-1331 yıllarında Orhan Bey tarafından yaptırılan, erken dönem Osmanlı taş mimarisinin Gebze'deki en kadim ve sade ibadethanesidir.",
+      "choices": [
+        {
+          "label": "Şehir Rehberi",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "İlyas Bey Camii",
+          "value": "ilyas bey camii"
+        }
+      ]
+    },
+    {
+      "id": "ilyas_bey",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "ilyas bey",
+        "ilyas bey camii",
+        "en eski cami",
+        "sülüs kitabe"
+      ],
+      "phrases": [
+        "ilyas bey camii nerede",
+        "ilyas bey camisine nasıl gidilir"
+      ],
+      "response": "İlyas Bey Camii, Gebze'de Osmanlı'dan günümüze ulaşan en eski camilerden biri kabul edilir. Kubbesiz yapısı ve girişindeki özel sülüs hatlı kitabesiyle dikkat çeker.",
+      "choices": [
+        {
+          "label": "Tarihi Yerler",
+          "value": "gezilecek yerler"
+        }
+      ]
+    },
+    {
+      "id": "ballikayalar",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "ballıkayalar",
+        "tabiat parkı",
+        "kanyon",
+        "kaya tırmanışı",
+        "tavşanlı",
+        "trekking",
+        "şelale"
+      ],
+      "phrases": [
+        "ballıkayalar nerede",
+        "ballıkayalara nasıl gidilir",
+        "ballıkayalar tabiat parkı",
+        "ballıkayalarda kamp var mı"
+      ],
+      "response": "Ballıkayalar Tabiat Parkı, karstik kanyonu, şelaleleri, doğal göletleri ve Türkiye'nin en popüler kaya tırmanış rotalarıyla doğa tutkunlarının bir numaralı adresidir 🧗",
+      "choices": [
+        {
+          "label": "Rehberde İncele",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "Hava Durumu",
+          "value": "hava durumu"
+        }
+      ]
+    },
+    {
+      "id": "eskihisar",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "eskihisar",
+        "kale",
+        "sahil",
+        "feribot",
+        "eskihisar kalesi",
+        "topçular"
+      ],
+      "phrases": [
+        "eskihisara nasıl gidilir",
+        "eskihisar kalesi nerede",
+        "eskihisar sahili",
+        "feribot iskelesi nerede"
+      ],
+      "response": "Eskihisar; Bizans yadigarı tarihi kalesi, deniz kenarı kafeleri, gün batımı manzarası, Osman Hamdi Bey Müzesi ve arabalı vapur iskelesiyle Gebze'nin sahile açılan en güzel kapısıdır 🌊",
+      "choices": [
+        {
+          "label": "Eskihisar Kalesi",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "Osman Hamdi Bey",
+          "value": "osman hamdi bey yalısı"
+        }
+      ]
+    },
+    {
+      "id": "osman_hamdi_bey",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "osman hamdi bey",
+        "kaplumbağa terbiyecisi",
+        "müze",
+        "yalı",
+        "resim",
+        "sanat müzesi"
+      ],
+      "phrases": [
+        "osman hamdi bey yalısı nerede",
+        "osman hamdi bey müzesi",
+        "kaplumbağa terbiyecisi nerede yapıldı"
+      ],
+      "response": "Ünlü Türk ressamı ve arkeolog Osman Hamdi Bey'in 1884'te Eskihisar'da yaptırdığı tarihi yalı, bugün sanatçının eserlerinin ve çalışma odalarının sergilendiği bir müze olarak ziyarete açıktır 🎨",
+      "choices": [
+        {
+          "label": "Müzeyi Gör",
+          "value": "gezilecek yerler"
+        },
+        {
+          "label": "Eskihisar",
+          "value": "eskihisar"
+        }
+      ]
+    },
+    {
+      "id": "hunkar_cayiri",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "hünkar çayırı",
+        "fatih sultan mehmet",
+        "fatih otağı",
+        "1481",
+        "fatihin vefat ettiği yer"
+      ],
+      "phrases": [
+        "hünkar çayırı nerede",
+        "fatih sultan mehmet nerede vefat etti",
+        "hünkar çayırına nasıl gidilir"
+      ],
+      "response": "Hünkar Çayırı, Fatih Sultan Mehmet Han'ın 1481 yılında son seferine çıkarken ordusuyla konakladığı ve vefat ettiği tarihi mekandır. Günümüzde anıt park olarak düzenlenmiştir.",
+      "choices": [
+        {
+          "label": "Şehir Rehberi",
+          "value": "gezilecek yerler"
+        }
+      ]
+    },
+    {
+      "id": "hannibal_tomb",
+      "category": "places",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "places",
+      "keywords": [
+        "anibal",
+        "hannibal",
+        "kartaca",
+        "lahit",
+        "mezar",
+        "anıt"
+      ],
+      "phrases": [
+        "anibalın mezarı nerede",
+        "hannibal mezarı",
+        "kartacalı komutan mezarı"
+      ],
+      "response": "Tarihin en büyük komutanlarından Kartacalı Hannibal'ın (Anibal) 24 tonluk dev taş lahit anıt mezarı, TÜBİTAK MAM yerleşkesi yeşil korusunda bulunmaktadır.",
+      "choices": [
+        {
+          "label": "Tarihi Yerler",
+          "value": "gezilecek yerler"
+        }
+      ]
+    },
+    {
+      "id": "transportation",
+      "category": "services",
+      "action": "answer",
+      "priority": 4,
+      "keywords": [
+        "ulaşım",
+        "marmaray",
+        "tren",
+        "otobüs",
+        "gar",
+        "harem",
+        "istanbul",
+        "nasıl giderim"
+      ],
+      "phrases": [
+        "marmaray nerede",
+        "gebzeden istanbula nasıl gidilir",
+        "gebze tren garı",
+        "otobüs saatleri",
+        "ulaşım nasıl"
+      ],
+      "response": "Gebze, Marmaray Banliyö Hattı'nın doğu başlangıç istasyonudur. Gebze Tren Garı'ndan Halkalı'ya kadar aktarmasız gidebilirsiniz. Ayrıca Harem minibüsleri ve Kocaeli UlaşımPark belediye otobüsleri ilçemiz genelinde hizmet vermektedir.",
+      "choices": [
+        {
+          "label": "Otoparklar",
+          "value": "otopark"
+        },
+        {
+          "label": "Şehir Rehberi",
+          "value": "gezilecek yerler"
+        }
+      ]
+    },
+    {
+      "id": "accessibility",
+      "category": "general",
+      "action": "navigate",
+      "priority": 5,
+      "route_key": "profile",
+      "keywords": [
+        "yazı boyutu",
+        "büyük yazı",
+        "yazıları büyüt",
+        "küçük yazı",
+        "okuyamıyorum",
+        "erişilebilirlik",
+        "yaşlı modu",
+        "font"
+      ],
+      "phrases": [
+        "yazıları nasıl büyütebilirim",
+        "büyük yazı modu",
+        "yazı boyutu ayarı",
+        "yazılar çok küçük",
+        "erişilebilirlik ayarları"
+      ],
+      "response": "Uygulamamızdaki metin ve butonları daha rahat okuyabilmek için Profil ekranından 'Büyük Yazı Modu'nu tek dokunuşla aktif hale getirebilirsiniz. Tüm uygulama genelinde metinler %25 oranında büyütülecektir 👓",
+      "choices": [
+        {
+          "label": "Profil & Ayarlara Git",
+          "value": "profil"
+        }
+      ]
+    },
+    {
+      "id": "language_settings",
+      "category": "general",
+      "action": "navigate",
+      "priority": 4,
+      "route_key": "profile",
+      "keywords": [
+        "dil",
+        "language",
+        "arapça",
+        "ingilizce",
+        "türkçe",
+        "dil değiştir",
+        "lisan",
+        "tercüme"
+      ],
+      "phrases": [
+        "dili nasıl değiştirebilirim",
+        "uygulama dilini değiştir",
+        "ingilizce yap",
+        "arapça yap",
+        "dil ayarları"
+      ],
+      "response": "Gebze Dijital platformunu Türkçe (TR), İngilizce (EN) ve Arapça (AR) dillerinde kullanabilirsiniz. Dil tercihinizi Profil ekranındaki Dil Seçimi menüsünden güncelleyebilirsiniz 🌐",
+      "choices": [
+        {
+          "label": "Profil Sayfasına Git",
+          "value": "profil"
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "category": "general",
+      "action": "answer",
+      "priority": 5,
+      "keywords": [
+        "iletişim",
+        "telefon",
+        "numara",
+        "belediye telefon",
+        "çağrı merkezi",
+        "santral",
+        "whatsapp",
+        "adres",
+        "belediye binası"
+      ],
+      "phrases": [
+        "belediyenin telefonu ne",
+        "belediyeye nasıl ulaşırım",
+        "çağrı merkezi numarası",
+        "gebze belediyesi iletişim",
+        "whatsapp hattı"
+      ],
+      "response": "📞 Gebze Belediyesi İletişim Bilgileri:\n\n• Çağrı Merkezi: 444 04 43\n• WhatsApp Çözüm Hattı: 0532 444 04 43\n• Santral: (0262) 642 04 30\n• Adres: Güzeller Mah. Bahar Cad. No:1 Gebze / KOCAELİ\n• Web: www.gebze.bel.tr",
+      "choices": [
+        {
+          "label": "Çek & Gönder",
+          "value": "talep bildir"
+        },
+        {
+          "label": "E-Belediye",
+          "value": "e-belediye"
+        }
+      ]
+    },
+    {
+      "id": "easter_egg_82",
+      "category": "easter_egg",
+      "action": "answer",
+      "priority": 10,
+      "keywords": [
+        "82",
+        "plaka 82",
+        "il olsun",
+        "gebze il",
+        "82 gebze",
+        "gebze 82",
+        "vilayet"
+      ],
+      "phrases": [
+        "82",
+        "plaka 82",
+        "gebze il olsun",
+        "gebze il olacak mı",
+        "82 numara"
+      ],
+      "response": "🎉 Plaka 82: Gönüllerin Başkenti Gebze! Sanayisi, tarihi ve çalışkan insanlarıyla Gebze 82'yi çoktan hak etti! 🚀🇹🇷",
+      "choices": [
+        {
+          "label": "Bot82 Hakkında",
+          "value": "bot82 kimdir"
+        },
+        {
+          "label": "Hizmetleri Gör",
+          "value": "hizmetler"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/localization/app_strings.dart';
 import '../../../core/utils/gebze_time.dart';
 import '../models/weather_info.dart';
@@ -14,10 +15,16 @@ class WeatherScreen extends ConsumerWidget {
     final lang = ref.watch(appLanguageProvider);
     final weatherAsyncValue = ref.watch(weatherProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5FD),
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF1F5FD),
         body: Column(
           children: [
             _buildHeader(context, ref, weatherAsyncValue.value?.syncedAt, lang),
@@ -28,22 +35,59 @@ class WeatherScreen extends ConsumerWidget {
                     return Center(
                       child: Text(
                         AppStrings.get('weather_not_found', lang),
-                        style: const TextStyle(
-                          color: Color(0xFF0A1F44),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0A1F44),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     );
                   }
-                  return _WeatherContent(weatherInfo: weatherInfo, lang: lang);
+                  return _WeatherContent(
+                    weatherInfo: weatherInfo,
+                    lang: lang,
+                    isDark: isDark,
+                  );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF0A2A66)),
+                loading: () => Center(
+                  child: CircularProgressIndicator(
+                    color: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF0A2A66),
+                  ),
                 ),
                 error: (error, stack) => Center(
-                  child: Text(
-                    '${AppStrings.get('error_occurred', lang)}: $error',
-                    style: const TextStyle(color: Color(0xFFE5231B)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.cloud_off_rounded,
+                          color: Color(0xFF60A5FA),
+                          size: 48,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          AppStrings.get('error_occurred', lang),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0A2A66),
+                          ),
+                          onPressed: () => ref.refresh(weatherProvider),
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: Text(AppStrings.get('btn_retry', lang)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -54,7 +98,12 @@ class WeatherScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref, DateTime? syncedAt, String lang) {
+  Widget _buildHeader(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime? syncedAt,
+    String lang,
+  ) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -83,7 +132,11 @@ class WeatherScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -101,7 +154,10 @@ class WeatherScreen extends ConsumerWidget {
                         ),
                         Text(
                           AppStrings.get('weather_screen_sub', lang),
-                          style: const TextStyle(fontSize: 12, color: Colors.white70),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
                         ),
                       ],
                     ),
@@ -120,13 +176,19 @@ class WeatherScreen extends ConsumerWidget {
                         ref.invalidate(weatherProvider);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(AppStrings.get('refreshing_weather', lang)),
+                            content: Text(
+                              AppStrings.get('refreshing_weather', lang),
+                            ),
                             duration: const Duration(seconds: 1),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
                       },
-                      icon: const Icon(Icons.wb_sunny_rounded, color: Colors.white, size: 22),
+                      icon: const Icon(
+                        Icons.wb_sunny_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
@@ -136,7 +198,11 @@ class WeatherScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(left: 48, top: 4),
                   child: Text(
                     '${AppStrings.get('last_updated', lang)}: ${GebzeTime.formatHour(GebzeTime.toGebzeTime(syncedAt))}',
-                    style: const TextStyle(fontSize: 11.5, color: Colors.white60, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.white60,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
             ],
@@ -150,8 +216,13 @@ class WeatherScreen extends ConsumerWidget {
 class _WeatherContent extends StatelessWidget {
   final WeatherInfo weatherInfo;
   final String lang;
+  final bool isDark;
 
-  const _WeatherContent({required this.weatherInfo, required this.lang});
+  const _WeatherContent({
+    required this.weatherInfo,
+    required this.lang,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +236,10 @@ class _WeatherContent extends StatelessWidget {
         _buildCurrentWeatherCard(weatherInfo.current),
         const SizedBox(height: 18),
         if (upcomingHourly.isNotEmpty) ...[
-          _buildSectionTitle(AppStrings.get('hourly_forecast', lang), Icons.access_time_rounded),
+          _buildSectionTitle(
+            AppStrings.get('hourly_forecast', lang),
+            Icons.access_time_rounded,
+          ),
           const SizedBox(height: 10),
           _buildHourlyForecast(upcomingHourly),
           const SizedBox(height: 20),
@@ -173,30 +247,44 @@ class _WeatherContent extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle(AppStrings.get('five_day_forecast', lang), Icons.calendar_today_rounded),
+            _buildSectionTitle(
+              AppStrings.get('five_day_forecast', lang),
+              Icons.calendar_today_rounded,
+            ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF0A2A66).withAlpha(15),
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFF0A2A66).withAlpha(15),
                 borderRadius: BorderRadius.circular(12),
+                border: isDark
+                    ? Border.all(color: const Color(0xFF334155))
+                    : null,
               ),
               child: Text(
-                AppStrings.get('forecast_days_badge', lang)
-                    .replaceAll('{0}', forecastDays.length.toString()),
-                style: const TextStyle(
+                AppStrings.get(
+                  'forecast_days_badge',
+                  lang,
+                ).replaceAll('{0}', forecastDays.length.toString()),
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF0A2A66),
+                  color: isDark
+                      ? const Color(0xFF60A5FA)
+                      : const Color(0xFF0A2A66),
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        ...forecastDays.map((f) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _buildForecastItem(f),
-            )),
+        ...forecastDays.map(
+          (f) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _buildForecastItem(f),
+          ),
+        ),
       ],
     );
   }
@@ -204,14 +292,18 @@ class _WeatherContent extends StatelessWidget {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF0A2A66)),
+        Icon(
+          icon,
+          size: 18,
+          color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0A2A66),
+        ),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15.5,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF0A1F44),
+            color: isDark ? Colors.white : const Color(0xFF0A1F44),
           ),
         ),
       ],
@@ -224,7 +316,10 @@ class _WeatherContent extends StatelessWidget {
       iconUrl = 'https:$iconUrl';
     }
 
-    final condition = AppStrings.translateWeatherCondition(current.condition, lang);
+    final condition = AppStrings.translateWeatherCondition(
+      current.condition,
+      lang,
+    );
 
     return Container(
       width: double.infinity,
@@ -232,10 +327,7 @@ class _WeatherContent extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1E5BC6),
-            Color(0xFF0A2A66),
-          ],
+          colors: [Color(0xFF1E5BC6), Color(0xFF0A2A66)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -296,7 +388,11 @@ class _WeatherContent extends StatelessWidget {
                   ),
                 )
               else
-                const Icon(Icons.wb_sunny_rounded, size: 70, color: Color(0xFFFFB300)),
+                const Icon(
+                  Icons.wb_sunny_rounded,
+                  size: 70,
+                  color: Color(0xFFFFB300),
+                ),
             ],
           ),
           const SizedBox(height: 18),
@@ -344,14 +440,22 @@ class _WeatherContent extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13.5),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 13.5,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
@@ -386,12 +490,18 @@ class _WeatherContent extends StatelessWidget {
             margin: const EdgeInsets.only(right: 10),
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: isNow ? Border.all(color: const Color(0xFF1E5BC6), width: 1.5) : null,
+              border: isNow
+                  ? Border.all(color: const Color(0xFF38BDF8), width: 1.5)
+                  : (isDark
+                        ? Border.all(color: const Color(0xFF334155))
+                        : null),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0A2A66).withAlpha(12),
+                  color: isDark
+                      ? Colors.black.withAlpha(50)
+                      : const Color(0xFF0A2A66).withAlpha(12),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -403,7 +513,13 @@ class _WeatherContent extends StatelessWidget {
                 Text(
                   timeText,
                   style: TextStyle(
-                    color: isNow ? const Color(0xFF1E5BC6) : const Color(0xFF5F6F8A),
+                    color: isNow
+                        ? (isDark
+                              ? const Color(0xFF38BDF8)
+                              : const Color(0xFF1E5BC6))
+                        : (isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF5F6F8A)),
                     fontSize: 11.5,
                     fontWeight: isNow ? FontWeight.w800 : FontWeight.w600,
                   ),
@@ -416,15 +532,23 @@ class _WeatherContent extends StatelessWidget {
                       ? Image.network(
                           iconUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => const Icon(Icons.wb_sunny_rounded, size: 20, color: Color(0xFFFF7A00)),
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.wb_sunny_rounded,
+                            size: 20,
+                            color: Color(0xFFFF7A00),
+                          ),
                         )
-                      : const Icon(Icons.wb_sunny_rounded, size: 20, color: Color(0xFFFF7A00)),
+                      : const Icon(
+                          Icons.wb_sunny_rounded,
+                          size: 20,
+                          color: Color(0xFFFF7A00),
+                        ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${h.tempC.round()}°',
-                  style: const TextStyle(
-                    color: Color(0xFF0A1F44),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -444,17 +568,24 @@ class _WeatherContent extends StatelessWidget {
     }
 
     final dateInfo = _getDateInfo(forecast.date);
-    final condition = AppStrings.translateWeatherCondition(forecast.condition, lang);
+    final condition = AppStrings.translateWeatherCondition(
+      forecast.condition,
+      lang,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: dateInfo.isToday ? Border.all(color: const Color(0xFF1E5BC6).withAlpha(70), width: 1.2) : null,
+        border: dateInfo.isToday
+            ? Border.all(color: const Color(0xFF38BDF8), width: 1.2)
+            : (isDark ? Border.all(color: const Color(0xFF334155)) : null),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(14),
+            color: isDark
+                ? Colors.black.withAlpha(50)
+                : const Color(0xFF0A2A66).withAlpha(14),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -472,25 +603,38 @@ class _WeatherContent extends StatelessWidget {
                     Text(
                       dateInfo.dayName,
                       style: TextStyle(
-                        fontWeight: dateInfo.isToday ? FontWeight.w800 : FontWeight.w700,
+                        fontWeight: dateInfo.isToday
+                            ? FontWeight.w800
+                            : FontWeight.w700,
                         fontSize: 14,
-                        color: dateInfo.isToday ? const Color(0xFF1E5BC6) : const Color(0xFF0A1F44),
+                        color: dateInfo.isToday
+                            ? (isDark
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF1E5BC6))
+                            : (isDark ? Colors.white : const Color(0xFF0A1F44)),
                       ),
                     ),
                     if (dateInfo.isToday) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E5BC6).withAlpha(20),
+                          color: isDark
+                              ? const Color(0xFF1E3A8A)
+                              : const Color(0xFF1E5BC6).withAlpha(20),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           AppStrings.get('today', lang),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF1E5BC6),
+                            color: isDark
+                                ? const Color(0xFF93C5FD)
+                                : const Color(0xFF1E5BC6),
                           ),
                         ),
                       ),
@@ -502,7 +646,12 @@ class _WeatherContent extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       dateInfo.dateText,
-                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF5F6F8A)),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF5F6F8A),
+                      ),
                     ),
                   ),
               ],
@@ -517,15 +666,29 @@ class _WeatherContent extends StatelessWidget {
                     iconUrl,
                     width: 32,
                     height: 32,
-                    errorBuilder: (_, _, _) => const Icon(Icons.cloud_rounded, size: 22, color: Color(0xFF1E5BC6)),
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.cloud_rounded,
+                      size: 22,
+                      color: Color(0xFF1E5BC6),
+                    ),
                   )
                 else
-                  const Icon(Icons.cloud_rounded, size: 22, color: Color(0xFF1E5BC6)),
+                  const Icon(
+                    Icons.cloud_rounded,
+                    size: 22,
+                    color: Color(0xFF1E5BC6),
+                  ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     condition,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF4A5568), fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFF4A5568),
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -540,19 +703,21 @@ class _WeatherContent extends StatelessWidget {
               children: [
                 Text(
                   '${forecast.maxtempC.round()}°',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '${forecast.mintempC.round()}°',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF5F6F8A),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF5F6F8A),
                   ),
                 ),
               ],
@@ -577,7 +742,9 @@ class _WeatherContent extends StatelessWidget {
       }
     }).toList();
 
-    final result = valid.isNotEmpty ? valid : List<WeatherForecast>.from(forecast);
+    final result = valid.isNotEmpty
+        ? valid
+        : List<WeatherForecast>.from(forecast);
 
     if (result.length < 5) {
       final lastDate = result.isNotEmpty
@@ -610,7 +777,12 @@ class _WeatherContent extends StatelessWidget {
 
   List<HourlyForecast> _getUpcomingHourlyForecast(WeatherInfo weatherInfo) {
     final now = GebzeTime.now();
-    final currentHourThreshold = DateTime.utc(now.year, now.month, now.day, now.hour);
+    final currentHourThreshold = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+    );
 
     final allHourly = <HourlyForecast>[];
     for (final day in weatherInfo.forecast) {
@@ -629,7 +801,9 @@ class _WeatherContent extends StatelessWidget {
     if (upcoming.isNotEmpty) {
       return upcoming.take(24).toList();
     }
-    return weatherInfo.forecast.isNotEmpty ? weatherInfo.forecast.first.hourly : [];
+    return weatherInfo.forecast.isNotEmpty
+        ? weatherInfo.forecast.first.hourly
+        : [];
   }
 
   _DateInfo _getDateInfo(String dateStr) {
@@ -649,11 +823,7 @@ class _WeatherContent extends StatelessWidget {
         isToday: diff == 0,
       );
     } catch (e) {
-      return _DateInfo(
-        dayName: dateStr,
-        dateText: '',
-        isToday: false,
-      );
+      return _DateInfo(dayName: dateStr, dateText: '', isToday: false);
     }
   }
 }

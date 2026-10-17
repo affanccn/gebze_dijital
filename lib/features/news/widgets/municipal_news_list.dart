@@ -32,6 +32,7 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return StreamBuilder<List<MunicipalNews>>(
       stream: _stream,
@@ -41,7 +42,14 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(AppStrings.get('news_load_failed', lang)),
+              child: Text(
+                AppStrings.get('news_load_failed', lang),
+                style: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF5F6F8A),
+                ),
+              ),
             ),
           );
         }
@@ -61,7 +69,14 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(AppStrings.get('news_empty_text', lang)),
+              child: Text(
+                AppStrings.get('news_empty_text', lang),
+                style: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF5F6F8A),
+                ),
+              ),
             ),
           );
         }
@@ -100,10 +115,18 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                       width: double.infinity,
                       height: widget.isHorizontal ? 120 : 190,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => SizedBox(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         height: widget.isHorizontal ? 120 : 100,
-                        child: const Center(
-                          child: Icon(Icons.image_not_supported),
+                        color: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF1F5FD),
+                        child: Center(
+                          child: Icon(
+                            Icons.image_not_supported_rounded,
+                            color: isDark
+                                ? const Color(0xFF64748B)
+                                : Colors.grey.shade400,
+                          ),
                         ),
                       ),
                     ),
@@ -114,10 +137,14 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                       children: [
                         Text(
                           item.title,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontSize: widget.isHorizontal ? 14 : null,
-                              ),
+                          style: TextStyle(
+                            fontSize: widget.isHorizontal ? 14 : 16,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0A1F44),
+                            height: 1.35,
+                          ),
                           maxLines: widget.isHorizontal ? 3 : null,
                           overflow: widget.isHorizontal
                               ? TextOverflow.ellipsis
@@ -127,7 +154,12 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                           const SizedBox(height: 6),
                           Text(
                             item.publishedAtText,
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF5F6F8A),
+                            ),
                           ),
                         ],
                       ],
@@ -137,27 +169,32 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
               ),
             );
 
-            if (widget.isHorizontal) {
-              return SizedBox(
-                width: 240,
-                child: Card(
-                  margin: EdgeInsets.only(
-                    left: index == 0 ? 16 : 8,
-                    right: index == news.length - 1 ? 16 : 8,
-                    top: 6,
-                    bottom: 6,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: cardContent,
-                ),
-              );
-            }
-
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            final card = Card(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              elevation: isDark ? 0 : 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: isDark
+                    ? const BorderSide(color: Color(0xFF334155))
+                    : BorderSide.none,
+              ),
+              margin: widget.isHorizontal
+                  ? EdgeInsets.only(
+                      left: index == 0 ? 16 : 8,
+                      right: index == news.length - 1 ? 16 : 8,
+                      top: 6,
+                      bottom: 6,
+                    )
+                  : const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               clipBehavior: Clip.antiAlias,
               child: cardContent,
             );
+
+            if (widget.isHorizontal) {
+              return SizedBox(width: 240, child: card);
+            }
+
+            return card;
           },
         );
 

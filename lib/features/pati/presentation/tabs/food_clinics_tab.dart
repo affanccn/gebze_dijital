@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../data/pati_data_provider.dart';
 import '../../models/feeding_point.dart';
 import '../../../../core/localization/app_strings.dart';
@@ -29,7 +30,9 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
     if (_selectedNeighborhood == 'Tümü') {
       return points;
     }
-    return points.where((fp) => fp.neighborhood == _selectedNeighborhood).toList();
+    return points
+        .where((fp) => fp.neighborhood == _selectedNeighborhood)
+        .toList();
   }
 
   Future<void> _makeCall(String phone) async {
@@ -46,7 +49,9 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
   }
 
   Future<void> _viewOnMap(double lat, double lng, String label) async {
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -76,7 +81,9 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 _buildNeighborhoodChips(neighborhoods, lang),
                 const SizedBox(height: 14),
                 if (filtered.isEmpty)
-                  _buildEmptySection(AppStrings.get('no_feeding_points_in_neighborhood', lang))
+                  _buildEmptySection(
+                    AppStrings.get('no_feeding_points_in_neighborhood', lang),
+                  )
                 else
                   ...filtered.map((fp) => _buildFeedingPointCard(fp, lang)),
               ],
@@ -89,7 +96,9 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
             ),
           ),
           error: (_, _) => Column(
-            children: kGebzeFeedingPoints.map((fp) => _buildFeedingPointCard(fp, lang)).toList(),
+            children: kGebzeFeedingPoints
+                .map((fp) => _buildFeedingPointCard(fp, lang))
+                .toList(),
           ),
         ),
         const SizedBox(height: 24),
@@ -101,10 +110,14 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
         vetClinicsAsync.when(
           data: (clinics) {
             if (clinics.isEmpty) {
-              return _buildEmptySection(AppStrings.get('no_duty_clinics', lang));
+              return _buildEmptySection(
+                AppStrings.get('no_duty_clinics', lang),
+              );
             }
             return Column(
-              children: clinics.map((c) => _buildVetClinicCard(c, lang)).toList(),
+              children: clinics
+                  .map((c) => _buildVetClinicCard(c, lang))
+                  .toList(),
             );
           },
           loading: () => const Center(
@@ -114,7 +127,9 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
             ),
           ),
           error: (_, _) => Column(
-            children: kGebzeDutyVetClinics.map((c) => _buildVetClinicCard(c, lang)).toList(),
+            children: kGebzeDutyVetClinics
+                .map((c) => _buildVetClinicCard(c, lang))
+                .toList(),
           ),
         ),
       ],
@@ -125,22 +140,29 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
     return Container(
       padding: const EdgeInsets.all(20),
       alignment: Alignment.center,
-      child: Text(text, style: const TextStyle(fontSize: 13, color: Color(0xFF5F6F8A))),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 13, color: Color(0xFF5F6F8A)),
+      ),
     );
   }
 
   Widget _buildFeedingPointsHeader(BuildContext context, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(18),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(18),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -154,7 +176,11 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                   color: const Color(0xFF1E5BC6).withAlpha(25),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.water_drop_rounded, color: Color(0xFF1E5BC6), size: 24),
+                child: const Icon(
+                  Icons.water_drop_rounded,
+                  color: Color(0xFF1E5BC6),
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -163,15 +189,20 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                   children: [
                     Text(
                       AppStrings.get('feeding_network_title', lang),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF0A1F44),
+                        color: isDark ? Colors.white : const Color(0xFF0A1F44),
                       ),
                     ),
                     Text(
                       AppStrings.get('feeding_network_sub', lang),
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF5F6F8A),
+                      ),
                     ),
                   ],
                 ),
@@ -181,7 +212,11 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
           const SizedBox(height: 12),
           Text(
             AppStrings.get('feeding_network_desc', lang),
-            style: const TextStyle(fontSize: 13, color: Color(0xFF334A6E), height: 1.45),
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334A6E),
+              height: 1.45,
+            ),
           ),
         ],
       ),
@@ -189,6 +224,7 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
   }
 
   Widget _buildNeighborhoodChips(List<String> neighborhoods, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       height: 38,
       child: ListView.separated(
@@ -198,24 +234,38 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
         itemBuilder: (context, index) {
           final n = neighborhoods[index];
           final isSelected = n == _selectedNeighborhood;
-          final labelText = n == 'Tümü' ? AppStrings.get('filter_all', lang) : n;
+          final labelText = n == 'Tümü'
+              ? AppStrings.get('filter_all', lang)
+              : n;
 
           return ChoiceChip(
             label: Text(
               labelText,
               style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF0A2A66),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF0A2A66)),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 12.5,
               ),
             ),
             selected: isSelected,
-            selectedColor: const Color(0xFF0A2A66),
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            selectedColor: isDark
+                ? const Color(0xFF2563EB)
+                : const Color(0xFF0A2A66),
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             showCheckmark: false,
             side: BorderSide(
-              color: isSelected ? const Color(0xFF0A2A66) : const Color(0xFF0A2A66).withAlpha(30),
+              color: isSelected
+                  ? (isDark ? const Color(0xFF2563EB) : const Color(0xFF0A2A66))
+                  : (isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFF0A2A66).withAlpha(30)),
             ),
             onSelected: (val) {
               if (val) {
@@ -229,18 +279,22 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
   }
 
   Widget _buildFeedingPointCard(FeedingPoint fp, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(16),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(16),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -255,7 +309,11 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                   color: const Color(0xFF2E7D32).withAlpha(25),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.room_service_rounded, color: Color(0xFF2E7D32), size: 20),
+                child: const Icon(
+                  Icons.room_service_rounded,
+                  color: Color(0xFF2E7D32),
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -264,16 +322,22 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                   children: [
                     Text(
                       fp.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0A1F44),
+                        color: isDark ? Colors.white : const Color(0xFF0A1F44),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${fp.neighborhood} • ${fp.type}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF1E5BC6), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF1E5BC6),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -284,12 +348,23 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFF5F6F8A)),
+              Icon(
+                Icons.location_on_rounded,
+                size: 16,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF5F6F8A),
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   fp.address,
-                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF4A5568)),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF4A5568),
+                  ),
                 ),
               ),
             ],
@@ -298,46 +373,68 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.inventory_2_outlined, size: 16, color: Color(0xFFFF7A00)),
+              const Icon(
+                Icons.inventory_2_outlined,
+                size: 16,
+                color: Color(0xFFFF7A00),
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   '${AppStrings.get('equipment_label', lang)} ${fp.equipment}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF0A1F44), fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? const Color(0xFF334155) : null),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _viewOnMap(fp.latitude, fp.longitude, fp.title),
+                  onPressed: () =>
+                      _viewOnMap(fp.latitude, fp.longitude, fp.title),
                   icon: const Icon(Icons.map_rounded, size: 17),
                   label: Text(AppStrings.get('btn_map', lang)),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0A2A66),
-                    side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(50)),
+                    foregroundColor: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF0A2A66),
+                    side: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF60A5FA).withAlpha(120)
+                          : const Color(0xFF0A2A66).withAlpha(50),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _openDirections(fp.latitude, fp.longitude, fp.title),
+                  onPressed: () =>
+                      _openDirections(fp.latitude, fp.longitude, fp.title),
                   icon: const Icon(Icons.directions_rounded, size: 17),
                   label: Text(AppStrings.get('btn_directions', lang)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0A2A66),
+                    backgroundColor: isDark
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF0A2A66),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -360,7 +457,11 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
         children: [
           Row(
             children: [
-              const Icon(Icons.local_hospital_rounded, color: Color(0xFFFF7A00), size: 24),
+              const Icon(
+                Icons.local_hospital_rounded,
+                color: Color(0xFFFF7A00),
+                size: 24,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -377,7 +478,11 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
           const SizedBox(height: 8),
           Text(
             AppStrings.get('duty_clinics_desc', lang),
-            style: const TextStyle(fontSize: 12.5, color: Colors.white70, height: 1.4),
+            style: const TextStyle(
+              fontSize: 12.5,
+              color: Colors.white70,
+              height: 1.4,
+            ),
           ),
         ],
       ),
@@ -385,18 +490,22 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
   }
 
   Widget _buildVetClinicCard(DutyVetClinic clinic, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(16),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(16),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -408,10 +517,16 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
+                  color: isDark
+                      ? const Color(0xFF3A1E24)
+                      : const Color(0xFFFFEBEE),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.medical_information_rounded, color: Color(0xFFE5231B), size: 22),
+                child: const Icon(
+                  Icons.medical_information_rounded,
+                  color: Color(0xFFE5231B),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -420,19 +535,21 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                   children: [
                     Text(
                       clinic.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0A1F44),
+                        color: isDark ? Colors.white : const Color(0xFF0A1F44),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       clinic.emergencyHours,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFFE5231B),
+                        color: isDark
+                            ? const Color(0xFFF87171)
+                            : const Color(0xFFE5231B),
                       ),
                     ),
                   ],
@@ -444,12 +561,23 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFF5F6F8A)),
+              Icon(
+                Icons.location_on_rounded,
+                size: 16,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF5F6F8A),
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   clinic.address,
-                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF4A5568)),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF4A5568),
+                  ),
                 ),
               ),
             ],
@@ -457,16 +585,26 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.phone_rounded, size: 16, color: Color(0xFF5F6F8A)),
+              Icon(
+                Icons.phone_rounded,
+                size: 16,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF5F6F8A),
+              ),
               const SizedBox(width: 6),
               Text(
                 clinic.phone,
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF0A1F44)),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? const Color(0xFF334155) : null),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -476,17 +614,29 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                   icon: const Icon(Icons.call_rounded, size: 17),
                   label: Text(AppStrings.get('btn_call', lang)),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0A2A66),
-                    side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(50)),
+                    foregroundColor: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF0A2A66),
+                    side: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF60A5FA).withAlpha(120)
+                          : const Color(0xFF0A2A66).withAlpha(50),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _openDirections(clinic.latitude, clinic.longitude, clinic.name),
+                  onPressed: () => _openDirections(
+                    clinic.latitude,
+                    clinic.longitude,
+                    clinic.name,
+                  ),
                   icon: const Icon(Icons.directions_rounded, size: 17),
                   label: Text(AppStrings.get('btn_directions', lang)),
                   style: ElevatedButton.styleFrom(
@@ -494,7 +644,9 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),

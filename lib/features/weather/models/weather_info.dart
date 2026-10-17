@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../core/utils/gebze_time.dart';
 
 class WeatherInfo {
@@ -17,14 +18,15 @@ class WeatherInfo {
 
   factory WeatherInfo.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>?;
-    
+
     final currentData = data?['current'] as Map<String, dynamic>?;
     final forecastData = data?['forecast'] as List<dynamic>?;
     final syncedAtTimestamp = data?['syncedAt'] as Timestamp?;
 
     return WeatherInfo(
       current: CurrentWeather.fromMap(currentData ?? {}),
-      forecast: forecastData?.map((e) => WeatherForecast.fromMap(e)).toList() ?? [],
+      forecast:
+          forecastData?.map((e) => WeatherForecast.fromMap(e)).toList() ?? [],
       syncedAt: syncedAtTimestamp?.toDate(),
     );
   }
@@ -85,7 +87,8 @@ class WeatherForecast {
       mintempC: (map['mintemp_c'] ?? 0).toDouble(),
       condition: map['condition'] ?? '',
       icon: map['icon'] ?? '',
-      hourly: (map['hourly'] as List<dynamic>?)
+      hourly:
+          (map['hourly'] as List<dynamic>?)
               ?.map((e) => HourlyForecast.fromMap(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -114,4 +117,3 @@ class HourlyForecast {
     );
   }
 }
-

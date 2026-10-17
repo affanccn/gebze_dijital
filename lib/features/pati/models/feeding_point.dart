@@ -7,8 +7,10 @@ class FeedingPoint {
   final String address;
   final double latitude;
   final double longitude;
-  final String type; // 'Mama ve Su Odak Noktası', 'Kedi Evi & Besleme Noktası', vb.
-  final String equipment; // 'Otomatik Su Kabı, Korumalı Kuru Mama Haznesi, Kulübe'
+  final String
+  type; // 'Mama ve Su Odak Noktası', 'Kedi Evi & Besleme Noktası', vb.
+  final String
+  equipment; // 'Otomatik Su Kabı, Korumalı Kuru Mama Haznesi, Kulübe'
   final String note;
   final DateTime? createdAt;
 
@@ -36,7 +38,9 @@ class FeedingPoint {
       longitude: (data['longitude'] as num?)?.toDouble() ?? 29.4307,
       type: data['type'] as String? ?? 'Mama ve Su Odak Noktası',
       equipment: data['equipment'] as String? ?? 'Kuru mama ve taze su haznesi',
-      note: data['note'] as String? ?? 'Belediyemiz ekiplerince düzenli denetlenmektedir.',
+      note:
+          data['note'] as String? ??
+          'Belediyemiz ekiplerince düzenli denetlenmektedir.',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -51,7 +55,9 @@ class FeedingPoint {
       'type': type,
       'equipment': equipment,
       'note': note,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 }
@@ -107,7 +113,9 @@ class DutyVetClinic {
       'latitude': latitude,
       'longitude': longitude,
       'is24Hours': is24Hours,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'createdAt': createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 }

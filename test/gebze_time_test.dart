@@ -41,19 +41,22 @@ void main() {
       expect(GebzeTime.formatDate(parsed), equals('13.10.2026'));
     });
 
-    test('hourly threshold filters out past hours regardless of device timezone', () {
-      // Mock: current Gebze time is 14:30
-      final threshold = DateTime.utc(2026, 10, 13, 14);
+    test(
+      'hourly threshold filters out past hours regardless of device timezone',
+      () {
+        // Mock: current Gebze time is 14:30
+        final threshold = DateTime.utc(2026, 10, 13, 14);
 
-      final past11 = GebzeTime.parseWeatherTime('2026-10-13 11:00');
-      final past13 = GebzeTime.parseWeatherTime('2026-10-13 13:00');
-      final current14 = GebzeTime.parseWeatherTime('2026-10-13 14:00');
-      final future15 = GebzeTime.parseWeatherTime('2026-10-13 15:00');
+        final past11 = GebzeTime.parseWeatherTime('2026-10-13 11:00');
+        final past13 = GebzeTime.parseWeatherTime('2026-10-13 13:00');
+        final current14 = GebzeTime.parseWeatherTime('2026-10-13 14:00');
+        final future15 = GebzeTime.parseWeatherTime('2026-10-13 15:00');
 
-      expect(past11.isBefore(threshold), isTrue);
-      expect(past13.isBefore(threshold), isTrue);
-      expect(current14.isBefore(threshold), isFalse);
-      expect(future15.isBefore(threshold), isFalse);
-    });
+        expect(past11.isBefore(threshold), isTrue);
+        expect(past13.isBefore(threshold), isTrue);
+        expect(current14.isBefore(threshold), isFalse);
+        expect(future15.isBefore(threshold), isFalse);
+      },
+    );
   });
 }
