@@ -276,7 +276,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                 if (cap != null)
                   row(
                     Icons.groups_rounded,
-                    '${_l(lang, 'Tahmini kapasite', 'Estimated capacity', 'السعة التقديرية')}: ~${cap} ${_l(lang, 'kişi', 'people', 'شخص')}',
+                    '${_l(lang, 'Tahmini kapasite', 'Estimated capacity', 'السعة التقديرية')}: ~$cap ${_l(lang, 'kişi', 'people', 'شخص')}',
                   ),
                 if (facilities.isNotEmpty) ...[
                   const SizedBox(height: 8),
