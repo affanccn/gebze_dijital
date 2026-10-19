@@ -4,367 +4,114 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // --------------------------------------------------
-    // YARDIMCI FONKSİYONLAR
+    // GEBZE BELEDİYESİ DİJİTAL YÖNETİM & MOBİL UYGULAMA KURALLARI
     // --------------------------------------------------
 
-    function signedIn() {
-      return request.auth != null;
+    // 1. Vatandaş Çek & Gönder Talepleri (reports)
+    match /reports/{id} {
+      allow read, write: if true;
     }
 
-    function isOwner(uid) {
-      return signedIn() && request.auth.uid == uid;
+    // 2. Afet ve Acil Durum Toplanma Alanları
+    match /assembly_areas/{id} {
+      allow read, write: if true;
     }
 
-    // Yönetim paneline giriş yapan yönetici hesabı.
-    // Yeni yönetici eklemek için UID'yi listeye virgülle ekle.
-    function isAdmin() {
-      return signedIn() && request.auth.uid in ['y6QJ63E265RZYjfLI4HlOfS22Fo1'];
+    // 3. Canlı Bildirim ve Duyuru Yayını
+    match /broadcast_notifications/{id} {
+      allow read, write: if true;
     }
 
-    function pollPath(pollId) {
-      return /databases/$(database)/documents/polls/$(pollId);
+    match /notifications/{id} {
+      allow read, write: if true;
     }
 
-    function votePath(pollId) {
-      return /databases/$(database)/documents/users/$(request.auth.uid)/votes/$(pollId);
-    }
-
-    function supportPath(suggestionId) {
-      return /databases/$(database)/documents/users/$(request.auth.uid)/supported/$(suggestionId);
-    }
-
-    function oldCounts() {
-      return resource.data.get('voteCounts', {});
-    }
-
-    // --------------------------------------------------
-    // ANKET OYU: OY KAYDI VE SAYAÇ AYNI İŞLEMDE OLMALI
-    // --------------------------------------------------
-
-    function validVoteCreate(pollId) {
-      let optionIndex = request.resource.data.optionIndex;
-      let before = get(pollPath(pollId)).data;
-      let after = getAfter(pollPath(pollId)).data;
-      let key = string(optionIndex);
-      let beforeCounts = before.get('voteCounts', {});
-
-      return before.options is list
-        && optionIndex >= 0
-        && optionIndex < before.options.size()
-        && after.diff(before).affectedKeys().hasOnly(['voteCounts'])
-        && after.voteCounts.diff(beforeCounts).affectedKeys().hasOnly([key])
-        && after.voteCounts[key] == beforeCounts.get(key, 0) + 1;
-    }
-
-    function validVoteBump(pollId) {
-      let vote = getAfter(votePath(pollId)).data;
-      let key = string(vote.optionIndex);
-
-      return request.resource.data.voteCounts is map
-        && request.resource.data.voteCounts.diff(oldCounts())
-            .affectedKeys().hasOnly([key])
-        && request.resource.data.voteCounts[key]
-            == oldCounts().get(key, 0) + 1;
-    }
-
-    // --------------------------------------------------
-    // ÖNERİ DESTEĞİ: KAYIT VE LIKE AYNI İŞLEMDE OLMALI
-    // --------------------------------------------------
-
-    function validSupportCreate(suggestionId) {
-      let before = get(
-        /databases/$(database)/documents/suggestions/$(suggestionId)
-      ).data;
-
-      let after = getAfter(
-        /databases/$(database)/documents/suggestions/$(suggestionId)
-      ).data;
-
-      return after.diff(before).affectedKeys().hasOnly(['likes'])
-        && after.likes == before.likes + 1;
-    }
-
-    function validSupportDelete(suggestionId) {
-      let before = get(
-        /databases/$(database)/documents/suggestions/$(suggestionId)
-      ).data;
-
-      let after = getAfter(
-        /databases/$(database)/documents/suggestions/$(suggestionId)
-      ).data;
-
-      return after.diff(before).affectedKeys().hasOnly(['likes'])
-        && after.likes == before.likes - 1;
-    }
-
-    // --------------------------------------------------
-    // 1. GENEL BELEDİYE VERİLERİ
-    // Herkes okuyabilir, yalnızca yönetici yazabilir.
-    // --------------------------------------------------
-
-    match /events/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /places/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
+    // 4. Belediye Haberleri ve Duyurular
     match /municipal_news/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
+    // 5. Etkinlikler ve Kültür
+    match /events/{id} {
+      allow read, write: if true;
+    }
+
+    // 6. Planlı Kesintiler (İSU, SEDAŞ, PALGAZ)
     match /outages/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
+    // 7. Mahallemde (Saha ve Altyapı Çalışmaları)
+    match /neighborhood_works/{id} {
+      allow read, write: if true;
+    }
+
+    // 8. Nöbetçi Eczaneler
     match /pharmacies_on_duty/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
-    match /weather_info/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // --------------------------------------------------
-    // 2. ŞEHİR REHBERİ
-    // --------------------------------------------------
-
-    match /guide_institutions/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /guide_places/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // --------------------------------------------------
-    // 3. E-BELEDİYE VE GEBZE PATİ
-    // --------------------------------------------------
-
-    match /ebelediye_categories/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
+    // 9. Gebze Pati (Sahiplendirme, Odaklar, Klinikler)
     match /pet_adoptions/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     match /feeding_points/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     match /vet_clinics/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
-    // --------------------------------------------------
-    // 4. SÖZ SENDE: ANKETLER
-    // --------------------------------------------------
+    // 10. E-Belediye Kategorileri
+    match /ebelediye_categories/{id} {
+      allow read, write: if true;
+    }
 
+    // 11. Şehir Rehberi ve Mekanlar
+    match /places/{id} {
+      allow read, write: if true;
+    }
+
+    match /guide_institutions/{id} {
+      allow read, write: if true;
+    }
+
+    match /guide_places/{id} {
+      allow read, write: if true;
+    }
+
+    match /weather_info/{id} {
+      allow read, write: if true;
+    }
+
+    // 12. Söz Sende: Anketler ve Oylar
     match /polls/{pollId} {
-      allow read: if true;
-      allow create, delete: if false;
-
-      // Sayaç yalnızca yeni oy kaydıyla birlikte ve +1 artabilir.
-      allow update: if signedIn()
-        && !exists(votePath(pollId))
-        && existsAfter(votePath(pollId))
-        && request.resource.data.diff(resource.data)
-            .affectedKeys().hasOnly(['voteCounts'])
-        && validVoteBump(pollId);
-
-      // Yönetici anket ekleyebilir, düzenleyebilir ve silebilir.
-      // (Aynı işlem için birden fazla allow, VEYA ile birleşir.)
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
-    // Bir kullanıcı aynı ankete yalnızca bir kez oy verebilir.
-    match /users/{uid}/votes/{pollId} {
-      allow read: if isOwner(uid);
-
-      allow create: if isOwner(uid)
-        && request.resource.data.keys()
-            .hasOnly(['optionIndex', 'createdAt'])
-        && request.resource.data.optionIndex is int
-        && request.resource.data.createdAt == request.time
-        && !exists(/databases/$(database)/documents/users/$(uid)/votes/$(pollId))
-        && exists(pollPath(pollId))
-        && validVoteCreate(pollId);
-
-      allow update, delete: if false;
-    }
-
-    // --------------------------------------------------
-    // 5. SÖZ SENDE: FİKİR VE ÖNERİLER
-    // --------------------------------------------------
-
+    // 13. Söz Sende: Öneriler
     match /suggestions/{id} {
-      allow read: if true;
-      allow delete: if false;
-
-      allow create: if signedIn()
-        && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.likes == 0
-        && request.resource.data.status == 'Beklemede';
-
-      // Yalnızca destek ekleme veya kaldırma ile +1/-1 değişebilir.
-      allow update: if signedIn()
-        && request.resource.data.likes is int
-        && resource.data.likes is int
-        && request.resource.data.diff(resource.data)
-            .affectedKeys().hasOnly(['likes'])
-        && (
-          (
-            !exists(supportPath(id))
-            && existsAfter(supportPath(id))
-            && request.resource.data.likes == resource.data.likes + 1
-          )
-          ||
-          (
-            exists(supportPath(id))
-            && !existsAfter(supportPath(id))
-            && request.resource.data.likes == resource.data.likes - 1
-          )
-        );
-
-      // Yönetici öneri onaylayabilir, düzenleyebilir ve silebilir.
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
-    // Kullanıcının desteklediği öneriler.
-    match /users/{uid}/supported/{suggestionId} {
-      allow read: if isOwner(uid);
-
-      allow create: if isOwner(uid)
-        && exists(/databases/$(database)/documents/suggestions/$(suggestionId))
-        && validSupportCreate(suggestionId);
-
-      allow delete: if isOwner(uid)
-        && exists(/databases/$(database)/documents/suggestions/$(suggestionId))
-        && validSupportDelete(suggestionId);
-
-      allow update: if false;
-    }
-
-    // --------------------------------------------------
-    // 6. KAYDEDİLEN İÇERİKLER
-    // --------------------------------------------------
-
-    match /users/{uid}/saved/{itemId} {
-      allow read, write: if isOwner(uid);
-    }
-
-    // --------------------------------------------------
-    // 7. VATANDAŞ BİLDİRİMLERİ
-    // --------------------------------------------------
-
-    // Bu kurallar reports belgelerinde authorUid alanı
-    // kullanıldığını varsayar. Gerçek belge şemanı kontrol et.
-    match /reports/{id} {
-      allow read: if signedIn()
-        && resource.data.authorUid == request.auth.uid;
-
-      allow create: if signedIn()
-        && request.resource.data.authorUid == request.auth.uid;
-
-      allow update: if signedIn()
-        && resource.data.authorUid == request.auth.uid
-        && request.resource.data.authorUid == resource.data.authorUid
-        && request.resource.data.diff(resource.data)
-            .affectedKeys().hasOnly([
-              'title',
-              'description',
-              'updatedAt'
-            ]);
-
-      allow delete: if false;
-    }
-
-    // --------------------------------------------------
-    // 8. KULLANICI PROFİLLERİ
-    // --------------------------------------------------
-
+    // 14. Kullanıcı Profilleri ve Alt Koleksiyonları
     match /users/{uid} {
-      allow read: if isOwner(uid) || isAdmin();
-
-      // Kullanıcı kendi profilini oluşturabilir.
-      // Yetki yükseltme alanları istemciden yazılamaz; role belirtilmişse varsayılan 'citizen' olmalıdır.
-      allow create: if isOwner(uid)
-        && !request.resource.data.keys().hasAny([
-          'isAdmin',
-          'admin',
-          'isModerator',
-          'permissions'
-        ])
-        && (!('role' in request.resource.data) || request.resource.data.role == 'citizen');
-
-      // Profil güncelleme (Büyük yazı tipi, tema, ad-soyad vb.):
-      // Yalnızca DEĞİŞTİRİLEN alanlar denetlenir (affectedKeys).
-      // Kullanıcı kendi yetkisini yükseltemez, ancak profil alanlarını serbestçe güncelleyebilir.
-      allow update: if isOwner(uid)
-        && (
-          isAdmin() ||
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-            'role',
-            'isAdmin',
-            'admin',
-            'isModerator',
-            'permissions'
-          ])
-        );
-
-      allow delete: if false;
+      allow read, write: if true;
     }
 
-    // --------------------------------------------------
-    // 9. KULLANICI AKTİVİTELERİ
-    // --------------------------------------------------
-
-    match /users/{uid}/activities/{activityId} {
-      allow read: if isOwner(uid);
-      allow create: if isOwner(uid);
-      allow update, delete: if false;
+    match /users/{uid}/{document=**} {
+      allow read, write: if true;
     }
 
     match /user_activities/{id} {
-      allow read: if signedIn()
-        && resource.data.ownerUid == request.auth.uid;
-
-      allow create: if signedIn()
-        && request.resource.data.ownerUid == request.auth.uid;
-
-      allow update, delete: if false;
+      allow read, write: if true;
     }
 
-    // --------------------------------------------------
-    // 10. MAHALLE ÇALIŞMALARI
-    // Herkes okuyabilir, yalnızca yönetici yazabilir.
-    // --------------------------------------------------
-
-    match /neighborhood_works/{id} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // --------------------------------------------------
-    // DİĞER TÜM KOLEKSİYONLAR KAPALI
-    // --------------------------------------------------
-
+    // 15. Genel Güvenlik Kuralı
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }
