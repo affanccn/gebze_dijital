@@ -2,13 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/push_service.dart';
 import '../../../screens/auth_service.dart' show authStateProvider;
 import '../models/user_profile.dart';
 
 /// Giriş yapmış kullanıcının uid'si. Misafirse eski sabit kimlik döner
 /// (misafir Firestore'a yazamaz, sadece varsayılan profili görür).
-String get kCurrentUserId =>
-    FirebaseAuth.instance.currentUser?.uid ?? 'default_citizen';
+String get kCurrentUserId {
+  try {
+    return FirebaseAuth.instance.currentUser?.uid ?? 'default_citizen';
+  } catch (_) {
+    return 'default_citizen';
+  }
+}
 
 final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
   // Oturum değişince (giriş/çıkış) profil akışı yeniden kurulur.
@@ -28,22 +34,47 @@ final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
       try {
         await docRef.set(defaultProfile.toFirestore());
       } catch (_) {}
+      await PushService.syncAllPreferences(defaultProfile.notificationPreferences);
       return defaultProfile;
     }
-    return UserProfile.fromFirestore(doc);
+    final profile = UserProfile.fromFirestore(doc);
+    await PushService.syncAllPreferences(profile.notificationPreferences);
+    return profile;
   });
 });
 
 final profileServiceProvider = Provider((ref) => ProfileService());
 
 class ProfileService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  ProfileService({FirebaseFirestore? firestore}) : _customFirestore = firestore;
 
-  DocumentReference<Map<String, dynamic>> get _userRef =>
-      _firestore.collection('users').doc(kCurrentUserId);
+  final FirebaseFirestore? _customFirestore;
 
-  CollectionReference<Map<String, dynamic>> get _activitiesRef =>
-      _userRef.collection('activities');
+  FirebaseFirestore? get _firestore {
+    if (_customFirestore != null) return _customFirestore;
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DocumentReference<Map<String, dynamic>>? get _userRef {
+    final db = _firestore;
+    if (db == null) return null;
+    return db.collection('users').doc(kCurrentUserId);
+  }
+
+  CollectionReference<Map<String, dynamic>>? get _activitiesRef =>
+      _userRef?.collection('activities');
+
+  bool get _isAuthAvailable {
+    try {
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Profil bilgilerini (ad, eposta, telefon, adres, tc) güncelle
   Future<void> updateProfile({
@@ -54,7 +85,7 @@ class ProfileService {
     required String neighborhood,
     String? tcNo,
   }) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
       final updateData = <String, dynamic>{
         'fullName': fullName,
@@ -67,15 +98,15 @@ class ProfileService {
       if (tcNo != null && tcNo.isNotEmpty) {
         updateData['tcNo'] = tcNo;
       }
-      await _userRef.set(updateData, SetOptions(merge: true));
+      await _userRef?.set(updateData, SetOptions(merge: true));
     } catch (_) {}
   }
 
   /// Mahalle seçimini doğrudan güncelle
   Future<void> updateNeighborhood(String neighborhood) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'neighborhood': neighborhood,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -84,9 +115,10 @@ class ProfileService {
 
   /// Bildirim tercihlerini güncelle
   Future<void> updateNotificationPreference(String key, bool enabled) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    await PushService.syncPreference(key, enabled);
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'notificationPreferences.$key': enabled,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -95,9 +127,9 @@ class ProfileService {
 
   /// Dil tercihini güncelle ('tr', 'en', 'ar')
   Future<void> updateLanguage(String languageCode) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'language': languageCode,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -106,9 +138,9 @@ class ProfileService {
 
   /// Büyük yazı tipi tercihini güncelle
   Future<void> updateLargeFont(bool isLarge) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'isLargeFont': isLarge,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -117,9 +149,9 @@ class ProfileService {
 
   /// Tema modunu güncelle ('light', 'dark', 'system')
   Future<void> updateThemeMode(String themeMode) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'themeMode': themeMode,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -128,9 +160,9 @@ class ProfileService {
 
   /// Profil resmini güncelle
   Future<void> updateAvatarUrl(String avatarUrl) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'avatarUrl': avatarUrl,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -139,9 +171,9 @@ class ProfileService {
 
   /// Hesabı sil
   Future<void> deleteAccount() async {
-    if (FirebaseAuth.instance.currentUser == null) return;
+    if (!_isAuthAvailable) return;
     try {
-      await _userRef.set({
+      await _userRef?.set({
         'status': 'deleted',
         'fullName': 'Silinmiş Kullanıcı',
         'email': '',
@@ -154,10 +186,14 @@ class ProfileService {
 
   /// Kullanıcı aktivitelerini getir
   Stream<List<UserActivityItem>> getActivitiesStream() {
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (!_isAuthAvailable) {
       return Stream.value(_fallbackActivities);
     }
-    return _activitiesRef
+    final ref = _activitiesRef;
+    if (ref == null) {
+      return Stream.value(_fallbackActivities);
+    }
+    return ref
         .snapshots()
         .map((snap) {
           if (snap.docs.isEmpty) {

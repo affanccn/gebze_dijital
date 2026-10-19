@@ -1517,6 +1517,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: StreamBuilder<List<UserActivityItem>>(
                     stream: activitiesStream,
                     builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting &&
+                          !snapshot.hasData) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      if (snapshot.hasError &&
+                          (!snapshot.hasData || snapshot.data!.isEmpty)) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline_rounded,
+                                size: 40,
+                                color: Color(0xFFEF4444),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                AppStrings.get('btn_retry', lang),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: _C.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                       final list = snapshot.data ?? [];
                       return TabBarView(
                         children: [
