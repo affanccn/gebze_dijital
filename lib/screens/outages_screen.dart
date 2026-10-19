@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,37 @@ class _C {
   static const water = Color(0xFF0288D1);
   static const electric = Color(0xFFF57C00);
   static const gas = Color(0xFFE53935);
+}
+
+// ───────────────────────── Tarih yardımcıları ─────────────────────────
+
+/// Firestore'da tarih Timestamp ya da "09.10.2026 10:00" / "09.10.2026"
+/// metni olarak tutulmuş olabilir; ikisini de çözer.
+/// Sadece tarih verilmişse [endOfDay] true iken gün sonu (23:59) kabul edilir.
+DateTime? _parseOutageDate(dynamic v, {bool endOfDay = false}) {
+  if (v is Timestamp) return v.toDate();
+  if (v is DateTime) return v;
+  if (v is! String) return null;
+  final s = v.trim();
+  final m = RegExp(
+    r'^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:\s+(\d{1,2}):(\d{2}))?$',
+  ).firstMatch(s);
+  if (m != null) {
+    final hasTime = m.group(4) != null;
+    return DateTime(
+      int.parse(m.group(3)!),
+      int.parse(m.group(2)!),
+      int.parse(m.group(1)!),
+      hasTime ? int.parse(m.group(4)!) : (endOfDay ? 23 : 0),
+      hasTime ? int.parse(m.group(5)!) : (endOfDay ? 59 : 0),
+    );
+  }
+  return DateTime.tryParse(s);
+}
+
+String _fmtOutageDate(DateTime d) {
+  String p(int n) => n.toString().padLeft(2, '0');
+  return '${p(d.day)}.${p(d.month)}.${d.year} ${p(d.hour)}:${p(d.minute)}';
 }
 
 const String _kBodyFont = 'system-ui';
@@ -41,8 +74,32 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   // 0: Tümü, 1: Su (İSU), 2: Elektrik (SEDAŞ), 3: Doğalgaz (PALGAZ)
   int _selectedFilter = 0;
 
+  Timer? _ticker;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ekran açıkken süresi dolan kesintiler de listeden düşsün diye
+    // her dakika yeniden süzülür ("Mahallemde" ekranındaki mantık).
+    _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  /// Firestore boşsa gösterilen örnek veriler. Tarihler "şimdiye göre"
+  /// hesaplanır; böylece her zaman güncel görünür.
   List<Map<String, dynamic>> _getFallbackOutages(String lang) {
     final mahalleSuffix = AppStrings.get('mahalle_suffix', lang);
+    final n = DateTime.now();
+    DateTime at(int dayOffset, int hour) =>
+        DateTime(n.year, n.month, n.day + dayOffset, hour);
     return [
       {
         'type': 'su',
@@ -52,9 +109,8 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
             ? 'صيانة خط النقل الرئيسي'
             : 'Ana İsale Hattı Bakım Çalışması',
         'neighborhood': 'Osman Yılmaz & Köşklü Çeşme $mahalleSuffix',
-        'startDate': '09.10.2026 10:00',
-        'endDate': '09.10.2026 18:00',
-        'status': AppStrings.get('status_ongoing', lang),
+        'startDate': n.subtract(const Duration(hours: 2)),
+        'endDate': n.add(const Duration(hours: 4)),
         'provider': 'İSU',
       },
       {
@@ -65,9 +121,8 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
             ? 'تجديد المحولات وتحسين الشبكة'
             : 'Trafo Yenileme ve Şebeke İyileştirme',
         'neighborhood': 'Arapçeşme $mahalleSuffix',
-        'startDate': '10.10.2026 09:00',
-        'endDate': '10.10.2026 14:00',
-        'status': AppStrings.get('status_planned', lang),
+        'startDate': at(1, 9),
+        'endDate': at(1, 14),
         'provider': 'SEDAŞ',
       },
       {
@@ -78,9 +133,8 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
             ? 'ربط البنية التحتية واستبدال الصمامات'
             : 'Altyapı Bağlantı ve Vana Değişimi',
         'neighborhood': 'Mustafapaşa $mahalleSuffix 712. Sokak',
-        'startDate': '11.10.2026 13:00',
-        'endDate': '11.10.2026 17:00',
-        'status': AppStrings.get('status_planned', lang),
+        'startDate': at(2, 13),
+        'endDate': at(2, 17),
         'provider': 'PALGAZ',
       },
     ];
@@ -136,7 +190,46 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                       items = fallbackOutages;
                     }
 
-                    final filtered = items.where((item) {
+                    // Tarih filtresi: bitiş zamanı geçenler listeden düşer,
+                    // durum (planlı / devam ediyor) tarihten hesaplanır.
+                    final now = _now;
+                    final processed = <Map<String, dynamic>>[];
+                    for (final raw in items) {
+                      final start = _parseOutageDate(raw['startDate']);
+                      final end = _parseOutageDate(
+                        raw['endDate'],
+                        endOfDay: true,
+                      );
+                      if (end != null && end.isBefore(now)) continue;
+
+                      var status = (raw['status'] ?? '').toString();
+                      final low = status.toLowerCase();
+                      if (low.contains('tamam') || low.contains('complete')) {
+                        continue; // elle "tamamlandı" işaretlenmiş
+                      }
+                      if (start != null) {
+                        status = start.isAfter(now) ? 'planlı' : 'devam';
+                      }
+
+                      processed.add({
+                        ...raw,
+                        'status': status,
+                        'startDate': start != null
+                            ? _fmtOutageDate(start)
+                            : raw['startDate'],
+                        'endDate': end != null
+                            ? _fmtOutageDate(end)
+                            : raw['endDate'],
+                        '_sort': start ?? end ?? DateTime(2100),
+                      });
+                    }
+                    processed.sort(
+                      (a, b) => (a['_sort'] as DateTime).compareTo(
+                        b['_sort'] as DateTime,
+                      ),
+                    );
+
+                    final filtered = processed.where((item) {
                       final type = (item['type'] ?? '')
                           .toString()
                           .toLowerCase();

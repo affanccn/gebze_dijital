@@ -86,9 +86,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         foregroundColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: IconThemeData(
-          color: isDark ? Colors.white : const Color(0xFF0A1F44),
-        ),
+        // NOT: Buraya iconTheme koymayın. AppBar'da appBarTheme.iconTheme,
+        // ekrandaki foregroundColor'ı ezer ve geri butonu koyu kalır.
       ),
       cardTheme: CardThemeData(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,

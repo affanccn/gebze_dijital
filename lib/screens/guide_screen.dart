@@ -725,6 +725,7 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
           scrolledUnderElevation: 0,
           flexibleSpace: Container(
@@ -1477,27 +1478,81 @@ class _PlaceDetailScreen extends StatelessWidget {
       context,
       Scaffold(
         backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
-        appBar: AppBar(
-          backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
-          foregroundColor: isDark ? Colors.white : _C.textDark,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: Text(
-            _t(lang, 'Mekan Önizlemesi', 'Place Preview', 'معاينة المكان'),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : _C.textDark,
+        body: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [_C.navy, _C.navyDeep],
+                ),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(32),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x330A2A66),
+                    blurRadius: 18,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 10, 16, 22),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _t(
+                            lang,
+                            'Mekan Önizlemesi',
+                            'Place Preview',
+                            'معاينة المكان',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        body: SingleChildScrollView(
+            Expanded(
+              child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _PlaceImage(place: place, height: 250),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: _PlaceImage(place: place, height: 230),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
                 child: Column(
@@ -1626,6 +1681,9 @@ class _PlaceDetailScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+            ),
+          ],
         ),
       ),
     );
