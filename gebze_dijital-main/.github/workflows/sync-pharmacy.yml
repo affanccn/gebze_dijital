@@ -1,0 +1,29 @@
+name: Nöbetçi Eczane Senkronizasyonu
+
+on:
+  schedule:
+    - cron: '0 21 * * *' # UTC'ye göre 21:00, Türkiye saatiyle (UTC+3) 00:00 eder.
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu Klonla
+        uses: actions/checkout@v4
+
+      - name: Node.js Kurulumu
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bağımlılıkları Yükle
+        working-directory: scripts/pharmacy-sync
+        run: npm install
+
+      - name: Senkronizasyon Betiğini Çalıştır
+        working-directory: scripts/pharmacy-sync
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          PHARMACY_API_KEY: ${{ secrets.PHARMACY_API_KEY }}
+        run: node sync-pharmacy.js
