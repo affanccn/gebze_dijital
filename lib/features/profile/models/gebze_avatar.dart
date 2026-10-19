@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 class GebzeAvatarItem {
@@ -104,15 +105,15 @@ const List<GebzeAvatarItem> kGebzeAvatars = [
   GebzeAvatarItem(
     id: 'avatar_13',
     assetPath: 'assets/images/avatars/avatar_13.png',
-    titleTr: 'Darwin (Neşeli Karakter)',
+    titleTr: 'Darwin (Zehra Şef)',
     category: 'Özel',
   ),
   // 14: Tarz Genç Erkek (Piercingli)
   GebzeAvatarItem(
     id: 'avatar_14',
     assetPath: 'assets/images/avatars/avatar_14.png',
-    titleTr: 'Tarz Genç (Piercingli)',
-    category: 'Genç',
+    titleTr: 'Burun Bantlı Genç (Affan)',
+    category: 'Özel',
   ),
   // 15: Çiçek Perisi (Flora)
   GebzeAvatarItem(
