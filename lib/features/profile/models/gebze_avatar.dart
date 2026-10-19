@@ -16,109 +16,109 @@ class GebzeAvatarItem {
 }
 
 const List<GebzeAvatarItem> kGebzeAvatars = [
-  // 1: Erkek Öğrenci
+  // 1: Kıdemli Beyefendi / Gebzeli Dede (Gözlüklü)
   GebzeAvatarItem(
     id: 'avatar_1',
     assetPath: 'assets/images/avatars/avatar_1.png',
-    titleTr: 'Erkek Öğrenci',
-    category: 'Öğrenci',
+    titleTr: 'Gebzeli Dede (Gözlüklü)',
+    category: 'Kıdemli',
   ),
-  // 2: Kız Öğrenci
+  // 2: Kız Öğrenci (Türbanlı / Sırt Çantalı)
   GebzeAvatarItem(
     id: 'avatar_2',
     assetPath: 'assets/images/avatars/avatar_2.png',
-    titleTr: 'Kız Öğrenci',
-    category: 'Öğrenci',
-  ),
-  // 3: Kız Öğrenci (Türbanlı)
-  GebzeAvatarItem(
-    id: 'avatar_3',
-    assetPath: 'assets/images/avatars/avatar_3.png',
     titleTr: 'Kız Öğrenci (Türbanlı)',
     category: 'Öğrenci',
   ),
-  // 4: Erkek Genç
+  // 3: Erkek Öğrenci (Kapüşonlu / Sırt Çantalı)
+  GebzeAvatarItem(
+    id: 'avatar_3',
+    assetPath: 'assets/images/avatars/avatar_3.png',
+    titleTr: 'Erkek Öğrenci (Kapüşonlu)',
+    category: 'Öğrenci',
+  ),
+  // 4: Kız Genç (At Kuyruklu)
   GebzeAvatarItem(
     id: 'avatar_4',
     assetPath: 'assets/images/avatars/avatar_4.png',
-    titleTr: 'Erkek Genç',
+    titleTr: 'Kız Genç (At Kuyruklu)',
     category: 'Genç',
   ),
-  // 5: Kız Genç
+  // 5: Kıdemli Beyefendi (Kır Sakallı)
   GebzeAvatarItem(
     id: 'avatar_5',
     assetPath: 'assets/images/avatars/avatar_5.png',
-    titleTr: 'Kız Genç',
-    category: 'Genç',
+    titleTr: 'Kıdemli Beyefendi',
+    category: 'Kıdemli',
   ),
-  // 6: Kız Genç (Türbanlı)
+  // 6: Kadın Çalışan (Gözlüklü / Kıvırcık Saçlı)
   GebzeAvatarItem(
     id: 'avatar_6',
     assetPath: 'assets/images/avatars/avatar_6.png',
-    titleTr: 'Kız Genç (Türbanlı)',
-    category: 'Genç',
+    titleTr: 'Kadın Çalışan (Kıvırcık Saç)',
+    category: 'Çalışan',
   ),
-  // 7: Erkek Çalışan / Mühendis
+  // 7: Erkek Genç (Kareli Gömlek)
   GebzeAvatarItem(
     id: 'avatar_7',
     assetPath: 'assets/images/avatars/avatar_7.png',
-    titleTr: 'Erkek Çalışan / Mühendis',
-    category: 'Çalışan',
+    titleTr: 'Erkek Genç (Kareli Gömlek)',
+    category: 'Genç',
   ),
-  // 8: Kadın Çalışan / Yönetici
+  // 8: Tonton Nine (Desenli Eşarplı)
   GebzeAvatarItem(
     id: 'avatar_8',
     assetPath: 'assets/images/avatars/avatar_8.png',
-    titleTr: 'Kadın Çalışan / Yönetici',
-    category: 'Çalışan',
+    titleTr: 'Tonton Nine (Eşarplı)',
+    category: 'Kıdemli',
   ),
-  // 9: Kadın Çalışan (Türbanlı)
+  // 9: Erkek Genç (Montlu / Sakallı)
   GebzeAvatarItem(
     id: 'avatar_9',
     assetPath: 'assets/images/avatars/avatar_9.png',
-    titleTr: 'Kadın Çalışan (Türbanlı)',
-    category: 'Çalışan',
+    titleTr: 'Erkek Genç (Montlu)',
+    category: 'Genç',
   ),
-  // 10: Erkek Yaşlı (Gebzeli Dede)
+  // 10: Kadın Çalışan (Türbanlı / Ceketli)
   GebzeAvatarItem(
     id: 'avatar_10',
     assetPath: 'assets/images/avatars/avatar_10.png',
-    titleTr: 'Erkek Yaşlı (Gebzeli Dede)',
-    category: 'Kıdemli',
+    titleTr: 'Kadın Çalışan (Türbanlı)',
+    category: 'Çalışan',
   ),
-  // 11: Kadın Yaşlı (Gebzeli Teyze)
+  // 11: Erkek Genç (Kolej Montlu / Ters Şapka)
   GebzeAvatarItem(
     id: 'avatar_11',
     assetPath: 'assets/images/avatars/avatar_11.png',
-    titleTr: 'Kadın Yaşlı (Gebzeli Teyze)',
-    category: 'Kıdemli',
+    titleTr: 'Erkek Genç (Ters Şapkalı)',
+    category: 'Genç',
   ),
-  // 12: Kadın Yaşlı (Türbanlı / Eşarplı)
+  // 12: Yetişkin Kadın (Yeşil Fularlı)
   GebzeAvatarItem(
     id: 'avatar_12',
     assetPath: 'assets/images/avatars/avatar_12.png',
-    titleTr: 'Kadın Yaşlı (Eşarplı / Tonton Nine)',
-    category: 'Kıdemli',
+    titleTr: 'Yetişkin Kadın (Fularlı)',
+    category: 'Çalışan',
   ),
-  // 13: Gebzespor Taraftarı Genç
+  // 13: Darwin Watterson (Neşeli Karakter)
   GebzeAvatarItem(
     id: 'avatar_13',
     assetPath: 'assets/images/avatars/avatar_13.png',
-    titleTr: 'Gebzespor Taraftarı',
+    titleTr: 'Darwin (Neşeli Karakter)',
     category: 'Özel',
   ),
-  // 14: Doğa & Gebze Pati Gönüllüsü
+  // 14: Tarz Genç Erkek (Piercingli)
   GebzeAvatarItem(
     id: 'avatar_14',
     assetPath: 'assets/images/avatars/avatar_14.png',
-    titleTr: 'Gebze Pati Gönüllüsü',
-    category: 'Özel',
+    titleTr: 'Tarz Genç (Piercingli)',
+    category: 'Genç',
   ),
-  // 15: Gebze Dijital Hemşehri
+  // 15: Çiçek Perisi (Flora)
   GebzeAvatarItem(
     id: 'avatar_15',
     assetPath: 'assets/images/avatars/avatar_15.png',
-    titleTr: 'Gebze Dijital Hemşehri',
+    titleTr: 'Çiçek Perisi (Flora)',
     category: 'Özel',
   ),
 ];
