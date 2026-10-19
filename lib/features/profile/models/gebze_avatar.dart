@@ -101,14 +101,14 @@ const List<GebzeAvatarItem> kGebzeAvatars = [
     titleTr: 'Yetişkin Kadın (Fularlı)',
     category: 'Çalışan',
   ),
-  // 13: Darwin Watterson (Neşeli Karakter)
+  // 13: Darwin (Zehra Şef)
   GebzeAvatarItem(
     id: 'avatar_13',
     assetPath: 'assets/images/avatars/avatar_13.png',
     titleTr: 'Darwin (Zehra Şef)',
     category: 'Özel',
   ),
-  // 14: Tarz Genç Erkek (Piercingli)
+  // 14: Burun Bantlı Genç (Affan)
   GebzeAvatarItem(
     id: 'avatar_14',
     assetPath: 'assets/images/avatars/avatar_14.png',
