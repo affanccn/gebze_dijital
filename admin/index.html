@@ -1096,8 +1096,17 @@
     window.loadDashboard = loadDashboard;
 
     // ───────────────── 2. ÇEK & GÖNDER (REPORTS / TALEPLER) ─────────────────
-    function initRealtimeReports() {
+    window.usersMap = window.usersMap || {};
+
+    async function initRealtimeReports() {
       if (window.reportsUnsub) window.reportsUnsub();
+
+      // Kullanıcı verilerini arka planda önbelleğe al
+      try {
+        const uSnap = await getDocs(collection(db, "users"));
+        uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
+      } catch (_) {}
+
       try {
         const q = query(collection(db, "reports"));
         window.reportsUnsub = onSnapshot(q, (snapshot) => {
@@ -1204,11 +1213,15 @@
           ? `<img src="${photoThumb}" onclick="openLightbox('${photoThumb}')" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:zoom-in; border:1px solid var(--border);" alt="foto">`
           : `<span style="font-size:11px; color:var(--text-muted); font-style:italic;">Yok</span>`;
 
+        const uDoc = (window.usersMap && r.userId) ? window.usersMap[r.userId] : null;
+        const effectiveName = r.userName || uDoc?.fullName || (r.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş');
+        const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
+
         tr.innerHTML = `
           <td><strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0,8).toUpperCase()}</strong></td>
           <td>
-            <div style="font-weight:700;">${r.userName || (r.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş')}</div>
-            <div style="font-size:11.5px; color:var(--text-muted);">${r.userPhone ? '📞 ' + r.userPhone : ''}</div>
+            <div style="font-weight:700;">${effectiveName}</div>
+            <div style="font-size:11.5px; color:var(--text-muted);">${effectivePhone ? '📞 ' + effectivePhone : ''}</div>
           </td>
           <td>
             <span class="badge badge-info">${r.category || 'Genel'}</span>
@@ -1239,6 +1252,9 @@
         card.className = "item-card";
         const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
         const photoThumb = (r.photoUrl || (r.photoBase64 ? 'data:image/jpeg;base64,' + r.photoBase64 : ''));
+        const uDoc = (window.usersMap && r.userId) ? window.usersMap[r.userId] : null;
+        const effectiveName = r.userName || uDoc?.fullName || (r.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş');
+        const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
 
         card.innerHTML = `
           ${photoThumb ? `<img src="${photoThumb}" class="item-card-image" onclick="openLightbox('${photoThumb}')" alt="talep-foto">` : ''}
@@ -1250,7 +1266,7 @@
             <div class="item-card-title">${r.category || 'Belediye Hizmeti'} • ${r.neighborhood || 'Gebze'} Mah.</div>
             <div class="item-card-desc">${r.description || ''}</div>
             <div style="font-size:12px; color:var(--text-muted); line-height:1.4; border-top:1px dashed var(--border); padding-top:8px;">
-              👤 <strong>${r.userName || (r.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş')}</strong> ${r.userPhone ? '• ' + r.userPhone : ''}<br>
+              👤 <strong>${effectiveName}</strong> ${effectivePhone ? '• ' + effectivePhone : ''}<br>
               ${r.address ? `📍 ${r.address}<br>` : ''}
               ${r.adminNote ? `<span style="color:var(--success); font-weight:700;">💬 Belediye Notu: ${r.adminNote}</span>` : ''}
             </div>
@@ -1289,9 +1305,13 @@
       const r = (window.reportsCache || []).find(item => item.id === id);
       if (!r) return;
 
+      const uDoc = (window.usersMap && r.userId) ? window.usersMap[r.userId] : null;
+      const effectiveName = r.userName || uDoc?.fullName || (r.isGuest ? 'Misafir' : 'Kayıtlı Vatandaş');
+      const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
+
       document.getElementById('modalReportTicket').innerText = r.ticketNo || r.id;
       document.getElementById('modalReportCategory').innerText = r.category || 'Genel';
-      document.getElementById('modalReportCitizen').innerText = `${r.userName || (r.isGuest ? 'Misafir' : 'Kayıtlı Vatandaş')} ${r.userPhone ? '(' + r.userPhone + ')' : ''}`;
+      document.getElementById('modalReportCitizen').innerText = `${effectiveName} ${effectivePhone ? '(' + effectivePhone + ')' : ''}`;
       document.getElementById('modalReportLocation').innerText = `${r.neighborhood || 'Gebze'} Mah. ${r.address ? '– ' + r.address : ''}`;
       document.getElementById('modalReportDesc').innerText = r.description || '';
       document.getElementById('modalReportNoteInput').value = r.adminNote || '';
@@ -1982,8 +2002,10 @@
           return;
         }
         container.innerHTML = '';
+        window.usersMap = window.usersMap || {};
         snap.forEach(docSnap => {
           const d = docSnap.data();
+          window.usersMap[docSnap.id] = d;
           const tr = document.createElement("tr");
           let regDate = '–';
           if (d.createdAt?.toMillis) regDate = new Date(d.createdAt.toMillis()).toLocaleDateString('tr-TR');

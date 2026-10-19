@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../core/localization/app_strings.dart';
+import '../features/profile/models/user_profile.dart';
 import '../features/profile/services/profile_service.dart';
 import 'profile_screen.dart';
 import 'report_common.dart';
@@ -273,6 +275,49 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     try {
       final uid = await getReportUserId();
       final profile = ref.read(profileProvider).value;
+
+      String? userName = profile?.fullName?.trim();
+      String? userPhone = profile?.phoneNumber?.trim();
+
+      // Profil akışı henüz yüklenmediyse Firestore users tablosundan doğrudan çek
+      if ((userName == null || userName.isEmpty) &&
+          uid.isNotEmpty &&
+          uid != 'default_citizen') {
+        try {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .get()
+              .timeout(const Duration(seconds: 4));
+          if (userDoc.exists && userDoc.data() != null) {
+            final data = userDoc.data()!;
+            final docName = (data['fullName'] as String?)?.trim();
+            final docPhone = (data['phoneNumber'] as String?)?.trim();
+            if (docName != null && docName.isNotEmpty) userName = docName;
+            if (docPhone != null && docPhone.isNotEmpty) userPhone = docPhone;
+          }
+        } catch (_) {}
+      }
+
+      // Hala boşsa Firebase Auth kullanıcısından kontrol et
+      if (userName == null || userName.isEmpty) {
+        final authUser = FirebaseAuth.instance.currentUser;
+        if (authUser != null) {
+          if ((authUser.displayName ?? '').trim().isNotEmpty) {
+            userName = authUser.displayName!.trim();
+          }
+          if ((userPhone == null || userPhone.isEmpty) &&
+              (authUser.phoneNumber ?? '').trim().isNotEmpty) {
+            userPhone = authUser.phoneNumber!.trim();
+          }
+        }
+      }
+
+      // Misafir / Kayıtlı kullanıcı adı varsayılanı
+      if (userName == null || userName.isEmpty) {
+        userName = widget.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş';
+      }
+
       final ref0 = FirebaseFirestore.instance.collection('reports').doc();
       final ticket =
           'GB-${DateTime.now().year}-${ref0.id.substring(0, 6).toUpperCase()}';
@@ -305,9 +350,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         'ticketNo': ticket,
         'userId': uid,
         'isGuest': widget.isGuest,
-        if ((profile?.fullName ?? '').isNotEmpty) 'userName': profile!.fullName,
-        if ((profile?.phoneNumber ?? '').isNotEmpty)
-          'userPhone': profile!.phoneNumber,
+        'userName': userName,
+        'userPhone': userPhone ?? '',
         'category': rt('tr', 'cat_$_category'),
         'categoryKey': _category,
         'description': _descCtrl.text.trim(),
