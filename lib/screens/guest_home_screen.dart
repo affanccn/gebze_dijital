@@ -142,7 +142,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
       _QuickActionData(
         AppStrings.get('service_neighborhood', lang),
         Icons.location_city_rounded,
-        _C.orangeGradient,
+        _C.navyGradient,
         onTap: () => Navigator.of(
           context,
         ).push(MaterialPageRoute(builder: (_) => const NeighborhoodScreen())),

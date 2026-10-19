@@ -4,16 +4,77 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:gebze_dijital/features/news/models/municipal_news.dart';
 
 import '../../core/localization/app_strings.dart';
+import 'services/news_service.dart';
 
-class NewsPreviewScreen extends ConsumerWidget {
+class NewsPreviewScreen extends ConsumerStatefulWidget {
   const NewsPreviewScreen({super.key, required this.news});
 
   final MunicipalNews news;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NewsPreviewScreen> createState() => _NewsPreviewScreenState();
+}
+
+class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
+  String? _summary;
+  bool _isLoadingSummary = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSummary();
+  }
+
+  void _initSummary() {
+    if (widget.news.summary.isNotEmpty) {
+      _summary = widget.news.summary;
+      _isLoadingSummary = false;
+      return;
+    }
+
+    _loadSummary();
+  }
+
+  Future<void> _loadSummary() async {
+    final fetched = await NewsService().fetchNewsSummary(
+      widget.news.url,
+      title: widget.news.title,
+    );
+
+    if (mounted) {
+      setState(() {
+        _summary = fetched ?? _buildFallbackSummary(widget.news);
+        _isLoadingSummary = false;
+      });
+    }
+  }
+
+  String _buildFallbackSummary(MunicipalNews news) {
+    return '${news.title}. Gebze Belediyesi ekipleri tarafından vatandaşlarımızın yaşam kalitesini artırmak ve ilçemize değer katmak amacıyla yürütülen kapsamlı çalışmalar aralıksız sürmektedir. Hizmet bülteni, teknik detaylar, yapılan uygulamalar ve ilgili fotoğraf galerisine ulaşarak haberin tam metnini okumak için Devamını Oku butonunu kullanabilirsiniz.';
+  }
+
+  Future<void> _openNewsDetail() async {
+    final uri = Uri.tryParse(widget.news.url);
+    if (uri != null) {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.inAppBrowserView,
+      );
+      if (!launched) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final displaySummary = _summary ?? _buildFallbackSummary(widget.news);
 
     return Scaffold(
       backgroundColor: isDark
@@ -68,19 +129,46 @@ class NewsPreviewScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (news.image.isNotEmpty)
-                    Image.network(
-                      news.image,
-                      width: double.infinity,
-                      height: 250,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const SizedBox(
-                            height: 200,
-                            child: Center(
-                              child: Icon(Icons.image_not_supported, size: 50),
+                  if (widget.news.image.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(isDark ? 50 : 20),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
                             ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            widget.news.image,
+                            width: double.infinity,
+                            height: 230,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  height: 180,
+                                  color: isDark
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFE2E8F0),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.image_not_supported_rounded,
+                                      size: 48,
+                                      color: isDark
+                                          ? const Color(0xFF64748B)
+                                          : Colors.grey.shade400,
+                                    ),
+                                  ),
+                                ),
                           ),
+                        ),
+                      ),
                     ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -88,46 +176,77 @@ class NewsPreviewScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(22),
                         border: isDark
                             ? Border.all(color: const Color(0xFF334155))
-                            : null,
+                            : Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withAlpha(isDark ? 30 : 12),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
+                            color: const Color(0xFF0A2A66).withAlpha(isDark ? 30 : 14),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF7A00).withAlpha(isDark ? 35 : 20),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.newspaper_rounded,
+                                  size: 14,
+                                  color: Color(0xFFFF7A00),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'GEBZE BELEDİYESİ GÜNCEL',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFFFF7A00),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           Text(
-                            news.title,
+                            widget.news.title,
                             style: TextStyle(
-                              fontSize: 19,
+                              fontSize: 18.5,
                               fontWeight: FontWeight.w800,
                               color: isDark
                                   ? Colors.white
                                   : const Color(0xFF0A1F44),
-                              height: 1.3,
+                              height: 1.35,
                             ),
                           ),
-                          if (news.publishedAtText.isNotEmpty) ...[
+                          if (widget.news.publishedAtText.isNotEmpty) ...[
                             const SizedBox(height: 10),
                             Row(
                               children: [
                                 Icon(
-                                  Icons.calendar_today,
-                                  size: 15,
+                                  Icons.calendar_today_rounded,
+                                  size: 14,
                                   color: isDark
                                       ? const Color(0xFF94A3B8)
                                       : const Color(0xFF5F6F8A),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  news.publishedAtText,
+                                  widget.news.publishedAtText,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     color: isDark
@@ -139,53 +258,99 @@ class NewsPreviewScreen extends ConsumerWidget {
                               ],
                             ),
                           ],
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
                           Divider(
                             color: isDark
                                 ? const Color(0xFF334155)
                                 : const Color(0xFFE2E8F0),
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.menu_book_rounded,
+                                size: 16,
+                                color: Color(0xFFFF7A00),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                AppStrings.get('news_summary_title', lang),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFFF7A00),
+                                ),
+                              ),
+                              if (_isLoadingSummary) ...[
+                                const Spacer(),
+                                const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFFFF7A00),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 10),
                           Text(
-                            AppStrings.get('news_read_more_info', lang),
+                            displaySummary,
+                            maxLines: 6,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 14.5,
-                              height: 1.5,
+                              fontSize: 14.2,
+                              height: 1.55,
                               color: isDark
                                   ? const Color(0xFFCBD5E1)
                                   : const Color(0xFF334155),
                             ),
                           ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             height: 52,
-                            child: FilledButton.icon(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF0A2A66),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF1E5BC6),
+                                    Color(0xFF0A2A66),
+                                  ],
                                 ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0A2A66).withAlpha(80),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              onPressed: () async {
-                                final uri = Uri.tryParse(news.url);
-                                if (uri != null) {
-                                  await launchUrl(
-                                    uri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                              },
-                              icon: const Icon(
-                                Icons.open_in_browser_rounded,
-                                size: 20,
-                              ),
-                              label: Text(
-                                AppStrings.get('news_open_browser_btn', lang),
-                                style: const TextStyle(
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w700,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  foregroundColor: Colors.white,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                onPressed: _openNewsDetail,
+                                icon: const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 20,
+                                ),
+                                label: Text(
+                                  AppStrings.get('news_read_more', lang),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
                               ),
                             ),
@@ -203,3 +368,4 @@ class NewsPreviewScreen extends ConsumerWidget {
     );
   }
 }
+

@@ -6,6 +6,7 @@ class MunicipalNews {
   final String publishedAtText;
   final int pageIndex;
   final int itemIndex;
+  final String summary;
 
   const MunicipalNews({
     required this.id,
@@ -15,6 +16,7 @@ class MunicipalNews {
     required this.publishedAtText,
     required this.pageIndex,
     required this.itemIndex,
+    this.summary = '',
   });
 
   factory MunicipalNews.fromMap(String id, Map<String, dynamic> data) {
@@ -26,6 +28,10 @@ class MunicipalNews {
       publishedAtText: data['publishedAtText'] as String? ?? '',
       pageIndex: (data['pageIndex'] as num?)?.toInt() ?? 999,
       itemIndex: (data['itemIndex'] as num?)?.toInt() ?? 999,
+      summary: data['summary'] as String? ??
+          data['description'] as String? ??
+          data['content'] as String? ??
+          '',
     );
   }
 }

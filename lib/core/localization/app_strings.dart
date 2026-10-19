@@ -891,6 +891,16 @@ class AppStrings {
       'en': 'Open News in Browser',
       'ar': 'فتح الخبر في المتصفح',
     },
+    'news_read_more': {
+      'tr': 'Devamını Oku',
+      'en': 'Read More',
+      'ar': 'اقرأ المزيد',
+    },
+    'news_summary_title': {
+      'tr': 'Haber Özeti & Ön Okuma',
+      'en': 'News Summary & Preview',
+      'ar': 'ملخص الخبر والمعاينة',
+    },
 
     // ───────────────────────── Profil ─────────────────────────
     'profile_screen_title': {
