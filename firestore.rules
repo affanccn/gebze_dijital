@@ -298,18 +298,33 @@ service cloud.firestore {
     // --------------------------------------------------
 
     match /users/{uid} {
-      allow read: if isOwner(uid);
+      allow read: if isOwner(uid) || isAdmin();
 
-      // Kullanıcı kendi profilini oluşturabilir ve güncelleyebilir.
-      // Yetki yükseltme alanları istemciden yazılamaz.
-      allow create, update: if isOwner(uid)
+      // Kullanıcı kendi profilini oluşturabilir.
+      // Yetki yükseltme alanları istemciden yazılamaz; role belirtilmişse varsayılan 'citizen' olmalıdır.
+      allow create: if isOwner(uid)
         && !request.resource.data.keys().hasAny([
-          'role',
           'isAdmin',
           'admin',
           'isModerator',
           'permissions'
-        ]);
+        ])
+        && (!('role' in request.resource.data) || request.resource.data.role == 'citizen');
+
+      // Profil güncelleme (Büyük yazı tipi, tema, ad-soyad vb.):
+      // Yalnızca DEĞİŞTİRİLEN alanlar denetlenir (affectedKeys).
+      // Kullanıcı kendi yetkisini yükseltemez, ancak profil alanlarını serbestçe güncelleyebilir.
+      allow update: if isOwner(uid)
+        && (
+          isAdmin() ||
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'role',
+            'isAdmin',
+            'admin',
+            'isModerator',
+            'permissions'
+          ])
+        );
 
       allow delete: if false;
     }
