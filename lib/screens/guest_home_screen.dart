@@ -534,11 +534,13 @@ class _LogoFallback extends StatelessWidget {
   }
 }
 
-class _BellIcon extends StatelessWidget {
+class _BellIcon extends ConsumerWidget {
   const _BellIcon();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+
     return SizedBox(
       width: 40,
       height: 40,
@@ -550,19 +552,41 @@ class _BellIcon extends StatelessWidget {
             color: Colors.white,
             size: 32,
           ),
-          Positioned(
-            top: 4,
-            right: 6,
-            child: Container(
-              width: 11,
-              height: 11,
-              decoration: BoxDecoration(
-                color: _C.danger,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+          if (unreadCount > 0)
+            Positioned(
+              top: 3,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: _C.danger,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _C.danger.withAlpha(120),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    unreadCount > 9 ? '9+' : '$unreadCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

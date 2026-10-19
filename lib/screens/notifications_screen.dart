@@ -8,6 +8,14 @@ import 'my_requests_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
 import '../features/pati/presentation/gebze_pati_screen.dart';
+import '../core/services/notification_service.dart';
+
+export '../core/services/notification_service.dart'
+    show
+        AppNotification,
+        NotificationCategory,
+        notificationsProvider,
+        unreadNotificationsCountProvider;
 
 class _C {
   static const Color navy = Color(0xFF0A2A66);
@@ -18,32 +26,6 @@ class _C {
   static const Color textDark = Color(0xFF1A1D20);
   static const Color textMuted = Color(0xFF757575);
   static const Color border = Color(0xFFE3E8F0);
-}
-
-enum NotificationCategory { all, outages, announcements, services }
-
-class AppNotification {
-  final String id;
-  final String title;
-  final String message;
-  final String time;
-  final IconData icon;
-  final Color color;
-  final NotificationCategory category;
-  final VoidCallback? onTap;
-  bool isRead;
-
-  AppNotification({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.time,
-    required this.icon,
-    required this.color,
-    required this.category,
-    this.onTap,
-    this.isRead = false,
-  });
 }
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -57,111 +39,8 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   NotificationCategory _selectedCategory = NotificationCategory.all;
 
-  late List<AppNotification> _notifications;
-
-  @override
-  void initState() {
-    super.initState();
-    _notifications = [
-      AppNotification(
-        id: '1',
-        title: 'Planlı Su Kesintisi Bildirimi',
-        message: 'Yenikent ve Gaziler Mahallelerinde 14:00 - 18:00 saatleri arasında şebeke iyileştirme çalışması yapılacaktır.',
-        time: '15 dk önce',
-        icon: Icons.water_drop_rounded,
-        color: const Color(0xFF0288D1),
-        category: NotificationCategory.outages,
-        onTap: () =>
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const OutagesScreen())),
-      ),
-      AppNotification(
-        id: '2',
-        title: 'Gebze Afet & Acil Toplanma Alanları',
-        message: 'Mahallenizdeki en yakın güvenli toplanma alanları ve acil durum irtibat numaraları güncellendi.',
-        time: '1 saat önce',
-        icon: Icons.emergency_rounded,
-        color: const Color(0xFFD32F2F),
-        category: NotificationCategory.announcements,
-        onTap: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const EmergencyScreen())),
-      ),
-      AppNotification(
-        id: '3',
-        title: 'Bu Gece Nöbetçi Eczaneler',
-        message: 'Gebze merkez ve istasyon bölgelerinde açık olan nöbetçi eczaneleri inceleyebilirsiniz.',
-        time: '3 saat önce',
-        icon: Icons.local_pharmacy_rounded,
-        color: const Color(0xFF2E7D32),
-        category: NotificationCategory.services,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const PharmaciesScreen(),
-          ),
-        ),
-      ),
-      AppNotification(
-        id: '4',
-        title: 'Kent Lokantası Sıcak Menü Servisi',
-        message: 'Bugünün 4 çeşit sağlıklı menüsü Gebze Kent Lokantalarında servis edilmeye başlandı.',
-        time: '5 saat önce',
-        icon: Icons.restaurant_rounded,
-        color: const Color(0xFFFF6B00),
-        category: NotificationCategory.services,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const GuideCategoryScreen(categoryId: 'lokantalar'),
-          ),
-        ),
-      ),
-      AppNotification(
-        id: '5',
-        title: 'Gebze Pati Sahiplendirme Günü',
-        message: 'Sokak hayvanları bakım merkezimizdeki can dostlarımız bu Pazar Cumhuriyet Meydanı\'nda yuva arıyor.',
-        time: 'Dün',
-        icon: Icons.pets_rounded,
-        color: const Color(0xFF7B1FA2),
-        category: NotificationCategory.announcements,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const GebzePatiScreen(initialIndex: 1),
-          ),
-        ),
-      ),
-      AppNotification(
-        id: '6',
-        title: 'Çek / Bildir Talebiniz İncelendi',
-        message: 'Belediyemize ilettiğiniz talep ilgili saha müdürlüğüne yönlendirilmiş olup işlem sırasına alınmıştır.',
-        time: '2 gün önce',
-        icon: Icons.assignment_turned_in_rounded,
-        color: const Color(0xFF1E5BC6),
-        category: NotificationCategory.services,
-        onTap: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const MyRequestsScreen())),
-        isRead: true,
-      ),
-      AppNotification(
-        id: '7',
-        title: 'Hava Durumu Bilgilendirmesi',
-        message: 'Gebze genelinde yarın kuvvetli yağış beklenmektedir. Tedbirli olunması rica olunur.',
-        time: '3 gün önce',
-        icon: Icons.cloud_outlined,
-        color: const Color(0xFF455A64),
-        category: NotificationCategory.announcements,
-        onTap: () =>
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const WeatherScreen())),
-        isRead: true,
-      ),
-    ];
-  }
-
   void _markAllAsRead() {
-    setState(() {
-      for (final n in _notifications) {
-        n.isRead = true;
-      }
-    });
+    ref.read(notificationsProvider.notifier).markAllAsRead();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Tüm bildirimler okundu olarak işaretlendi.'),
@@ -170,10 +49,61 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
+  void _handleNotificationTap(AppNotification item) {
+    ref.read(notificationsProvider.notifier).markAsRead(item.id);
+
+    switch (item.actionType) {
+      case 'outages':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const OutagesScreen()),
+        );
+        break;
+      case 'emergency':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const EmergencyScreen()),
+        );
+        break;
+      case 'pharmacy':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PharmaciesScreen()),
+        );
+        break;
+      case 'food':
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const GuideCategoryScreen(categoryId: 'lokantalar'),
+          ),
+        );
+        break;
+      case 'pati':
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const GebzePatiScreen(initialIndex: 1),
+          ),
+        );
+        break;
+      case 'requests':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MyRequestsScreen()),
+        );
+        break;
+      case 'weather':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const WeatherScreen()),
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final filtered = _notifications.where((n) {
+    final notifications = ref.watch(notificationsProvider);
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+
+    final filtered = notifications.where((n) {
       if (_selectedCategory == NotificationCategory.all) return true;
       return n.category == _selectedCategory;
     }).toList();
@@ -237,7 +167,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Gebze Belediyesi ve Şehir Duyuruları',
+                        unreadCount > 0
+                            ? '$unreadCount okunmamış bildirim'
+                            : 'Gebze Belediyesi ve Şehir Duyuruları',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.75),
                           fontSize: 12,
@@ -326,10 +258,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       return _NotificationCard(
                         notification: item,
                         isDark: isDark,
-                        onTap: () {
-                          setState(() => item.isRead = true);
-                          item.onTap?.call();
-                        },
+                        onTap: () => _handleNotificationTap(item),
                       );
                     },
                   ),
