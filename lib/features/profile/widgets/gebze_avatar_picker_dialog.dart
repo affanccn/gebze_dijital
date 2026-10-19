@@ -41,18 +41,8 @@ class GebzeAvatarPickerSheet extends StatefulWidget {
 
 class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
   late String _selectedUrl;
-  String _activeCategory = 'Hepsi';
   bool _isProcessing = false;
   String? _customCroppedAvatar;
-
-  final List<String> _categories = const [
-    'Hepsi',
-    'Öğrenci',
-    'Genç',
-    'Çalışan',
-    'Kıdemli',
-    'Özel',
-  ];
 
   @override
   void initState() {
@@ -93,10 +83,7 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.sizeOf(context);
-
-    final filteredAvatars = _activeCategory == 'Hepsi'
-        ? kGebzeAvatars
-        : kGebzeAvatars.where((a) => a.category == _activeCategory).toList();
+    const avatars = kGebzeAvatars;
 
     return Container(
       height: size.height * 0.82,
@@ -144,7 +131,7 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '15 hazır Gebze avatarı veya 500×500 px kırpılmış galeri fotoğrafı',
+                        'Hazır avatar seçin veya galeriden 500×500 px kare fotoğraf yükleyin',
                         style: TextStyle(
                           fontSize: 12.5,
                           color: isDark
@@ -260,55 +247,13 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                         const Icon(
                           Icons.check_circle_rounded,
                           color: Color(0xFFFF7A00),
-                          size: 24,
+                          size: 22,
                         ),
                     ],
                   ),
                 ),
               ),
             ),
-
-          // Kategori Filtre Çipleri
-          SizedBox(
-            height: 38,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
-              itemBuilder: (context, i) {
-                final cat = _categories[i];
-                final isSelected = cat == _activeCategory;
-                return ChoiceChip(
-                  label: Text(cat),
-                  selected: isSelected,
-                  onSelected: (val) {
-                    if (val) setState(() => _activeCategory = cat);
-                  },
-                  selectedColor: const Color(0xFF0A2A66),
-                  backgroundColor: isDark
-                      ? const Color(0xFF1E293B)
-                      : const Color(0xFFF1F5F9),
-                  labelStyle: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected
-                        ? Colors.white
-                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
-                  ),
-                  side: BorderSide(
-                    color: isSelected
-                        ? const Color(0xFF0A2A66)
-                        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
 
           // Avatarlar Grid'i
           Expanded(
@@ -331,13 +276,13 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                     physics: const BouncingScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 0.82,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.90,
                     ),
-                    itemCount: filteredAvatars.length,
+                    itemCount: avatars.length,
                     itemBuilder: (context, index) {
-                      final avatar = filteredAvatars[index];
+                      final avatar = avatars[index];
                       final isSelected = _selectedUrl == avatar.assetPath;
 
                       return GestureDetector(
@@ -394,22 +339,24 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                                     ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                avatar.titleTr,
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w800
-                                      : FontWeight.w600,
-                                  color: isSelected
-                                      ? const Color(0xFFFF7A00)
-                                      : (isDark ? Colors.white : const Color(0xFF0A1F44)),
+                              if (avatar.titleTr.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  avatar.titleTr,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                    color: isSelected
+                                        ? const Color(0xFFFF7A00)
+                                        : (isDark ? Colors.white : const Color(0xFF0A1F44)),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

@@ -11,28 +11,32 @@ import 'package:gebze_dijital/features/profile/widgets/gebze_avatar_picker_dialo
 
 void main() {
   group('Gebze Avatar Models & Providers', () {
-    test('kGebzeAvatars contains exactly 15 avatars with proper metadata', () {
+    test('kGebzeAvatars contains 15 avatars, text only on the 3 special ones', () {
       expect(kGebzeAvatars.length, equals(15));
 
       final ids = <String>{};
-      for (final a in kGebzeAvatars) {
+      for (int i = 0; i < kGebzeAvatars.length; i++) {
+        final a = kGebzeAvatars[i];
         expect(a.id, isNotEmpty);
         expect(ids.contains(a.id), isFalse, reason: 'Duplicate ID: ${a.id}');
         ids.add(a.id);
 
-        expect(a.titleTr, isNotEmpty);
-        expect(a.category, isNotEmpty);
         expect(a.assetPath, startsWith('assets/images/avatars/avatar_'));
         expect(a.assetPath, endsWith('.png'));
+
+        if (i < 12) {
+          // First 12 are visual-only, no title text
+          expect(a.titleTr, isEmpty);
+        } else {
+          // Last 3 are special avatars with custom names
+          expect(a.titleTr, isNotEmpty);
+          expect(a.category, equals('Özel'));
+        }
       }
 
-      // Check category coverage
-      final categories = kGebzeAvatars.map((a) => a.category).toSet();
-      expect(categories, contains('Öğrenci'));
-      expect(categories, contains('Genç'));
-      expect(categories, contains('Çalışan'));
-      expect(categories, contains('Kıdemli'));
-      expect(categories, contains('Özel'));
+      expect(kGebzeAvatars[12].titleTr, equals('Darwin (Zehra Şef)'));
+      expect(kGebzeAvatars[13].titleTr, equals('Burun Bantlı Genç (Affan)'));
+      expect(kGebzeAvatars[14].titleTr, equals('Çiçek Perisi Flora (Havva)'));
     });
 
     test('getAvatarImageProvider resolves asset, memory and network URLs', () {
@@ -101,7 +105,7 @@ void main() {
   });
 
   group('GebzeAvatarPickerSheet Widget Test', () {
-    testWidgets('renders avatar picker modal and allows selection', (tester) async {
+    testWidgets('renders clean avatar picker modal and allows selection', (tester) async {
       String? selected;
 
       await tester.pumpWidget(
@@ -135,14 +139,15 @@ void main() {
       expect(find.text('Kamera'), findsOneWidget);
       expect(find.text('Fotoğrafı Kaydet'), findsOneWidget);
 
-      // Category filter chips
-      expect(find.text('Hepsi'), findsOneWidget);
-      expect(find.text('Öğrenci'), findsOneWidget);
-      expect(find.text('Genç'), findsOneWidget);
-
-      // Tap on a category
-      await tester.tap(find.text('Öğrenci'));
-      await tester.pumpAndSettle();
+      // Special avatars are labeled at the end of the grid
+      await tester.scrollUntilVisible(
+        find.text('Darwin (Zehra Şef)'),
+        150,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text('Darwin (Zehra Şef)'), findsOneWidget);
+      expect(find.text('Burun Bantlı Genç (Affan)'), findsOneWidget);
+      expect(find.text('Çiçek Perisi Flora (Havva)'), findsOneWidget);
 
       // Tap Save button
       await tester.tap(find.text('Fotoğrafı Kaydet'));

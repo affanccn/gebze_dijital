@@ -17,89 +17,89 @@ class GebzeAvatarItem {
 }
 
 const List<GebzeAvatarItem> kGebzeAvatars = [
-  // 1: Kıdemli Beyefendi / Gebzeli Dede (Gözlüklü)
+  // 1
   GebzeAvatarItem(
     id: 'avatar_1',
     assetPath: 'assets/images/avatars/avatar_1.png',
-    titleTr: 'Gebzeli Dede (Gözlüklü)',
-    category: 'Kıdemli',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 2: Kız Öğrenci (Türbanlı / Sırt Çantalı)
+  // 2
   GebzeAvatarItem(
     id: 'avatar_2',
     assetPath: 'assets/images/avatars/avatar_2.png',
-    titleTr: 'Kız Öğrenci (Türbanlı)',
-    category: 'Öğrenci',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 3: Erkek Öğrenci (Kapüşonlu / Sırt Çantalı)
+  // 3
   GebzeAvatarItem(
     id: 'avatar_3',
     assetPath: 'assets/images/avatars/avatar_3.png',
-    titleTr: 'Erkek Öğrenci (Kapüşonlu)',
-    category: 'Öğrenci',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 4: Kız Genç (At Kuyruklu)
+  // 4
   GebzeAvatarItem(
     id: 'avatar_4',
     assetPath: 'assets/images/avatars/avatar_4.png',
-    titleTr: 'Kız Genç (At Kuyruklu)',
-    category: 'Genç',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 5: Kıdemli Beyefendi (Kır Sakallı)
+  // 5
   GebzeAvatarItem(
     id: 'avatar_5',
     assetPath: 'assets/images/avatars/avatar_5.png',
-    titleTr: 'Kıdemli Beyefendi',
-    category: 'Kıdemli',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 6: Kadın Çalışan (Gözlüklü / Kıvırcık Saçlı)
+  // 6
   GebzeAvatarItem(
     id: 'avatar_6',
     assetPath: 'assets/images/avatars/avatar_6.png',
-    titleTr: 'Kadın Çalışan (Kıvırcık Saç)',
-    category: 'Çalışan',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 7: Erkek Genç (Kareli Gömlek)
+  // 7
   GebzeAvatarItem(
     id: 'avatar_7',
     assetPath: 'assets/images/avatars/avatar_7.png',
-    titleTr: 'Erkek Genç (Kareli Gömlek)',
-    category: 'Genç',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 8: Tonton Nine (Desenli Eşarplı)
+  // 8
   GebzeAvatarItem(
     id: 'avatar_8',
     assetPath: 'assets/images/avatars/avatar_8.png',
-    titleTr: 'Tonton Nine (Eşarplı)',
-    category: 'Kıdemli',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 9: Erkek Genç (Montlu / Sakallı)
+  // 9
   GebzeAvatarItem(
     id: 'avatar_9',
     assetPath: 'assets/images/avatars/avatar_9.png',
-    titleTr: 'Erkek Genç (Montlu)',
-    category: 'Genç',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 10: Kadın Çalışan (Türbanlı / Ceketli)
+  // 10
   GebzeAvatarItem(
     id: 'avatar_10',
     assetPath: 'assets/images/avatars/avatar_10.png',
-    titleTr: 'Kadın Çalışan (Türbanlı)',
-    category: 'Çalışan',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 11: Erkek Genç (Kolej Montlu / Ters Şapka)
+  // 11
   GebzeAvatarItem(
     id: 'avatar_11',
     assetPath: 'assets/images/avatars/avatar_11.png',
-    titleTr: 'Erkek Genç (Ters Şapkalı)',
-    category: 'Genç',
+    titleTr: '',
+    category: 'Genel',
   ),
-  // 12: Yetişkin Kadın (Yeşil Fularlı)
+  // 12
   GebzeAvatarItem(
     id: 'avatar_12',
     assetPath: 'assets/images/avatars/avatar_12.png',
-    titleTr: 'Yetişkin Kadın (Fularlı)',
-    category: 'Çalışan',
+    titleTr: '',
+    category: 'Genel',
   ),
   // 13: Darwin (Zehra Şef)
   GebzeAvatarItem(
@@ -115,11 +115,11 @@ const List<GebzeAvatarItem> kGebzeAvatars = [
     titleTr: 'Burun Bantlı Genç (Affan)',
     category: 'Özel',
   ),
-  // 15: Çiçek Perisi (Flora)
+  // 15: Çiçek Perisi Flora (Havva)
   GebzeAvatarItem(
     id: 'avatar_15',
     assetPath: 'assets/images/avatars/avatar_15.png',
-    titleTr: 'Çiçek Perisi (Flora)',
+    titleTr: 'Çiçek Perisi Flora (Havva)',
     category: 'Özel',
   ),
 ];
