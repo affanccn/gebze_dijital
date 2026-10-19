@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../screens/auth_service.dart';
 import '../../../../screens/emergency_screen.dart';
 import '../../application/bot82_state.dart';
 import '../chat_screen.dart';
@@ -107,6 +108,12 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
 
   @override
   Widget build(BuildContext context) {
+    // Giriş/Kayıt ekranında Chatbot ve Acil Durum butonları kesinlikle render edilmemelidir.
+    final isAuthVisible = ref.watch(authScreenVisibleProvider);
+    if (isAuthVisible) {
+      return widget.child;
+    }
+
     final chatOpen = ref.watch(bot82Provider.select((s) => s.chatOpen));
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     final hidden = chatOpen || keyboard;

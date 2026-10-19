@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../screens/auth_screen.dart';
 import '../../../screens/emergency_screen.dart';
 import '../../../screens/guide_screen.dart';
 import '../../../screens/my_requests_screen.dart';
@@ -29,6 +30,18 @@ class ChatbotNavigator {
 
   static Widget? _resolvePage(String route) {
     final cleanRoute = route.toLowerCase();
+
+    // Kayıt Ekranı (Misafir modunda üye olma yönlendirmesi)
+    if (cleanRoute.contains('register') || cleanRoute.contains('kayit')) {
+      return const RegisterScreen();
+    }
+
+    // Giriş Ekranı
+    if (cleanRoute.contains('auth') ||
+        cleanRoute.contains('login') ||
+        cleanRoute.contains('giris')) {
+      return const AuthScreen();
+    }
 
     // Taleplerim (Özel route)
     if (cleanRoute.contains('my_requests') ||

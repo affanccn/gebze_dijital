@@ -18,6 +18,10 @@ class BotMessageWidget extends ConsumerWidget {
 
   String _getNavigationLabel(String route) {
     final r = route.toLowerCase();
+    if (r.contains('register') || r.contains('kayit')) return 'Kayıt Ol / Üye Ol';
+    if (r.contains('auth') || r.contains('login') || r.contains('giris')) {
+      return 'Giriş Yap';
+    }
     if (r.contains('my_requests')) return 'Taleplerimi Görüntüle';
     if (r.contains('disruptions') || r.contains('outages')) {
       return 'Kesintileri Görüntüle';

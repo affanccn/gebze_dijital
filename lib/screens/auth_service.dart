@@ -22,6 +22,9 @@ final isLoggedInProvider = Provider<bool>(
 /// "Üye olmadan devam et" seçildi mi?
 final guestModeProvider = StateProvider<bool>((ref) => false);
 
+/// Giriş veya Kayıt ekranının ekranda aktif olup olmadığını takip eder
+final authScreenVisibleProvider = StateProvider<bool>((ref) => false);
+
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
 /// 0555 123 45 67 / +90 555 123 45 67 / 5551234567 → "5551234567"

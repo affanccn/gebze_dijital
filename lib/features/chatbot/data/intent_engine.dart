@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../domain/chat_action.dart';
+import 'chatbot_intents.dart';
 import 'text_normalizer.dart';
 
 class IntentMatchResult {
@@ -79,16 +81,37 @@ class IntentEngine {
   Future<void> loadConfig() async {
     if (_isLoaded) return;
     try {
-      final jsonString = await rootBundle.loadString(
-        'assets/mock/gebze_dijital_chatbot_intents.json',
-      );
+      final jsonString = await rootBundle
+          .loadString('assets/mock/gebze_dijital_chatbot_intents.json')
+          .timeout(const Duration(milliseconds: 300));
       final Map<String, dynamic> data = json.decode(jsonString);
       _intents = data['intents'] ?? [];
       _routeRegistry = data['route_registry'] ?? {};
       _isLoaded = true;
     } catch (e) {
-      // ignore
+      _loadFallbackIntents();
     }
+  }
+
+  void _loadFallbackIntents() {
+    _intents = chatbotIntents.map((i) {
+      return {
+        'id': i.id,
+        'keywords': i.keywords,
+        'phrases': i.phrases,
+        'response': i.response,
+        'route_key': i.id,
+        'action': i.actionType == ChatActionType.navigate
+            ? 'navigate'
+            : (i.actionType == ChatActionType.suggest ? 'suggest' : 'answer'),
+        'choices': (i.suggestions ?? []).map((s) => {'label': s}).toList(),
+      };
+    }).toList();
+    _routeRegistry = {
+      for (final i in chatbotIntents)
+        if (i.route != null) i.id: i.route!,
+    };
+    _isLoaded = true;
   }
 
   void setConfig(Map<String, dynamic> data) {

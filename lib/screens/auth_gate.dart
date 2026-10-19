@@ -18,12 +18,17 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authStateProvider);
     final guest = ref.watch(guestModeProvider);
+    final isHome = (auth.value != null || guest);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authScreenVisibleProvider.notifier).state = !isHome;
+    });
 
     return auth.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stackTrace) => const AuthScreen(),
-      data: (user) => (user != null || guest)
+      data: (user) => isHome
           ? const GuestHomeScreen()
           : const AuthScreen(),
     );

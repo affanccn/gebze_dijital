@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gebze_dijital/features/chatbot/chatbot.dart';
 import 'package:gebze_dijital/features/chatbot/data/intent_matcher.dart';
+import 'package:gebze_dijital/screens/auth_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Chatbot Intent Matcher Comprehensive Tests', () {
     test('Water Outage Intent Tests', () {
       final inputs = [
@@ -280,7 +283,123 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
 
         expect(find.byType(ChatbotScreen), findsOneWidget);
+        await tester.pump(const Duration(seconds: 6));
       },
     );
+
+    testWidgets(
+      'Bot82Overlay hides both ChatbotFab and EmergencyButton when on AuthScreen',
+      (tester) async {
+        final navKey = GlobalKey<NavigatorState>();
+        ChatbotNavigator.navigatorKey = navKey;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authScreenVisibleProvider.overrideWith((ref) => true),
+            ],
+            child: MaterialApp(
+              navigatorKey: navKey,
+              builder: (context, child) =>
+                  Bot82Overlay(navigatorKey: navKey, child: child!),
+              home: const Scaffold(body: Center(child: Text('Login Screen'))),
+            ),
+          ),
+        );
+
+        await tester.pump();
+        expect(find.byType(Bot82Fab), findsNothing);
+        await tester.pump(const Duration(seconds: 6));
+      },
+    );
+  });
+
+  group('Chatbot Guest Flow & Cache Reset Tests', () {
+    test('ChatbotNotifier reset method clears messages back to initial greeting', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatbotProvider.notifier);
+      final initialCount = container.read(chatbotProvider).messages.length;
+      expect(initialCount, 1);
+
+      notifier.reset();
+      expect(container.read(chatbotProvider).messages.length, 1);
+      expect(container.read(chatbotProvider).messages.first.text, contains('Bot82'));
+    });
+
+    test('Guest user asking for auth-required intents receives register redirect', () async {
+      final container = ProviderContainer(
+        overrides: [
+          isLoggedInProvider.overrideWithValue(false),
+          guestModeProvider.overrideWith((ref) => true),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatbotProvider.notifier);
+
+      // E-belediye isteği
+      await notifier.sendMessage('E-belediye vergi ödeme');
+      final messages = container.read(chatbotProvider).messages;
+      final lastMsg = messages.last;
+
+      expect(
+        lastMsg.text,
+        'Üye girişi gerekir, üye olmak ister misiniz?',
+      );
+      expect(lastMsg.action?.route, '/register');
+    });
+
+    test('User asking for non-auth intent (weather/pharmacy) receives normal answer in guest mode', () async {
+      final container = ProviderContainer(
+        overrides: [
+          isLoggedInProvider.overrideWithValue(false),
+          guestModeProvider.overrideWith((ref) => true),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatbotProvider.notifier);
+
+      await notifier.sendMessage('Nöbetçi eczaneler');
+      final messages = container.read(chatbotProvider).messages;
+      final lastMsg = messages.last;
+
+      expect(lastMsg.text, isNot('Üye girişi gerekir, üye olmak ister misiniz?'));
+      expect(lastMsg.action?.route, contains('pharmacies'));
+    });
+
+    test('User replying "Kayıt ol" directs to /register', () async {
+      final container = ProviderContainer(
+        overrides: [
+          isLoggedInProvider.overrideWithValue(false),
+          guestModeProvider.overrideWith((ref) => true),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatbotProvider.notifier);
+
+      await notifier.sendMessage('Kayıt ol');
+      final lastMsg = container.read(chatbotProvider).messages.last;
+      expect(lastMsg.action?.route, '/register');
+    });
+
+    test('User replying "Giriş yap" directs to /auth', () async {
+      final container = ProviderContainer(
+        overrides: [
+          isLoggedInProvider.overrideWithValue(false),
+          guestModeProvider.overrideWith((ref) => true),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatbotProvider.notifier);
+
+      await notifier.sendMessage('Giriş yap');
+      final lastMsg = container.read(chatbotProvider).messages.last;
+      expect(lastMsg.action?.route, '/auth');
+    });
   });
 }

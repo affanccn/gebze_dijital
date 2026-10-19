@@ -272,9 +272,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(authScreenVisibleProvider.notifier).state = true;
+    });
+  }
+
+  @override
   void dispose() {
     _email.dispose();
     _pass.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authScreenVisibleProvider.notifier).state = false;
+    });
     super.dispose();
   }
 
@@ -569,12 +580,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(authScreenVisibleProvider.notifier).state = true;
+    });
+  }
+
+  @override
   void dispose() {
     _name.dispose();
     _email.dispose();
     _phone.dispose();
     _pass.dispose();
     _pass2.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authScreenVisibleProvider.notifier).state = false;
+    });
     super.dispose();
   }
 
