@@ -169,10 +169,12 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
 
     for (final uri in candidates) {
       try {
-        // canLaunchUrl Android 11+ <queries> olmadan yanlış false döner;
-        // bu yüzden doğrudan launchUrl deniyoruz.
         if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
-      } catch (_) {}
+      } catch (_) {
+        try {
+          if (await launchUrl(uri, mode: LaunchMode.platformDefault)) return;
+        } catch (_) {}
+      }
     }
     _toast(
       _l(
@@ -185,8 +187,12 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
   }
 
   Future<void> _callNumber(String title, String number, String lang) async {
+    final clean = number.replaceAll(' ', '');
     try {
-      if (await launchUrl(Uri(scheme: 'tel', path: number))) return;
+      if (await launchUrl(Uri(scheme: 'tel', path: clean))) return;
+    } catch (_) {}
+    try {
+      await Clipboard.setData(ClipboardData(text: clean));
     } catch (_) {}
     _toast(AppStrings.get('call_failed_toast', lang).replaceAll('{0}', number));
   }
@@ -451,6 +457,65 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                               '122',
                               lang,
                             ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Arıza & İhbar Hatları
+                    _SectionLabel(
+                      AppStrings.get('utility_emergency_label', lang),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _MiniUtilityCard(
+                            title: 'İSU Su Arıza',
+                            number: '185',
+                            icon: Icons.water_drop_rounded,
+                            color: const Color(0xFF0288D1),
+                            isDark: isDark,
+                            onTap: () => _callNumber('İSU Su Arıza', '185', lang),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _MiniUtilityCard(
+                            title: 'SEDAŞ Elektrik',
+                            number: '186',
+                            icon: Icons.electric_bolt_rounded,
+                            color: const Color(0xFFF57C00),
+                            isDark: isDark,
+                            onTap: () => _callNumber('SEDAŞ Elektrik', '186', lang),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _MiniUtilityCard(
+                            title: 'PALGAZ Doğalgaz',
+                            number: '187',
+                            icon: Icons.local_fire_department_rounded,
+                            color: const Color(0xFFE53935),
+                            isDark: isDark,
+                            onTap: () => _callNumber('PALGAZ Doğalgaz', '187', lang),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _MiniUtilityCard(
+                            title: 'Gebze Zabıta',
+                            number: '153',
+                            icon: Icons.local_police_rounded,
+                            color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+                            isDark: isDark,
+                            onTap: () => _callNumber('Gebze Zabıta', '153', lang),
                           ),
                         ),
                       ],
@@ -961,6 +1026,95 @@ class _QuickCallBox extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
                   color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ───────────────────────── Arıza & Acil Hat Kartı ─────────────────────────
+
+class _MiniUtilityCard extends StatelessWidget {
+  final String title;
+  final String number;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _MiniUtilityCard({
+    required this.title,
+    required this.number,
+    required this.icon,
+    required this.color,
+    this.isDark = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: _cardDeco(16, isDark),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withAlpha(isDark ? 45 : 24),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      number,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: _C.green.withAlpha(isDark ? 45 : 24),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.call_rounded,
+                  color: _C.green,
+                  size: 15,
                 ),
               ),
             ],

@@ -14,6 +14,13 @@ class PushService {
     'sozSende',
   ];
 
+  /// Topic ve FCM push desteği olan platformlar (Android / iOS)
+  static bool get isSupportedPlatform {
+    if (kIsWeb) return false;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
   /// Test amaçlı topic abone handler'ı enjeksiyonu
   @visibleForTesting
   static TopicHandler? topicSubscriber;
@@ -28,7 +35,7 @@ class PushService {
       await topicSubscriber!(topic);
       return;
     }
-    if (kIsWeb) return;
+    if (!isSupportedPlatform) return;
     try {
       await FirebaseMessaging.instance.subscribeToTopic(topic);
       debugPrint('[PushService] Abone olundu: topic=$topic');
@@ -43,7 +50,7 @@ class PushService {
       await topicUnsubscriber!(topic);
       return;
     }
-    if (kIsWeb) return;
+    if (!isSupportedPlatform) return;
     try {
       await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
       debugPrint('[PushService] Abonelikten çıkıldı: topic=$topic');
@@ -61,7 +68,7 @@ class PushService {
       debugPrint('[PushService] SharedPreferences yazma hatası: $e');
     }
 
-    // Master push kontrolü
+    if (!isSupportedPlatform && topicSubscriber == null && topicUnsubscriber == null) return;
     if (key == 'push') {
       if (!enabled) {
         // Tüm topic aboneliklerinden çık
@@ -152,8 +159,7 @@ class PushService {
 
   /// Push servisini başlatır
   static Future<void> init({required void Function() onNewsOpened}) async {
-    // Topic aboneliği web'de desteklenmiyor; sadece Android/iOS'ta çalışır.
-    if (kIsWeb) return;
+    if (!isSupportedPlatform) return;
 
     try {
       final m = FirebaseMessaging.instance;

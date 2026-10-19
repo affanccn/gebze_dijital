@@ -174,14 +174,6 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                       .collection('outages')
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          '${AppStrings.get('error_occurred', lang)}: ${snapshot.error}',
-                        ),
-                      );
-                    }
-
                     List<Map<String, dynamic>> items = [];
 
                     if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {

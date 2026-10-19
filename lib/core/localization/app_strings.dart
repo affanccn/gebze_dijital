@@ -396,6 +396,31 @@ class AppStrings {
       'en': 'Disaster and Emergency',
       'ar': 'الكوارث والطوارئ',
     },
+    'utility_emergency_label': {
+      'tr': 'ARIZA & İHBAR HATLARI',
+      'en': 'UTILITY & REPORT LINES',
+      'ar': 'خطوط الأعطال والبلاغات',
+    },
+    'sedas_sub': {
+      'tr': 'Elektrik Arıza (186)',
+      'en': 'Power Outage (186)',
+      'ar': 'طوارئ الكهرباء (186)',
+    },
+    'isu_sub': {
+      'tr': 'Su & Kanal Arıza (185)',
+      'en': 'Water & Sewer Outage (185)',
+      'ar': 'طوارئ المياه والصرف (185)',
+    },
+    'palgaz_sub': {
+      'tr': 'Doğalgaz Acil (187)',
+      'en': 'Natural Gas Emergency (187)',
+      'ar': 'طوارئ الغاز الطبيعي (187)',
+    },
+    'zabita_sub': {
+      'tr': 'Zabıta & İhbar (153)',
+      'en': 'Municipal Police (153)',
+      'ar': 'شرطة البلدية (153)',
+    },
     'assembly_areas_label': {
       'tr': 'ACİL TOPLANMA ALANLARI',
       'en': 'EMERGENCY ASSEMBLY AREAS',
