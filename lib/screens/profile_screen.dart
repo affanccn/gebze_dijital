@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../features/profile/models/user_profile.dart';
+import '../features/profile/models/gebze_avatar.dart';
 import '../features/profile/services/profile_service.dart';
+import '../features/profile/widgets/gebze_avatar_picker_dialog.dart';
 import '../core/localization/app_strings.dart';
 import '../core/accessibility/font_scale_provider.dart';
 import '../core/theme/theme_provider.dart';
@@ -344,10 +346,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                             child: CircleAvatar(
                               backgroundColor: const Color(0xFF1E5BC6),
-                              backgroundImage: profile.avatarUrl.isNotEmpty
-                                  ? NetworkImage(profile.avatarUrl)
-                                  : null,
-                              child: profile.avatarUrl.isEmpty
+                              backgroundImage:
+                                  getAvatarImageProvider(profile.avatarUrl),
+                              child: getAvatarImageProvider(profile.avatarUrl) == null
                                   ? Text(
                                       _getInitials(profile.fullName),
                                       style: const TextStyle(
@@ -1887,92 +1888,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile, [
     String lang = 'tr',
   ]) {
-    final isDark = context.isDark;
-    final urlCtrl = TextEditingController(text: profile.avatarUrl);
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-          title: Text(
-            AppStrings.get('change_avatar_title', lang),
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : _C.textDark,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                AppStrings.get('change_avatar_sub', lang),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: urlCtrl,
-                style: TextStyle(color: isDark ? Colors.white : null),
-                decoration: InputDecoration(
-                  hintText: 'https://...',
-                  hintStyle: TextStyle(
-                    color: isDark ? const Color(0xFF94A3B8) : null,
-                  ),
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(AppStrings.get('btn_cancel', lang)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(profileServiceProvider)
-                    .updateAvatarUrl(urlCtrl.text.trim());
-                Navigator.of(ctx).pop();
-                _showSnackBar(AppStrings.get('avatar_updated_toast', lang));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _C.navy,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(AppStrings.get('btn_save', lang)),
-            ),
-          ],
-        );
+    GebzeAvatarPickerSheet.show(
+      context,
+      currentAvatarUrl: profile.avatarUrl,
+      onAvatarSelected: (selectedUrl) async {
+        await ref.read(profileServiceProvider).updateAvatarUrl(selectedUrl);
+        if (context.mounted) {
+          _showSnackBar(AppStrings.get('avatar_updated_toast', lang));
+        }
       },
-    ).then((_) {
-      urlCtrl.dispose();
-    });
+    );
   }
 
   void _confirmSignOut(BuildContext context, String lang) {

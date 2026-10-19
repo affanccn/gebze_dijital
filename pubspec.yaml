@@ -27,6 +27,7 @@ dependencies:
   shared_preferences: ^2.5.6
   firebase_auth: ^6.7.0
   confetti: ^0.8.0
+  image: ^4.5.4
 
 dev_dependencies:
   flutter_test:
@@ -42,4 +43,5 @@ flutter:
     - gorsel/tarihi_yerler/
     - gorsel/tesisler/
     - assets/images/
+    - assets/images/avatars/
     - assets/mock/
