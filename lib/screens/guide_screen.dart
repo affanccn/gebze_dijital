@@ -789,10 +789,22 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
               } else {
                 rawItems = docs.map((d) {
                   final m = d.data();
+                  final subtitle =
+                      (m['subtitle'] ?? m['description'] ?? '').toString();
+                  // 'location/address' yoksa mekanı alt başlıktan al:
+                  // "Osman Hamdi Bey Kültür Merkezi • 19:30" → "Osman Hamdi Bey Kültür Merkezi"
+                  final venue = subtitle.split('•').first.trim();
+                  final loc = (m['location'] ?? m['address'] ?? '')
+                      .toString()
+                      .trim();
+                  final place = loc.isNotEmpty ? loc : venue;
                   return {
                     'name': m['title'] ?? m['name'] ?? '',
-                    'description': m['subtitle'] ?? m['description'] ?? '',
-                    'address': m['location'] ?? m['address'] ?? 'Gebze',
+                    'description': subtitle,
+                    'address': place.isNotEmpty ? place : 'Gebze',
+                    'mapQuery': place,
+                    'lat': m['lat'] ?? m['latitude'],
+                    'lng': m['lng'] ?? m['longitude'],
                     'phone': m['phone'] ?? '',
                     'image': m['image'] ?? '',
                   };
@@ -863,6 +875,25 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
       ),
     );
   }
+}
+
+/// Google Maps yol tarifi linki. Koordinat (lat/lng) varsa onu kullanır,
+/// yoksa "ad adres Gebze" metniyle arar.
+String _directionsUrl(Map<String, dynamic> data, String name, String address) {
+  final lat = double.tryParse('${data['lat'] ?? data['latitude'] ?? ''}');
+  final lng = double.tryParse('${data['lng'] ?? data['longitude'] ?? ''}');
+  final String dest;
+  if (lat != null && lng != null) {
+    dest = '$lat,$lng';
+  } else {
+    // Etkinliklerde etkinlik adı yerine mekan adıyla ara (mapQuery).
+    final mapQuery = (data['mapQuery'] ?? '').toString().trim();
+    final text = [mapQuery.isNotEmpty ? mapQuery : name, if (mapQuery.isEmpty) address, 'Gebze Kocaeli']
+        .where((s) => s.trim().isNotEmpty)
+        .join(' ');
+    dest = Uri.encodeComponent(text);
+  }
+  return 'https://www.google.com/maps/dir/?api=1&destination=$dest&travelmode=driving';
 }
 
 class _InstitutionCard extends StatelessWidget {
@@ -965,6 +996,32 @@ class _InstitutionCard extends StatelessWidget {
                     ),
                   ),
                 ],
+                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
+                // Telefonda Google Maps / varsayılan harita uygulaması açılır.
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _openUrl(
+                      context,
+                      _directionsUrl(data, name, address),
+                      lang,
+                    ),
+                    icon: const Icon(Icons.directions_rounded, size: 18),
+                    label: Text(
+                      _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: color,
+                      side: BorderSide(color: color),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
                 if (showMenuButton || menuUrl.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   SizedBox(
