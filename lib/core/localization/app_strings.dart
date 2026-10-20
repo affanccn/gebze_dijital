@@ -213,7 +213,7 @@ class AppStrings {
       'ar': 'مواقف السيارات',
     },
     'service_parking_sub': {
-      'tr': 'Boş park yerleri ve ücretler',
+      'tr': 'Boş park yerleri',
       'en': 'Empty parking spots and fees',
       'ar': 'المواقف الشاغرة والرسوم',
     },
