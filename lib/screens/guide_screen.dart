@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'auth_guard.dart';
+import 'favorites_service.dart';
 import '../core/localization/app_strings.dart';
 
 /// Gebze Belediyesi - Şehir Rehberi
@@ -1059,20 +1060,19 @@ class _CardImage extends StatelessWidget {
 
 // ───────────────────────── Sekme 2: Gebze'yi Keşfet ─────────────────────────
 
-class _DiscoverTab extends StatefulWidget {
+class _DiscoverTab extends ConsumerStatefulWidget {
   final String lang;
   const _DiscoverTab({required this.lang});
 
   @override
-  State<_DiscoverTab> createState() => _DiscoverTabState();
+  ConsumerState<_DiscoverTab> createState() => _DiscoverTabState();
 }
 
-class _DiscoverTabState extends State<_DiscoverTab>
+class _DiscoverTabState extends ConsumerState<_DiscoverTab>
     with AutomaticKeepAliveClientMixin {
   final _ctrl = TextEditingController();
   String _query = '';
   String _filter = '';
-  final Set<String> _favorites = {};
 
   @override
   bool get wantKeepAlive => true;
@@ -1097,10 +1097,19 @@ class _DiscoverTabState extends State<_DiscoverTab>
     super.dispose();
   }
 
-  List<HistoricPlace> _applyFilters(List<HistoricPlace> all, String filterAll) {
+  List<HistoricPlace> _applyFilters(
+    List<HistoricPlace> all,
+    String filterAll,
+    String favLabel,
+    Set<String> favIds,
+  ) {
     final q = _query.trim().toLowerCase();
     return all.where((p) {
-      final okCat = _filter == filterAll || p.category == _filter;
+      final okCat =
+          _filter == filterAll ||
+          (_filter == favLabel
+              ? favIds.contains(p.id)
+              : p.category == _filter);
       final okQuery =
           q.isEmpty ||
           p.name.toLowerCase().contains(q) ||
@@ -1113,8 +1122,11 @@ class _DiscoverTabState extends State<_DiscoverTab>
   Widget build(BuildContext context) {
     super.build(context);
     final filterAll = AppStrings.get('filter_all', widget.lang);
+    final favIds = ref.watch(favoriteIdsProvider);
+    final favLabel = _t(widget.lang, 'Favorilerim', 'Favorites', 'المفضلة');
     final filters = [
       filterAll,
+      favLabel,
       AppStrings.get('filter_historic', widget.lang),
       AppStrings.get('filter_museums', widget.lang),
       AppStrings.get('filter_nature', widget.lang),
@@ -1215,7 +1227,7 @@ class _DiscoverTabState extends State<_DiscoverTab>
                 basePlaces = fallbackPlaces;
               }
 
-              final filtered = _applyFilters(basePlaces, filterAll);
+              final filtered = _applyFilters(basePlaces, filterAll, favLabel, favIds);
 
               if (filtered.isEmpty) {
                 return Center(
@@ -1236,14 +1248,11 @@ class _DiscoverTabState extends State<_DiscoverTab>
                   final p = filtered[i];
                   return _PlaceCard(
                     place: p,
-                    isFavorite: _favorites.contains(p.id),
-                    onFavorite: () => setState(() {
-                      if (_favorites.contains(p.id)) {
-                        _favorites.remove(p.id);
-                      } else {
-                        _favorites.add(p.id);
-                      }
-                    }),
+                    isFavorite: favIds.contains(p.id),
+                    onFavorite: () async {
+                      if (!requireLogin(context, ref)) return;
+                      await ref.read(favoritesServiceProvider).toggle(p);
+                    },
                     // Doğrudan internete gitmek yerine önce uygulama içi önizleme açılır.
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(

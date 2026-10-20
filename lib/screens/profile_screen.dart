@@ -1,4 +1,5 @@
 import 'auth_service.dart';
+import 'favorites_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -537,7 +538,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _buildStatDivider(),
           _buildStatItem(
             AppStrings.get('stat_saved', lang),
-            '${profile.totalSaved}',
+            '${ref.watch(favoritesProvider).value?.length ?? 0}',
             Icons.bookmark_rounded,
             () => _openActivitiesSheet(context, 'kayit', lang),
           ),
@@ -693,7 +694,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         icon: Icons.bookmark_rounded,
         iconColor: _C.navy,
         title: AppStrings.get('act_saved_title', lang),
-        subtitle: '${profile.totalSaved} ${AppStrings.get('stat_saved', lang)}',
+        subtitle:
+            '${ref.watch(favoritesProvider).value?.length ?? 0} ${AppStrings.get('stat_saved', lang)}',
         onTap: () => _openActivitiesSheet(context, 'kayit', lang),
       ),
     ]);
@@ -1559,10 +1561,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             list.where((a) => a.type == 'destek').toList(),
                             lang,
                           ),
-                          _buildActivityList(
-                            list.where((a) => a.type == 'kayit').toList(),
-                            lang,
-                          ),
+                          const _FavoritesList(),
                         ],
                       );
                     },
@@ -2190,6 +2189,88 @@ class _BottomNav extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ───────────────────────── Favoriler (Kaydedilenler sekmesi) ─────────────────────────
+
+class _FavoritesList extends ConsumerWidget {
+  const _FavoritesList();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favs = ref.watch(favoritesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final mutedColor = isDark ? Colors.white70 : const Color(0xFF64748B);
+
+    return favs.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Text('Favoriler yüklenemedi.', style: TextStyle(color: mutedColor)),
+      ),
+      data: (list) {
+        if (list.isEmpty) {
+          return Center(
+            child: Text(
+              'Henüz favori eklemediniz.',
+              style: TextStyle(color: mutedColor, fontWeight: FontWeight.w600),
+            ),
+          );
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: list.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          itemBuilder: (context, i) {
+            final f = list[i];
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: f.image.isEmpty
+                      ? Container(
+                          color: mutedColor.withValues(alpha: 0.2),
+                          child: Icon(Icons.place_rounded, color: mutedColor),
+                        )
+                      : Image(
+                          image: f.image.startsWith('http')
+                              ? NetworkImage(f.image) as ImageProvider
+                              : AssetImage(f.image),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            color: mutedColor.withValues(alpha: 0.2),
+                            child: Icon(Icons.place_rounded, color: mutedColor),
+                          ),
+                        ),
+                ),
+              ),
+              title: Text(
+                f.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(f.category, style: TextStyle(color: mutedColor)),
+              trailing: IconButton(
+                icon: const Icon(Icons.favorite_rounded, color: Colors.red),
+                onPressed: () =>
+                    ref.read(favoritesServiceProvider).remove(f.id),
+              ),
+              onTap: f.detailUrl.isEmpty
+                  ? null
+                  : () => launchUrl(
+                      Uri.parse(f.detailUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+            );
+          },
+        );
+      },
     );
   }
 }

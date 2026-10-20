@@ -1,0 +1,91 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'auth_service.dart';
+import 'guide_screen.dart' show HistoricPlace;
+
+class FavoritePlace {
+  final String id;
+  final String name;
+  final String summary;
+  final String category;
+  final String image;
+  final String detailUrl;
+
+  const FavoritePlace({
+    required this.id,
+    required this.name,
+    required this.summary,
+    required this.category,
+    required this.image,
+    required this.detailUrl,
+  });
+
+  factory FavoritePlace.fromDoc(DocumentSnapshot<Map<String, dynamic>> d) {
+    final m = d.data() ?? {};
+    return FavoritePlace(
+      id: d.id,
+      name: (m['name'] ?? '').toString(),
+      summary: (m['summary'] ?? '').toString(),
+      category: (m['category'] ?? '').toString(),
+      image: (m['image'] ?? '').toString(),
+      detailUrl: (m['detailUrl'] ?? '').toString(),
+    );
+  }
+}
+
+/// Giriş yapmış kullanıcının favorileri (en yeni üstte). Misafirse boş liste.
+final favoritesProvider = StreamProvider<List<FavoritePlace>>((ref) {
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value(const <FavoritePlace>[]);
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('favorites')
+      .orderBy('createdAt', descending: true)
+      .snapshots()
+      .map((s) => s.docs.map(FavoritePlace.fromDoc).toList());
+});
+
+/// Kalp ikonunun dolu/boş olmasına karar vermek için id kümesi.
+final favoriteIdsProvider = Provider<Set<String>>(
+  (ref) =>
+      ref.watch(favoritesProvider).value?.map((f) => f.id).toSet() ?? <String>{},
+);
+
+final favoritesServiceProvider = Provider<FavoritesService>(
+  (ref) => FavoritesService(),
+);
+
+class FavoritesService {
+  DocumentReference<Map<String, dynamic>>? _doc(String placeId) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favorites')
+        .doc(placeId);
+  }
+
+  Future<void> toggle(HistoricPlace p) async {
+    final doc = _doc(p.id);
+    if (doc == null) return;
+    final snap = await doc.get();
+    if (snap.exists) {
+      await doc.delete();
+    } else {
+      await doc.set({
+        'name': p.name,
+        'summary': p.summary,
+        'category': p.category,
+        'image': p.image ?? '',
+        'detailUrl': p.detailUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Future<void> remove(String placeId) => _doc(placeId)?.delete() ?? Future.value();
+}
