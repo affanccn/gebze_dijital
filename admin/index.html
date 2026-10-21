@@ -1451,16 +1451,22 @@
         container.innerHTML = '';
         snap.forEach(docSnap => {
           const d = docSnap.data();
+          const imgUrl = d.image || d.imageUrl || '';
           const card = document.createElement("div");
           card.className = "item-card";
           card.innerHTML = `
+            ${imgUrl ? `<img src="${imgUrl}" class="item-card-image" onclick="openLightbox('${imgUrl}')" alt="etkinlik">` : ''}
             <div class="item-card-body">
-              <div class="item-card-meta">🎭 Kültür & Sanat • 📅 ${d.date || 'Yakında'}</div>
-              <div class="item-card-title">${d.title}</div>
-              <div class="item-card-desc">📍 ${d.subtitle || 'Gebze Kültür Merkezi'}</div>
+              <div class="item-card-meta">
+                <span>🎭 ${d.category || 'Kültür & Sanat'}</span>
+                <span style="margin-left:auto;">📅 ${d.formattedDate || d.date || 'Yakında'} ${d.time ? '• ' + d.time : ''}</span>
+              </div>
+              <div class="item-card-title">${d.title || d.name || ''}</div>
+              <div class="item-card-desc">📍 ${d.subtitle || d.location || 'Gebze'}</div>
+              ${d.description && d.description !== d.category ? `<div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${d.description}</div>` : ''}
             </div>
             <div class="item-card-footer">
-              <span class="badge badge-success">Aktif</span>
+              ${d.url ? `<a href="${d.url}" target="_blank" class="badge badge-info" style="text-decoration:none;">🔗 Detay</a>` : '<span class="badge badge-success">Aktif</span>'}
               <button class="btn btn-danger btn-sm" onclick="deleteDocItem('events', '${docSnap.id}', loadEvents)">Sil</button>
             </div>
           `;
@@ -1471,6 +1477,91 @@
       }
     }
     window.loadEvents = loadEvents;
+
+    window.syncEventsFromWeb = async () => {
+      const btn = document.getElementById("btnSyncEventsWeb");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Etkinlikler Çekiliyor...";
+      }
+      try {
+        const targetUrl = "https://www.gebze.bel.tr/json/etkinlik.json";
+        let data = null;
+        try {
+          const res = await fetch(targetUrl);
+          if (res.ok) data = await res.json();
+        } catch (e) {
+          console.warn("Direct fetch uyarısı, CORS proxy deneniyor:", e);
+        }
+
+        if (!data) {
+          const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl);
+          const res = await fetch(proxyUrl);
+          if (res.ok) data = await res.json();
+        }
+
+        if (!Array.isArray(data)) {
+          throw new Error("Etkinlik listesi resmi siteden alınamadı.");
+        }
+
+        const trMonths = ["", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const formatTrDate = (dStr) => {
+          if (!dStr || !dStr.includes("-")) return dStr || "";
+          const p = dStr.split("-");
+          if (p.length !== 3) return dStr;
+          const day = parseInt(p[2], 10);
+          const m = parseInt(p[1], 10);
+          return `${day} ${trMonths[m] || ''} ${p[0]}`.trim();
+        };
+
+        let count = 0;
+        for (const item of data) {
+          const id = String(item.id || Date.now());
+          const title = (item.baslik || "").trim();
+          const category = (item.kategori || "Kültür & Sanat").trim();
+          const location = (item.konum || "Gebze").trim();
+          const date = (item.tarih || "").trim();
+          const time = (item.saat || "").trim();
+          const formattedDate = formatTrDate(date);
+          const subtitle = [location, formattedDate, time].filter(Boolean).join(" • ");
+          const rawImg = (item.resim || "").trim();
+          const image = rawImg ? (rawImg.startsWith("http") ? rawImg : `https://www.gebze.bel.tr/${rawImg}`) : "";
+          const rawUrl = (item.url || "").trim();
+          const url = rawUrl ? (rawUrl.startsWith("http") ? rawUrl : `https://www.gebze.bel.tr/${rawUrl}`) : "https://www.gebze.bel.tr/etkinlik.html";
+
+          await setDoc(doc(db, "events", `etkinlik_${id}`), {
+            eventId: id,
+            title,
+            name: title,
+            category,
+            location,
+            address: location,
+            date,
+            time,
+            formattedDate,
+            subtitle,
+            description: (item.aciklama || category).trim(),
+            image,
+            imageUrl: image,
+            url,
+            source: "Gebze Belediyesi",
+            syncedAt: serverTimestamp()
+          }, { merge: true });
+          count++;
+        }
+
+        showToast(`✅ ${count} adet etkinlik belediyeden başarıyla çekildi ve Firestore'a aktarıldı!`);
+        loadEvents();
+        loadDashboard();
+      } catch (err) {
+        alert("Etkinlik senkronizasyonu hatası: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "🌐 Belediyeden Etkinlikleri Çek / Güncelle";
+        }
+      }
+    };
 
     // ───────────────── 5. SÖZ SENDE (ANKETLER) ─────────────────
     async function loadPolls() {
@@ -2786,7 +2877,12 @@
             </form>
           </div>
           <div>
-            <div class="panel-header"><div class="panel-title">Kayıtlı Kültür & Sanat Etkinlikleri</div></div>
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="panel-title">Kayıtlı Kültür & Sanat Etkinlikleri</div>
+              <button type="button" class="btn btn-outline btn-sm" id="btnSyncEventsWeb" onclick="syncEventsFromWeb()">
+                🌐 Belediyeden Etkinlikleri Çek / Güncelle
+              </button>
+            </div>
             <div class="items-grid" id="eventsGrid"></div>
           </div>
         </div>

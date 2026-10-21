@@ -1216,9 +1216,17 @@ class _EventsSection extends StatelessWidget {
         } else {
           rows = docs.map((d) {
             final m = d.data();
+            final title = (m['title'] ?? m['name'] ?? '').toString();
+            var subtitle = (m['subtitle'] ?? '').toString();
+            if (subtitle.isEmpty) {
+              final loc = (m['location'] ?? m['address'] ?? 'Gebze').toString();
+              final date = (m['formattedDate'] ?? m['date'] ?? '').toString();
+              final time = (m['time'] ?? '').toString();
+              subtitle = [loc, date, time].where((s) => s.isNotEmpty).join(' • ');
+            }
             return _RowData(
-              m['title'] ?? '',
-              m['subtitle'] ?? '',
+              title,
+              subtitle,
               Icons.event_rounded,
               onTap: navigateToEvents,
             );

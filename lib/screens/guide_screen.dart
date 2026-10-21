@@ -813,7 +813,8 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                     'lat': m['lat'] ?? m['latitude'],
                     'lng': m['lng'] ?? m['longitude'],
                     'phone': m['phone'] ?? '',
-                    'image': m['image'] ?? '',
+                    'image': m['image'] ?? m['imageUrl'] ?? '',
+                    'url': m['url'] ?? '',
                   };
                 }).toList();
               }
@@ -923,6 +924,7 @@ class _InstitutionCard extends StatelessWidget {
     final desc = (data['description'] ?? '').toString();
     final image = (data['image'] ?? '').toString().trim();
     final menuUrl = (data['menuUrl'] ?? '').toString().trim();
+    final detailUrl = (data['url'] ?? data['detailUrl'] ?? '').toString().trim();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1029,6 +1031,20 @@ class _InstitutionCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (detailUrl.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: () => _openUrl(context, detailUrl, lang),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                      label: Text(
+                        _t(lang, 'Resmi Sayfada Gör', 'View on Official Site', 'عرض على الموقع الرسمي'),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
                 if (showMenuButton || menuUrl.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   SizedBox(

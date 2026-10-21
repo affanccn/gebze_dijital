@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'features/news/municipal_news_screen.dart';
+import 'core/services/events_service.dart';
 import 'core/services/push_service.dart';
 import 'firebase_options.dart';
 import 'features/chatbot/chatbot.dart';
@@ -53,6 +54,7 @@ class _MyAppState extends ConsumerState<MyApp> {
           );
         },
       );
+      EventsService().ensureEventsSeeded();
     });
   }
 
