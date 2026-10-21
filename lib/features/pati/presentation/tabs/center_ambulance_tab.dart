@@ -113,14 +113,14 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFE5231B), Color(0xFFFF5A4F)],
+          colors: [Color(0xFF1E5BC6), Color(0xFF0A2A66)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFE5231B).withAlpha(80),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF0A2A66).withAlpha(45),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -133,11 +133,11 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(50),
+                  color: Colors.white.withAlpha(40),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.medical_services_rounded,
+                  Icons.airport_shuttle_rounded,
                   color: Colors.white,
                   size: 28,
                 ),
@@ -193,7 +193,7 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFFE5231B),
+                    foregroundColor: const Color(0xFF0A2A66),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(

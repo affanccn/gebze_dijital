@@ -462,7 +462,14 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
               .toList();
         }
 
-        final filtered = items.where(_matchesNeighborhood).toList();
+        // Mükerrer anket koruması: Aynı soruya sahip anketleri tekilleştir
+        final seenPolls = <String>{};
+        final uniquePolls = items.where((p) {
+          final q = (p['question'] ?? p['title'] ?? p['_id'] ?? '').toString().trim().toLowerCase();
+          return seenPolls.add(q);
+        }).toList();
+
+        final filtered = uniquePolls.where(_matchesNeighborhood).toList();
         if (filtered.isEmpty) {
           return _EmptyState(
             icon: Icons.how_to_vote_outlined,
@@ -529,7 +536,14 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
               .toList();
         }
 
-        final filtered = items.where(_matchesNeighborhood).toList();
+        // Mükerrer öneri koruması: Aynı başlığa sahip önerileri tekilleştir
+        final seenSuggestions = <String>{};
+        final uniqueSuggestions = items.where((s) {
+          final t = (s['title'] ?? s['_id'] ?? '').toString().trim().toLowerCase();
+          return seenSuggestions.add(t);
+        }).toList();
+
+        final filtered = uniqueSuggestions.where(_matchesNeighborhood).toList();
         if (filtered.isEmpty) {
           return _EmptyState(
             icon: Icons.lightbulb_outline_rounded,

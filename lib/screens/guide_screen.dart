@@ -794,7 +794,17 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                   },
                 ];
               } else {
-                rawItems = docs.map((d) {
+                final now = DateTime.now();
+                final today =
+                    '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                String dOf(QueryDocumentSnapshot<Map<String, dynamic>> d) =>
+                    (d.data()['date'] ?? '').toString();
+                final upcoming = docs.where((d) => dOf(d).compareTo(today) >= 0).toList()
+                  ..sort((a, b) => dOf(a).compareTo(dOf(b)));
+                final past = docs.where((d) => dOf(d).compareTo(today) < 0).toList()
+                  ..sort((a, b) => dOf(b).compareTo(dOf(a)));
+                final sortedDocs = [...upcoming, ...past];
+                rawItems = sortedDocs.map((d) {
                   final m = d.data();
                   final subtitle =
                       (m['subtitle'] ?? m['description'] ?? '').toString();

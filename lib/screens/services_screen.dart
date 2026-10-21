@@ -27,10 +27,12 @@ class _C {
   static const bg = Color(0xFFF1F5FD);
   static const textDark = Color(0xFF0A1F44);
   static const textMuted = Color(0xFF5F6F8A);
-  static const danger = Color(0xFFE5231B);
+  static const danger = Color(0xFFDC2626);
+  static const dangerDark = Color(0xFFB91C1C);
 
   static const orangeGradient = [Color(0xFFFFA11F), Color(0xFFFF6A00)];
   static const navyGradient = [Color(0xFF1E5BC6), Color(0xFF0A2A66)];
+  static const dangerGradient = [danger, dangerDark];
 }
 
 const String _kBodyFont = 'system-ui';
@@ -83,7 +85,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     AppStrings.get('service_emergency', lang),
     AppStrings.get('service_emergency_sub', lang),
     Icons.emergency_rounded,
-    const [Color(0xFFFF5A4F), Color(0xFFE5231B)],
+    _C.dangerGradient,
   );
 
   List<_ServiceData> _getServices(String lang) => [
@@ -517,9 +519,14 @@ class _EmergencyCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: _C.danger.withAlpha(90),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
+                color: _C.dangerDark.withValues(alpha: 0.16),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),

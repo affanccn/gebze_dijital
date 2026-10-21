@@ -230,9 +230,15 @@ final feedingPointsStreamProvider =
             if (snapshot.docs.isEmpty) {
               return kGebzeFeedingPoints;
             }
-            return snapshot.docs
+            final list = snapshot.docs
                 .map((doc) => FeedingPoint.fromFirestore(doc))
                 .toList();
+            // Mükerrer kayıt koruması: Aynı başlığa sahip odakları tekilleştir
+            final seen = <String>{};
+            return list.where((p) {
+              final key = p.title.trim().toLowerCase();
+              return seen.add(key);
+            }).toList();
           })
           .handleError((error) {
             return kGebzeFeedingPoints;
@@ -249,9 +255,15 @@ final vetClinicsStreamProvider =
             if (snapshot.docs.isEmpty) {
               return kGebzeDutyVetClinics;
             }
-            return snapshot.docs
+            final list = snapshot.docs
                 .map((doc) => DutyVetClinic.fromFirestore(doc))
                 .toList();
+            // Mükerrer kayıt koruması: Aynı isim veya adresteki klinikleri tekilleştir
+            final seen = <String>{};
+            return list.where((c) {
+              final key = c.name.trim().toLowerCase();
+              return seen.add(key);
+            }).toList();
           })
           .handleError((error) {
             return kGebzeDutyVetClinics;

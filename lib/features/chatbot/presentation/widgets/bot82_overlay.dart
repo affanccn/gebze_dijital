@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../screens/auth_service.dart';
-import '../../../../screens/emergency_screen.dart';
 import '../../application/bot82_state.dart';
 import '../chat_screen.dart';
 import '../chatbot_navigator.dart';
@@ -100,15 +98,9 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
     notifier.setChatOpen(false);
   }
 
-  void _openEmergency() {
-    final navKey = widget.navigatorKey ?? ChatbotNavigator.navigatorKey;
-    final nav = navKey?.currentState ?? Navigator.maybeOf(context);
-    nav?.push(MaterialPageRoute(builder: (_) => const EmergencyScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Giriş/Kayıt ekranında Chatbot ve Acil Durum butonları kesinlikle render edilmemelidir.
+    // Giriş/Kayıt ekranında Chatbot kesinlikle render edilmemelidir.
     final isAuthVisible = ref.watch(authScreenVisibleProvider);
     if (isAuthVisible) {
       return widget.child;
@@ -121,10 +113,8 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
     final safePadding = MediaQuery.paddingOf(context);
 
     const botW = 72.0;
-    const emergencyS = 54.0;
-    const spacing = 8.0;
-    final clusterW = math.max(botW, emergencyS);
-    final clusterH = (botW / kBot82Aspect) + emergencyS + spacing;
+    const clusterW = botW;
+    final clusterH = botW / kBot82Aspect;
 
     final defaultPos = Offset(
       screenSize.width - widget.defaultRightOffset - clusterW,
@@ -169,31 +159,20 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
                       _bubble = false;
                     });
                   },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.bottomRight,
                     children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          if (_bubble)
-                            Positioned(
-                              right: 76,
-                              bottom: 18,
-                              child: GestureDetector(
-                                onTap: _openChat,
-                                child: const _GreetingBubble(),
-                              ),
-                            ),
-                          Bot82Fab(width: botW, onTap: _openChat),
-                        ],
-                      ),
-                      const SizedBox(height: spacing),
-                      _ModernEmergencyButton(
-                        size: emergencyS,
-                        onTap: _openEmergency,
-                      ),
+                      if (_bubble)
+                        Positioned(
+                          right: 76,
+                          bottom: 18,
+                          child: GestureDetector(
+                            onTap: _openChat,
+                            child: const _GreetingBubble(),
+                          ),
+                        ),
+                      Bot82Fab(width: botW, onTap: _openChat),
                     ],
                   ),
                 ),
@@ -237,89 +216,6 @@ class _GreetingBubble extends StatelessWidget {
           fontWeight: FontWeight.w600,
           fontSize: 13,
           color: isDark ? Colors.white : const Color(0xFF0A2A66),
-        ),
-      ),
-    );
-  }
-}
-
-class _ModernEmergencyButton extends StatefulWidget {
-  final double size;
-  final VoidCallback onTap;
-
-  const _ModernEmergencyButton({required this.size, required this.onTap});
-
-  @override
-  State<_ModernEmergencyButton> createState() => _ModernEmergencyButtonState();
-}
-
-class _ModernEmergencyButtonState extends State<_ModernEmergencyButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = widget.size;
-
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.90 : 1.0,
-        duration: const Duration(milliseconds: 110),
-        curve: Curves.easeOutCubic,
-        child: Container(
-          width: s,
-          height: s,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFF3B30), Color(0xFFE52920), Color(0xFFC61A12)],
-            ),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.65),
-              width: 1.8,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFE52920).withValues(alpha: 0.45),
-                blurRadius: 14,
-                spreadRadius: 1,
-                offset: const Offset(0, 5),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.phone_in_talk_rounded,
-                color: Colors.white,
-                size: 21,
-              ),
-              const SizedBox(height: 1),
-              const Text(
-                '112 ACİL',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.4,
-                  height: 1.0,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -83,6 +83,8 @@ class ParkingScreen extends ConsumerWidget {
               data: (snap) => ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
+                  const _TahminiVeriBanner(),
+                  const SizedBox(height: 14),
                   _SummaryCard(snap: snap),
                   const SizedBox(height: 14),
                   for (final item in snap.items) ...[
@@ -91,6 +93,104 @@ class ParkingScreen extends ConsumerWidget {
                   ],
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TahminiVeriBanner extends StatelessWidget {
+  const _TahminiVeriBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2E2405) : const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFFD97706) : const Color(0xFFFDE68A),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD97706).withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: Color(0xFFD97706),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'ÖNEMLİ BİLGİLENDİRME',
+                      style: TextStyle(
+                        color: isDark
+                            ? const Color(0xFFFDE68A)
+                            : const Color(0xFFB45309),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12.5,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD97706),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'TAHMİNİ VERİ',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Bu sayfadaki tüm doluluk oranları ve boş yer sayıları istatistiki ve algoritmik modellere dayalı TAHMİNİ VERİLERDİR. Anlık araç giriş-çıkışlarına göre değişkenlik gösterebilir.',
+                  style: TextStyle(
+                    color: isDark
+                        ? const Color(0xFFFCD34D)
+                        : const Color(0xFF92400E),
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -161,7 +261,7 @@ class _Header extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 48),
                 child: Text(
-                  'Gebze genelindeki otoparkların tahmini doluluk durumu ve yol tarifi.',
+                  'Gebze genelindeki otoparkların istatistiki TAHMİNİ doluluk durumu ve yol tarifi.',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: .75),
                     fontSize: 13,
@@ -207,16 +307,48 @@ class _SummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Text(
-                  'Gebze Genel Doluluk',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : _C.textDark,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Genel Doluluk',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : _C.textDark,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF78350F)
+                            : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFFF59E0B)
+                              : const Color(0xFFF59E0B),
+                        ),
+                      ),
+                      child: Text(
+                        '⚠️ TAHMİNİ VERİ',
+                        style: TextStyle(
+                          color: isDark
+                              ? const Color(0xFFFDE68A)
+                              : const Color(0xFFB45309),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Text(
@@ -239,9 +371,9 @@ class _SummaryCard extends StatelessWidget {
           Row(
             children: [
               _Stat(label: 'Toplam Kapasite', value: '${snap.totalCapacity}'),
-              _Stat(label: 'Dolu', value: '${snap.totalOccupied}'),
+              _Stat(label: 'Tahmini Dolu', value: '${snap.totalOccupied}'),
               _Stat(
-                label: 'Boş',
+                label: 'Tahmini Boş',
                 value: '${snap.totalFree}',
                 color: _C.success,
               ),
@@ -255,12 +387,16 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.schedule_rounded, size: 15, color: _C.textMuted),
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 15,
+                color: Color(0xFFD97706),
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Tahmini veridir • Son güncelleme ${_hm(snap.updatedAt)} → Sonraki ${_hm(snap.nextUpdateAt)}',
-                  style: const TextStyle(color: _C.textMuted, fontSize: 12),
+                  '⚠️ Tüm veriler istatistiki tahmindir • Son güncelleme ${_hm(snap.updatedAt)} → Sonraki ${_hm(snap.nextUpdateAt)}',
+                  style: const TextStyle(color: _C.textMuted, fontSize: 11.5),
                 ),
               ),
             ],
@@ -373,14 +509,45 @@ class _LotCard extends StatelessWidget {
                         height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.lot.code,
-                      style: const TextStyle(
-                        color: _C.orange,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          item.lot.code,
+                          style: const TextStyle(
+                            color: _C.orange,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF78350F)
+                                : const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFFF59E0B),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            '⚠️ TAHMİNİ VERİ',
+                            style: TextStyle(
+                              color: isDark
+                                  ? const Color(0xFFFDE68A)
+                                  : const Color(0xFFB45309),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -415,12 +582,12 @@ class _LotCard extends StatelessWidget {
           Row(
             children: [
               const Text(
-                'Doluluk Oranı',
+                'Tahmini Doluluk Oranı',
                 style: TextStyle(color: _C.textMuted, fontSize: 12),
               ),
               const Spacer(),
               Text(
-                '%${item.percent} Dolu',
+                '%${item.percent} (Tahmini)',
                 style: TextStyle(
                   color: color,
                   fontSize: 13,
@@ -436,7 +603,7 @@ class _LotCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _Box(
-                  label: 'Boş Yer Sayısı',
+                  label: 'Tahmini Boş Yer',
                   value: '${item.free}',
                   color: color,
                   tint: isDark
@@ -456,7 +623,28 @@ class _LotCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 13,
+                color: Color(0xFFD97706),
+              ),
+              SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  '* Bu otoparka ait doluluk ve boş yer tahmini model verisidir.',
+                  style: TextStyle(
+                    color: _C.textMuted,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               const Icon(

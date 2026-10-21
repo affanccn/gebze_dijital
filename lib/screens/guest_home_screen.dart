@@ -869,12 +869,14 @@ class _RowData {
   final String subtitle;
   final IconData icon;
   final String? imageAsset;
+  final String? imageUrl;
   final VoidCallback? onTap;
   const _RowData(
     this.title,
     this.subtitle,
     this.icon, {
     this.imageAsset,
+    this.imageUrl,
     this.onTap,
   });
 }
@@ -972,6 +974,54 @@ class _SectionRow extends StatelessWidget {
   final _RowData data;
   const _SectionRow({required this.data});
 
+  Widget _buildThumbnail(_RowData data) {
+    final fallback = Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
+        ),
+      ),
+      child: Icon(data.icon, color: Colors.white, size: 26),
+    );
+
+    if (data.imageUrl != null && data.imageUrl!.trim().isNotEmpty) {
+      return Image.network(
+        data.imageUrl!.trim(),
+        width: 58,
+        height: 58,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            color: const Color(0xFFEEF4FF),
+            child: const Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (data.imageAsset != null && data.imageAsset!.trim().isNotEmpty) {
+      return Image.asset(
+        data.imageAsset!.trim(),
+        width: 58,
+        height: 58,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => fallback,
+      );
+    }
+
+    return fallback;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDark;
@@ -997,33 +1047,7 @@ class _SectionRow extends StatelessWidget {
                   ),
                 ],
               ),
-              child: data.imageAsset != null
-                  ? Image.asset(
-                      data.imageAsset!,
-                      width: 58,
-                      height: 58,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
-                          ),
-                        ),
-                        child: Icon(data.icon, color: Colors.white, size: 26),
-                      ),
-                    )
-                  : Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
-                        ),
-                      ),
-                      child: Icon(data.icon, color: Colors.white, size: 26),
-                    ),
+              child: _buildThumbnail(data),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1160,9 +1184,13 @@ class _EventsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('events')
+          .where('date', isGreaterThanOrEqualTo: today)
           .orderBy('date')
           .limit(3)
           .snapshots(),
@@ -1224,10 +1252,12 @@ class _EventsSection extends StatelessWidget {
               final time = (m['time'] ?? '').toString();
               subtitle = [loc, date, time].where((s) => s.isNotEmpty).join(' • ');
             }
+            final img = (m['imageUrl'] ?? m['image'] ?? '').toString().trim();
             return _RowData(
               title,
               subtitle,
               Icons.event_rounded,
+              imageUrl: img.isNotEmpty ? img : null,
               onTap: navigateToEvents,
             );
           }).toList();
