@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/pati_data_provider.dart';
 import '../../models/feeding_point.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/phone_launcher.dart';
 
 class FoodClinicsTab extends ConsumerStatefulWidget {
   const FoodClinicsTab({super.key});
@@ -36,11 +37,8 @@ class _FoodClinicsTabState extends ConsumerState<FoodClinicsTab> {
   }
 
   Future<void> _makeCall(String phone) async {
-    final clean = phone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final uri = Uri.parse('tel:$clean');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
+    final lang = ref.read(appLanguageProvider);
+    await PhoneLauncher.makeCall(context, phone, lang: lang);
   }
 
   Future<void> _openDirections(double lat, double lng, String label) async {

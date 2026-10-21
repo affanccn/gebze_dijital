@@ -72,7 +72,15 @@
 <string>Şikayet ve önerilerinize fotoğraf eklemek için galerinize erişim gerekiyor.</string>
 <key>NSMicrophoneUsageDescription</key>
 <string>Video çekimi için mikrofon erişimi gerekir.</string>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Bildirdiğiniz sorunun konumunu belirlemek için konum bilgisine ihtiyaç duyuyoruz.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Bildirdiğiniz sorunun konumunu belirlemek için konum bilgisine ihtiyaç duyuyoruz.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+		<string>https</string>
+		<string>http</string>
+		<string>geo</string>
+		<string>maps</string>
+	</array>
 </dict>
 </plist>

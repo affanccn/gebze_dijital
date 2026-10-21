@@ -11,6 +11,7 @@ import '../features/profile/models/gebze_avatar.dart';
 import '../features/profile/services/profile_service.dart';
 import '../features/profile/widgets/gebze_avatar_picker_dialog.dart';
 import '../core/localization/app_strings.dart';
+import '../core/utils/phone_launcher.dart';
 import '../core/accessibility/font_scale_provider.dart';
 import '../core/theme/theme_provider.dart';
 import 'my_requests_screen.dart';
@@ -2020,17 +2021,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _callMunicipalCallCenter([String lang = 'tr']) async {
-    final uri = Uri.parse('tel:4440153');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      _showSnackBar(
-        AppStrings.get(
-          'call_failed_toast',
-          lang,
-        ).replaceAll('{0}', '444 0 153'),
-      );
-    }
+    await PhoneLauncher.makeCall(context, '4440153', lang: lang);
   }
 
   void _openPrivacySheet(BuildContext context) {

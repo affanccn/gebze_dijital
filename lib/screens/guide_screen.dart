@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'auth_guard.dart';
 import 'favorites_service.dart';
 import '../core/localization/app_strings.dart';
+import '../core/utils/phone_launcher.dart';
 
 /// Gebze Belediyesi - Şehir Rehberi
 /// Dosya yolu: lib/screens/guide_screen.dart
@@ -50,6 +51,12 @@ String _t(String lang, String tr, String en, String ar) =>
 String _normalizeImagePath(String path) => path.trim().replaceAll('\\', '/');
 
 Future<void> _openUrl(BuildContext context, String url, String lang) async {
+  if (url.startsWith('tel:')) {
+    final phone = url.substring(4);
+    await PhoneLauncher.makeCall(context, phone, lang: lang);
+    return;
+  }
+
   final ok = await launchUrl(
     Uri.parse(url),
     mode: LaunchMode.externalApplication,

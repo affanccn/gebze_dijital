@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/localization/app_strings.dart';
+import '../core/utils/phone_launcher.dart';
 import 'assembly_service.dart';
 
 class _C {
@@ -187,14 +188,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
   }
 
   Future<void> _callNumber(String title, String number, String lang) async {
-    final clean = number.replaceAll(' ', '');
-    try {
-      if (await launchUrl(Uri(scheme: 'tel', path: clean))) return;
-    } catch (_) {}
-    try {
-      await Clipboard.setData(ClipboardData(text: clean));
-    } catch (_) {}
-    _toast(AppStrings.get('call_failed_toast', lang).replaceAll('{0}', number));
+    await PhoneLauncher.makeCall(context, number, lang: lang);
   }
 
   void _showAreaDetail(AssemblyArea a, String lang, bool isDark) {

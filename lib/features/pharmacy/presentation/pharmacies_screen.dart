@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/app_strings.dart';
+import '../../../core/utils/phone_launcher.dart';
 import '../services/pharmacy_provider.dart';
 
 class PharmaciesScreen extends ConsumerWidget {
@@ -283,12 +284,11 @@ class PharmaciesScreen extends ConsumerWidget {
                 if (pharmacy.phone.isNotEmpty)
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        final uri = Uri.parse(
-                          'tel:${pharmacy.phone.replaceAll(RegExp(r'[^0-9+]'), '')}',
-                        );
-                        launchUrl(uri);
-                      },
+                      onPressed: () => PhoneLauncher.makeCall(
+                        context,
+                        pharmacy.phone,
+                        lang: lang,
+                      ),
                       icon: const Icon(Icons.call_rounded, size: 18),
                       label: Text(AppStrings.get('btn_call', lang)),
                       style: OutlinedButton.styleFrom(

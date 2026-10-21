@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/pati_data_provider.dart';
 import '../../models/pet_adoption.dart';
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/phone_launcher.dart';
 
 class AdoptionTab extends ConsumerWidget {
   const AdoptionTab({super.key});
@@ -17,20 +18,7 @@ class AdoptionTab extends ConsumerWidget {
     String phone,
     String lang,
   ) async {
-    final clean = phone.replaceAll(RegExp(r'[^0-9+]'), '');
-    final uri = Uri.parse('tel:$clean');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      if (context.mounted) {
-        final msg = AppStrings.get(
-          'call_failed_toast',
-          lang,
-        ).replaceAll('{0}', phone);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(msg)));
-      }
-    }
+    await PhoneLauncher.makeCall(context, phone, lang: lang);
   }
 
   @override
