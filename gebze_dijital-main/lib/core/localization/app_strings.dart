@@ -534,6 +534,11 @@ class AppStrings {
       'en': 'Cultural Centers',
       'ar': 'المراكز الثقافية',
     },
+    'cat_cemeteries': {
+      'tr': 'Mezarlıklar',
+      'en': 'Cemeteries',
+      'ar': 'المقابر',
+    },
     'cat_municipality': {
       'tr': 'Belediye Tesisleri',
       'en': 'Municipal Facilities',

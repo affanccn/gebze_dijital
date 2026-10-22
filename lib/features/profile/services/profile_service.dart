@@ -9,8 +9,7 @@ import '../../../screens/auth_service.dart' show authStateProvider;
 import '../../../screens/favorites_service.dart' show favoritesProvider;
 import '../models/user_profile.dart';
 
-/// Giriş yapmış kullanıcının uid'si. Misafirse eski sabit kimlik döner
-/// (misafir Firestore'a yazamaz, sadece varsayılan profili görür).
+
 String get kCurrentUserId {
   try {
     return FirebaseAuth.instance.currentUser?.uid ?? 'default_citizen';
@@ -19,7 +18,7 @@ String get kCurrentUserId {
   }
 }
 
-/// users/{uid}/<alt koleksiyon> içindeki doküman sayısı (giriş yoksa 0).
+
 StreamProvider<int> _subCountProvider(String sub) =>
     StreamProvider.autoDispose<int>((ref) {
       final user = ref.watch(authStateProvider).value;
@@ -36,7 +35,7 @@ StreamProvider<int> _subCountProvider(String sub) =>
 final _votesCountProvider = _subCountProvider('votes');
 final _supportedCountProvider = _subCountProvider('supported');
 
-/// Kullanıcının yazdığı öneri sayısı.
+
 final _mySuggestionsCountProvider = StreamProvider.autoDispose<int>((ref) {
   final user = ref.watch(authStateProvider).value;
   if (user == null) return Stream.value(0);
@@ -49,13 +48,10 @@ final _mySuggestionsCountProvider = StreamProvider.autoDispose<int>((ref) {
 });
 
 final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
-  // Oturum değişince (giriş/çıkış) profil akışı yeniden kurulur.
+
   final user = ref.watch(authStateProvider).value;
 
-  // Sayaçlar sabit alanlardan değil, gerçek kayıtlardan hesaplanır:
-  // - Kayıtlarım   : users/{uid}/favorites
-  // - Desteklerim  : users/{uid}/votes (anket oyları) + users/{uid}/supported
-  // - Önerilerim   : suggestions (authorUid == uid)
+  
   final favCount = ref.watch(favoritesProvider.select((v) => v.value?.length));
   final voteCount = ref.watch(_votesCountProvider.select((v) => v.value));
   final supCount = ref.watch(_supportedCountProvider.select((v) => v.value));
@@ -69,7 +65,7 @@ final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
       );
 
   if (user == null) {
-    // Misafir: Firestore'a dokunma, varsayılan profili göster.
+    
     return Stream.value(UserProfile.defaultProfile());
   }
 

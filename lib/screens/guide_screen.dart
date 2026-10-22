@@ -42,6 +42,60 @@ Widget _withFont(BuildContext context, Widget child) {
   );
 }
 
+/// Özel mezar taşı ikonu çizimi
+Widget _tombstoneIcon(Color color, double size) {
+  return SizedBox(
+    width: size,
+    height: size,
+    child: CustomPaint(
+      painter: _TombstonePainter(color: color),
+    ),
+  );
+}
+
+class _TombstonePainter extends CustomPainter {
+  final Color color;
+  _TombstonePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final w = size.width;
+    final h = size.height;
+
+    final path = Path();
+    // Taban çizgisi
+    path.moveTo(w * 0.1, h * 0.9);
+    path.lineTo(w * 0.9, h * 0.9);
+    // Sağ kenar
+    path.lineTo(w * 0.85, h * 0.4);
+    // Üst kavis (mezar taşı yuvarlak başlığı)
+    path.arcToPoint(
+      Offset(w * 0.15, h * 0.4),
+      radius: Radius.circular(w * 0.35),
+      clockwise: false,
+    );
+    // Sol kenar
+    path.lineTo(w * 0.1, h * 0.9);
+    path.close();
+
+    canvas.drawPath(path, paint);
+
+    // Kaide/Alt taban
+    final baseRect = RRect.fromRectAndRadius(
+      Rect.fromLTRB(w * 0.05, h * 0.85, w * 0.95, h * 0.95),
+      const Radius.circular(2),
+    );
+    canvas.drawRRect(baseRect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 /// Önizleme sayfasındaki yeni metinler için yerel çeviri yardımcısı.
 /// (İstersen bunları ileride AppStrings dosyasına taşıyabilirsiniz.)
 String _t(String lang, String tr, String en, String ar) =>
@@ -131,7 +185,17 @@ class _Category {
   final String title;
   final IconData icon;
   final Color color;
-  const _Category(this.id, this.title, this.icon, this.color);
+
+  /// Hazır ikon yetmediğinde özel çizilmiş ikon (örn. mezar taşı).
+  final Widget Function(Color color, double size)? iconBuilder;
+
+  const _Category(
+    this.id,
+    this.title,
+    this.icon,
+    this.color, {
+    this.iconBuilder,
+  });
 }
 
 List<_Category> _getCategories(String lang) => [
@@ -170,6 +234,13 @@ List<_Category> _getCategories(String lang) => [
     AppStrings.get('cat_culture', lang),
     Icons.museum_rounded,
     const Color(0xFF8E24AA),
+  ),
+  _Category(
+    'mezarliklar',
+    AppStrings.get('cat_cemeteries', lang),
+    Icons.local_florist_rounded,
+    const Color(0xFF607D8B),
+    iconBuilder: _tombstoneIcon,
   ),
   _Category(
     'belediye',
@@ -321,6 +392,261 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       image: 'gorsel/tarihi_yerler/ballikaya.jpg',
       category: catDoga,
     ),
+  ];
+}
+
+List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
+  final isEn = lang == 'en';
+  final isAr = lang == 'ar';
+
+  return [
+    {
+      'name': isEn
+          ? 'Gebze Central Cemetery & Martyrdom'
+          : isAr
+              ? 'مقبرة جبزة المركزية وصرح الشهداء'
+              : 'Gebze Merkez Mezarlığı ve Şehitliği',
+      'description': isEn
+          ? 'Main central cemetery of Gebze including the Martyrdom area. Primary location for burial and memorial services.'
+          : isAr
+              ? 'المقبرة المركزية الرئيسية في جبزة ونصب الشهداء، وتضم مكاتب إدارة الدفن والمراسم.'
+              : 'Gebze\'nin ana asri mezarlığıdır; bünyesinde Gebze Şehitliği ve Mezarlıklar Şube Müdürlüğü yer alır.',
+      'address': 'Gaziler Mah. Fatih Sultan Mehmet Cad. No:120, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Gebze Merkez Mezarlığı ve Şehitliği',
+      'lat': 40.809088,
+      'lng': 29.435012,
+      'image': 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Gebze Municipality Cemetery Directorate'
+          : isAr
+              ? 'مديرية المقابر وخدمات الجنائز ببلدية جبزة'
+              : 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+      'description': isEn
+          ? '24/7 Alo Cenaze 188 helpline, funeral transport, burial procedures, and grave allocation services.'
+          : isAr
+              ? 'خدمات الجنائز المجانية على مدار الساعة عبر 188، ونقل الجثامين وإجراءات حجز القبور.'
+              : '7/24 Alo Cenaze 188 hattı, ücretsiz cenaze nakil, defin işlemleri, mezar yeri tahsisi ve taziye çadırı birimi.',
+      'address': 'Gaziler Mah. Işıkgöl Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+      'lat': 40.809200,
+      'lng': 29.435200,
+      'image': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Pelitli Cemetery'
+          : isAr
+              ? 'مقبرة بيليتلي'
+              : 'Pelitli Mezarlığı',
+      'description': isEn
+          ? 'Large modern cemetery located in the northern district of Gebze with extensive parceling.'
+          : isAr
+              ? 'مقبرة حديثة وواسعة تقع في منطقة بيليتلي وتخدم التوسعات السكانية في جبزة.'
+              : 'Gebze\'nin kuzey aksında yer alan geniş kapasiteli, modern parsellenmiş ana defin mezarlığı.',
+      'address': 'Pelitli Mah. Sanayi Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Pelitli Mezarlığı Gebze',
+      'lat': 40.865500,
+      'lng': 29.449000,
+      'image': 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Adem Yavuz Cemetery'
+          : isAr
+              ? 'مقبرة أدهم يافوز'
+              : 'Adem Yavuz Mezarlığı',
+      'description': isEn
+          ? 'District cemetery serving residents of Adem Yavuz, Cumhuriyet, and surrounding neighborhoods.'
+          : isAr
+              ? 'مقبرة حي أدهم يافوز والمناطق المحيطة بها في جبزة.'
+              : 'Adem Yavuz, Cumhuriyet ve çevre mahalle sakinlerine hizmet veren semt mezarlığı.',
+      'address': 'Adem Yavuz Mah. Yavuz Sultan Selim Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Adem Yavuz Mezarlığı Gebze',
+      'lat': 40.816000,
+      'lng': 29.398000,
+      'image': 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Mimar Sinan Cemetery'
+          : isAr
+              ? 'مقبرة معمار سنان'
+              : 'Mimar Sinan Mezarlığı',
+      'description': isEn
+          ? 'Local neighborhood cemetery located in Mimar Sinan district.'
+          : isAr
+              ? 'مقبرة حي معمار سنان في جبزة.'
+              : 'Mimar Sinan Mahallesi sakinlerine defin ve kabir ziyareti hizmeti sunan semt mezarlığı.',
+      'address': 'Mimar Sinan Mah. Mimar Sinan Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Mimar Sinan Mezarlığı Gebze',
+      'lat': 40.822000,
+      'lng': 29.405000,
+      'image': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Balçık Village Cemetery'
+          : isAr
+              ? 'مقبرة قرية بالشيك'
+              : 'Balçık Köyü Mezarlığı',
+      'description': isEn
+          ? 'Rural village cemetery in Balcik district, preserving its peaceful natural setting.'
+          : isAr
+              ? 'مقبرة قرية بالشيك التاريخية في ريف جبزة.'
+              : 'Balçık Mahallesi sakinlerinin kullanımında olan, doğal dokusu korunan yerel mezarlık.',
+      'address': 'Balçık Mah. Balçık Köy İçi Yolu, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Balçık Köyü Mezarlığı Gebze',
+      'lat': 40.887000,
+      'lng': 29.412000,
+      'image': 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Denizli Village Cemetery'
+          : isAr
+              ? 'مقبرة قرية دينيزلي'
+              : 'Denizli Köyü Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery situated near the historical Denizli village and natural pond route.'
+          : isAr
+              ? 'مقبرة قرية دينيزلي الريفية بالقرب من الطبيعة والبحيرة.'
+              : 'Denizli Mahallesi sınırlarında bulunan tarihi ve doğa hattına yakın kırsal mahalle mezarlığı.',
+      'address': 'Denizli Mah. Köy İçi Mevkii, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Denizli Mezarlığı Gebze',
+      'lat': 40.892000,
+      'lng': 29.508000,
+      'image': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Mollafenari Cemetery'
+          : isAr
+              ? 'مقبرة قرية ملا فناري'
+              : 'Mollafenari Mezarlığı',
+      'description': isEn
+          ? 'Historic rural cemetery serving the Mollafenari and surrounding countryside.'
+          : isAr
+              ? 'مقبرة قرية ملا فناري التاريخية في منطقة جبزة.'
+              : 'Gebze\'nin tarihi köylerinden Mollafenari bölgesinde bulunan yerel mezarlık.',
+      'address': 'Mollafenari Mah. Eski İstanbul Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Mollafenari Mezarlığı Gebze',
+      'lat': 40.881000,
+      'lng': 29.539000,
+      'image': 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Tavşanlı Village Cemetery'
+          : isAr
+              ? 'مقبرة قرية طفشانلي'
+              : 'Tavşanlı Köyü Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery in Tavsanli near Ballikayalar Nature Park.'
+          : isAr
+              ? 'مقبرة قرية طفشانلي بالقرب من متنزه باليكايالار الطبيعي.'
+              : 'Ballıkayalar Tabiat Parkı güzergahındaki Tavşanlı Mahallesi yerel mezarlığı.',
+      'address': 'Tavşanlı Mah. Kömürcüoğlu Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Tavşanlı Mezarlığı Gebze',
+      'lat': 40.789000,
+      'lng': 29.525000,
+      'image': 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Cumaköy Cemetery'
+          : isAr
+              ? 'مقبرة قرية جمعه كوي'
+              : 'Cumaköy Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery in Cumakoy serving the northern countryside of Gebze.'
+          : isAr
+              ? 'مقبرة قرية جمعه كوي في شمال جبزة.'
+              : 'Cumaköy Mahallesi ve çevre kırsal yerleşimlerin defin ve kabristan alanı.',
+      'address': 'Cumaköy Mah. Fatih Sultan Mehmet Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Cumaköy Mezarlığı Gebze',
+      'lat': 40.915000,
+      'lng': 29.467000,
+      'image': 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Ovacık Cemetery'
+          : isAr
+              ? 'مقبرة قرية أوفاجيك'
+              : 'Ovacık Mezarlığı',
+      'description': isEn
+          ? 'Village cemetery located in Ovacik district of Gebze.'
+          : isAr
+              ? 'مقبرة قرية أوفاجيك في ريف جبزة.'
+              : 'Ovacık Mahallesi yerel kabristanı ve defin sahası.',
+      'address': 'Ovacık Mah. Köy İçi Mevkii, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Ovacık Mezarlığı Gebze',
+      'lat': 40.899000,
+      'lng': 29.582000,
+      'image': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Barış Neighborhood Cemetery'
+          : isAr
+              ? 'مقبرة حي باريش'
+              : 'Barış Mahallesi Mezarlığı',
+      'description': isEn
+          ? 'District cemetery serving residents along the Baris neighborhood corridor.'
+          : isAr
+              ? 'مقبرة حي باريش في جبزة.'
+              : 'Barış Mahallesi ve D-100 aksındaki semt sakinleri için hizmet veren mezarlık alanı.',
+      'address': 'Barış Mah. Koşuyolu Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Barış Mahallesi Mezarlığı Gebze',
+      'lat': 40.795000,
+      'lng': 29.418000,
+      'image': 'https://images.unsplash.com/photo-1596276020587-8044fe049813?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'e-Government Grave Location & Deceased Inquiry'
+          : isAr
+              ? 'استعلام القبور والوفيات عبر بوابة الحكومة الإلكترونية'
+              : 'e-Devlet Mezar Yeri ve Defin Bilgisi Sorgulama',
+      'description': isEn
+          ? 'Query parcel, plot, and cemetery details for deceased relatives via the official Gebze Municipality e-Government portal.'
+          : isAr
+              ? 'الاستعلام عن معلومات القبر والقطعة للوفيات التابعة لبلدية جبزة عبر بوابة الحكومة الإلكترونية e-Devlet.'
+              : 'Gebze Belediyesi e-Devlet hizmeti ile vefat eden yakınlarınızın mezarlık, ada ve parsel bilgilerini online sorgulayabilirsiniz.',
+      'address': 'Gebze Belediyesi Online Hizmetler / e-Devlet',
+      'phone': '188',
+      'mapQuery': 'Gebze Belediyesi',
+      'image': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
+      'url': 'https://www.turkiye.gov.tr/gebze-belediyesi-defin-ve-mezar-yeri-sorgulama',
+      'showDirections': false,
+      'category': 'mezarliklar',
+    },
   ];
 }
 
@@ -662,7 +988,11 @@ class _CategoryTile extends StatelessWidget {
                   color: category.color.withAlpha(32),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(category.icon, color: category.color, size: 22),
+                child: Center(
+                  child: category.iconBuilder != null
+                      ? category.iconBuilder!(category.color, 24)
+                      : Icon(category.icon, color: category.color, size: 22),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -828,6 +1158,12 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                   };
                 }).toList();
               }
+            } else if (category.id == 'mezarliklar') {
+              if (docs.isEmpty) {
+                rawItems = _getFallbackCemeteries(lang);
+              } else {
+                rawItems = docs.map((d) => d.data()).toList();
+              }
             } else {
               if (snap.hasError || docs.isEmpty) {
                 return Center(
@@ -883,6 +1219,8 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                             color: category.color,
                             lang: lang,
                             showMenuButton: category.id == 'lokantalar',
+                            showImage: category.id != 'mezarliklar',
+                            showPhone: category.id != 'mezarliklar',
                           ),
                         ),
                 ),
@@ -919,11 +1257,16 @@ class _InstitutionCard extends StatelessWidget {
   final Color color;
   final String lang;
   final bool showMenuButton;
+  final bool showImage;
+  final bool showPhone;
+
   const _InstitutionCard({
     required this.data,
     required this.color,
     required this.lang,
     this.showMenuButton = false,
+    this.showImage = true,
+    this.showPhone = true,
   });
 
   @override
@@ -935,6 +1278,7 @@ class _InstitutionCard extends StatelessWidget {
     final image = (data['image'] ?? '').toString().trim();
     final menuUrl = (data['menuUrl'] ?? '').toString().trim();
     final detailUrl = (data['url'] ?? data['detailUrl'] ?? '').toString().trim();
+    final showDirections = data['showDirections'] != false;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -948,7 +1292,7 @@ class _InstitutionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (image.isNotEmpty)
+          if (showImage && image.isNotEmpty)
             _CardImage(image: image, height: 150, color: color),
           Padding(
             padding: const EdgeInsets.all(14),
@@ -995,7 +1339,7 @@ class _InstitutionCard extends StatelessWidget {
                     ],
                   ),
                 ],
-                if (phone.isNotEmpty) ...[
+                if (showPhone && phone.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   InkWell(
                     onTap: () => _openUrl(context, 'tel:$phone', lang),
@@ -1015,32 +1359,36 @@ class _InstitutionCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
+                                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
                 // Telefonda Google Maps / varsayılan harita uygulaması açılır.
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _openUrl(
-                      context,
-                      _directionsUrl(data, name, address),
-                      lang,
-                    ),
-                    icon: const Icon(Icons.directions_rounded, size: 18),
-                    label: Text(
-                      _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: color,
-                      side: BorderSide(color: color),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                // Kayıtta 'showDirections': false varsa düğme gizlenir.
+                if (showDirections) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _openUrl(
+                        context,
+                        _directionsUrl(data, name, address),
+                        lang,
+                      ),
+                      icon: const Icon(Icons.directions_rounded, size: 18),
+                      label: Text(
+                        _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _C.orange,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
                 if (detailUrl.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   SizedBox(
@@ -1640,147 +1988,147 @@ class _PlaceDetailScreen extends StatelessWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(22),
-                  child: _PlaceImage(place: place, height: 230),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1E293B)
-                            : _C.navyDeep.withAlpha(20),
-                        borderRadius: BorderRadius.circular(14),
-                        border: isDark
-                            ? Border.all(color: const Color(0xFF334155))
-                            : null,
-                      ),
-                      child: Text(
-                        place.category,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF93C5FD) : _C.navyDeep,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: _PlaceImage(place: place, height: 230),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      place.name,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : _C.textDark,
-                        height: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      place.summary,
-                      style: TextStyle(
-                        fontSize: 15,
-                        height: 1.55,
-                        color: isDark ? const Color(0xFFCBD5E1) : _C.textDark,
-                      ),
-                    ),
-                    if (place.detailUrl.isNotEmpty) ...[
-                      const SizedBox(height: 18),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E293B)
-                              : const Color(0xFFFFF3E0),
-                          borderRadius: BorderRadius.circular(12),
-                          border: isDark
-                              ? Border.all(color: const Color(0xFF334155))
-                              : null,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.info_outline_rounded,
-                              size: 18,
-                              color: _C.orange,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 5,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _t(
-                                  lang,
-                                  'Daha fazla bilgi için aşağıdaki butona dokunduğunuzda Gebze Belediyesi web sitesine (internet tarayıcısına) yönlendirileceksiniz.',
-                                  'Tapping the button below will take you to the Gebze Municipality website (your internet browser) for more information.',
-                                  'عند الضغط على الزر أدناه سيتم تحويلك إلى موقع بلدية جبزة (متصفح الإنترنت) لمزيد من المعلومات.',
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : _C.navyDeep.withAlpha(20),
+                              borderRadius: BorderRadius.circular(14),
+                              border: isDark
+                                  ? Border.all(color: const Color(0xFF334155))
+                                  : null,
+                            ),
+                            child: Text(
+                              place.category,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFF93C5FD) : _C.navyDeep,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            place.name,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : _C.textDark,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            place.summary,
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.55,
+                              color: isDark ? const Color(0xFFCBD5E1) : _C.textDark,
+                            ),
+                          ),
+                          if (place.detailUrl.isNotEmpty) ...[
+                            const SizedBox(height: 18),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFFFF3E0),
+                                borderRadius: BorderRadius.circular(12),
+                                border: isDark
+                                    ? Border.all(color: const Color(0xFF334155))
+                                    : null,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 18,
+                                    color: _C.orange,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _t(
+                                        lang,
+                                        'Daha fazla bilgi için aşağıdaki butona dokunduğunuzda Gebze Belediyesi web sitesine (internet tarayıcısına) yönlendirileceksiniz.',
+                                        'Tapping the button below will take you to the Gebze Municipality website (your internet browser) for more information.',
+                                        'عند الضغط على الزر أدناه سيتم تحويلك إلى موقع بلدية جبزة (متصفح الإنترنت) لمزيد من المعلومات.',
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        height: 1.4,
+                                        color: isDark
+                                            ? const Color(0xFFE2E8F0)
+                                            : _C.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _openUrl(context, place.detailUrl, lang),
+                                icon: const Icon(
+                                  Icons.open_in_browser_rounded,
+                                  size: 20,
                                 ),
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  height: 1.4,
-                                  color: isDark
-                                      ? const Color(0xFFE2E8F0)
-                                      : _C.textDark,
+                                label: Text(
+                                  _t(
+                                    lang,
+                                    'Devamını Tarayıcıda Aç',
+                                    'Continue in Browser',
+                                    'متابعة في المتصفح',
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? const Color(0xFF2563EB)
+                                      : _C.navy,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: const StadiumBorder(),
                                 ),
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              _openUrl(context, place.detailUrl, lang),
-                          icon: const Icon(
-                            Icons.open_in_browser_rounded,
-                            size: 20,
-                          ),
-                          label: Text(
-                            _t(
-                              lang,
-                              'Devamını Tarayıcıda Aç',
-                              'Continue in Browser',
-                              'متابعة في المتصفح',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark
-                                ? const Color(0xFF2563EB)
-                                : _C.navy,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: const StadiumBorder(),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
             ),
           ],
         ),

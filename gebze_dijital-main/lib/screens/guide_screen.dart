@@ -122,7 +122,6 @@ class _Category {
   final Color color;
   const _Category(this.id, this.title, this.icon, this.color);
 }
-
 List<_Category> _getCategories(String lang) => [
       _Category('parklar', AppStrings.get('cat_parks', lang), Icons.park_rounded,
           const Color(0xFF43A047)),
@@ -134,6 +133,8 @@ List<_Category> _getCategories(String lang) => [
           Icons.sports_soccer_rounded, const Color(0xFF1E88E5)),
       _Category('kultur', AppStrings.get('cat_culture', lang),
           Icons.museum_rounded, const Color(0xFF8E24AA)),
+      _Category('mezarliklar', AppStrings.get('cat_cemeteries', lang),
+          Icons.local_florist_rounded, const Color(0xFF607D8B)),
       _Category('belediye', AppStrings.get('cat_municipality', lang),
           Icons.account_balance_rounded, _C.navy),
     ];
@@ -247,7 +248,11 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
     ),
     HistoricPlace(
       id: 'ballikayalar',
-      name: isEn ? 'Ballikayalar Nature Park' : isAr ? 'حديقة باليكايالار الطبيعية' : 'Ballıkayalar',
+      name: isEn
+          ? 'Ballikayalar Nature Park'
+          : isAr
+              ? 'حديقة باليكايالار الطبيعية'
+              : 'Ballıkayalar',
       summary: isEn
           ? 'A stunning karst canyon famous for waterfalls, caves, trekking paths, and climbing routes.'
           : isAr
@@ -258,6 +263,260 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       image: 'gorsel/tarihi_yerler/ballikaya.jpg',
       category: catDoga,
     ),
+  ];
+}
+
+List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
+  final isEn = lang == 'en';
+  final isAr = lang == 'ar';
+
+  return [
+    {
+      'name': isEn
+          ? 'Gebze Central Cemetery & Martyrdom'
+          : isAr
+              ? 'مقبرة جبزة المركزية وصرح الشهداء'
+              : 'Gebze Merkez Mezarlığı ve Şehitliği',
+      'description': isEn
+          ? 'Main central cemetery of Gebze including the Martyrdom area. Primary location for burial and memorial services.'
+          : isAr
+              ? 'المقبرة المركزية الرئيسية في جبزة ونصب الشهداء، وتضم مكاتب إدارة الدفن والمراسم.'
+              : 'Gebze\'nin ana asri mezarlığıdır; bünyesinde Gebze Şehitliği ve Mezarlıklar Şube Müdürlüğü yer alır.',
+      'address': 'Gaziler Mah. Fatih Sultan Mehmet Cad. No:120, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Gebze Merkez Mezarlığı ve Şehitliği',
+      'lat': 40.809088,
+      'lng': 29.435012,
+      'image': 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Gebze Municipality Cemetery Directorate'
+          : isAr
+              ? 'مديرية المقابر وخدمات الجنائز ببلدية جبزة'
+              : 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+      'description': isEn
+          ? '24/7 Alo Cenaze 188 helpline, funeral transport, burial procedures, and grave allocation services.'
+          : isAr
+              ? 'خدمات الجنائز المجانية على مدار الساعة عبر 188، ونقل الجثامين وإجراءات حجز القبور.'
+              : '7/24 Alo Cenaze 188 hattı, ücretsiz cenaze nakil, defin işlemleri, mezar yeri tahsisi ve taziye çadırı birimi.',
+      'address': 'Gaziler Mah. Işıkgöl Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+      'lat': 40.809200,
+      'lng': 29.435200,
+      'image': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Pelitli Cemetery'
+          : isAr
+              ? 'مقبرة بيليتلي'
+              : 'Pelitli Mezarlığı',
+      'description': isEn
+          ? 'Large modern cemetery located in the northern district of Gebze with extensive parceling.'
+          : isAr
+              ? 'مقبرة حديثة وواسعة تقع في منطقة بيليتلي وتخدم التوسعات السكانية في جبزة.'
+              : 'Gebze\'nin kuzey aksında yer alan geniş kapasiteli, modern parsellenmiş ana defin mezarlığı.',
+      'address': 'Pelitli Mah. Sanayi Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Pelitli Mezarlığı Gebze',
+      'lat': 40.865500,
+      'lng': 29.449000,
+      'image': 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Adem Yavuz Cemetery'
+          : isAr
+              ? 'مقبرة أدهم يافوز'
+              : 'Adem Yavuz Mezarlığı',
+      'description': isEn
+          ? 'District cemetery serving residents of Adem Yavuz, Cumhuriyet, and surrounding neighborhoods.'
+          : isAr
+              ? 'مقبرة حي أدهم يافوز والمناطق المحيطة بها في جبزة.'
+              : 'Adem Yavuz, Cumhuriyet ve çevre mahalle sakinlerine hizmet veren semt mezarlığı.',
+      'address': 'Adem Yavuz Mah. Yavuz Sultan Selim Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Adem Yavuz Mezarlığı Gebze',
+      'lat': 40.816000,
+      'lng': 29.398000,
+      'image': 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Mimar Sinan Cemetery'
+          : isAr
+              ? 'مقبرة معمار سنان'
+              : 'Mimar Sinan Mezarlığı',
+      'description': isEn
+          ? 'Local neighborhood cemetery located in Mimar Sinan district.'
+          : isAr
+              ? 'مقبرة حي معمار سنان في جبزة.'
+              : 'Mimar Sinan Mahallesi sakinlerine defin ve kabir ziyareti hizmeti sunan semt mezarlığı.',
+      'address': 'Mimar Sinan Mah. Mimar Sinan Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Mimar Sinan Mezarlığı Gebze',
+      'lat': 40.822000,
+      'lng': 29.405000,
+      'image': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Balçık Village Cemetery'
+          : isAr
+              ? 'مقبرة قرية بالشيك'
+              : 'Balçık Köyü Mezarlığı',
+      'description': isEn
+          ? 'Rural village cemetery in Balcik district, preserving its peaceful natural setting.'
+          : isAr
+              ? 'مقبرة قرية بالشيك التاريخية في ريف جبزة.'
+              : 'Balçık Mahallesi sakinlerinin kullanımında olan, doğal dokusu korunan yerel mezarlık.',
+      'address': 'Balçık Mah. Balçık Köy İçi Yolu, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Balçık Köyü Mezarlığı Gebze',
+      'lat': 40.887000,
+      'lng': 29.412000,
+      'image': 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Denizli Village Cemetery'
+          : isAr
+              ? 'مقبرة قرية دينيزلي'
+              : 'Denizli Köyü Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery situated near the historical Denizli village and natural pond route.'
+          : isAr
+              ? 'مقبرة قرية دينيزلي الريفية بالقرب من الطبيعة والبحيرة.'
+              : 'Denizli Mahallesi sınırlarında bulunan tarihi ve doğa hattına yakın kırsal mahalle mezarlığı.',
+      'address': 'Denizli Mah. Köy İçi Mevkii, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Denizli Mezarlığı Gebze',
+      'lat': 40.892000,
+      'lng': 29.508000,
+      'image': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Mollafenari Cemetery'
+          : isAr
+              ? 'مقبرة قرية ملا فناري'
+              : 'Mollafenari Mezarlığı',
+      'description': isEn
+          ? 'Historic rural cemetery serving the Mollafenari and surrounding countryside.'
+          : isAr
+              ? 'مقبرة قرية ملا فناري التاريخية في منطقة جبزة.'
+              : 'Gebze\'nin tarihi köylerinden Mollafenari bölgesinde bulunan yerel mezarlık.',
+      'address': 'Mollafenari Mah. Eski İstanbul Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Mollafenari Mezarlığı Gebze',
+      'lat': 40.881000,
+      'lng': 29.539000,
+      'image': 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Tavşanlı Village Cemetery'
+          : isAr
+              ? 'مقبرة قرية طفشانلي'
+              : 'Tavşanlı Köyü Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery in Tavsanli near Ballikayalar Nature Park.'
+          : isAr
+              ? 'مقبرة قرية طفشانلي بالقرب من متنزه باليكايالار الطبيعي.'
+              : 'Ballıkayalar Tabiat Parkı güzergahındaki Tavşanlı Mahallesi yerel mezarlığı.',
+      'address': 'Tavşanlı Mah. Kömürcüoğlu Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Tavşanlı Mezarlığı Gebze',
+      'lat': 40.789000,
+      'lng': 29.525000,
+      'image': 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Cumaköy Cemetery'
+          : isAr
+              ? 'مقبرة قرية جمعه كوي'
+              : 'Cumaköy Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery in Cumakoy serving the northern countryside of Gebze.'
+          : isAr
+              ? 'مقبرة قرية جمعه كوي في شمال جبزة.'
+              : 'Cumaköy Mahallesi ve çevre kırsal yerleşimlerin defin ve kabristan alanı.',
+      'address': 'Cumaköy Mah. Fatih Sultan Mehmet Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Cumaköy Mezarlığı Gebze',
+      'lat': 40.915000,
+      'lng': 29.467000,
+      'image': 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Ovacık Cemetery'
+          : isAr
+              ? 'مقبرة قرية أوفاجيك'
+              : 'Ovacık Mezarlığı',
+      'description': isEn
+          ? 'Village cemetery located in Ovacik district of Gebze.'
+          : isAr
+              ? 'مقبرة قرية أوفاجيك في ريف جبزة.'
+              : 'Ovacık Mahallesi yerel kabristanı ve defin sahası.',
+      'address': 'Ovacık Mah. Köy İçi Mevkii, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Ovacık Mezarlığı Gebze',
+      'lat': 40.899000,
+      'lng': 29.582000,
+      'image': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Barış Neighborhood Cemetery'
+          : isAr
+              ? 'مقبرة حي باريش'
+              : 'Barış Mahallesi Mezarlığı',
+      'description': isEn
+          ? 'District cemetery serving residents along the Baris neighborhood corridor.'
+          : isAr
+              ? 'مقبرة حي باريش في جبزة.'
+              : 'Barış Mahallesi ve D-100 aksındaki semt sakinleri için hizmet veren mezarlık alanı.',
+      'address': 'Barış Mah. Koşuyolu Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Barış Mahallesi Mezarlığı Gebze',
+      'lat': 40.795000,
+      'lng': 29.418000,
+      'image': 'https://images.unsplash.com/photo-1596276020587-8044fe049813?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'e-Government Grave Location & Deceased Inquiry'
+          : isAr
+              ? 'استعلام القبور والوفيات عبر بوابة الحكومة الإلكترونية'
+              : 'e-Devlet Mezar Yeri ve Defin Bilgisi Sorgulama',
+      'description': isEn
+          ? 'Query parcel, plot, and cemetery details for deceased relatives via the official Gebze Municipality e-Government portal.'
+          : isAr
+              ? 'الاستعلام عن معلومات القبر والقطعة للوفيات التابعة لبلدية جبزة عبر بوابة الحكومة الإلكترونية e-Devlet.'
+              : 'Gebze Belediyesi e-Devlet hizmeti ile vefat eden yakınlarınızın mezarlık, ada ve parsel bilgilerini online sorgulayabilirsiniz.',
+      'address': 'Gebze Belediyesi Online Hizmetler / e-Devlet',
+      'phone': '188',
+      'mapQuery': 'Gebze Belediyesi',
+      'image': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
+      'url': 'https://www.turkiye.gov.tr/gebze-belediyesi-defin-ve-mezar-yeri-sorgulama',
+      'category': 'mezarliklar',
+    },
   ];
 }
 
@@ -597,21 +856,31 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             final docs = snap.data?.docs ?? [];
-            if (snap.hasError || docs.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    AppStrings.get('no_category_records', lang),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: _C.textMuted, fontWeight: FontWeight.w600),
+            List<Map<String, dynamic>> rawItems;
+            if (category.id == 'mezarliklar') {
+              if (docs.isEmpty) {
+                rawItems = _getFallbackCemeteries(lang);
+              } else {
+                rawItems = docs.map((d) => d.data()).toList();
+              }
+            } else {
+              if (snap.hasError || docs.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      AppStrings.get('no_category_records', lang),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: _C.textMuted, fontWeight: FontWeight.w600),
+                    ),
                   ),
-                ),
-              );
+                );
+              }
+              rawItems = docs.map((d) => d.data()).toList();
             }
             final items =
-                docs.map((d) => d.data()).where((d) => _matches(d, q)).toList();
+                rawItems.where((d) => _matches(d, q)).toList();
             return Column(
               children: [
                 Padding(
@@ -655,6 +924,26 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   }
 }
 
+/// Google Maps yol tarifi linki. Koordinat (lat/lng) varsa onu kullanır,
+/// yoksa "ad adres Gebze" metniyle arar.
+String _directionsUrl(Map<String, dynamic> data, String name, String address) {
+  final lat = double.tryParse('${data['lat'] ?? data['latitude'] ?? ''}');
+  final lng = double.tryParse('${data['lng'] ?? data['longitude'] ?? ''}');
+  final String dest;
+  if (lat != null && lng != null) {
+    dest = '$lat,$lng';
+  } else {
+    final mapQuery = (data['mapQuery'] ?? '').toString().trim();
+    final text = [
+      mapQuery.isNotEmpty ? mapQuery : name,
+      if (mapQuery.isEmpty) address,
+      'Gebze Kocaeli'
+    ].where((s) => s.trim().isNotEmpty).join(' ');
+    dest = Uri.encodeComponent(text);
+  }
+  return 'https://www.google.com/maps/dir/?api=1&destination=$dest&travelmode=driving';
+}
+
 class _InstitutionCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final Color color;
@@ -675,6 +964,7 @@ class _InstitutionCard extends StatelessWidget {
     final desc = (data['description'] ?? '').toString();
     final image = (data['image'] ?? '').toString().trim();
     final menuUrl = (data['menuUrl'] ?? '').toString().trim();
+    final showDirections = data['showDirections'] == false ? false : true;
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -735,6 +1025,49 @@ class _InstitutionCard extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                                 color: color)),
                       ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openUrl(
+                      context,
+                      _directionsUrl(data, name, address),
+                      lang,
+                    ),
+                    icon: const Icon(Icons.directions_rounded, size: 18),
+                    label: Text(
+                      _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _C.orange,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                if ((data['url'] ?? data['detailUrl'] ?? '').toString().trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: () => _openUrl(
+                        context,
+                        (data['url'] ?? data['detailUrl'] ?? '').toString().trim(),
+                        lang,
+                      ),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                      label: Text(
+                        _t(lang, 'Resmi Sayfada Gör', 'View on Official Site', 'عرض على الموقع الرسمي'),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
                     ),
                   ),
                 ],
