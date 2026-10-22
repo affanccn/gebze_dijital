@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'auth_guard.dart';
 import 'favorites_service.dart';
+import 'guide_foods.dart';
 import '../core/localization/app_strings.dart';
 import '../core/utils/phone_launcher.dart';
 
@@ -1511,6 +1512,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   final _ctrl = TextEditingController();
   String _query = '';
   String _filter = '';
+  bool _showFoods = false; // false = Mekanlar, true = Lezzetler
 
   @override
   bool get wantKeepAlive => true;
@@ -1559,6 +1561,26 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          child: _DiscoverToggle(
+            lang: widget.lang,
+            showFoods: _showFoods,
+            onChanged: (v) => setState(() => _showFoods = v),
+          ),
+        ),
+        Expanded(
+          child: _showFoods
+              ? GuideFoodsView(lang: widget.lang)
+              : _buildPlaces(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlaces(BuildContext context) {
     final filterAll = AppStrings.get('filter_all', widget.lang);
     final favIds = ref.watch(favoriteIdsProvider);
     final favLabel = _t(widget.lang, 'Favorilerim', 'Favorites', 'المفضلة');
@@ -1705,6 +1727,90 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
           ),
         ),
       ],
+    );
+  }
+}
+
+/// "Mekanlar | Lezzetler" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
+class _DiscoverToggle extends StatelessWidget {
+  final String lang;
+  final bool showFoods;
+  final ValueChanged<bool> onChanged;
+  const _DiscoverToggle({
+    required this.lang,
+    required this.showFoods,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Widget pill(IconData icon, String label, bool selected, VoidCallback onTap) {
+      final selColor = isDark ? const Color(0xFF2563EB) : _C.navy;
+      return Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? selColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: selected
+                      ? Colors.white
+                      : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected
+                        ? Colors.white
+                        : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : _C.field,
+        borderRadius: BorderRadius.circular(24),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+      ),
+      child: Row(
+        children: [
+          pill(
+            Icons.account_balance_rounded,
+            _t(lang, 'Mekanlar', 'Places', 'الأماكن'),
+            !showFoods,
+            () => onChanged(false),
+          ),
+          pill(
+            Icons.restaurant_rounded,
+            _t(lang, 'Lezzetler', 'Flavors', 'النكهات'),
+            showFoods,
+            () => onChanged(true),
+          ),
+        ],
+      ),
     );
   }
 }

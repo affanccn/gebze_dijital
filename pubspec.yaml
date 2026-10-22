@@ -44,6 +44,7 @@ flutter:
     - gorsel/pati/
     - gorsel/tarihi_yerler/
     - gorsel/tesisler/
+    - gorsel/yemek/
     - assets/images/
     - assets/images/avatars/
     - assets/mock/
