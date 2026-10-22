@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'auth_guard.dart';
 import 'favorites_service.dart';
 import 'guide_foods.dart';
+import 'guide_picnic.dart';
 import '../core/localization/app_strings.dart';
 import '../core/utils/phone_launcher.dart';
 
@@ -1512,7 +1513,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   final _ctrl = TextEditingController();
   String _query = '';
   String _filter = '';
-  bool _showFoods = false; // false = Mekanlar, true = Lezzetler
+  int _section = 0; // 0 = Mekanlar, 1 = Lezzetler, 2 = Doğa & Piknik
 
   @override
   bool get wantKeepAlive => true;
@@ -1567,14 +1568,16 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
           child: _DiscoverToggle(
             lang: widget.lang,
-            showFoods: _showFoods,
-            onChanged: (v) => setState(() => _showFoods = v),
+            selected: _section,
+            onChanged: (v) => setState(() => _section = v),
           ),
         ),
         Expanded(
-          child: _showFoods
-              ? GuideFoodsView(lang: widget.lang)
-              : _buildPlaces(context),
+          child: switch (_section) {
+            1 => GuideFoodsView(lang: widget.lang),
+            2 => GuidePicnicView(lang: widget.lang),
+            _ => _buildPlaces(context),
+          },
         ),
       ],
     );
@@ -1731,57 +1734,55 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   }
 }
 
-/// "Mekanlar | Lezzetler" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
+/// "Mekanlar | Lezzetler | Doğa & Piknik" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
 class _DiscoverToggle extends StatelessWidget {
   final String lang;
-  final bool showFoods;
-  final ValueChanged<bool> onChanged;
+  final int selected;
+  final ValueChanged<int> onChanged;
   const _DiscoverToggle({
     required this.lang,
-    required this.showFoods,
+    required this.selected,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selColor = isDark ? const Color(0xFF2563EB) : _C.navy;
+    final off = isDark ? const Color(0xFF94A3B8) : _C.textMuted;
 
-    Widget pill(IconData icon, String label, bool selected, VoidCallback onTap) {
-      final selColor = isDark ? const Color(0xFF2563EB) : _C.navy;
+    Widget pill(int index, IconData icon, String label) {
+      final sel = selected == index;
       return Expanded(
         child: GestureDetector(
-          onTap: onTap,
+          onTap: () => onChanged(index),
           behavior: HitTestBehavior.opaque,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             height: 40,
             alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
             decoration: BoxDecoration(
-              color: selected ? selColor : Colors.transparent,
+              color: sel ? selColor : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: selected
-                      ? Colors.white
-                      : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected
-                        ? Colors.white
-                        : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 18, color: sel ? Colors.white : off),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                      color: sel ? Colors.white : off,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1797,18 +1798,12 @@ class _DiscoverToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          pill(
-            Icons.account_balance_rounded,
-            _t(lang, 'Mekanlar', 'Places', 'الأماكن'),
-            !showFoods,
-            () => onChanged(false),
-          ),
-          pill(
-            Icons.restaurant_rounded,
-            _t(lang, 'Lezzetler', 'Flavors', 'النكهات'),
-            showFoods,
-            () => onChanged(true),
-          ),
+          pill(0, Icons.account_balance_rounded,
+              _t(lang, 'Mekanlar', 'Places', 'الأماكن')),
+          pill(1, Icons.restaurant_rounded,
+              _t(lang, 'Lezzetler', 'Flavors', 'النكهات')),
+          pill(2, Icons.forest_rounded,
+              _t(lang, 'Doğa & Piknik', 'Nature', 'الطبيعة')),
         ],
       ),
     );
