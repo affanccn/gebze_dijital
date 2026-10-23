@@ -765,8 +765,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'Enderun Çocuk Atölyeleri - Mustafa Paşa Birimi',
-      'description': '2-6 yaş çocukların gelişimini oyun, keşif ve atölyelerle destekleyen çocuk merkezli eğitim alanı.',
+      'name': isEn
+          ? 'Enderun Child Workshops - Mustafa Paşa Center'
+          : isAr
+              ? 'ورش عمل أندرون للأطفال - فرع مصطفى باشا الرئيسي'
+              : 'Enderun Çocuk Atölyeleri - Mustafa Paşa Birimi',
+      'description': isEn
+          ? 'Child-centered educational space supporting the development of children aged 2-6 through games, discovery, and workshops.'
+          : isAr
+              ? 'مساحة تعليمية تركز على الطفل وتدعم تنمية الأطفال من عمر 2 إلى 6 سنوات من خلال اللعب والاكتشاف وورش العمل.'
+              : '2-6 yaş çocukların gelişimini oyun, keşif ve atölyelerle destekleyen çocuk merkezli eğitim alanı.',
       'address': 'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Enderun Çocuk Atölyeleri Mustafa Paşa Gebze',
@@ -774,8 +782,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'Enderun Çocuk Atölyeleri - İstasyon Şubesi',
-      'description': 'İstasyon Bilim Sanat Merkezi bünyesinde çocuklara yönelik sanat, bilim ve değerler eğitimi atölyeleri.',
+      'name': isEn
+          ? 'Enderun Child Workshops - İstasyon Branch'
+          : isAr
+              ? 'ورش عمل أندرون للأطفال - فرع إستاسيون'
+              : 'Enderun Çocuk Atölyeleri - İstasyon Şubesi',
+      'description': isEn
+          ? 'Art, science, and values education workshops for children within the İstasyon Science and Art Center.'
+          : isAr
+              ? 'ورش عمل في الفن والعلوم والتعليم القيمي للأطفال داخل مركز إستاسيون للعلوم والفنون.'
+              : 'İstasyon Bilim Sanat Merkezi bünyesinde çocuklara yönelik sanat, bilim ve değerler eğitimi atölyeleri.',
       'address': 'İstasyon Mah. 1409/1. Sokak No: 14, 41400 Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'İstasyon Bilim Sanat Merkezi Gebze',
@@ -783,8 +799,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'Enderun Çocuk Atölyeleri - Arapçeşme Şubesi',
-      'description': 'Arapçeşme Bilim Sanat Merkezi bünyesinde 2-6 yaş grubuna özel eğitim ve atölye faaliyetleri.',
+      'name': isEn
+          ? 'Enderun Child Workshops - Arapçeşme Branch'
+          : isAr
+              ? 'ورش عمل أندرون للأطفال - فرع أرابçeşme'
+              : 'Enderun Çocuk Atölyeleri - Arapçeşme Şubesi',
+      'description': isEn
+          ? 'Specialized educational and workshop activities for children in the Arapçeşme Science and Art Center.'
+          : isAr
+              ? 'أنشطة تعليمية وورش عمل خاصة للأطفال داخل مركز أرابçeşme للعلوم والفنون.'
+              : 'Arapçeşme Bilim Sanat Merkezi bünyesinde 2-6 yaş grubuna özel eğitim ve atölye faaliyetleri.',
       'address': 'Arapçeşme Mah. Kavak Cad. 1066. Sokak No: 27, Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Arapçeşme Bilim Sanat Merkezi Gebze',
@@ -792,8 +816,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'Enderun Çocuk Atölyeleri - Âdem Yavuz Şubesi',
-      'description': 'Âdem Yavuz Mahallesi sosyal tesis alanı içerisinde çocuk gelişim atölyeleri.',
+      'name': isEn
+          ? 'Enderun Child Workshops - Âdem Yavuz Branch'
+          : isAr
+              ? 'ورش عمل أندرون للأطفال - فرع آدم ياووز'
+              : 'Enderun Çocuk Atölyeleri - Âdem Yavuz Şubesi',
+      'description': isEn
+          ? 'Child development workshops located within the Âdem Yavuz neighborhood social facility.'
+          : isAr
+              ? 'ورش عمل لتنمية مهارات الأطفال تقع داخل المرفق الاجتماعي لحي آدم ياووز.'
+              : 'Âdem Yavuz Mahallesi sosyal tesis alanı içerisinde çocuk gelişim atölyeleri.',
       'address': 'Adem Yavuz Mah. 2341. Sokak No: 31, Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Adem Yavuz Sosyal Tesisleri Gebze',
@@ -801,8 +833,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'Sportif Çocuk Atölyesi - Eray Şamdan Şubesi',
-      'description': '5-8 yaş çocuklara cimnastik, basketbol, masa tenisi, koordinasyon parkurları ve eğlenceli atletizm imkanı.',
+      'name': isEn
+          ? 'Sportif Çocuk Atölyesi - Eray Şamdan Branch'
+          : isAr
+              ? 'ورش عمل رياضية للأطفال - فرع إراي شامدان'
+              : 'Sportif Çocuk Atölyesi - Eray Şamdan Şubesi',
+      'description': isEn
+          ? 'Gymnastics, basketball, table tennis, coordination courses, and fun athletics for children aged 5-8.'
+          : isAr
+              ? 'كورة قدم، كرة سلة، تنس الطاولة، دورات التنسيق، والرياضيات الممتعة للأطفال من 5-8 سنوات.'
+              : '5-8 yaş çocuklara cimnastik, basketbol, masa tenisi, koordinasyon parkurları ve eğlenceli atletizm imkanı.',
       'address': 'Cumhuriyet Mah. Necip Fazıl Cad. No: 102 (Eray Şamdan Spor Salonu), Gebze / Kocaeli',
       'phone': '0262 641 24 93',
       'mapQuery': 'Eray Şamdan Kapalı Spor Salonu Gebze',
@@ -810,8 +850,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'Enderun Çocuk Atölyeleri - Kirazpınar Şubesi',
-      'description': 'Kirazpınar bölgesindeki çocuklara yönelik okul öncesi eğitsel atölyeler.',
+      'name': isEn
+          ? 'Enderun Child Workshops - Kirazpınar Branch'
+          : isAr
+              ? 'ورش عمل أندرون للأطفال - فرع كيرازپينار'
+              : 'Enderun Çocuk Atölyeleri - Kirazpınar Şubesi',
+      'description': isEn
+          ? 'Preschool educational workshops for children in the Kirazpınar area.'
+          : isAr
+              ? 'ورش عمل تعليمية للاطفال في منطقة كيرازپينار.'
+              : 'Kirazpınar bölgesindeki çocuklara yönelik okul öncesi eğitsel atölyeler.',
       'address': 'Kirazpınar Mah. 2814. Sokak (Takva Mescidi Yanı), Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Kirazpınar Gebze',
@@ -819,8 +867,16 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
     {
-      'title': 'AKÇEM - Anne, Kadın ve Çocuk Eğitim Merkezi',
-      'description': 'Annelerin, kadınların ve çocukların eğitim ile sosyal gelişim süreçlerini destekleyen aile odaklı merkez.',
+      'name': isEn
+          ? 'AKÇEM - Mother, Woman and Child Education Center'
+          : isAr
+              ? 'مركز تعليم الأمهات والنساء والأطفال'
+              : 'AKÇEM - Anne, Kadın ve Çocuk Eğitim Merkezi',
+      'description': isEn
+          ? 'Family-oriented center supporting mothers, women, and children in their educational and social development.'
+          : isAr
+              ? 'مركز موجه للأسر يدعم الأمهات والنساء والأطفال في مشاريعهم التعليمية والاجتماعية.'
+              : 'Annelerin, kadınların ve çocukların eğitim ile sosyal gelişim süreçlerini destekleyen aile odaklı merkez.',
       'address': 'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'AKÇEM Gebze',
