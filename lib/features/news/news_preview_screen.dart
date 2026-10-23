@@ -17,40 +17,90 @@ class NewsPreviewScreen extends ConsumerStatefulWidget {
 
 class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
   String? _summary;
+  String? _title;
   bool _isLoadingSummary = true;
+  String _currentLang = '';
 
   @override
   void initState() {
     super.initState();
-    _initSummary();
+    final initialLang = ref.read(appLanguageProvider);
+    _initForLang(initialLang);
   }
 
-  void _initSummary() {
-    if (widget.news.summary.isNotEmpty) {
-      _summary = widget.news.summary;
+  void _initForLang(String lang) {
+    _currentLang = lang;
+
+    // 1. Başlık hazırlığı
+    final locTitle = widget.news.localizedTitle(lang);
+    if (lang != 'tr' && (locTitle == widget.news.title || locTitle.isEmpty)) {
+      _title = widget.news.title;
+      NewsService().translateText(widget.news.title, lang).then((transTitle) {
+        if (mounted && transTitle != null && transTitle.isNotEmpty) {
+          setState(() {
+            _title = transTitle;
+          });
+        }
+      });
+    } else {
+      _title = locTitle;
+    }
+
+    // 2. Özet hazırlığı
+    final locSummary = widget.news.localizedSummary(lang);
+    if (locSummary.isNotEmpty) {
+      _summary = locSummary;
       _isLoadingSummary = false;
       return;
     }
 
-    _loadSummary();
+    _loadSummary(lang);
   }
 
-  Future<void> _loadSummary() async {
+  Future<void> _loadSummary(String lang) async {
+    setState(() {
+      _isLoadingSummary = true;
+    });
+
     final fetched = await NewsService().fetchNewsSummary(
       widget.news.url,
       title: widget.news.title,
     );
 
-    if (mounted) {
+    if (!mounted) return;
+
+    if (fetched != null && fetched.isNotEmpty) {
+      if (lang == 'tr') {
+        setState(() {
+          _summary = fetched;
+          _isLoadingSummary = false;
+        });
+      } else {
+        final translated = await NewsService().translateText(fetched, lang);
+        if (mounted) {
+          setState(() {
+            _summary = translated ?? _buildFallbackSummary(widget.news, lang);
+            _isLoadingSummary = false;
+          });
+        }
+      }
+    } else {
       setState(() {
-        _summary = fetched ?? _buildFallbackSummary(widget.news);
+        _summary = _buildFallbackSummary(widget.news, lang);
         _isLoadingSummary = false;
       });
     }
   }
 
-  String _buildFallbackSummary(MunicipalNews news) {
-    return '${news.title}. Gebze Belediyesi ekipleri tarafından vatandaşlarımızın yaşam kalitesini artırmak ve ilçemize değer katmak amacıyla yürütülen kapsamlı çalışmalar aralıksız sürmektedir. Hizmet bülteni, teknik detaylar, yapılan uygulamalar ve ilgili fotoğraf galerisine ulaşarak haberin tam metnini okumak için Devamını Oku butonunu kullanabilirsiniz.';
+  String _buildFallbackSummary(MunicipalNews news, String lang) {
+    final title = news.localizedTitle(lang);
+    if (lang == 'en') {
+      return '$title. Comprehensive municipal works carried out by Gebze Municipality teams to improve the quality of life of our citizens continue without interruption. You can tap the Read More button to access the official announcement, details, and photo gallery.';
+    }
+    if (lang == 'ar') {
+      return '$title. تتواصل أعمال بلدية غبزة الشاملة لتحسين جودة حياة المواطنين وإضافة قيمة للمنطقة دون انقطاع. يمكنك الضغط على زر اقرأ المزيد للوصول إلى تفاصيل الخبر الكاملة ومعرض الصور على الموقع الرسمي.';
+    }
+    return '$title. Gebze Belediyesi ekipleri tarafından vatandaşlarımızın yaşam kalitesini artırmak ve ilçemize değer katmak amacıyla yürütülen kapsamlı çalışmalar aralıksız sürmektedir. Hizmet bülteni, teknik detaylar, yapılan uygulamalar ve ilgili fotoğraf galerisine ulaşarak haberin tam metnini okumak için Devamını Oku butonunu kullanabilirsiniz.';
   }
 
   Future<void> _openNewsDetail() async {
@@ -74,7 +124,16 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
     final lang = ref.watch(appLanguageProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final displaySummary = _summary ?? _buildFallbackSummary(widget.news);
+    if (_currentLang != lang) {
+      // Dil değiştiğinde ilgili dile ait özet ve başlığı yeniden başlat
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _initForLang(lang);
+      });
+    }
+
+    final displayTitle = _title ?? widget.news.localizedTitle(lang);
+    final displaySummary = _summary ?? _buildFallbackSummary(widget.news, lang);
+    final displayDate = widget.news.localizedDate(lang);
 
     return Scaffold(
       backgroundColor: isDark
@@ -188,52 +247,56 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF7A00).withAlpha(isDark ? 35 : 20),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.newspaper_rounded,
-                                  size: 14,
-                                  color: Color(0xFFFF7A00),
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'GEBZE BELEDİYESİ GÜNCEL',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
+                      child: Directionality(
+                        textDirection: lang == 'ar'
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF7A00).withAlpha(isDark ? 35 : 20),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.newspaper_rounded,
+                                    size: 14,
                                     color: Color(0xFFFF7A00),
-                                    letterSpacing: 0.5,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    AppStrings.get('news_badge_title', lang),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFFFF7A00),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            widget.news.title,
-                            style: TextStyle(
-                              fontSize: 18.5,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0A1F44),
-                              height: 1.35,
+                            const SizedBox(height: 12),
+                            Text(
+                              displayTitle,
+                              style: TextStyle(
+                                fontSize: 18.5,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0A1F44),
+                                height: 1.35,
+                              ),
                             ),
-                          ),
-                          if (widget.news.publishedAtText.isNotEmpty) ...[
+                          if (displayDate.isNotEmpty) ...[
                             const SizedBox(height: 10),
                             Row(
                               children: [
@@ -246,7 +309,7 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  widget.news.publishedAtText,
+                                  displayDate,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     color: isDark
@@ -359,6 +422,7 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
                       ),
                     ),
                   ),
+                ),
                 ],
               ),
             ),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:html/parser.dart' as html_parser;
@@ -13,20 +14,79 @@ class NewsService {
 
   static final Map<String, String> _summaryCache = {};
 
+  /// Metni hedef dile ('en', 'ar') anlık olarak çevirir (ücretsiz Google Translate servisi).
+  Future<String?> translateText(String text, String targetLang) async {
+    if (text.trim().isEmpty || targetLang == 'tr') return text;
+    final cacheKey = '$targetLang:${text.hashCode}';
+    if (_summaryCache.containsKey(cacheKey)) {
+      return _summaryCache[cacheKey];
+    }
+    try {
+      final clean = text.trim();
+      final uri = Uri.parse(
+        'https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=$targetLang&dt=t&q=${Uri.encodeComponent(clean)}',
+      );
+      final res = await http.get(uri, headers: {
+        'User-Agent': 'Mozilla/5.0',
+      }).timeout(const Duration(seconds: 6));
+      if (res.statusCode == 200) {
+        final dynamic data = jsonDecode(res.body);
+        if (data is List && data.isNotEmpty && data[0] is List) {
+          final translated = (data[0] as List)
+              .map((seg) =>
+                  (seg != null && seg is List && seg.isNotEmpty)
+                      ? seg[0].toString()
+                      : '')
+              .join('')
+              .trim();
+          if (translated.isNotEmpty) {
+            _summaryCache[cacheKey] = translated;
+            return translated;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Haber çeviri hatası ($targetLang): $e');
+    }
+    return null;
+  }
+
+
   /// En yeni haber en üstte (sitedeki haber numarası büyük = daha yeni).
-  /// `newsId` alanı olmayan eski dokümanlar listeye girmez.
-  /// Tek alanlı sıralama olduğu için birleşik index gerekmez.
-  Stream<List<MunicipalNews>> watchNews({int limit = 100}) {
+  /// Mükerrer / çift kayıt oluşmasını engellemek için newsId ve başlığa göre tekilleştirilir.
+  /// Varsayılan olarak sadece en güncel 10 haber alınır.
+  Stream<List<MunicipalNews>> watchNews({int limit = 10}) {
     return _firestore
         .collection('municipal_news')
         .orderBy('newsId', descending: true)
         .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => MunicipalNews.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+        .map((snapshot) {
+          final map = <String, MunicipalNews>{};
+
+          for (final doc in snapshot.docs) {
+            final item = MunicipalNews.fromMap(doc.id, doc.data());
+            // Tekilleştirme anahtarı: Varsa newsId (örn. 7435), yoksa temizlenmiş başlık
+            final key = item.newsId != null
+                ? 'id_${item.newsId}'
+                : 'title_${item.title.trim().toLowerCase()}';
+
+            if (!map.containsKey(key)) {
+              map[key] = item;
+            } else {
+              // Eğer mevcut kopyanın tarihi boş ama bu kopyada doluysa, dolu olanı seç
+              final existing = map[key]!;
+              if (existing.publishedAtText.isEmpty &&
+                  item.publishedAtText.isNotEmpty) {
+                map[key] = item;
+              } else if (existing.summary.isEmpty && item.summary.isNotEmpty) {
+                map[key] = item;
+              }
+            }
+          }
+
+          return map.values.toList();
+        });
   }
 
   /// Haberin web sayfasından 5-6 satırlık kısa ön okuma / özet metnini çeker.

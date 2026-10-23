@@ -1,9 +1,29 @@
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { Agent, setGlobalDispatcher } from "undici";
+
+// GitHub Actions runner'ları için bağlantı zaman aşımını 45 saniyeye yükseltiyoruz
+const agent = new Agent({
+  connect: {
+    timeout: 45000,
+  },
+  headersTimeout: 45000,
+  bodyTimeout: 45000,
+  keepAliveTimeout: 10000,
+});
+setGlobalDispatcher(agent);
 
 const BASE_URL = "https://www.gebze.bel.tr";
 const EVENTS_JSON_URL = `${BASE_URL}/json/etkinlik.json`;
 const COLLECTION = "events";
+
+const BROWSER_HEADERS = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "application/json, text/plain, */*",
+  "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8",
+  "Cache-Control": "no-cache",
+};
 
 const TR_MONTHS = [
   "",
@@ -66,26 +86,39 @@ function initializeFirebase() {
   return getFirestore();
 }
 
-async function fetchEvents() {
-  console.log(`Etkinlikler çekiliyor: ${EVENTS_JSON_URL}`);
-  const response = await fetch(EVENTS_JSON_URL, {
-    headers: {
-      "User-Agent": "GebzeDijitalEventsBot/1.0",
-      "Accept": "application/json",
-    },
-    signal: AbortSignal.timeout(20000),
-  });
+async function fetchEvents(maxRetries = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Etkinlikler çekiliyor (${attempt}/${maxRetries}): ${EVENTS_JSON_URL}`);
+      const response = await fetch(EVENTS_JSON_URL, {
+        headers: BROWSER_HEADERS,
+        signal: AbortSignal.timeout(45000),
+      });
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${EVENTS_JSON_URL}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${EVENTS_JSON_URL}`);
+      }
+
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Etkinlik verisi liste formatında dönmedi.");
+      }
+
+      return data;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        `⚠️ İstek başarısız (${attempt}/${maxRetries}): ${err?.message || err}`
+      );
+      if (attempt < maxRetries) {
+        const delayMs = attempt * 3000;
+        console.log(`⏳ ${delayMs / 1000} saniye sonra tekrar deneniyor...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
-
-  const data = await response.json();
-  if (!Array.isArray(data)) {
-    throw new Error("Etkinlik verisi liste formatında dönmedi.");
-  }
-
-  return data;
+  throw lastError;
 }
 
 function normalizeEvent(item) {
@@ -135,7 +168,27 @@ function normalizeEvent(item) {
 
 async function main() {
   const db = initializeFirebase();
-  const rawEvents = await fetchEvents();
+  let rawEvents;
+  try {
+    rawEvents = await fetchEvents();
+  } catch (error) {
+    const isTimeout =
+      error?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+      error?.cause?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+      error?.name === "TimeoutError" ||
+      error?.message?.includes("Connect Timeout") ||
+      error?.message?.includes("fetch failed");
+
+    if (isTimeout) {
+      console.warn(
+        "\n⚠️ [GEÇİCİ AĞ UYARISI] www.gebze.bel.tr adresine bağlanılamadı (ConnectTimeoutError)." +
+        "\nBelediye sunucusu şu an geçici olarak erişilemez durumda olabilir." +
+        "\nMevcut Firestore etkinlik verileri korundu. Bir sonraki çalıştırmada tekrar denenecek.\n"
+      );
+      return;
+    }
+    throw error;
+  }
 
   console.log(`Toplam ${rawEvents.length} adet etkinlik verisi alındı.`);
   if (rawEvents.length === 0) {
@@ -164,6 +217,22 @@ async function main() {
 }
 
 main().catch((err) => {
+  const isTimeout =
+    err?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+    err?.cause?.code === "UND_ERR_CONNECT_TIMEOUT" ||
+    err?.name === "TimeoutError" ||
+    err?.message?.includes("Connect Timeout") ||
+    err?.message?.includes("fetch failed");
+
+  if (isTimeout) {
+    console.warn(
+      "\n⚠️ [UYARI] Belediye sunucusuna bağlantı kurulamadığı için etkinlik senkronizasyonu pas geçildi." +
+      "\nFirestore veritabanı korundu.\n"
+    );
+    process.exitCode = 0;
+    return;
+  }
+
   console.error("Etkinlik senkronizasyonu hatası:", err);
   process.exitCode = 1;
 });

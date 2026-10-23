@@ -14,8 +14,6 @@ import '../core/localization/app_strings.dart';
 import '../core/utils/phone_launcher.dart';
 import '../core/accessibility/font_scale_provider.dart';
 import '../core/theme/theme_provider.dart';
-import 'my_requests_screen.dart';
-import 'report_common.dart';
 import 'services_screen.dart';
 
 class _C {
@@ -100,7 +98,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (widget.openRequestsOnStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _openActivitiesSheet(context, 'talep', ref.read(appLanguageProvider));
+        _openActivitiesSheet(context, 'oneri', ref.read(appLanguageProvider));
       });
     }
   }
@@ -517,13 +515,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildStatItem(
-            AppStrings.get('stat_requests', lang),
-            '${ref.watch(myReportCountProvider)}',
-            Icons.assignment_rounded,
-            () => _openActivitiesSheet(context, 'talep', lang),
-          ),
-          _buildStatDivider(),
-          _buildStatItem(
             AppStrings.get('stat_suggestions', lang),
             '${profile.totalSuggestions}',
             Icons.record_voice_over_rounded,
@@ -664,15 +655,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String lang,
   ) {
     return _buildGroupCard([
-      _buildListTile(
-        icon: Icons.assignment_turned_in_rounded,
-        iconColor: const Color(0xFF1E5BC6),
-        title: AppStrings.get('act_requests_title', lang),
-        subtitle:
-            '${ref.watch(myReportCountProvider)} ${AppStrings.get('stat_requests', lang)}',
-        onTap: () => _openActivitiesSheet(context, 'talep', lang),
-      ),
-      _buildDivider(),
       _buildListTile(
         icon: Icons.lightbulb_rounded,
         iconColor: const Color(0xFFF57C00),
@@ -1461,13 +1443,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       builder: (ctx) {
         return DefaultTabController(
-          length: 4,
-          initialIndex: initialType == 'oneri'
+          length: 3,
+          initialIndex: initialType == 'destek'
               ? 1
-              : initialType == 'destek'
-              ? 2
               : initialType == 'kayit'
-              ? 3
+              ? 2
               : 0,
           child: Container(
             constraints: BoxConstraints(
@@ -1509,7 +1489,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     fontSize: 13,
                   ),
                   tabs: [
-                    Tab(text: AppStrings.get('stat_requests', lang)),
                     Tab(text: AppStrings.get('stat_suggestions', lang)),
                     Tab(text: AppStrings.get('stat_supports', lang)),
                     Tab(text: AppStrings.get('stat_saved', lang)),
@@ -1553,7 +1532,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       final list = snapshot.data ?? [];
                       return TabBarView(
                         children: [
-                          const MyRequestsList(),
                           _buildActivityList(
                             list.where((a) => a.type == 'oneri').toList(),
                             lang,

@@ -1267,6 +1267,8 @@ class _InstitutionListScreen extends StatefulWidget {
 class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   final _ctrl = TextEditingController();
   String _query = '';
+  String _selectedTimeFilter = 'upcoming'; // 'upcoming', 'this_month', 'all', 'past'
+  String _selectedEventCategory = 'all'; // 'all', 'tiyatro', 'sinema', 'konser', 'soylesi', 'cocuk', 'diger'
 
   @override
   void dispose() {
@@ -1274,15 +1276,130 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
     super.dispose();
   }
 
-  bool _matches(Map<String, dynamic> d, String q) {
-    if (q.isEmpty) return true;
-    final text = [
-      d['name'],
-      d['description'],
-      d['address'],
-      d['phone'],
-    ].map((e) => (e ?? '').toString().toLowerCase()).join(' ');
-    return text.contains(q);
+  bool _matches(
+    Map<String, dynamic> d,
+    String q, {
+    String? todayStr,
+    DateTime? now,
+  }) {
+    if (q.isNotEmpty) {
+      final text = [
+        d['name'],
+        d['description'],
+        d['address'],
+        d['phone'],
+        d['category'],
+        d['formattedDate'],
+        d['date'],
+      ].map((e) => (e ?? '').toString().toLowerCase()).join(' ');
+      if (!text.contains(q)) return false;
+    }
+
+    if (widget.category.id != 'etkinlikler') return true;
+
+    final dateStr = (d['date'] ?? '').toString();
+    final cat = (d['category'] ?? '').toString().toLowerCase();
+
+    // 1. Zaman Filtresi
+    if (todayStr != null && dateStr.isNotEmpty) {
+      if (_selectedTimeFilter == 'upcoming') {
+        if (dateStr.compareTo(todayStr) < 0) return false;
+      } else if (_selectedTimeFilter == 'this_month') {
+        if (now != null) {
+          final prefix = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+          if (!dateStr.startsWith(prefix)) return false;
+        }
+      } else if (_selectedTimeFilter == 'past') {
+        if (dateStr.compareTo(todayStr) >= 0) return false;
+      }
+    }
+
+    // 2. Kategori Filtresi
+    if (_selectedEventCategory != 'all') {
+      if (_selectedEventCategory == 'tiyatro') {
+        if (!cat.contains('tiyatro')) return false;
+      } else if (_selectedEventCategory == 'sinema') {
+        if (!cat.contains('sinema')) return false;
+      } else if (_selectedEventCategory == 'konser') {
+        if (!cat.contains('konser') && !cat.contains('müzik')) return false;
+      } else if (_selectedEventCategory == 'soylesi') {
+        if (!cat.contains('söyleşi') && !cat.contains('konferans')) return false;
+      } else if (_selectedEventCategory == 'cocuk') {
+        if (!cat.contains('çocuk') && !cat.contains('sirk')) return false;
+      } else if (_selectedEventCategory == 'diger') {
+        if (cat.contains('tiyatro') ||
+            cat.contains('sinema') ||
+            cat.contains('konser') ||
+            cat.contains('söyleşi') ||
+            cat.contains('konferans') ||
+            cat.contains('çocuk')) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+    IconData? icon,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF1E5BC6)
+              : (isDark ? const Color(0xFF1E293B) : Colors.white),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF1E5BC6)
+                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1E5BC6).withAlpha(60),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 13.5,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : _C.textDark),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -1342,21 +1459,27 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                     'description': 'Osman Hamdi Bey Kültür Merkezi\'nde tiyatro ve söyleşi programı.',
                     'address': 'Osman Hamdi Bey Kültür Merkezi, Gebze',
                     'phone': '0262 642 04 30',
-                    'date': '24 Ekim 2026',
+                    'date': '2026-10-24',
+                    'formattedDate': '24 Ekim 2026',
+                    'category': 'Söyleşi',
                   },
                   {
                     'name': 'Gençlik & Spor Festivali',
                     'description': 'Gebze genelindeki genç sporcuların katılımıyla turnuvalar ve konser.',
                     'address': 'Gebze Kapalı Spor Salonu',
                     'phone': '0262 641 10 10',
-                    'date': '28 Ekim 2026',
+                    'date': '2026-10-28',
+                    'formattedDate': '28 Ekim 2026',
+                    'category': 'Konser',
                   },
                   {
                     'name': 'Doğa Yürüyüşü & Bisiklet Günü',
                     'description': 'Gaziler Dağı Tabiat Parkı\'nda açık hava rekreasyon ve bisiklet parkuru.',
                     'address': 'Gaziler Dağı Tabiat Parkı, Gebze',
                     'phone': '0262 642 04 30',
-                    'date': '2 Kasım 2026',
+                    'date': '2026-11-02',
+                    'formattedDate': '2 Kasım 2026',
+                    'category': 'Özel Program',
                   },
                 ];
               } else {
@@ -1391,6 +1514,10 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                     'phone': m['phone'] ?? '',
                     'image': m['image'] ?? m['imageUrl'] ?? '',
                     'url': m['url'] ?? '',
+                    'category': m['category'] ?? 'Kültür & Sanat',
+                    'date': m['date'] ?? '',
+                    'formattedDate': m['formattedDate'] ?? m['date'] ?? '',
+                    'time': m['time'] ?? '',
                   };
                 }).toList();
               }
@@ -1421,17 +1548,137 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
               }
               rawItems = docs.map((d) => d.data()).toList();
             }
-            final items = rawItems.where((d) => _matches(d, q)).toList();
+            final now = DateTime.now();
+            final today =
+                '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+            final items = rawItems
+                .where((d) => _matches(d, q, todayStr: today, now: now))
+                .toList();
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                   child: _SearchField(
                     controller: _ctrl,
-                    hint: _t(lang, 'Ara...', 'Search...', 'بحث...'),
+                    hint: category.id == 'etkinlikler'
+                        ? _t(
+                            lang,
+                            'Etkinlik, mekan veya tür ara...',
+                            'Search event, venue, or category...',
+                            'ابحث عن فعالية أو مكان...',
+                          )
+                        : _t(lang, 'Ara...', 'Search...', 'بحث...'),
                     onChanged: (v) => setState(() => _query = v),
                   ),
                 ),
+                if (category.id == 'etkinlikler') ...[
+                  // 1. Zaman Filtresi (Zaman Chipleri)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    child: Row(
+                      children: [
+                        _buildFilterChip(
+                          label: _t(lang, 'Yaklaşanlar', 'Upcoming', 'القادمة'),
+                          icon: Icons.event_available_rounded,
+                          isSelected: _selectedTimeFilter == 'upcoming',
+                          onTap: () => setState(() => _selectedTimeFilter = 'upcoming'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Bu Ay', 'This Month', 'هذا الشهر'),
+                          icon: Icons.calendar_month_rounded,
+                          isSelected: _selectedTimeFilter == 'this_month',
+                          onTap: () => setState(() => _selectedTimeFilter = 'this_month'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Tüm Tarihler', 'All Dates', 'جميع التواريخ'),
+                          icon: Icons.all_inclusive_rounded,
+                          isSelected: _selectedTimeFilter == 'all',
+                          onTap: () => setState(() => _selectedTimeFilter = 'all'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Geçmiş', 'Past', 'السابقة'),
+                          icon: Icons.history_rounded,
+                          isSelected: _selectedTimeFilter == 'past',
+                          onTap: () => setState(() => _selectedTimeFilter = 'past'),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 2. Kategori Filtresi (Kategori Chipleri)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(16, 3, 16, 8),
+                    child: Row(
+                      children: [
+                        _buildFilterChip(
+                          label: _t(lang, 'Tüm Türler', 'All Categories', 'جميع الفئات'),
+                          icon: Icons.grid_view_rounded,
+                          isSelected: _selectedEventCategory == 'all',
+                          onTap: () => setState(() => _selectedEventCategory = 'all'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Tiyatro', 'Theater', 'مسرح'),
+                          icon: Icons.theater_comedy_rounded,
+                          isSelected: _selectedEventCategory == 'tiyatro',
+                          onTap: () => setState(() => _selectedEventCategory = 'tiyatro'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Sinema', 'Cinema', 'سينما'),
+                          icon: Icons.movie_creation_rounded,
+                          isSelected: _selectedEventCategory == 'sinema',
+                          onTap: () => setState(() => _selectedEventCategory = 'sinema'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Konser', 'Concert', 'حفلات'),
+                          icon: Icons.music_note_rounded,
+                          isSelected: _selectedEventCategory == 'konser',
+                          onTap: () => setState(() => _selectedEventCategory = 'konser'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Söyleşi & Konferans', 'Talks', 'ندوات'),
+                          icon: Icons.record_voice_over_rounded,
+                          isSelected: _selectedEventCategory == 'soylesi',
+                          onTap: () => setState(() => _selectedEventCategory = 'soylesi'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Çocuk', 'Kids', 'للأطفال'),
+                          icon: Icons.child_care_rounded,
+                          isSelected: _selectedEventCategory == 'cocuk',
+                          onTap: () => setState(() => _selectedEventCategory = 'cocuk'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Özel Programlar', 'Special', 'برامج خاصة'),
+                          icon: Icons.star_rounded,
+                          isSelected: _selectedEventCategory == 'diger',
+                          onTap: () => setState(() => _selectedEventCategory = 'diger'),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 Expanded(
                   child: items.isEmpty
                       ? Center(
@@ -1538,6 +1785,62 @@ class _InstitutionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if ((data['category'] != null &&
+                        data['category'].toString().isNotEmpty) ||
+                    (data['formattedDate'] != null &&
+                        data['formattedDate'].toString().isNotEmpty)) ...[
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (data['category'] != null &&
+                          data['category'].toString().isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: color.withAlpha(isDark ? 50 : 25),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            data['category'].toString(),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                      if (data['formattedDate'] != null &&
+                          data['formattedDate'].toString().isNotEmpty)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 12,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : _C.textMuted,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              data['formattedDate'].toString(),
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : _C.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 Text(
                   name,
                   style: TextStyle(
