@@ -394,6 +394,90 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       image: 'gorsel/tarihi_yerler/ballikaya.jpg',
       category: catDoga,
     ),
+        HistoricPlace(
+      id: 'ibrahim_pasa_cesmesi',
+      name: isEn
+          ? 'Ibrahim Pasha Fountain (Market Fountain)'
+          : isAr
+          ? 'سبيل إبراهيم باشا (سبيل السوق)'
+          : 'İbrahim Paşa Çeşmesi (Çarşı Çeşmesi)',
+      summary: isEn
+          ? 'A 17th-century Ottoman fountain in the heart of Gebze, built by Vizier Ibrahim Pasha, right next to the Coban Mustafa Pasha Bath.'
+          : isAr
+          ? 'سبيل عثماني من القرن السابع عشر في قلب جبزة، بناه الوزير إبراهيم باشا بجوار حمام جوبان مصطفى باشا.'
+          : 'Gebze şehir merkezinde, Çoban Mustafa Paşa Hamamı\'nın hemen yanında yer alan; Vezir İbrahim Paşa tarafından 17. yüzyılda yaptırılan Osmanlı çeşmesi.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
+      image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg', // dosya adını klasördekiyle eşleştir
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'eskihisar_cesmesi',
+      name: isEn
+          ? 'Eskihisar Fountain'
+          : isAr
+          ? 'سبيل إسكي حصار'
+          : 'Eskihisar Çeşmesi',
+      summary: isEn
+          ? 'A historic fountain in Eskihisar village, a reminder of the area\'s long Ottoman-era water culture.'
+          : isAr
+          ? 'سبيل تاريخي في قرية إسكي حصار، يذكّر بثقافة المياه العثمانية العريقة في المنطقة.'
+          : 'Eskihisar köyünde bulunan, bölgenin Osmanlı dönemi su kültürünü yansıtan tarihi çeşme.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_eskihisar-cesmesi_11.html',
+      image: 'gorsel/tarihi_yerler/escesme.jpg',
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'su_dolabi',
+      name: isEn
+          ? 'Historic Water Cabinet (Su Dolabı)'
+          : isAr
+          ? 'خزانة المياه التاريخية (سو دولابي)'
+          : 'Tarihi Su Dolabı',
+      summary: isEn
+          ? 'Built by Ibrahim Pasha in 1664, it once supplied Gebze\'s center with well water through clay pipes, and has been restored by the municipality.'
+          : isAr
+          ? 'بناها إبراهيم باشا عام 1664، وكانت تزوّد وسط جبزة بمياه الآبار عبر أنابيب فخارية، وقد رمّمتها البلدية.'
+          : '1664\'te İbrahim Paşa tarafından yaptırılan yapı, kuyulardan çekilen suyu kiremit borularla Gebze merkezine ulaştırırdı; Gebze Belediyesi tarafından restore edildi.',
+      detailUrl: 'https://sende.gebze.bel.tr/tesislerimiz/su-dolabi',
+      image: 'gorsel/tarihi_yerler/sudolabi.jpg',
+      category: catTarihi,
+    ),
+        HistoricPlace(
+      id: 'cmp_sadirvani',
+      name: isEn
+          ? 'Coban Mustafa Pasha Fountain (Sadirvan)'
+          : isAr
+          ? 'شاذروان جوبان مصطفى باشا'
+          : 'Çoban Mustafa Paşa Şadırvanı',
+      summary: isEn
+          ? 'The ablution fountain of the 16th-century Coban Mustafa Pasha Complex, one of the classical Ottoman structures of the complex.'
+          : isAr
+          ? 'شاذروان مجمع جوبان مصطفى باشا من القرن السادس عشر، وهو من العناصر العثمانية الكلاسيكية في المجمع.'
+          : '16. yüzyılda inşa edilen Çoban Mustafa Paşa Külliyesi\'nin klasik dönem Osmanlı mimarisini yansıtan şadırvanı.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
+      image: 'gorsel/tarihi_yerler/sadirvan.jpg', // dosya adını klasördekiyle eşleştir
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'cmp_hamami',
+      name: isEn
+          ? 'Coban Mustafa Pasha Bath'
+          : isAr
+          ? 'حمام جوبان مصطفى باشا'
+          : 'Çoban Mustafa Paşa Hamamı',
+      summary: isEn
+          ? 'The historic bathhouse of the Coban Mustafa Pasha Complex, built in the 16th century and located in the old market area of Gebze.'
+          : isAr
+          ? 'الحمام التاريخي لمجمع جوبان مصطفى باشا، شُيّد في القرن السادس عشر ويقع في منطقة السوق القديمة بجبزة.'
+          : 'Çoban Mustafa Paşa Külliyesi\'nin 16. yüzyıldan kalan tarihi hamamı; Gebze\'nin eski çarşı bölgesinde yer alır.',
+      detailUrl:
+          'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-hamami_12.html',
+      image: 'gorsel/tarihi_yerler/hamam.jpg',
+      category: catTarihi,
+    ),
   ];
 }
 
