@@ -7,6 +7,7 @@ class MunicipalNews {
   final int pageIndex;
   final int itemIndex;
   final String summary;
+  final int? newsId;
   final String? titleEn;
   final String? titleAr;
   final String? summaryEn;
@@ -20,6 +21,7 @@ class MunicipalNews {
     required this.publishedAtText,
     required this.pageIndex,
     required this.itemIndex,
+    this.newsId,
     this.summary = '',
     this.titleEn,
     this.titleAr,
@@ -36,6 +38,7 @@ class MunicipalNews {
       publishedAtText: data['publishedAtText'] as String? ?? '',
       pageIndex: (data['pageIndex'] as num?)?.toInt() ?? 999,
       itemIndex: (data['itemIndex'] as num?)?.toInt() ?? 999,
+      newsId: (data['newsId'] as num?)?.toInt(),
       summary: data['summary'] as String? ??
           data['description'] as String? ??
           data['content'] as String? ??

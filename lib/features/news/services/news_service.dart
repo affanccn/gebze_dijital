@@ -53,19 +53,39 @@ class NewsService {
 
 
   /// En yeni haber en üstte (sitedeki haber numarası büyük = daha yeni).
-  /// `newsId` alanı olmayan eski dokümanlar listeye girmez.
-  /// Tek alanlı sıralama olduğu için birleşik index gerekmez.
+  /// Mükerrer / çift kayıt oluşmasını engellemek için newsId ve başlığa göre tekilleştirilir.
   Stream<List<MunicipalNews>> watchNews({int limit = 100}) {
     return _firestore
         .collection('municipal_news')
         .orderBy('newsId', descending: true)
         .limit(limit)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => MunicipalNews.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+        .map((snapshot) {
+          final map = <String, MunicipalNews>{};
+
+          for (final doc in snapshot.docs) {
+            final item = MunicipalNews.fromMap(doc.id, doc.data());
+            // Tekilleştirme anahtarı: Varsa newsId (örn. 7435), yoksa temizlenmiş başlık
+            final key = item.newsId != null
+                ? 'id_${item.newsId}'
+                : 'title_${item.title.trim().toLowerCase()}';
+
+            if (!map.containsKey(key)) {
+              map[key] = item;
+            } else {
+              // Eğer mevcut kopyanın tarihi boş ama bu kopyada doluysa, dolu olanı seç
+              final existing = map[key]!;
+              if (existing.publishedAtText.isEmpty &&
+                  item.publishedAtText.isNotEmpty) {
+                map[key] = item;
+              } else if (existing.summary.isEmpty && item.summary.isNotEmpty) {
+                map[key] = item;
+              }
+            }
+          }
+
+          return map.values.toList();
+        });
   }
 
   /// Haberin web sayfasından 5-6 satırlık kısa ön okuma / özet metnini çeker.

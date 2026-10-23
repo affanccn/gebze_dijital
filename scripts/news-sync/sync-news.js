@@ -174,6 +174,20 @@ function absoluteUrl(value, base = BASE_URL) {
   }
 }
 
+/**
+ * URL'deki encoding farklarını (örn: %E2%80%9C vs “) normalize eder.
+ * Bu sayede aynı haber farklı URL varyasyonlarıyla çiftlenmez.
+ */
+function canonicalUrl(url) {
+  if (!url) return "";
+  try {
+    return decodeURI(url).trim();
+  } catch {
+    return url.trim();
+  }
+}
+
+
 // "08 Ekim 2026" biçimindeki tarihi yakalar (site bu biçimi kullanıyor).
 const TR_DATE_RE =
   /(\d{1,2})\s+(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kasım|Aralık)\s+(\d{4})/i;
@@ -220,7 +234,7 @@ function extractNews($, pageIndex) {
 
   $('a[href*="/haber/"]').each((_, element) => {
     const link = $(element);
-    const url = absoluteUrl(link.attr("href"));
+    const url = canonicalUrl(absoluteUrl(link.attr("href")));
     if (!url || !url.includes("/haber/")) return;
 
     let rec = byUrl.get(url);
@@ -337,12 +351,13 @@ async function main() {
       const items = extractNews($, i + 1);
 
       for (const item of items) {
-        // URL'den sabit kimlik: aynı haber tekrar eklenmez.
+        // Canonical URL üzerinden SHA256 kimlik: aynı haber tekrar eklenmez.
+        const canonUrl = canonicalUrl(item.url);
         const id = createHash("sha256")
-          .update(item.url)
+          .update(canonUrl)
           .digest("hex");
 
-        allNews.set(id, { id, ...item });
+        allNews.set(id, { id, ...item, url: canonUrl });
       }
 
       console.log(`Sayfa ${i + 1}: ${items.length} haber (${pageUrl})`);
@@ -360,13 +375,27 @@ async function main() {
 
   const entries = [...allNews.values()];
 
-  // 1. Firestore'da halihazırda var olan haberlerin çevirilerini çek (akıllı önbellek)
+  // 1. Firestore'da halihazırda var olan haberlerin çevirilerini çek (akıllı önbellek) ve çift kayıtları temizle
   console.log("Firestore'daki mevcut haber kayıtları ve çevirileri taranıyor...");
   const translationCache = new Map();
+  const existingByNewsId = new Map();
+  const duplicatesToDelete = [];
+
   try {
     const existingSnapshot = await db.collection(COLLECTION).get();
     for (const doc of existingSnapshot.docs) {
       const data = doc.data();
+      const newsId = data.newsId;
+
+      if (newsId) {
+        if (existingByNewsId.has(newsId)) {
+          console.warn(`⚠️ Çift kayıt tespit edildi (newsId: ${newsId}, doc: ${doc.id}). Temizlenecek.`);
+          duplicatesToDelete.push(doc.id);
+        } else {
+          existingByNewsId.set(newsId, doc.id);
+        }
+      }
+
       translationCache.set(doc.id, {
         title_en: data.title_en || "",
         title_ar: data.title_ar || "",
@@ -374,6 +403,13 @@ async function main() {
         summary_en: data.summary_en || "",
         summary_ar: data.summary_ar || "",
       });
+    }
+
+    if (duplicatesToDelete.length > 0) {
+      console.log(`${duplicatesToDelete.length} adet mükerrer doküman Firestore'dan siliniyor...`);
+      for (const dupId of duplicatesToDelete) {
+        await db.collection(COLLECTION).doc(dupId).delete();
+      }
     }
     console.log(`Mevcut ${translationCache.size} doküman önbelleğe alındı.`);
   } catch (err) {
