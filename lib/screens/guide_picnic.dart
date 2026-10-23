@@ -18,7 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 ///   lat, lng                        -> number (varsa yol tarifi bunu kullanır)
 ///   mapQuery                        -> koordinat yoksa haritada aranacak metin
 ///   image                           -> https://... ya da gorsel/... asset yolu
-///   features, features_en, features_ar -> List<String> (ör. çardak, otopark)
+///   features, features_en, features_ar -> `List<String>` (ör. çardak, otopark)
 ///   order                           -> number (sıralama)
 
 class _C {
@@ -145,30 +145,230 @@ class GebzePicnic {
 // Firestore boşken görünür. Görsel/koordinat/açıklamayı Firestore'dan ekleyin.
 
 List<GebzePicnic> _fallbackPicnic() {
-  const rows = <List<String>>[
-    // [ad, tür, adres/köy, mapQuery]
-    ['Eskihisar Korusu', 'piknik', 'Eskihisar', 'Eskihisar Korusu Gebze'],
-    ['Pelitli Bayraktepe Mesire Alanı', 'mesire', 'Pelitli', 'Gebze Belediyesi Pelitli Bayraktepe Mesire Alanı'],
-    ['Gazilerdağı Tabiat Parkı', 'doga', 'Gaziler', 'Gazilerdağı Tabiat Parkı Gebze'],
-    ['Gaziler Piknik Alanı', 'piknik', 'Dicle Cd. No:48, Gaziler', 'Gaziler piknik alanı Gebze'],
-    ['Cumaköy Mesire Alanı', 'mesire', 'Cumaköy', 'Gebze Belediyesi Cumaköy Mesire Alanı'],
-    ['Düz Meşe Mesire Yeri', 'mesire', 'Gebze / Kocaeli', 'Düz Meşe Mesire Yeri Gebze'],
-    ['Tatlıkuyu Vadisi', 'park', '1312/1. Sk. No:20', 'Tatlıkuyu Vadisi Gebze'],
-    ['Gaziler Parkı', 'park', 'Şht. Özcan Demirci Cd. No:50', 'Gaziler Parkı Gebze'],
-    ['Yumrukaya Piknik Alanı', 'piknik', 'İbrahim Ağa Cd.', 'Yumrukaya Piknik Alanı Gebze'],
-    ['Ballıkayalar Tabiat Parkı', 'doga', 'Barış Cd.', 'Ballıkayalar Tabiat Parkı Gebze'],
+  final items = <Map<String, dynamic>>[
+    {
+      'id': 'doga_beylikdagi',
+      'name': 'Beylikdağı Orman Yürüyüşü',
+      'name_en': 'Beylikdagi Forest Walk',
+      'name_ar': 'مسار غابة بيليك داغي',
+      'summary':
+          'Gebze\'nin doğal yeşil alanlarından biri olan Beylikdağı Kent Ormanı, şehir hayatının yoğunluğundan uzaklaşmak ve doğayla vakit geçirmek isteyenler için değerlendirilebilecek bir alandır. Ağaçlandırılmış yamaçları ve orman dokusuyla açık havada yürüyüş yapmak, temiz hava almak ve doğa fotoğrafları çekmek isteyenlere farklı bir deneyim sunar.\n\nKent ormanı, Gebze\'nin yeşil alanlarını keşfetmek ve doğayla iç içe zaman geçirmek isteyen vatandaşlar için potansiyel bir doğa rotasıdır.\n\nZiyaret öncesi: Yürüyüş güzergâhı, erişim durumu ve mevcut olanaklar hakkında güncel bilgi alınması önerilir.',
+      'summary_en':
+          'One of Gebze\'s natural green areas, Beylikdagi City Forest offers a peaceful route for open-air walking, fresh air, and nature photography among afforested hillsides.\n\nPre-visit note: Checking the current route accessibility is recommended.',
+      'summary_ar':
+          'تعتبر غابة بيليك داغي الحضرية إحدى المناطق الخضراء الطبيعية في جبزة، وتوفر مساراً رائعاً للمشي في الهواء الطلق واستنشاق الهواء النقي والتصوير الطبيعي.',
+      'type': 'doga',
+      'village': 'Beylikdağı',
+      'address': 'Beylikdağı, Gebze, Kocaeli',
+      'mapQuery': 'Beylikdağı Kent Ormanı Gebze Kocaeli',
+      'image': 'gorsel/piknik/beylikdagi.jpg',
+      'features': ['Doğa Yürüyüşü', 'Manzara İzleme', 'Doğa Fotoğrafçılığı'],
+      'features_en': ['Nature Walk', 'Scenic Views', 'Photography'],
+      'features_ar': ['مشي في الطبيعة', 'إطلالات طبيعية', 'تصوير'],
+      'order': 1,
+    },
+    {
+      'id': 'doga_denizli_goleti',
+      'name': 'Denizli Göleti Doğa Rotası',
+      'name_en': 'Denizli Pond Nature Route',
+      'name_ar': 'مسار بركة دينيزلي الطبيعي',
+      'summary':
+          'Gebze\'nin Denizli Mahallesi çevresinde yer alan Denizli Göleti, gölet manzarasını kırsal doğayla buluşturan bir yürüyüş noktasıdır. Gölet çevresindeki doğal alanlardan başlayan yürüyüşler, toprak yollar ve orman patikaları boyunca ilerleyerek ziyaretçilere şehrin yoğunluğundan uzaklaşma fırsatı sunar.\n\nDoğa fotoğrafçılığı, manzara izleme ve açık havada vakit geçirmek isteyenler için değerlendirilebilecek bu rota, çevredeki tepeler ve kırsal yürüyüş güzergâhlarıyla birleştirilebilir.',
+      'summary_en':
+          'Located around Denizli Neighborhood in Gebze, Denizli Pond combines lake views with rural nature. Trails along dirt roads and forest paths offer a serene escape from city hustle.',
+      'summary_ar':
+          'تقع بركة دينيزلي بالقرب من حي دينيزلي في جبزة، وتجمع بين إطلالة البحيرة الهادئة والطبيعة الريفية مع مسارات المشي عبر الطرق الترابية والغابات.',
+      'type': 'doga',
+      'village': 'Denizli Mahallesi',
+      'address': 'Denizli Mahallesi, Gebze, Kocaeli',
+      'mapQuery': 'Denizli Göleti Gebze Kocaeli',
+      'image': 'gorsel/piknik/denizli_goleti.jpg',
+      'features': ['Gölet Manzarası', 'Kırsal Doğa', 'Orman Yürüyüşü', 'Fotoğrafçılık'],
+      'features_en': ['Lake View', 'Rural Nature', 'Forest Walk', 'Photography'],
+      'features_ar': ['إطلالة البركة', 'طبيعة ريفية', 'مشي في الغابة', 'تصوير'],
+      'order': 2,
+    },
+    {
+      'id': 'doga_denizli_yoruk_yaylalari',
+      'name': 'Denizli Göleti – Yörük Yaylaları Doğa Rotası',
+      'name_en': 'Denizli Pond – Yoruk Plateaus Nature Route',
+      'name_ar': 'مسار بركة دينيزلي – هضاب يوروك الطبيعي',
+      'summary':
+          'Denizli Göleti\'nden başlayarak Gebze\'nin kırsal alanlarına uzanan bu doğa rotası; orman yollarını, geniş çayırlıkları ve yayla manzaralarını bir araya getirir. Şehir yaşamından uzaklaşmak, doğanın sakinliğini hissetmek ve uzun yürüyüşler yapmak isteyenler için farklı bir keşif deneyimi sunar.\n\nGüzergâhın seçilen bölümüne göre yürüyüş, gölet çevresinden tepelere ve yayla açıklıklarına doğru ilerleyebilir. Doğa yürüyüşü grupları tarafından kullanılan bu bölge, kırsal manzara ve doğa fotoğrafçılığı açısından da ilgi çekicidir.',
+      'summary_en':
+          'Starting from Denizli Pond and extending into rural Gebze, this nature route combines forest tracks, wide meadows, and plateau views, offering a great experience for hiking groups.',
+      'summary_ar':
+          'يمتد هذا المسار الطبيعي من بركة دينيزلي نحو ريف جبزة، جامعاً بين طرق الغابات والمروج الخضراء الواسعة وإطلالات الهضاب الخلابة.',
+      'type': 'doga',
+      'village': 'Denizli & Yörük Yaylaları',
+      'address': 'Denizli Mahallesi ve Yörük Yaylaları çevresi, Gebze, Kocaeli',
+      'mapQuery': 'Denizli Göleti Yörük Yaylaları Gebze Kocaeli',
+      'image': 'gorsel/piknik/denizli_yoruk_yaylalari.png',
+      'features': ['Yayla Manzaraları', 'Orman Patikaları', 'Çayırlıklar', 'Uzun Doğa Yürüyüşleri'],
+      'features_en': ['Plateau Views', 'Forest Trails', 'Meadows', 'Long Nature Walks'],
+      'features_ar': ['مناظر الهضاب', 'مسارات الغابات', 'مروج خضراء', 'مشي طبيعي طويل'],
+      'order': 3,
+    },
+    {
+      'id': 'doga_elmalidere_selalesi',
+      'name': 'Elmalıdere Şelalesi ve Orman Patikaları',
+      'name_en': 'Elmalidere Waterfall & Forest Trails',
+      'name_ar': 'شلال إلماليده ره ومسارات الغابة',
+      'summary':
+          'Gebze\'nin Denizli kırsalı çevresinde bulunan Elmalıdere Şelalesi, dere yatağı, doğal bitki örtüsü ve orman yollarıyla doğa yürüyüşü meraklılarının ilgisini çeken bir noktadır. Bölgeye uzanan güzergâhlar, yürüyüş boyunca farklı arazi dokularını ve kırsal manzaraları keşfetme imkânı sunar.\n\nŞelaleye ulaşan patikalar, doğa fotoğrafçılığı ve sakin bir açık hava deneyimi arayanlar için ilgi çekici olabilir. Bununla birlikte arazi koşulları, su seviyesi ve erişim durumu mevsime göre değişebileceğinden ziyaret öncesinde güzergâhın güncel durumu kontrol edilmelidir.',
+      'summary_en':
+          'Located around Denizli countryside in Gebze, Elmalidere Waterfall attracts hiking enthusiasts with its stream bed, natural flora, and forest paths.\n\nNote: Seasonal terrain conditions and water levels may vary.',
+      'summary_ar':
+          'يقع شلال إلماليده ره في ريف دينيزلي بجبزة، ويجذب عشاق المشي الطبيعي بمجراه المائي وغطائه النباتي ومساراته بين الغابات.',
+      'type': 'doga',
+      'village': 'Denizli Kırsalı',
+      'address': 'Denizli kırsalı, Gebze, Kocaeli',
+      'mapQuery': 'Elmalıdere Şelalesi Denizli Gebze Kocaeli',
+      'image': 'gorsel/piknik/elmalidere_selalesi.jpg',
+      'features': ['Şelale Manzarası', 'Dere Yatağı', 'Orman Patikaları', 'Doğa Fotoğrafçılığı'],
+      'features_en': ['Waterfall View', 'Stream Bed', 'Forest Paths', 'Nature Photography'],
+      'features_ar': ['إطلالة الشلال', 'مجرى مائي', 'مسارات الغابة', 'تصوير الطبيعة'],
+      'order': 4,
+    },
+    {
+      'id': 'doga_yelken_tepe',
+      'name': 'Yelken Tepe Doğa Yürüyüşü',
+      'name_en': 'Yelken Tepe Nature Walk',
+      'name_ar': 'مسار جبل يلكن تيبي',
+      'summary':
+          'Gebze\'nin Denizli kırsalındaki Yelken Tepe, gölet ve yayla güzergâhlarıyla birleştirilebilen bir doğa yürüyüşü noktasıdır. Orman içinden geçen patikalar ve yükseltilerden görülen kırsal manzaralar, yürüyüşe farklı bir deneyim katar.\n\nTepeye uzanan güzergâhlar, doğada vakit geçirmek, manzara fotoğrafları çekmek ve daha uzun yürüyüş parkurlarını keşfetmek isteyenlere hitap eder. Arazi yapısı ve seçilen parkura bağlı olarak yürüyüş, başlangıç seviyesinden daha deneyimli doğa yürüyüşçülerine kadar farklı hazırlık düzeyleri gerektirebilir.',
+      'summary_en':
+          'Yelken Tepe in rural Denizli, Gebze is a peak hiking spot featuring paths through forest terrain and rewarding panoramic rural vistas.',
+      'summary_ar':
+          'تعتبر قمة يلكن تيبي في ريف دينيزلي بجبزة وجهة مميزة للمشي الجبلي والمسارات الغابية والمناظر الريفية البانورامية.',
+      'type': 'doga',
+      'village': 'Denizli Kırsalı',
+      'address': 'Yelken Tepe, Denizli kırsalı, Gebze, Kocaeli',
+      'mapQuery': 'Yelken Tepe Denizli Gebze Kocaeli',
+      'image': 'gorsel/piknik/yelken_tepe.png',
+      'features': ['Tepe Yürüyüşü', 'Orman Patikaları', 'Kırsal Manzara', 'Fotoğrafçılık'],
+      'features_en': ['Hill Trek', 'Forest Paths', 'Rural Scenery', 'Photography'],
+      'features_ar': ['صعود التل', 'مسارات الغابة', 'مشهد ريفي', 'تصوير'],
+      'order': 5,
+    },
+    {
+      'id': 'fb_eskihisar',
+      'name': 'Eskihisar Korusu',
+      'type': 'piknik',
+      'village': 'Eskihisar',
+      'address': 'Eskihisar, Gebze',
+      'mapQuery': 'Eskihisar Korusu Gebze',
+      'image': 'gorsel/piknik/eskoru.webp',
+      'features': ['Piknik', 'Koru', 'Deniz Manzarası'],
+      'order': 6,
+    },
+    {
+      'id': 'fb_pelitli',
+      'name': 'Pelitli Bayraktepe Mesire Alanı',
+      'type': 'mesire',
+      'village': 'Pelitli',
+      'address': 'Pelitli, Gebze',
+      'mapQuery': 'Gebze Belediyesi Pelitli Bayraktepe Mesire Alanı',
+      'image': 'gorsel/piknik/pelitlimesire.webp',
+      'features': ['Mesire Alanı', 'Seyir Tepesi'],
+      'order': 7,
+    },
+    {
+      'id': 'fb_gazilerdagi',
+      'name': 'Gazilerdağı Tabiat Parkı',
+      'type': 'doga',
+      'village': 'Gaziler',
+      'address': 'Gaziler, Gebze',
+      'mapQuery': 'Gazilerdağı Tabiat Parkı Gebze',
+      'image': 'gorsel/piknik/gazilerdağı.webp',
+      'features': ['Tabiat Parkı', 'Yürüyüş Parkuru'],
+      'order': 8,
+    },
+    {
+      'id': 'fb_gaziler_piknik',
+      'name': 'Gaziler Piknik Alanı',
+      'type': 'piknik',
+      'village': 'Gaziler',
+      'address': 'Dicle Cd. No:48, Gaziler',
+      'mapQuery': 'Gaziler piknik alanı Gebze',
+      'image': 'gorsel/piknik/gazilerpiknik.webp',
+      'features': ['Piknik Masaları', 'Çardaklar'],
+      'order': 9,
+    },
+    {
+      'id': 'fb_cumakoy',
+      'name': 'Cumaköy Mesire Alanı',
+      'type': 'mesire',
+      'village': 'Cumaköy',
+      'address': 'Cumaköy, Gebze',
+      'mapQuery': 'Gebze Belediyesi Cumaköy Mesire Alanı',
+      'image': 'gorsel/piknik/cumakoymesire.jpg',
+      'features': ['Mesire Alanı', 'Ağaçlık Alan'],
+      'order': 10,
+    },
+    {
+      'id': 'fb_duzmese',
+      'name': 'Düz Meşe Mesire Yeri',
+      'type': 'mesire',
+      'village': 'Gebze',
+      'address': 'Gebze / Kocaeli',
+      'mapQuery': 'Düz Meşe Mesire Yeri Gebze',
+      'image': 'gorsel/piknik/duzmese.webp',
+      'features': ['Meşe Ormanı', 'Piknik'],
+      'order': 11,
+    },
+    {
+      'id': 'fb_tatlikuyu',
+      'name': 'Tatlıkuyu Vadisi',
+      'type': 'park',
+      'village': 'Tatlıkuyu',
+      'address': '1312/1. Sk. No:20',
+      'mapQuery': 'Tatlıkuyu Vadisi Gebze',
+      'image': 'gorsel/piknik/tatlikuyu.webp',
+      'features': ['Kent Parkı', 'Yürüyüş Yolu'],
+      'order': 12,
+    },
+    {
+      'id': 'fb_gaziler_parki',
+      'name': 'Gaziler Parkı',
+      'type': 'park',
+      'village': 'Gaziler',
+      'address': 'Şht. Özcan Demirci Cd. No:50',
+      'mapQuery': 'Gaziler Parkı Gebze',
+      'image': 'gorsel/piknik/gazilerpiknik.webp',
+      'features': ['Park', 'Çocuk Oyun Alanı'],
+      'order': 13,
+    },
+    {
+      'id': 'fb_yumrukaya',
+      'name': 'Yumrukaya Piknik Alanı',
+      'type': 'piknik',
+      'village': 'Yumrukaya',
+      'address': 'İbrahim Ağa Cd.',
+      'mapQuery': 'Yumrukaya Piknik Alanı Gebze',
+      'image': 'gorsel/piknik/eskoru.webp',
+      'features': ['Piknik', 'Yeşil Alan'],
+      'order': 14,
+    },
+    {
+      'id': 'fb_ballikayalar',
+      'name': 'Ballıkayalar Tabiat Parkı',
+      'type': 'doga',
+      'village': 'Tavşanlı',
+      'address': 'Barış Cd., Tavşanlı Köyü',
+      'mapQuery': 'Ballıkayalar Tabiat Parkı Gebze',
+      'image': 'gorsel/piknik/ballikayapark.webp',
+      'features': ['Kanyon', 'Kaya Tırmanışı', 'Doğa Yürüyüşü', 'Şelale'],
+      'order': 15,
+    },
   ];
+
   return [
-    for (int i = 0; i < rows.length; i++)
+    for (int i = 0; i < items.length; i++)
       GebzePicnic(
-        'fb_$i',
-        {
-          'name': rows[i][0],
-          'type': rows[i][1],
-          'address': rows[i][2],
-          'mapQuery': rows[i][3],
-        },
-        fallbackOrder: i,
+        items[i]['id'] as String,
+        items[i],
+        fallbackOrder: items[i]['order'] as int? ?? i,
       ),
   ];
 }
@@ -321,10 +521,14 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
                 return const Center(child: CircularProgressIndicator());
               }
               final docs = snap.data?.docs ?? [];
-              final all = docs.isEmpty
-                  ? _fallbackPicnic()
-                  : (docs.map((d) => GebzePicnic(d.id, d.data())).toList()
-                    ..sort((a, b) => a.order.compareTo(b.order)));
+              final Map<String, GebzePicnic> byId = {
+                for (final p in _fallbackPicnic()) p.id: p,
+              };
+              for (final d in docs) {
+                byId[d.id] = GebzePicnic(d.id, d.data());
+              }
+              final all = byId.values.toList()
+                ..sort((a, b) => a.order.compareTo(b.order));
 
               final q = _query.trim().toLowerCase();
               final filtered = all.where((p) {
@@ -428,6 +632,222 @@ class _PicnicCard extends StatelessWidget {
     required this.onDirections,
   });
 
+  void _showDetailSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final summary = item.text('summary', lang);
+    final village = item.text('village', lang);
+    final address = item.text('address', lang);
+    final features = item.list('features', lang);
+    final place = [village, address].where((s) => s.isNotEmpty).join(' • ');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (_, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: _PicnicImage(
+                      image: item.image,
+                      type: item.type,
+                      height: 220,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: _C.green,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(_typeIcon(item.type),
+                                size: 14, color: Colors.white),
+                            const SizedBox(width: 5),
+                            Text(
+                              _typeLabel(item.type, lang),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    item.text('name', lang),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white : _C.textDark,
+                    ),
+                  ),
+                  if (place.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on_rounded,
+                            size: 18, color: _C.green),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            place,
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : _C.textDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (summary.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    Text(
+                      _t(lang, 'Açıklama & Rota Bilgisi',
+                          'Description & Route Info', 'الوصف ومعلومات المسار'),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      summary,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.6,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF334155),
+                      ),
+                    ),
+                  ],
+                  if (features.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      _t(lang, 'Öne Çıkanlar & Aktiviteler',
+                          'Highlights & Activities', 'الأنشطة والمميزات'),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : _C.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final f in features)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: _C.green.withAlpha(80)),
+                            ),
+                            child: Text(
+                              f,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? const Color(0xFFA5D6A7)
+                                    : _C.green,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        onDirections();
+                      },
+                      icon: const Icon(Icons.directions_rounded, size: 20),
+                      label: Text(
+                        _t(lang, 'Haritada Yol Tarifi Al',
+                            'Get Directions on Map', 'الاتجاهات على الخريطة'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 15),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _C.orange,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -445,144 +865,160 @@ class _PicnicCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDark ? const Color(0xFF334155) : _C.line),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              _PicnicImage(image: item.image, type: item.type, height: 160),
-              Positioned(
-                left: 12,
-                top: 12,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: _C.green.withAlpha(230),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_typeIcon(item.type), size: 14, color: Colors.white),
-                      const SizedBox(width: 5),
-                      Text(
-                        _typeLabel(item.type, lang),
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: InkWell(
+        onTap: () => _showDetailSheet(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  item.text('name', lang),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                    color: isDark ? Colors.white : _C.textDark,
-                  ),
-                ),
-                if (summary.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    summary,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      height: 1.45,
-                      color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                _PicnicImage(image: item.image, type: item.type, height: 160),
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: _C.green.withAlpha(230),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                  ),
-                ],
-                if (place.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.location_on_rounded,
-                          size: 16, color: _C.green),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          place,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: isDark
-                                ? const Color(0xFFCBD5E1)
-                                : _C.textDark,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_typeIcon(item.type),
+                            size: 14, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Text(
+                          _typeLabel(item.type, lang),
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (features.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final f in features)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0F172A)
-                                : const Color(0xFFE8F5E9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            f,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? const Color(0xFFA5D6A7)
-                                  : _C.green,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onDirections,
-                    icon: const Icon(Icons.directions_rounded, size: 18),
-                    label: Text(
-                      _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _C.orange,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.text('name', lang),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      height: 1.25,
+                      color: isDark ? Colors.white : _C.textDark,
+                    ),
+                  ),
+                  if (summary.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      summary,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.45,
+                        color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _t(lang, 'Detayları ve rota bilgilerini gör →',
+                          'View details and route info →', 'عرض التفاصيل والمعلومات →'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF1E40AF),
+                      ),
+                    ),
+                  ],
+                  if (place.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on_rounded,
+                            size: 16, color: _C.green),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            place,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : _C.textDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (features.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final f in features)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              f,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFFA5D6A7)
+                                    : _C.green,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: onDirections,
+                      icon: const Icon(Icons.directions_rounded, size: 18),
+                      label: Text(
+                        _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _C.orange,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
