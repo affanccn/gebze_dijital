@@ -157,7 +157,7 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                           if (item.publishedAtText.isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Text(
-                              item.publishedAtText,
+                              item.localizedDate(lang),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark

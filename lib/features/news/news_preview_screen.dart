@@ -17,17 +17,36 @@ class NewsPreviewScreen extends ConsumerStatefulWidget {
 
 class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
   String? _summary;
+  String? _title;
   bool _isLoadingSummary = true;
-  String _currentLang = 'tr';
+  String _currentLang = '';
 
   @override
   void initState() {
     super.initState();
-    _initSummary('tr');
+    final initialLang = ref.read(appLanguageProvider);
+    _initForLang(initialLang);
   }
 
-  void _initSummary(String lang) {
+  void _initForLang(String lang) {
     _currentLang = lang;
+
+    // 1. Başlık hazırlığı
+    final locTitle = widget.news.localizedTitle(lang);
+    if (lang != 'tr' && (locTitle == widget.news.title || locTitle.isEmpty)) {
+      _title = widget.news.title;
+      NewsService().translateText(widget.news.title, lang).then((transTitle) {
+        if (mounted && transTitle != null && transTitle.isNotEmpty) {
+          setState(() {
+            _title = transTitle;
+          });
+        }
+      });
+    } else {
+      _title = locTitle;
+    }
+
+    // 2. Özet hazırlığı
     final locSummary = widget.news.localizedSummary(lang);
     if (locSummary.isNotEmpty) {
       _summary = locSummary;
@@ -39,14 +58,35 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
   }
 
   Future<void> _loadSummary(String lang) async {
+    setState(() {
+      _isLoadingSummary = true;
+    });
+
     final fetched = await NewsService().fetchNewsSummary(
       widget.news.url,
       title: widget.news.title,
     );
 
-    if (mounted) {
+    if (!mounted) return;
+
+    if (fetched != null && fetched.isNotEmpty) {
+      if (lang == 'tr') {
+        setState(() {
+          _summary = fetched;
+          _isLoadingSummary = false;
+        });
+      } else {
+        final translated = await NewsService().translateText(fetched, lang);
+        if (mounted) {
+          setState(() {
+            _summary = translated ?? _buildFallbackSummary(widget.news, lang);
+            _isLoadingSummary = false;
+          });
+        }
+      }
+    } else {
       setState(() {
-        _summary = fetched ?? _buildFallbackSummary(widget.news, lang);
+        _summary = _buildFallbackSummary(widget.news, lang);
         _isLoadingSummary = false;
       });
     }
@@ -85,13 +125,15 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_currentLang != lang) {
-      // Dil değiştiğinde ilgili dile ait özeti yeniden başlat
+      // Dil değiştiğinde ilgili dile ait özet ve başlığı yeniden başlat
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _initSummary(lang);
+        if (mounted) _initForLang(lang);
       });
     }
 
+    final displayTitle = _title ?? widget.news.localizedTitle(lang);
     final displaySummary = _summary ?? _buildFallbackSummary(widget.news, lang);
+    final displayDate = widget.news.localizedDate(lang);
 
     return Scaffold(
       backgroundColor: isDark
@@ -244,7 +286,7 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              widget.news.localizedTitle(lang),
+                              displayTitle,
                               style: TextStyle(
                                 fontSize: 18.5,
                                 fontWeight: FontWeight.w800,
@@ -254,7 +296,7 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
                                 height: 1.35,
                               ),
                             ),
-                          if (widget.news.publishedAtText.isNotEmpty) ...[
+                          if (displayDate.isNotEmpty) ...[
                             const SizedBox(height: 10),
                             Row(
                               children: [
@@ -267,7 +309,7 @@ class _NewsPreviewScreenState extends ConsumerState<NewsPreviewScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  widget.news.publishedAtText,
+                                  displayDate,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     color: isDark
