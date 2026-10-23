@@ -200,7 +200,7 @@ class _Category {
   });
 }
   String _nurseryTitle(String lang) =>
-     lang == 'en' ? 'Nurseries' : (lang == 'ar' ? 'دور الحضانة' : 'Kreşler');
+     lang == 'en' ? 'Nurseries' : (lang == 'ar' ? 'دور الحضانة' : 'Kreş ve Atölyeler');
 List<_Category> _getCategories(String lang) => [
   _Category(
     'etkinlikler',
@@ -1794,24 +1794,7 @@ class _InstitutionCard extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      if (data['category'] != null &&
-                          data['category'].toString().isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: color.withAlpha(isDark ? 50 : 25),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            data['category'].toString(),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: color,
-                            ),
-                          ),
-                        ),
+                    
                       if (data['formattedDate'] != null &&
                           data['formattedDate'].toString().isNotEmpty)
                         Row(
