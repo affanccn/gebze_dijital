@@ -25,7 +25,7 @@ class MunicipalNewsScreen extends ConsumerWidget {
         body: Column(
           children: [
             _buildHeader(context, lang),
-            const Expanded(child: MunicipalNewsList()),
+            const Expanded(child: MunicipalNewsList(itemLimit: 10)),
           ],
         ),
       ),

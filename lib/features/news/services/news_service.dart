@@ -54,7 +54,8 @@ class NewsService {
 
   /// En yeni haber en üstte (sitedeki haber numarası büyük = daha yeni).
   /// Mükerrer / çift kayıt oluşmasını engellemek için newsId ve başlığa göre tekilleştirilir.
-  Stream<List<MunicipalNews>> watchNews({int limit = 100}) {
+  /// Varsayılan olarak sadece en güncel 10 haber alınır.
+  Stream<List<MunicipalNews>> watchNews({int limit = 10}) {
     return _firestore
         .collection('municipal_news')
         .orderBy('newsId', descending: true)

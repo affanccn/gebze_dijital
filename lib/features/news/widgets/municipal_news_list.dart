@@ -24,9 +24,9 @@ class MunicipalNewsList extends ConsumerStatefulWidget {
 
 class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
   // Stream bir kez oluşturulur: ekran yeniden çizilince tekrar okuma yapılmaz,
-  // liste de yanıp sönmez.
+  // liste de yanıp sönmez. Sadece son 10 haber gösterilir.
   late final Stream<List<MunicipalNews>> _stream = NewsService().watchNews(
-    limit: widget.itemLimit ?? 100,
+    limit: widget.itemLimit ?? 10,
   );
 
   @override
