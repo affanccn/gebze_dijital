@@ -199,7 +199,8 @@ class _Category {
     this.iconBuilder,
   });
 }
-
+  String _nurseryTitle(String lang) =>
+     lang == 'en' ? 'Nurseries' : (lang == 'ar' ? 'دور الحضانة' : 'Kreşler');
 List<_Category> _getCategories(String lang) => [
   _Category(
     'etkinlikler',
@@ -243,6 +244,12 @@ List<_Category> _getCategories(String lang) => [
     Icons.local_florist_rounded,
     const Color(0xFF607D8B),
     iconBuilder: _tombstoneIcon,
+  ),
+  _Category(
+    'kresler',
+    _nurseryTitle(lang),
+    Icons.child_care_rounded,
+    const Color(0xFFEC407A),
   ),
   _Category(
     'belediye',
@@ -648,6 +655,30 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'url': 'https://www.turkiye.gov.tr/gebze-belediyesi-defin-ve-mezar-yeri-sorgulama',
       'showDirections': false,
       'category': 'mezarliklar',
+    },
+  ];
+}
+List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
+  final isEn = lang == 'en';
+  final isAr = lang == 'ar';
+
+  return [
+    {
+      'name': isEn
+          ? 'Gebze Municipality Güzide Baby & Child Care Home'
+          : isAr
+              ? 'دار رعاية الرضع والأطفال Güzide ببلدية جبزة'
+              : 'Gebze Belediyesi Güzide Bebek ve Çocuk Bakım Evi',
+      'description': isEn
+          ? '24/7 day and night care for children aged 0–66 months, with development workshops. Call the Gebze Municipality Solution Center for registration and application details.'
+          : isAr
+              ? 'رعاية ليلية ونهارية على مدار الساعة للأطفال من عمر 0 إلى 66 شهراً مع ورش تنمية. للتسجيل والتقديم يمكنكم الاتصال بمركز الحلول في بلدية جبزة.'
+              : '0–66 ay arası çocuklara 7/24 gece ve gündüz bakım hizmeti ile gelişim atölyeleri sunar. Kayıt ve başvuru bilgisi için Gebze Belediyesi Çözüm Merkezi ile görüşebilirsiniz.',
+      'address': 'Osman Yılmaz Mah. 608/2. Sokak No: 7, Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'Güzide 7/24 Bebek ve Çocuk Bakım Evi Gebze',
+      'image': 'gorsel/tesisler/guzide_kress.jpg',
+      'category': 'kresler',
     },
   ];
 }
@@ -1160,12 +1191,15 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                   };
                 }).toList();
               }
-            } else if (category.id == 'mezarliklar') {
+            } else if (category.id == 'mezarliklar' ||
+                category.id == 'kresler') {
               if (docs.isEmpty) {
-                rawItems = _getFallbackCemeteries(lang);
+                rawItems = category.id == 'kresler'
+                    ? _getFallbackNurseries(lang)
+                    : _getFallbackCemeteries(lang);
               } else {
                 rawItems = docs.map((d) => d.data()).toList();
-              }
+              } 
             } else {
               if (snap.hasError || docs.isEmpty) {
                 return Center(
