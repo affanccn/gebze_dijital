@@ -132,37 +132,42 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
                     ),
                   Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          style: TextStyle(
-                            fontSize: widget.isHorizontal ? 14 : 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0A1F44),
-                            height: 1.35,
-                          ),
-                          maxLines: widget.isHorizontal ? 3 : null,
-                          overflow: widget.isHorizontal
-                              ? TextOverflow.ellipsis
-                              : null,
-                        ),
-                        if (item.publishedAtText.isNotEmpty) ...[
-                          const SizedBox(height: 6),
+                    child: Directionality(
+                      textDirection: lang == 'ar'
+                          ? TextDirection.rtl
+                          : TextDirection.ltr,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            item.publishedAtText,
+                            item.localizedTitle(lang),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: widget.isHorizontal ? 14 : 16,
+                              fontWeight: FontWeight.w700,
                               color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF5F6F8A),
+                                  ? Colors.white
+                                  : const Color(0xFF0A1F44),
+                              height: 1.35,
                             ),
+                            maxLines: widget.isHorizontal ? 3 : null,
+                            overflow: widget.isHorizontal
+                                ? TextOverflow.ellipsis
+                                : null,
                           ),
+                          if (item.publishedAtText.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              item.publishedAtText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF5F6F8A),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ],

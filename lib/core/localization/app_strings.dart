@@ -896,6 +896,11 @@ class AppStrings {
       'en': 'Latest news and announcements regarding Gebze Municipality.',
       'ar': 'آخر الأخبار والإعلانات المتعلقة ببلدية جبزة.',
     },
+    'news_badge_title': {
+      'tr': 'GEBZE BELEDİYESİ GÜNCEL',
+      'en': 'GEBZE MUNICIPALITY NEWS',
+      'ar': 'أخبار بلدية غبزة',
+    },
     'news_preview_title': {
       'tr': 'Haber Önizlemesi',
       'en': 'News Preview',

@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gebze Belediyesi • Dijital Yönetim Portalı</title>
-  
+
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
   <!-- Gebze Belediyesi Resmi Etkinlikler Önbelleği (CORS Korumalı Doğrudan Paket) -->
   <script src="gebze_etkinlik_cache.js"></script>
@@ -122,6 +124,7 @@
     .sidebar-nav::-webkit-scrollbar {
       width: 4px;
     }
+
     .sidebar-nav::-webkit-scrollbar-thumb {
       background: rgba(255, 255, 255, 0.15);
       border-radius: 4px;
@@ -380,8 +383,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* KPI / Stat Cards */
@@ -504,7 +514,10 @@
       margin-bottom: 6px;
     }
 
-    .form-control, input, select, textarea {
+    .form-control,
+    input,
+    select,
+    textarea {
       width: 100%;
       padding: 10px 14px;
       border-radius: 10px;
@@ -515,7 +528,10 @@
       background: #F8FAFC;
     }
 
-    .form-control:focus, input:focus, select:focus, textarea:focus {
+    .form-control:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
       border-color: var(--navy-light);
       background: white;
       box-shadow: 0 0 0 3px rgba(30, 91, 198, 0.12);
@@ -614,12 +630,35 @@
       letter-spacing: 0.2px;
     }
 
-    .badge-primary { background: #E0E7FF; color: #3730A3; }
-    .badge-success { background: #DCFCE7; color: #166534; }
-    .badge-warning { background: #FEF3C7; color: #92400E; }
-    .badge-danger  { background: #FEE2E2; color: #991B1B; }
-    .badge-info    { background: #E0F2FE; color: #075985; }
-    .badge-purple  { background: #EDE9FE; color: #5B21B6; }
+    .badge-primary {
+      background: #E0E7FF;
+      color: #3730A3;
+    }
+
+    .badge-success {
+      background: #DCFCE7;
+      color: #166534;
+    }
+
+    .badge-warning {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .badge-danger {
+      background: #FEE2E2;
+      color: #991B1B;
+    }
+
+    .badge-info {
+      background: #E0F2FE;
+      color: #075985;
+    }
+
+    .badge-purple {
+      background: #EDE9FE;
+      color: #5B21B6;
+    }
 
     /* Tables (Reports, Users, Assembly Areas) */
     .table-container {
@@ -729,8 +768,15 @@
     }
 
     @keyframes scaleIn {
-      from { transform: scale(0.96); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from {
+        transform: scale(0.96);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .modal-header {
@@ -784,12 +830,13 @@
       cursor: zoom-out;
       padding: 24px;
     }
+
     #imageLightbox img {
       max-width: 90vw;
       max-height: 90vh;
       object-fit: contain;
       border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     }
 
     /* Toast */
@@ -833,18 +880,23 @@
       .sidebar {
         transform: translateX(-100%);
       }
+
       .sidebar.open {
         transform: translateX(0);
       }
+
       .main-wrapper {
         margin-left: 0;
       }
+
       .menu-toggle {
         display: block;
       }
+
       .content-area {
         padding: 20px 16px;
       }
+
       .topbar {
         padding: 0 16px;
       }
@@ -852,36 +904,63 @@
 
     /* Yönetici giriş ekranı */
     #loginOverlay {
-      position: fixed; inset: 0; z-index: 9999;
-      display: flex; align-items: center; justify-content: center;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: linear-gradient(135deg, var(--navy-deep), #02091A);
       padding: 20px;
     }
+
     .login-card {
-      width: 100%; max-width: 400px; background: var(--card-bg);
-      border-radius: var(--radius); padding: 32px 28px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
-    .login-card h2 { margin: 0 0 6px; color: var(--navy); font-size: 22px; font-weight: 900; }
-    .login-card p  { margin: 0 0 20px; color: var(--text-muted); font-size: 13px; line-height: 1.4; }
-    #loginError { color: var(--danger); font-size: 12.5px; min-height: 18px; margin: 4px 0 12px; font-weight: 600; }
+
+    .login-card h2 {
+      margin: 0 0 6px;
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .login-card p {
+      margin: 0 0 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    #loginError {
+      color: var(--danger);
+      font-size: 12.5px;
+      min-height: 18px;
+      margin: 4px 0 12px;
+      font-weight: 600;
+    }
   </style>
 
   <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      setDoc, 
-      Timestamp, 
-      collection, 
-      addDoc, 
-      getDocs, 
-      deleteDoc, 
-      doc, 
-      updateDoc, 
-      serverTimestamp, 
-      query, 
+    import {
+      getFirestore,
+      setDoc,
+      Timestamp,
+      collection,
+      addDoc,
+      getDocs,
+      deleteDoc,
+      doc,
+      updateDoc,
+      serverTimestamp,
+      query,
       orderBy,
       onSnapshot,
       where,
@@ -1065,18 +1144,18 @@
             return await getDocs(collection(db, colName));
           } catch (err) {
             console.warn(`[${colName}] okuma uyarısı:`, err.message);
-            return { size: 0, docs: [], forEach: () => {}, empty: true };
+            return { size: 0, docs: [], forEach: () => { }, empty: true };
           }
         };
 
         const [
           reportsSnap,
-          newsSnap, 
-          suggSnap, 
-          pollsSnap, 
-          outSnap, 
-          petsSnap, 
-          pharmSnap, 
+          newsSnap,
+          suggSnap,
+          pollsSnap,
+          outSnap,
+          petsSnap,
+          pharmSnap,
           worksSnap,
           assemblySnap,
           usersSnap,
@@ -1163,7 +1242,7 @@
       try {
         const uSnap = await getDocs(collection(db, "users"));
         uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
-      } catch (_) {}
+      } catch (_) { }
 
       try {
         const q = query(collection(db, "reports"));
@@ -1266,14 +1345,14 @@
       filtered.forEach(r => {
         const tr = document.createElement("tr");
         const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
-        
+
         let dateStr = '–';
         if (r.createdAt?.toMillis) {
           dateStr = new Date(r.createdAt.toMillis()).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
         const photoThumb = (r.photoUrl || (r.photoBase64 ? 'data:image/jpeg;base64,' + r.photoBase64 : ''));
-        const thumbHtml = photoThumb 
+        const thumbHtml = photoThumb
           ? `<img src="${photoThumb}" onclick="openLightbox('${photoThumb}')" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:zoom-in; border:1px solid var(--border);" alt="foto">`
           : `<span style="font-size:11px; color:var(--text-muted); font-style:italic;">Yok</span>`;
 
@@ -1282,7 +1361,7 @@
         const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
 
         tr.innerHTML = `
-          <td><strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0,8).toUpperCase()}</strong></td>
+          <td><strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0, 8).toUpperCase()}</strong></td>
           <td>
             <div style="font-weight:700;">${effectiveName}</div>
             <div style="font-size:11.5px; color:var(--text-muted);">${effectivePhone ? '📞 ' + effectivePhone : ''}</div>
@@ -1325,7 +1404,7 @@
           <div class="item-card-body">
             <div class="item-card-meta">
               <span class="badge ${stInfo.cls}">${stInfo.label}</span>
-              <strong style="color:var(--navy); font-size:12px; margin-left:auto;">${r.ticketNo || r.id.substring(0,8).toUpperCase()}</strong>
+              <strong style="color:var(--navy); font-size:12px; margin-left:auto;">${r.ticketNo || r.id.substring(0, 8).toUpperCase()}</strong>
             </div>
             <div class="item-card-title">${r.category || 'Belediye Hizmeti'} • ${r.neighborhood || 'Gebze'} Mah.</div>
             <div class="item-card-desc">${r.description || ''}</div>
@@ -1603,14 +1682,14 @@
         try {
           const res = await fetch(targetUrl);
           if (res.ok) data = await res.json();
-        } catch (_) {}
+        } catch (_) { }
 
         // 2. CORS Proxy: corsproxy.io
         if (!data || !Array.isArray(data)) {
           try {
             const res = await fetch("https://corsproxy.io/?url=" + encodeURIComponent(targetUrl));
             if (res.ok) data = await res.json();
-          } catch (_) {}
+          } catch (_) { }
         }
 
         // 3. CORS Proxy: api.codetabs.com
@@ -1618,7 +1697,7 @@
           try {
             const res = await fetch("https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(targetUrl));
             if (res.ok) data = await res.json();
-          } catch (_) {}
+          } catch (_) { }
         }
 
         // 4. CORS Proxy: allorigins
@@ -1626,7 +1705,7 @@
           try {
             const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl));
             if (res.ok) data = await res.json();
-          } catch (_) {}
+          } catch (_) { }
         }
 
         // 5. Yerel resmi etkinlik veri paketi (CORS ve internet kesintilerine karşı %100 garantili yedek)
@@ -1862,13 +1941,13 @@
 
     // ───────────────── 8. MAHALLEMDE (neighborhood_works) ─────────────────
     const WORK_CATS = {
-      kazi:      { label: 'Kazı',       icon: '🚧' },
-      altyapi:   { label: 'Altyapı',    icon: '🔧' },
-      cevre:     { label: 'Çevre',      icon: '🌳' },
-      yol_bakim: { label: 'Yol Bakım',  icon: '🛣️' }
+      kazi: { label: 'Kazı', icon: '🚧' },
+      altyapi: { label: 'Altyapı', icon: '🔧' },
+      cevre: { label: 'Çevre', icon: '🌳' },
+      yol_bakim: { label: 'Yol Bakım', icon: '🛣️' }
     };
 
-    const escW = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const escW = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const fmtTR = (d) => d.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const trInputToDate = (v) => new Date(v + ':00+03:00');
     const trNowInputValue = () => new Date(Date.now() + 3 * 3600 * 1000).toISOString().slice(0, 16);
@@ -1990,7 +2069,7 @@
           const d = docSnap.data();
           const tr = document.createElement("tr");
           const cap = d.area ? Math.floor(d.area / 3.5) : '–';
-          
+
           tr.innerHTML = `
             <td><strong>${d.name}</strong></td>
             <td>📍 ${d.neighborhood} Mah. ${d.street ? '– ' + d.street : ''}</td>
@@ -2311,17 +2390,17 @@
             try {
               const d = new Date(rawDate);
               if (!isNaN(d.getTime())) regDate = d.toLocaleDateString('tr-TR');
-            } catch (_) {}
+            } catch (_) { }
           }
         }
 
         // Baş harf avatarı
         const fullName = u.fullName || 'İsimsiz Vatandaş';
         const initials = fullName.split(' ').map(s => s[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'V';
-        
+
         // Maskeli TC No
         const tc = (u.tcNo || '').trim();
-        const maskedTc = tc.length === 11 ? `${tc.substring(0,3)}*****${tc.substring(8)}` : (tc || '–');
+        const maskedTc = tc.length === 11 ? `${tc.substring(0, 3)}*****${tc.substring(8)}` : (tc || '–');
 
         // İletişim
         const email = u.email || '–';
@@ -2418,7 +2497,7 @@
         repContainer.innerHTML = userReports.map(r => `
           <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:10px 12px; border-radius:8px; margin-bottom:6px; border:1px solid var(--border);">
             <div>
-              <strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0,8)}</strong> - 
+              <strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0, 8)}</strong> - 
               <span style="font-size:12.5px; font-weight:600;">${r.category || 'Talep'}</span>
               <div style="font-size:11.5px; color:var(--text-muted);">${(r.description || '').substring(0, 60)}...</div>
             </div>
@@ -2448,7 +2527,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `gebze_belediyesi_vatandaslar_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `gebze_belediyesi_vatandaslar_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     };
@@ -2856,7 +2935,7 @@
     window.exportData = (colName, format) => {
       let items = [];
       if (colName === 'reports') items = window.reportsCache || [];
-      
+
       if (items.length === 0) {
         alert("Dışa aktarılacak kayıt bulunmuyor.");
         return;
@@ -2915,6 +2994,7 @@
     window.showToast = showToast;
   </script>
 </head>
+
 <body>
 
   <!-- ─── SIDEBAR ─── -->
@@ -2929,71 +3009,85 @@
 
     <div class="sidebar-nav">
       <div class="nav-group-label">GENEL</div>
-      <div class="nav-item active" id="nav-dashboard" onclick="switchNav('dashboard', 'Genel Bakış', 'Belediye dijital hizmet istatistikleri ve sistem durumu')">
+      <div class="nav-item active" id="nav-dashboard"
+        onclick="switchNav('dashboard', 'Genel Bakış', 'Belediye dijital hizmet istatistikleri ve sistem durumu')">
         <span class="icon">📊</span>
         <span>Genel Bakış</span>
       </div>
 
       <div class="nav-group-label">VATANDAŞ TALEPLERİ & İLETİŞİM</div>
-      <div class="nav-item" id="nav-reports" onclick="switchNav('reports', 'Çek & Gönder (Talepler & Şikayetler)', 'Mobil uygulamadan vatandaşlar tarafından iletilen sorunlar ve birim yanıtları')">
+      <div class="nav-item" id="nav-reports"
+        onclick="switchNav('reports', 'Çek & Gönder (Talepler & Şikayetler)', 'Mobil uygulamadan vatandaşlar tarafından iletilen sorunlar ve birim yanıtları')">
         <span class="icon">📸</span>
         <span>Çek & Gönder (Talepler)</span>
         <span class="nav-badge danger" id="badgePendingReports" style="display:none;">0</span>
       </div>
-      <div class="nav-item" id="nav-suggestions" onclick="switchNav('suggestions', 'Vatandaş Önerileri', 'Söz Sende önerileri ve moderasyon onay süreci')">
+      <div class="nav-item" id="nav-suggestions"
+        onclick="switchNav('suggestions', 'Vatandaş Önerileri', 'Söz Sende önerileri ve moderasyon onay süreci')">
         <span class="icon">💡</span>
         <span>Vatandaş Önerileri</span>
         <span class="nav-badge" id="badgePendingSugg" style="display:none;">0</span>
       </div>
-      <div class="nav-item" id="nav-polls" onclick="switchNav('polls', 'Söz Sende (Anketler)', 'Vatandaş oylamaları, kamuoyu yoklamaları ve projeler')">
+      <div class="nav-item" id="nav-polls"
+        onclick="switchNav('polls', 'Söz Sende (Anketler)', 'Vatandaş oylamaları, kamuoyu yoklamaları ve projeler')">
         <span class="icon">🗳️</span>
         <span>Söz Sende (Anketler)</span>
       </div>
 
       <div class="nav-group-label">HABER & DUYURU YAYINI</div>
-      <div class="nav-item" id="nav-news" onclick="switchNav('news', 'Haberler & Duyurular', 'Belediyemizden en güncel haberler ve mobil kart ön okuma metinleri')">
+      <div class="nav-item" id="nav-news"
+        onclick="switchNav('news', 'Haberler & Duyurular', 'Belediyemizden en güncel haberler ve mobil kart ön okuma metinleri')">
         <span class="icon">📰</span>
         <span>Haberler & Duyurular</span>
       </div>
-      <div class="nav-item" id="nav-events" onclick="switchNav('events', 'Etkinlikler & Kültür', 'Konserler, tiyatrolar ve resmi kültür-sanat etkinlikleri')">
+      <div class="nav-item" id="nav-events"
+        onclick="switchNav('events', 'Etkinlikler & Kültür', 'Konserler, tiyatrolar ve resmi kültür-sanat etkinlikleri')">
         <span class="icon">🎭</span>
         <span>Etkinlikler</span>
       </div>
-      <div class="nav-item" id="nav-broadcast" onclick="switchNav('broadcast', 'Duyuru & Bildirim Yayını', 'Acil durum, kesinti veya genel belediye duyurularını tüm cihazlara yayınla')">
+      <div class="nav-item" id="nav-broadcast"
+        onclick="switchNav('broadcast', 'Duyuru & Bildirim Yayını', 'Acil durum, kesinti veya genel belediye duyurularını tüm cihazlara yayınla')">
         <span class="icon">📡</span>
         <span>Acil Duyuru & Bildirim</span>
       </div>
 
       <div class="nav-group-label">ŞEHİR HİZMETLERİ & ALTYAPI</div>
-      <div class="nav-item" id="nav-outages" onclick="switchNav('outages', 'Kesinti Bildirimleri', 'İSU, SEDAŞ ve PALGAZ su, elektrik, doğalgaz planlı kesintileri')">
+      <div class="nav-item" id="nav-outages"
+        onclick="switchNav('outages', 'Kesinti Bildirimleri', 'İSU, SEDAŞ ve PALGAZ su, elektrik, doğalgaz planlı kesintileri')">
         <span class="icon">⚡</span>
         <span>Planlı Kesintiler</span>
       </div>
-      <div class="nav-item" id="nav-works" onclick="switchNav('works', 'Mahallemde (Saha Çalışmaları)', 'Mahalle bazlı kazı, altyapı, çevre ve yol bakım çalışmaları')">
+      <div class="nav-item" id="nav-works"
+        onclick="switchNav('works', 'Mahallemde (Saha Çalışmaları)', 'Mahalle bazlı kazı, altyapı, çevre ve yol bakım çalışmaları')">
         <span class="icon">🚧</span>
         <span>Mahallemde</span>
       </div>
-      <div class="nav-item" id="nav-pharmacies" onclick="switchNav('pharmacies', 'Nöbetçi Eczaneler', 'Bugün ve bu hafta Gebze nöbetçi eczaneleri')">
+      <div class="nav-item" id="nav-pharmacies"
+        onclick="switchNav('pharmacies', 'Nöbetçi Eczaneler', 'Bugün ve bu hafta Gebze nöbetçi eczaneleri')">
         <span class="icon">💊</span>
         <span>Nöbetçi Eczaneler</span>
       </div>
-      <div class="nav-item" id="nav-assembly" onclick="switchNav('assembly', 'Afet & Toplanma Alanları', 'Gebze afet ve acil toplanma alanları ve altyapı envanteri')">
+      <div class="nav-item" id="nav-assembly"
+        onclick="switchNav('assembly', 'Afet & Toplanma Alanları', 'Gebze afet ve acil toplanma alanları ve altyapı envanteri')">
         <span class="icon">🛡️</span>
         <span>Afet Toplanma Alanları</span>
       </div>
 
       <div class="nav-group-label">CAN DOSTLARIMIZ</div>
-      <div class="nav-item" id="nav-pets" onclick="switchNav('pets', 'Gebze Pati Portalı', 'Sahiplendirme, besleme odakları ve nöbetçi veterinerler')">
+      <div class="nav-item" id="nav-pets"
+        onclick="switchNav('pets', 'Gebze Pati Portalı', 'Sahiplendirme, besleme odakları ve nöbetçi veterinerler')">
         <span class="icon">🐾</span>
         <span>Gebze Pati</span>
       </div>
 
       <div class="nav-group-label">KURUMSAL & YÖNETİM</div>
-      <div class="nav-item" id="nav-ebelediye" onclick="switchNav('ebelediye', 'E-Belediye Hizmetleri', 'Vergi, imar, beyan ve resmi portal yönlendirmeleri')">
+      <div class="nav-item" id="nav-ebelediye"
+        onclick="switchNav('ebelediye', 'E-Belediye Hizmetleri', 'Vergi, imar, beyan ve resmi portal yönlendirmeleri')">
         <span class="icon">🏛️</span>
         <span>E-Belediye Portalı</span>
       </div>
-      <div class="nav-item" id="nav-users" onclick="switchNav('users', 'Kayıtlı Vatandaşlar (Kullanıcılar)', 'Mobil uygulamaya kayıtlı Gebze sakinleri ve bildirim tercihleri')">
+      <div class="nav-item" id="nav-users"
+        onclick="switchNav('users', 'Kayıtlı Vatandaşlar (Kullanıcılar)', 'Mobil uygulamaya kayıtlı Gebze sakinleri ve bildirim tercihleri')">
         <span class="icon">👥</span>
         <span>Kayıtlı Vatandaşlar</span>
       </div>
@@ -3125,7 +3219,10 @@
             <div class="panel-title">🟢 Sistem Durumu & Canlı Senkronizasyon</div>
           </div>
           <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
-            Bu yönetim portalı, Gebze Belediyesi mobil uygulamasının (Flutter) bulut veritabanını (Google Cloud Firestore) doğrudan <strong>canlı ve iki yönlü</strong> olarak yönetir. Vatandaşların telefonlarından Çek & Gönder ile ilettiği şikayetler bu panele anında düşer; burada güncellediğiniz statü ("İnceleniyor", "İşleme Alındı", "Çözüldü") ve eklediğiniz birim yanıtı vatandaşın cihazında anlık olarak güncellenir.
+            Bu yönetim portalı, Gebze Belediyesi mobil uygulamasının (Flutter) bulut veritabanını (Google Cloud
+            Firestore) doğrudan <strong>canlı ve iki yönlü</strong> olarak yönetir. Vatandaşların telefonlarından Çek &
+            Gönder ile ilettiği şikayetler bu panele anında düşer; burada güncellediğiniz statü ("İnceleniyor", "İşleme
+            Alındı", "Çözüldü") ve eklediğiniz birim yanıtı vatandaşın cihazında anlık olarak güncellenir.
           </p>
         </div>
       </section>
@@ -3139,9 +3236,12 @@
               <span class="badge badge-primary" id="reportCountBadge">0 Talep</span>
             </div>
             <div style="display:flex; gap:8px;">
-              <button class="btn btn-outline btn-sm active" id="btnViewTable" onclick="switchReportsView('table')">📋 Tablo</button>
-              <button class="btn btn-outline btn-sm" id="btnViewGrid" onclick="switchReportsView('grid')">🔲 Kartlar</button>
-              <button class="btn btn-success btn-sm" onclick="exportData('reports', 'csv')">📥 Excel / CSV İndir</button>
+              <button class="btn btn-outline btn-sm active" id="btnViewTable" onclick="switchReportsView('table')">📋
+                Tablo</button>
+              <button class="btn btn-outline btn-sm" id="btnViewGrid" onclick="switchReportsView('grid')">🔲
+                Kartlar</button>
+              <button class="btn btn-success btn-sm" onclick="exportData('reports', 'csv')">📥 Excel / CSV
+                İndir</button>
               <button class="btn btn-outline btn-sm" onclick="renderReportsView()">🔄 Yenile</button>
             </div>
           </div>
@@ -3149,7 +3249,8 @@
           <!-- Filtreleme & Arama -->
           <div class="filter-bar">
             <div class="search-input">
-              <input type="text" id="reportSearch" placeholder="🔍 Talep No, Vatandaş Adı, Telefon..." oninput="renderReportsView()">
+              <input type="text" id="reportSearch" placeholder="🔍 Talep No, Vatandaş Adı, Telefon..."
+                oninput="renderReportsView()">
             </div>
             <select id="reportFilterStatus" onchange="renderReportsView()" style="width:auto;">
               <option value="all">Tüm Durumlar</option>
@@ -3225,15 +3326,20 @@
       <section class="tab-view" id="view-news">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">📰 Yeni Haber & Ön Okuma Metni Yayınla</div></div>
+            <div class="panel-header">
+              <div class="panel-title">📰 Yeni Haber & Ön Okuma Metni Yayınla</div>
+            </div>
             <form id="formAddNews">
               <div class="form-group">
                 <label>Haber Başlığı *</label>
-                <input type="text" id="newsTitle" placeholder="Örn: Kent Meydanı 2. Etap Açılışı Gerçekleştirildi" required>
+                <input type="text" id="newsTitle" placeholder="Örn: Kent Meydanı 2. Etap Açılışı Gerçekleştirildi"
+                  required>
               </div>
               <div class="form-group">
                 <label>Kısa Ön Okuma Metni (Kart Özeti) *</label>
-                <textarea id="newsSummary" rows="4" placeholder="Mobil uygulamadaki haber kartının altında görünecek 5-6 satırlık bilgilendirici özet metni yazın..." required></textarea>
+                <textarea id="newsSummary" rows="4"
+                  placeholder="Mobil uygulamadaki haber kartının altında görünecek 5-6 satırlık bilgilendirici özet metni yazın..."
+                  required></textarea>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -3263,7 +3369,9 @@
             </form>
           </div>
           <div>
-            <div class="panel-header"><div class="panel-title">Kayıtlı Belediye Haberleri</div></div>
+            <div class="panel-header">
+              <div class="panel-title">Kayıtlı Belediye Haberleri</div>
+            </div>
             <div class="items-grid" id="newsGrid"></div>
           </div>
         </div>
@@ -3273,7 +3381,9 @@
       <section class="tab-view" id="view-events">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">🎭 Yeni Etkinlik Ekle</div></div>
+            <div class="panel-header">
+              <div class="panel-title">🎭 Yeni Etkinlik Ekle</div>
+            </div>
             <form id="formAddEvent">
               <div class="form-group">
                 <label>Etkinlik Adı *</label>
@@ -3281,7 +3391,8 @@
               </div>
               <div class="form-group">
                 <label>Yer / Mekan Açıklaması *</label>
-                <input type="text" id="eventSubtitle" placeholder="Örn: Osman Hamdi Bey Kültür Merkezi • Saat 19:30" required>
+                <input type="text" id="eventSubtitle" placeholder="Örn: Osman Hamdi Bey Kültür Merkezi • Saat 19:30"
+                  required>
               </div>
               <div class="form-group">
                 <label>Etkinlik Tarihi *</label>
@@ -3291,14 +3402,16 @@
             </form>
           </div>
           <div>
-            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div class="panel-header"
+              style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
               <div style="display:flex; align-items:center; gap:10px;">
                 <div class="panel-title">Kayıtlı Kültür & Sanat Etkinlikleri</div>
                 <span class="badge badge-primary" id="eventsCountBadge" style="font-size:12px;">163 Etkinlik</span>
               </div>
               <div style="display:flex; gap:8px;">
                 <button type="button" class="btn btn-outline btn-sm" onclick="loadEvents()">🔄 Yenile</button>
-                <button type="button" class="btn btn-primary btn-sm" id="btnSyncEventsWeb" onclick="syncEventsFromWeb()">
+                <button type="button" class="btn btn-primary btn-sm" id="btnSyncEventsWeb"
+                  onclick="syncEventsFromWeb()">
                   🌐 Belediyeden Etkinlikleri Çek / Güncelle
                 </button>
               </div>
@@ -3307,7 +3420,8 @@
             <!-- Etkinlik Arama & Filtreleme -->
             <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-bottom:14px;">
               <div class="form-group" style="margin-bottom:0;">
-                <input type="text" id="eventsSearchInput" oninput="renderEventsList()" placeholder="🔍 Etkinlik adı, salon veya mekan ara...">
+                <input type="text" id="eventsSearchInput" oninput="renderEventsList()"
+                  placeholder="🔍 Etkinlik adı, salon veya mekan ara...">
               </div>
               <div class="form-group" style="margin-bottom:0;">
                 <select id="eventsFilterCategory" onchange="renderEventsList()">
@@ -3331,11 +3445,14 @@
       <section class="tab-view" id="view-polls">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">🗳️ Yeni Anket / Oylama Başlat</div></div>
+            <div class="panel-header">
+              <div class="panel-title">🗳️ Yeni Anket / Oylama Başlat</div>
+            </div>
             <form id="formAddPoll">
               <div class="form-group">
                 <label>Anket Sorusu *</label>
-                <input type="text" id="pollQuestion" placeholder="Örn: Meydanımıza hangi donatı alanı yapılsın?" required>
+                <input type="text" id="pollQuestion" placeholder="Örn: Meydanımıza hangi donatı alanı yapılsın?"
+                  required>
               </div>
               <div class="form-group">
                 <label>Detaylı Açıklama</label>
@@ -3351,13 +3468,17 @@
               </div>
               <div class="form-group">
                 <label>Seçenekler (Her satıra 1 seçenek) *</label>
-                <textarea id="pollOptions" rows="4" placeholder="Daha çok yeşil alan&#10;Bisiklet ve yürüyüş parkuru&#10;Açık hava amfi tiyatro" required></textarea>
+                <textarea id="pollOptions" rows="4"
+                  placeholder="Daha çok yeşil alan&#10;Bisiklet ve yürüyüş parkuru&#10;Açık hava amfi tiyatro"
+                  required></textarea>
               </div>
               <button type="submit" class="btn btn-primary" style="width:100%;">Anketi Yayına Al</button>
             </form>
           </div>
           <div>
-            <div class="panel-header"><div class="panel-title">Aktif ve Geçmiş Oylamalar</div></div>
+            <div class="panel-header">
+              <div class="panel-title">Aktif ve Geçmiş Oylamalar</div>
+            </div>
             <div class="items-grid" id="pollsGrid"></div>
           </div>
         </div>
@@ -3371,7 +3492,8 @@
             <button class="btn btn-outline btn-sm" onclick="loadSuggestions()">🔄 Yenile</button>
           </div>
           <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
-            Vatandaşların mobil uygulamadan ilettiği fikirler ilk olarak "Onay Bekliyor" statüsünde sisteme gelir. "✅ Onayla ve Yayınla" butonuna bastığınızda tüm Gebze halkının beğenisine açılır.
+            Vatandaşların mobil uygulamadan ilettiği fikirler ilk olarak "Onay Bekliyor" statüsünde sisteme gelir. "✅
+            Onayla ve Yayınla" butonuna bastığınızda tüm Gebze halkının beğenisine açılır.
           </p>
           <div class="items-grid" id="suggestionsGrid"></div>
         </div>
@@ -3381,7 +3503,9 @@
       <section class="tab-view" id="view-broadcast">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">📡 Canlı Duyuru & Bildirim Gönder</div></div>
+            <div class="panel-header">
+              <div class="panel-title">📡 Canlı Duyuru & Bildirim Gönder</div>
+            </div>
             <form id="formBroadcast">
               <div class="form-group">
                 <label>Bildirim Başlığı *</label>
@@ -3389,7 +3513,9 @@
               </div>
               <div class="form-group">
                 <label>Bildirim / Duyuru Metni *</label>
-                <textarea id="broadcastMessage" rows="4" placeholder="Vatandaşların bildirim çubuğunda ve uygulama içinde göreceği detaylı mesaj..." required></textarea>
+                <textarea id="broadcastMessage" rows="4"
+                  placeholder="Vatandaşların bildirim çubuğunda ve uygulama içinde göreceği detaylı mesaj..."
+                  required></textarea>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -3414,7 +3540,9 @@
             </form>
           </div>
           <div>
-            <div class="panel-header"><div class="panel-title">Gönderilen Canlı Bildirimler & Duyuru Kayıtları</div></div>
+            <div class="panel-header">
+              <div class="panel-title">Gönderilen Canlı Bildirimler & Duyuru Kayıtları</div>
+            </div>
             <div class="items-grid" id="broadcastHistoryGrid"></div>
           </div>
         </div>
@@ -3424,7 +3552,9 @@
       <section class="tab-view" id="view-outages">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">⚡ Yeni Planlı Kesinti Bildirimi</div></div>
+            <div class="panel-header">
+              <div class="panel-title">⚡ Yeni Planlı Kesinti Bildirimi</div>
+            </div>
             <form id="formAddOutage">
               <div class="form-group">
                 <label>Kesinti Türü *</label>
@@ -3468,7 +3598,9 @@
             </form>
           </div>
           <div>
-            <div class="panel-header"><div class="panel-title">Kayıtlı Planlı Kesintiler</div></div>
+            <div class="panel-header">
+              <div class="panel-title">Kayıtlı Planlı Kesintiler</div>
+            </div>
             <div class="items-grid" id="outagesGrid"></div>
           </div>
         </div>
@@ -3478,7 +3610,9 @@
       <section class="tab-view" id="view-works">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">🚧 Yeni Mahalle Çalışması</div></div>
+            <div class="panel-header">
+              <div class="panel-title">🚧 Yeni Mahalle Çalışması</div>
+            </div>
             <form id="formAddWork">
               <div class="form-group">
                 <label>Çalışma Türü *</label>
@@ -3551,7 +3685,8 @@
           <div>
             <div class="panel-header">
               <div class="panel-title">Kayıtlı Mahalle Çalışmaları</div>
-              <button class="btn btn-danger btn-sm" onclick="window.cleanupExpiredWorks()">🧹 Süresi Dolanları Temizle</button>
+              <button class="btn btn-danger btn-sm" onclick="window.cleanupExpiredWorks()">🧹 Süresi Dolanları
+                Temizle</button>
             </div>
             <div class="form-row" style="margin-bottom:12px;">
               <select id="workFilterCategory" onchange="window.loadWorks()">
@@ -3596,7 +3731,9 @@
       <section class="tab-view" id="view-assembly">
         <div class="panel-grid">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">🛡️ Yeni Afet Toplanma Alanı Ekle</div></div>
+            <div class="panel-header">
+              <div class="panel-title">🛡️ Yeni Afet Toplanma Alanı Ekle</div>
+            </div>
             <form id="formAddAssembly">
               <div class="form-group">
                 <label>Alan Adı *</label>
@@ -3654,7 +3791,8 @@
                 </div>
               </div>
               <div style="margin-bottom:14px;">
-                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:8px;">Altyapı Donanımları</label>
+                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:8px;">Altyapı
+                  Donanımları</label>
                 <div style="display:flex; gap:16px;">
                   <label style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:4px;">
                     <input type="checkbox" id="assemblyHasElec" checked style="width:auto;"> ⚡ Elektrik
@@ -3708,15 +3846,19 @@
       <!-- ════════ 12. GEBZE PATİ TAB ════════ -->
       <section class="tab-view" id="view-pets">
         <div class="sub-tabs">
-          <button class="sub-tab-btn active" id="sub-btn-adoptions" onclick="switchPatiTab('adoptions')">🐶 Sahiplendirme İlanları</button>
-          <button class="sub-tab-btn" id="sub-btn-feeding" onclick="switchPatiTab('feeding')">🥣 Mama & Su Odakları</button>
+          <button class="sub-tab-btn active" id="sub-btn-adoptions" onclick="switchPatiTab('adoptions')">🐶
+            Sahiplendirme İlanları</button>
+          <button class="sub-tab-btn" id="sub-btn-feeding" onclick="switchPatiTab('feeding')">🥣 Mama & Su
+            Odakları</button>
           <button class="sub-tab-btn" id="sub-btn-vets" onclick="switchPatiTab('vets')">🏥 Nöbetçi Klinikler</button>
         </div>
 
         <div class="pati-sub-view" id="pati-sub-adoptions">
           <div class="panel-grid">
             <div class="panel">
-              <div class="panel-header"><div class="panel-title">Yuva Arayan Can Dost Ekle</div></div>
+              <div class="panel-header">
+                <div class="panel-title">Yuva Arayan Can Dost Ekle</div>
+              </div>
               <form id="formAddPet">
                 <div class="form-group">
                   <label>Adı *</label>
@@ -3765,7 +3907,9 @@
               </form>
             </div>
             <div>
-              <div class="panel-header"><div class="panel-title">Sahiplendirme İlanları</div></div>
+              <div class="panel-header">
+                <div class="panel-title">Sahiplendirme İlanları</div>
+              </div>
               <div class="items-grid" id="petsGrid"></div>
             </div>
           </div>
@@ -3773,14 +3917,18 @@
 
         <div class="pati-sub-view" id="pati-sub-feeding" style="display:none;">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">Kayıtlı Mama & Su Odakları Ağı</div></div>
+            <div class="panel-header">
+              <div class="panel-title">Kayıtlı Mama & Su Odakları Ağı</div>
+            </div>
             <div class="items-grid" id="feedingGrid"></div>
           </div>
         </div>
 
         <div class="pati-sub-view" id="pati-sub-vets" style="display:none;">
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">Kayıtlı Nöbetçi Veteriner Klinikleri</div></div>
+            <div class="panel-header">
+              <div class="panel-title">Kayıtlı Nöbetçi Veteriner Klinikleri</div>
+            </div>
             <div class="items-grid" id="vetsGrid"></div>
           </div>
         </div>
@@ -3791,10 +3939,13 @@
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title">🏛️ Gebze Belediyesi E-Belediye Kategorileri & Dış Bağlantılar</div>
-            <button class="btn btn-primary btn-sm" onclick="window.seedEBelediyeOnly()">⚡ Yeniden Eşitle / Şablonu Yükle</button>
+            <button class="btn btn-primary btn-sm" onclick="window.seedEBelediyeOnly()">⚡ Yeniden Eşitle / Şablonu
+              Yükle</button>
           </div>
           <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">
-            E-Belediye sistemindeki vergi sorgulama, e-beyan ve imar hizmetleri vatandaşları resmi portallara (<code style="color:var(--navy-light);">portal.gebze.bel.tr</code>, <code style="color:var(--navy-light);">ulakbel.gebze.bel.tr</code>) güvenle yönlendirir.
+            E-Belediye sistemindeki vergi sorgulama, e-beyan ve imar hizmetleri vatandaşları resmi portallara (<code
+              style="color:var(--navy-light);">portal.gebze.bel.tr</code>, <code
+              style="color:var(--navy-light);">ulakbel.gebze.bel.tr</code>) güvenle yönlendirir.
           </p>
           <div class="items-grid" id="ebelediyeGrid"></div>
         </div>
@@ -3817,7 +3968,8 @@
           <!-- Filtreler & Hızlı Arama -->
           <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; margin-bottom:18px;">
             <div class="form-group" style="margin-bottom:0;">
-              <input type="text" id="usersSearchInput" oninput="renderUsersView()" placeholder="🔍 Ad Soyad, T.C. Kimlik, E-posta, Telefon veya Mahalle ara...">
+              <input type="text" id="usersSearchInput" oninput="renderUsersView()"
+                placeholder="🔍 Ad Soyad, T.C. Kimlik, E-posta, Telefon veya Mahalle ara...">
             </div>
             <div class="form-group" style="margin-bottom:0;">
               <select id="usersFilterNeighborhood" onchange="renderUsersView()">
@@ -3880,26 +4032,33 @@
       <div class="modal-body">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Vatandaş Bilgisi</div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Vatandaş
+              Bilgisi</div>
             <div id="modalReportCitizen" style="font-weight:700; font-size:14px; margin-top:2px;"></div>
           </div>
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Kategori</div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Kategori
+            </div>
             <div id="modalReportCategory" style="font-weight:700; font-size:14px; margin-top:2px;"></div>
           </div>
         </div>
 
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Konum & Adres</div>
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Konum & Adres
+          </div>
           <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
             <span id="modalReportLocation" style="font-weight:600; font-size:13.5px;"></span>
-            <a id="modalReportMapBtn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none; padding:3px 8px;">📍 Haritada Göster</a>
+            <a id="modalReportMapBtn" href="#" target="_blank" class="btn btn-outline btn-sm"
+              style="display:none; padding:3px 8px;">📍 Haritada Göster</a>
           </div>
         </div>
 
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Vatandaş Şikayet Metni</div>
-          <div id="modalReportDesc" style="font-size:13.5px; line-height:1.5; color:var(--text-dark); background:#F8FAFC; padding:12px; border-radius:10px; border:1px solid var(--border); margin-top:4px;"></div>
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Vatandaş
+            Şikayet Metni</div>
+          <div id="modalReportDesc"
+            style="font-size:13.5px; line-height:1.5; color:var(--text-dark); background:#F8FAFC; padding:12px; border-radius:10px; border:1px solid var(--border); margin-top:4px;">
+          </div>
         </div>
 
         <div id="modalReportImageBox" style="margin-bottom:16px; display:none;"></div>
@@ -3919,21 +4078,25 @@
           </div>
           <div class="form-group">
             <label>Vatandaşa İletilecek Resmi Birim Yanıtı / Notu</label>
-            <textarea id="modalReportNoteInput" rows="3" placeholder="Örn: Ekiplerimiz olay yerine intikal etmiş olup çukur onarımı tamamlanmıştır. Teşekkür ederiz."></textarea>
+            <textarea id="modalReportNoteInput" rows="3"
+              placeholder="Örn: Ekiplerimiz olay yerine intikal etmiş olup çukur onarımı tamamlanmıştır. Teşekkür ederiz."></textarea>
             <p style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
-              ℹ️ Bu yanıt vatandaşın telefonunda "Taleplerim" sayfasındaki yeşil kutucukta ("Belediye Yanıtı") doğrudan görüntülenir.
+              ℹ️ Bu yanıt vatandaşın telefonunda "Taleplerim" sayfasındaki yeşil kutucukta ("Belediye Yanıtı") doğrudan
+              görüntülenir.
             </p>
           </div>
         </div>
 
         <div style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
-          <div style="font-size:12px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">Durum & İşlem Tarihçesi</div>
+          <div style="font-size:12px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">Durum & İşlem
+            Tarihçesi</div>
           <div id="modalReportHistory"></div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeReportDetailModal()">Vazgeç</button>
-        <button class="btn btn-primary" id="btnSaveReportAction" onclick="saveReportAction()">💾 Yanıtı Kaydet & Durum Güncelle</button>
+        <button class="btn btn-primary" id="btnSaveReportAction" onclick="saveReportAction()">💾 Yanıtı Kaydet & Durum
+          Güncelle</button>
       </div>
     </div>
   </div>
@@ -3949,25 +4112,34 @@
         <!-- Temel Bilgiler -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Ad Soyad</div>
-            <div id="modalUserFullName" style="font-weight:800; font-size:16px; color:var(--navy-deep); margin-top:2px;"></div>
-            <div id="modalUserUid" style="font-size:11px; color:var(--text-muted); font-family:monospace; margin-top:2px;"></div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Ad Soyad
+            </div>
+            <div id="modalUserFullName"
+              style="font-weight:800; font-size:16px; color:var(--navy-deep); margin-top:2px;"></div>
+            <div id="modalUserUid"
+              style="font-size:11px; color:var(--text-muted); font-family:monospace; margin-top:2px;"></div>
           </div>
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">T.C. Kimlik No</div>
-            <div id="modalUserTc" style="font-weight:700; font-size:15px; font-family:monospace; color:var(--text-dark); margin-top:2px;"></div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">T.C. Kimlik
+              No</div>
+            <div id="modalUserTc"
+              style="font-weight:700; font-size:15px; font-family:monospace; color:var(--text-dark); margin-top:2px;">
+            </div>
           </div>
         </div>
 
         <!-- İletişim & Adres -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:10px; border:1px solid var(--border);">
+        <div
+          style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:10px; border:1px solid var(--border);">
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">E-posta & Telefon</div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">E-posta &
+              Telefon</div>
             <div id="modalUserEmail" style="font-size:13.5px; font-weight:600; margin-top:2px;"></div>
             <div id="modalUserPhone" style="font-size:13px; color:var(--text-dark); margin-top:2px;"></div>
           </div>
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">İkamet Mahallesi & Adres</div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">İkamet
+              Mahallesi & Adres</div>
             <div id="modalUserHood" style="font-size:13.5px; font-weight:700; color:var(--navy); margin-top:2px;"></div>
             <div id="modalUserAddress" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></div>
           </div>
@@ -3976,14 +4148,17 @@
         <!-- Tercihler & Ayarlar -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Görünüm & Erişilebilirlik</div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Görünüm &
+              Erişilebilirlik</div>
             <div style="font-size:13px; font-weight:600; margin-top:2px;">
               <span id="modalUserTheme"></span> • <span id="modalUserFont"></span>
             </div>
           </div>
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Bildirim Tercihleri</div>
-            <div id="modalUserPrefs" style="font-size:12.5px; color:var(--text-dark); font-weight:600; margin-top:2px;"></div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Bildirim
+              Tercihleri</div>
+            <div id="modalUserPrefs" style="font-size:12.5px; color:var(--text-dark); font-weight:600; margin-top:2px;">
+            </div>
           </div>
         </div>
 
@@ -4015,29 +4190,38 @@
             Vatandaş başvurularını Excel/CSV veya JSON formatında belediye arşivine indirebilirsiniz.
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-success btn-sm" onclick="exportData('reports', 'csv')">📥 Talepleri Excel (CSV) İndir</button>
-            <button class="btn btn-outline btn-sm" onclick="exportData('reports', 'json')">📥 Talepleri JSON İndir</button>
+            <button class="btn btn-success btn-sm" onclick="exportData('reports', 'csv')">📥 Talepleri Excel (CSV)
+              İndir</button>
+            <button class="btn btn-outline btn-sm" onclick="exportData('reports', 'json')">📥 Talepleri JSON
+              İndir</button>
           </div>
         </div>
 
         <div style="border-top:1px solid var(--border); padding-top:18px;">
-          <h4 style="font-size:14px; font-weight:800; margin-bottom:6px;">🏛️ Sistem Başlangıç Şablonları & Senkronizasyon</h4>
+          <h4 style="font-size:14px; font-weight:800; margin-bottom:6px;">🏛️ Sistem Başlangıç Şablonları &
+            Senkronizasyon</h4>
           <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
-            Belediye resmi toplanma alanları ve e-belediye kategorileri Firestore'a aktarılmamışsa buradan tek tıkla senkronize edebilirsiniz.
+            Belediye resmi toplanma alanları ve e-belediye kategorileri Firestore'a aktarılmamışsa buradan tek tıkla
+            senkronize edebilirsiniz.
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="seedAssemblyAreas()">🛡️ Resmi Toplanma Alanlarını Eşitle</button>
-            <button class="btn btn-outline btn-sm" onclick="seedEBelediyeOnly()">🏛️ E-Belediye Şablonunu Eşitle</button>
+            <button class="btn btn-primary btn-sm" onclick="seedAssemblyAreas()">🛡️ Resmi Toplanma Alanlarını
+              Eşitle</button>
+            <button class="btn btn-outline btn-sm" onclick="seedEBelediyeOnly()">🏛️ E-Belediye Şablonunu
+              Eşitle</button>
           </div>
         </div>
 
         <div style="border-top:1px solid var(--border); padding-top:18px; margin-top:18px;">
-          <h4 style="font-size:14px; font-weight:800; margin-bottom:6px; color:var(--orange);">🧹 Veritabanı Mükerrer Kayıt Temizliği (Tekilleştirme)</h4>
+          <h4 style="font-size:14px; font-weight:800; margin-bottom:6px; color:var(--orange);">🧹 Veritabanı Mükerrer
+            Kayıt Temizliği (Tekilleştirme)</h4>
           <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
-            Veterinerler, besleme odakları, anketler, kesintiler ve haberlerdeki aynı başlıklı kopya kayıtları tekilleştirip temizler.
+            Veterinerler, besleme odakları, anketler, kesintiler ve haberlerdeki aynı başlıklı kopya kayıtları
+            tekilleştirip temizler.
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-warning btn-sm" id="btnDeduplicate" onclick="deduplicateDatabase()">🧹 Çift Kayıtları Temizle ve Tekilleştir</button>
+            <button class="btn btn-warning btn-sm" id="btnDeduplicate" onclick="deduplicateDatabase()">🧹 Çift Kayıtları
+              Temizle ve Tekilleştir</button>
           </div>
         </div>
       </div>
@@ -4059,11 +4243,13 @@
       <p>Belediye yönetim portalına erişmek için yetkili e-posta ve şifrenizle oturum açın.</p>
       <div class="form-group">
         <label>Yönetici E-posta</label>
-        <input type="email" id="loginEmail" value="admin@gebze.bel.tr" placeholder="admin@gebze.bel.tr" autocomplete="username" required>
+        <input type="email" id="loginEmail" value="admin@gebze.bel.tr" placeholder="admin@gebze.bel.tr"
+          autocomplete="username" required>
       </div>
       <div class="form-group">
         <label>Şifre</label>
-        <input type="password" id="loginPassword" value="GebzeAdmin2026!" placeholder="••••••••" autocomplete="current-password" required>
+        <input type="password" id="loginPassword" value="GebzeAdmin2026!" placeholder="••••••••"
+          autocomplete="current-password" required>
       </div>
       <div id="loginError"></div>
       <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;">Güvenli Giriş Yap</button>
@@ -4072,7 +4258,8 @@
         <span style="padding:0 8px; font-weight:700;">VEYA</span>
         <span style="flex:1; border-bottom:1px solid var(--border);"></span>
       </div>
-      <button type="button" class="btn btn-outline" style="width:100%; font-weight:800;" onclick="window.adminQuickSignIn()">
+      <button type="button" class="btn btn-outline" style="width:100%; font-weight:800;"
+        onclick="window.adminQuickSignIn()">
         ⚡ Hızlı Yönetici Girişi (Tek Tık)
       </button>
       <button type="button" class="btn btn-outline" style="width:100%; margin-top:8px;" onclick="window.bypassLogin()">
@@ -4085,4 +4272,5 @@
   <div id="toast" class="toast"></div>
 
 </body>
+
 </html>
