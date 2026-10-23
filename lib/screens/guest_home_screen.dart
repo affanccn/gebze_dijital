@@ -90,14 +90,9 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   }
 
   List<_QuickActionData> _getQuickActions(String lang) {
-    final isLoggedIn = ref.watch(isLoggedInProvider);
-    final complaintTitle = isLoggedIn
-        ? (lang == 'en'
-              ? 'Snap & Report'
-              : (lang == 'ar' ? 'التقط وبلّغ' : 'Çek / Bildir'))
-        : (lang == 'en'
-              ? 'Guest Complaint'
-              : (lang == 'ar' ? 'شكوى زائر' : 'Misafir Şikayet'));
+    final complaintTitle = lang == 'en'
+        ? 'Report'
+        : (lang == 'ar' ? 'إبلاغ' : 'Bildir');
 
     return [
       _QuickActionData(
@@ -128,7 +123,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
         Icons.report_problem_rounded,
         _C.navyGradient,
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => ReportScreen(isGuest: !isLoggedIn)),
+          MaterialPageRoute(builder: (_) => const ReportScreen()),
         ),
       ),
       _QuickActionData(
