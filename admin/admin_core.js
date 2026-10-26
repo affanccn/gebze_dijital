@@ -174,6 +174,8 @@ window.switchNav = (tabId, title, subtitle) => {
   if (tabId === 'suggestions') loadSuggestions();
   if (tabId === 'polls') loadPolls();
   if (tabId === 'guide') loadGuidePlaces();
+  if (tabId === 'foods') loadFoods();
+  if (tabId === 'picnic') loadPicnic();
   if (tabId === 'nurseries') loadNurseries();
   if (tabId === 'news') loadNews();
   if (tabId === 'events') loadEvents();
@@ -222,7 +224,9 @@ async function loadDashboard() {
       usersSnap,
       eventsSnap,
       placesSnap,
-      nurseriesSnap
+      nurseriesSnap,
+      foodsSnap,
+      picnicSnap
     ] = await Promise.all([
       safeFetch("reports"),
       safeFetch("municipal_news"),
@@ -236,7 +240,9 @@ async function loadDashboard() {
       safeFetch("users"),
       safeFetch("events"),
       safeFetch("guide_places"),
-      safeFetch("nurseries")
+      safeFetch("nurseries"),
+      safeFetch("guide_foods"),
+      safeFetch("guide_picnic")
     ]);
 
     // Bekleyen Başvurular
@@ -276,6 +282,8 @@ async function loadDashboard() {
     setKpi('kpiEvents', eventsSnap.size);
     setKpi('kpiGuide', placesSnap.size);
     setKpi('kpiNurseries', nurseriesSnap.size);
+    setKpi('kpiFoods', foodsSnap.size);
+    setKpi('kpiPicnic', picnicSnap.size);
 
     // Aktif Mahalle Çalışmaları
     let activeWorks = 0;
@@ -819,90 +827,265 @@ async function loadGuidePlaces() {
 }
 window.loadGuidePlaces = loadGuidePlaces;
 
-async function loadGuidePicnic() {
-  const container = document.getElementById("guidePicnicGrid");
-  if (!container) return;
-  container.innerHTML = '<div class="empty-state">Doğa rotaları yükleniyor...</div>';
-  try {
-    const snap = await getDocs(collection(db, "guide_picnic"));
-    if (snap.empty) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <p style="margin-bottom:8px;">Kayıtlı doğa alanı / parkur bulunamadı.</p>
-          <button class="btn btn-orange btn-sm" onclick="seedGuidePicnic()">🌲 Resmi Doğa Rotalarını Eşitle (5 Rota)</button>
-        </div>
-      `;
-      return;
-    }
-    container.innerHTML = '';
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      const card = document.createElement("div");
-      card.className = "item-card";
-      card.innerHTML = `
-        ${d.image ? `<img src="${d.image}" class="item-card-image" onclick="openLightbox('${d.image}')" alt="rota">` : ''}
-        <div class="item-card-body">
-          <div class="item-card-meta">
-            <span>🌲 ${d.type || 'Doğa'}</span>
-            <span style="margin-left:auto;">📍 ${d.neighborhood || 'Gebze'}</span>
-          </div>
-          <div class="item-card-title">${d.title || d.name}</div>
-          <div class="item-card-desc">${d.description || ''}</div>
-          ${d.walkingKm ? `<div style="font-size:12px; font-weight:700; color:var(--navy-light);">🚶‍♂️ Yürüyüş Parkuru: ${d.walkingKm}</div>` : ''}
-        </div>
-        <div class="item-card-footer">
-          <span class="badge badge-success">Mobilde Yayında</span>
-          <button class="btn btn-danger btn-sm" onclick="deleteDocItem('guide_picnic', '${docSnap.id}', loadGuidePicnic)">Sil</button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  } catch (e) {
-    container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
-  }
-}
-window.loadGuidePicnic = loadGuidePicnic;
+// ═════════════════ YÖRESEL LEZZETLER (guide_foods) ═════════════════
+window.foodsCache = [];
+window.foodEditId = null;
 
-async function loadGuideFoods() {
-  const container = document.getElementById("guideFoodsGrid");
-  if (!container) return;
-  container.innerHTML = '<div class="empty-state">Lezzet durakları yükleniyor...</div>';
+async function loadFoods() {
+  const grid = document.getElementById('foodsGrid') || document.getElementById('guideFoodsGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="empty-state">Yöresel lezzetler yükleniyor...</div>';
   try {
-    const snap = await getDocs(collection(db, "guide_foods"));
-    if (snap.empty) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <p style="margin-bottom:8px;">Kayıtlı lezzet noktası bulunamadı.</p>
-          <button class="btn btn-orange btn-sm" onclick="seedGuideFoods()">🍽️ Resmi Lezzet Duraklarını Eşitle</button>
-        </div>
-      `;
-      return;
-    }
-    container.innerHTML = '';
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      const card = document.createElement("div");
-      card.className = "item-card";
-      card.innerHTML = `
-        ${d.image ? `<img src="${d.image}" class="item-card-image" onclick="openLightbox('${d.image}')" alt="lezzet">` : ''}
-        <div class="item-card-body">
-          <div class="item-card-meta">🍽️ ${d.category || 'Lezzet'}</div>
-          <div class="item-card-title">${d.title || d.name}</div>
-          <div class="item-card-desc">${d.description || ''}</div>
-          <div style="font-size:12px; color:var(--text-muted);">📍 ${d.address || 'Gebze'}</div>
-        </div>
-        <div class="item-card-footer">
-          <span class="badge badge-primary">Gastronomi</span>
-          <button class="btn btn-danger btn-sm" onclick="deleteDocItem('guide_foods', '${docSnap.id}', loadGuideFoods)">Sil</button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
+    const snap = await getDocs(collection(db, 'guide_foods'));
+    window.foodsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const countEl = document.getElementById('foodsCount');
+    if (countEl) countEl.innerText = window.foodsCache.length;
+    renderFoods();
   } catch (e) {
-    container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+    grid.innerHTML = `<div class="empty-state">Kayıtlar okunamadı: ${e.message}</div>`;
   }
 }
-window.loadGuideFoods = loadGuideFoods;
+window.loadFoods = loadFoods;
+window.loadGuideFoods = loadFoods;
+
+function renderFoods() {
+  const grid = document.getElementById('foodsGrid') || document.getElementById('guideFoodsGrid');
+  if (!grid) return;
+  const q = (document.getElementById('foodsSearchInput')?.value || '').trim().toLowerCase();
+  const list = (window.foodsCache || []).filter(f => {
+    if (!q) return true;
+    return (f.name || '').toLowerCase().includes(q) ||
+           (f.summary || '').toLowerCase().includes(q) ||
+           (f.whereToEat || '').toLowerCase().includes(q) ||
+           (f.origin || '').toLowerCase().includes(q);
+  }).sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+
+  const countEl = document.getElementById('foodsCount');
+  if (countEl) countEl.innerText = list.length;
+
+  if (!window.foodsCache || !window.foodsCache.length) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: white; border-radius: var(--radius); border: 2px dashed var(--border);">
+        <div style="font-size: 42px; margin-bottom: 12px;">🍲</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px;">Firebase'de Henüz Kayıtlı Yöresel Lezzet Yok</div>
+        <div style="font-size: 13px; color: var(--text-muted); max-width: 520px; margin: 0 auto 18px; line-height: 1.5;">
+          Gebze Çöreği, Mancarlı Pide, Höşmerim Tatlısı, Saray Pişmaniyesi, Doğal Manda Yoğurdu ve Eskihisar Deniz Mahsulleri dahil 6 resmi kayıt hazır bekliyor.
+        </div>
+        <button type="button" class="btn btn-primary" onclick="seedFoods()">
+          ⚡ 6 Resmi Gebze Lezzetini Firebase'e Yükle
+        </button>
+      </div>`;
+    return;
+  }
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state">Arama kriterlerine uygun yöresel lezzet bulunamadı.</div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(f => {
+    const ings = Array.isArray(f.ingredients) ? f.ingredients : (f.ingredients ? String(f.ingredients).split(',') : []);
+    const ingPreview = ings.slice(0, 4).join(', ') + (ings.length > 4 ? ` (+${ings.length - 4})` : '');
+    return `
+    <div class="item-card">
+      ${f.image ? `<img src="${f.image}" class="item-card-image" onclick="openLightbox('${f.image}')" alt="" onerror="this.style.display='none'">` : ''}
+      <div class="item-card-body">
+        <div class="item-card-meta">
+          <span class="badge badge-warning" style="background:#FFF7ED; color:#EA580C; border:1px solid #FFEDD5;">🍲 Yöresel Lezzet</span>
+          <span style="margin-left:auto; font-weight:700; color:var(--text-muted); font-size:11.5px;">Sıra: #${f.order || 999}</span>
+        </div>
+        <div class="item-card-title">${f.name || ''}</div>
+        <div class="item-card-desc">${f.summary || ''}</div>
+        ${f.origin ? `<div style="font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.4;"><strong>🏺 Kökeni:</strong> ${f.origin.length > 100 ? f.origin.substring(0, 100) + '...' : f.origin}</div>` : ''}
+        ${f.whereToEat ? `<div style="font-size:12px; color:var(--navy-light); font-weight:700; margin-top:6px;">📍 ${f.whereToEat}</div>` : ''}
+        ${ingPreview ? `<div style="font-size:11.5px; color:var(--text-muted); margin-top:4px; font-style:italic;">🧂 ${ingPreview}</div>` : ''}
+      </div>
+      <div class="item-card-footer">
+        <button class="btn btn-outline btn-sm" onclick="editFood('${f.id}')">Düzenle</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDocItem('guide_foods', '${f.id}', loadFoods)">Sil</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderFoods = renderFoods;
+
+window.editFood = (id) => {
+  const f = window.foodsCache.find(x => x.id === id);
+  if (!f) return;
+  window.foodEditId = id;
+  if (document.getElementById('foodName')) document.getElementById('foodName').value = f.name || '';
+  if (document.getElementById('foodNameEn')) document.getElementById('foodNameEn').value = f.name_en || '';
+  if (document.getElementById('foodNameAr')) document.getElementById('foodNameAr').value = f.name_ar || '';
+  if (document.getElementById('foodSummary')) document.getElementById('foodSummary').value = f.summary || '';
+  if (document.getElementById('foodOrigin')) document.getElementById('foodOrigin').value = f.origin || '';
+  if (document.getElementById('foodIngredients')) document.getElementById('foodIngredients').value = Array.isArray(f.ingredients) ? f.ingredients.join(', ') : (f.ingredients || '');
+  if (document.getElementById('foodRecipe')) document.getElementById('foodRecipe').value = Array.isArray(f.recipe) ? f.recipe.join('\n') : (f.recipe || '');
+  if (document.getElementById('foodWhereToEat')) document.getElementById('foodWhereToEat').value = f.whereToEat || '';
+  if (document.getElementById('foodImage')) document.getElementById('foodImage').value = f.image || '';
+  if (document.getElementById('foodOrder')) document.getElementById('foodOrder').value = f.order ?? 1;
+
+  if (document.getElementById('foodFormTitle')) document.getElementById('foodFormTitle').innerText = 'Lezzeti düzenle';
+  if (document.getElementById('foodSubmitBtn')) document.getElementById('foodSubmitBtn').innerText = 'Değişiklikleri kaydet';
+  if (document.getElementById('foodCancelBtn')) document.getElementById('foodCancelBtn').style.display = 'inline-flex';
+  document.getElementById('formFood')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.cancelFoodEdit = () => {
+  window.foodEditId = null;
+  document.getElementById('formFood')?.reset();
+  if (document.getElementById('foodFormTitle')) document.getElementById('foodFormTitle').innerText = 'Yeni yöresel lezzet ekle';
+  if (document.getElementById('foodSubmitBtn')) document.getElementById('foodSubmitBtn').innerText = 'Lezzeti ekle';
+  if (document.getElementById('foodCancelBtn')) document.getElementById('foodCancelBtn').style.display = 'none';
+};
+
+// ═════════════════ DOĞA & PİKNİK ALANLARI (guide_picnic) ═════════════════
+window.picnicCache = [];
+window.picnicEditId = null;
+window.picnicFilterType = 'all';
+
+async function loadPicnic() {
+  const grid = document.getElementById('picnicGrid') || document.getElementById('guidePicnicGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="empty-state">Doğa ve piknik alanları yükleniyor...</div>';
+  try {
+    const snap = await getDocs(collection(db, 'guide_picnic'));
+    window.picnicCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const countEl = document.getElementById('picnicCount');
+    if (countEl) countEl.innerText = window.picnicCache.length;
+    renderPicnic();
+  } catch (e) {
+    grid.innerHTML = `<div class="empty-state">Kayıtlar okunamadı: ${e.message}</div>`;
+  }
+}
+window.loadPicnic = loadPicnic;
+window.loadGuidePicnic = loadPicnic;
+
+function renderPicnic() {
+  const grid = document.getElementById('picnicGrid') || document.getElementById('guidePicnicGrid');
+  if (!grid) return;
+  const q = (document.getElementById('picnicSearchInput')?.value || '').trim().toLowerCase();
+  const filterType = window.picnicFilterType || 'all';
+
+  const typeLabels = {
+    all: 'Tümü',
+    piknik: '🧺 Piknik Alanı',
+    mesire: '🏞️ Mesire Alanı',
+    doga: '🌲 Doğa Alanı',
+    park: '🌳 Park'
+  };
+
+  const chipContainer = document.getElementById('picnicTypeChips');
+  if (chipContainer) {
+    const allCounts = { all: (window.picnicCache || []).length };
+    (window.picnicCache || []).forEach(p => {
+      const t = p.type || 'piknik';
+      allCounts[t] = (allCounts[t] || 0) + 1;
+    });
+    chipContainer.innerHTML = Object.entries(typeLabels).map(([k, label]) => {
+      const isAct = filterType === k;
+      return `<button type="button" class="chip ${isAct ? 'active' : ''}" onclick="window.picnicFilterType='${k}'; renderPicnic();">${label} <span>${allCounts[k] || 0}</span></button>`;
+    }).join('');
+  }
+
+  const list = (window.picnicCache || []).filter(p => {
+    if (filterType !== 'all' && (p.type || 'piknik') !== filterType) return false;
+    if (!q) return true;
+    return (p.name || '').toLowerCase().includes(q) ||
+           (p.summary || '').toLowerCase().includes(q) ||
+           (p.village || '').toLowerCase().includes(q) ||
+           (p.address || '').toLowerCase().includes(q);
+  }).sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+
+  const countEl = document.getElementById('picnicCount');
+  if (countEl) countEl.innerText = list.length;
+
+  if (!window.picnicCache || !window.picnicCache.length) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: white; border-radius: var(--radius); border: 2px dashed var(--border);">
+        <div style="font-size: 42px; margin-bottom: 12px;">🌲</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px;">Firebase'de Henüz Kayıtlı Doğa & Piknik Alanı Yok</div>
+        <div style="font-size: 13px; color: var(--text-muted); max-width: 520px; margin: 0 auto 18px; line-height: 1.5;">
+          Beylikdağı, Denizli Göleti, Ballıkayalar, Eskihisar Korusu, Pelitli Bayraktepe ve Tatlıkuyu Vadisi dahil 15 resmi alan hazır bekliyor.
+        </div>
+        <button type="button" class="btn btn-primary" onclick="seedPicnic()">
+          ⚡ 15 Resmi Doğa & Piknik Alanını Firebase'e Yükle
+        </button>
+      </div>`;
+    return;
+  }
+
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state">Seçilen filtre ve arama kriterine uygun alan bulunamadı.</div>';
+    return;
+  }
+
+  const typeBadgeColors = {
+    piknik: 'badge-warning',
+    mesire: 'badge-purple',
+    doga: 'badge-success',
+    park: 'badge-primary'
+  };
+
+  grid.innerHTML = list.map(p => {
+    const feats = Array.isArray(p.features) ? p.features : (p.features ? String(p.features).split(',') : []);
+    const featPills = feats.slice(0, 3).map(f => `<span style="display:inline-block; font-size:11px; background:#F1F5F9; color:#334155; padding:2px 7px; border-radius:6px; margin:2px 2px 0 0;">${f}</span>`).join('');
+    const badgeCls = typeBadgeColors[p.type] || 'badge-primary';
+    return `
+    <div class="item-card">
+      ${p.image ? `<img src="${p.image}" class="item-card-image" onclick="openLightbox('${p.image}')" alt="" onerror="this.style.display='none'">` : ''}
+      <div class="item-card-body">
+        <div class="item-card-meta">
+          <span class="badge ${badgeCls}">${typeLabels[p.type] || p.type || 'Piknik'}</span>
+          ${p.village ? `<span style="margin-left:auto; font-weight:600; color:var(--navy-light);">📍 ${p.village}</span>` : ''}
+        </div>
+        <div class="item-card-title">${p.name || ''}</div>
+        <div class="item-card-desc">${p.summary || ''}</div>
+        ${p.address ? `<div style="font-size:12px; color:var(--text-muted); margin-top:6px;">📍 ${p.address}</div>` : ''}
+        ${featPills ? `<div style="margin-top:8px;">${featPills}</div>` : ''}
+      </div>
+      <div class="item-card-footer">
+        <span style="font-size:11.5px; font-weight:700; color:var(--text-muted);">Sıra: #${p.order || 999}</span>
+        <div style="margin-left:auto; display:flex; gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="editPicnic('${p.id}')">Düzenle</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDocItem('guide_picnic', '${p.id}', loadPicnic)">Sil</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderPicnic = renderPicnic;
+
+window.editPicnic = (id) => {
+  const p = window.picnicCache.find(x => x.id === id);
+  if (!p) return;
+  window.picnicEditId = id;
+  if (document.getElementById('picnicName')) document.getElementById('picnicName').value = p.name || '';
+  if (document.getElementById('picnicNameEn')) document.getElementById('picnicNameEn').value = p.name_en || '';
+  if (document.getElementById('picnicNameAr')) document.getElementById('picnicNameAr').value = p.name_ar || '';
+  if (document.getElementById('picnicType')) document.getElementById('picnicType').value = p.type || 'piknik';
+  if (document.getElementById('picnicVillage')) document.getElementById('picnicVillage').value = p.village || '';
+  if (document.getElementById('picnicAddress')) document.getElementById('picnicAddress').value = p.address || '';
+  if (document.getElementById('picnicSummary')) document.getElementById('picnicSummary').value = p.summary || '';
+  if (document.getElementById('picnicFeatures')) document.getElementById('picnicFeatures').value = Array.isArray(p.features) ? p.features.join(', ') : (p.features || '');
+  if (document.getElementById('picnicLat')) document.getElementById('picnicLat').value = p.lat ?? '';
+  if (document.getElementById('picnicLng')) document.getElementById('picnicLng').value = p.lng ?? '';
+  if (document.getElementById('picnicMapQuery')) document.getElementById('picnicMapQuery').value = p.mapQuery || '';
+  if (document.getElementById('picnicImage')) document.getElementById('picnicImage').value = p.image || '';
+  if (document.getElementById('picnicOrder')) document.getElementById('picnicOrder').value = p.order ?? 1;
+
+  if (document.getElementById('picnicFormTitle')) document.getElementById('picnicFormTitle').innerText = 'Alanı düzenle';
+  if (document.getElementById('picnicSubmitBtn')) document.getElementById('picnicSubmitBtn').innerText = 'Değişiklikleri kaydet';
+  if (document.getElementById('picnicCancelBtn')) document.getElementById('picnicCancelBtn').style.display = 'inline-flex';
+  document.getElementById('formPicnic')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.cancelPicnicEdit = () => {
+  window.picnicEditId = null;
+  document.getElementById('formPicnic')?.reset();
+  if (document.getElementById('picnicFormTitle')) document.getElementById('picnicFormTitle').innerText = 'Yeni doğa / piknik alanı ekle';
+  if (document.getElementById('picnicSubmitBtn')) document.getElementById('picnicSubmitBtn').innerText = 'Alanı ekle';
+  if (document.getElementById('picnicCancelBtn')) document.getElementById('picnicCancelBtn').style.display = 'none';
+};
 
 async function loadGuideInstitutions() {
   const container = document.getElementById("guideInstitutionsGrid");
