@@ -12,8 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <!-- Gebze Belediyesi Resmi Etkinlikler Önbelleği (CORS Korumalı Doğrudan Paket) -->
+  <!-- Gebze Belediyesi Resmi Etkinlikler & Haberler Önbelleği (CORS Korumalı Doğrudan Paket) -->
   <script src="gebze_etkinlik_cache.js"></script>
+  <script src="gebze_haber_cache.js"></script>
 
   <style>
     :root {
@@ -1343,6 +1344,52 @@
       }
     }
     window.loadNews = loadNews;
+
+    async function seedOfficialNews() {
+      const btn = document.getElementById("btnSyncOfficialNews");
+      if (btn) btn.disabled = true;
+      try {
+        const newsData = window.GEBZE_OFFICIAL_NEWS;
+        if (!Array.isArray(newsData) || newsData.length === 0) {
+          throw new Error("Resmi haber veri paketi (gebze_haber_cache.js) bulunamadı.");
+        }
+
+        showToast(`${newsData.length} resmi belediye haberi senkronize ediliyor...`);
+
+        let count = 0;
+        for (const item of newsData) {
+          const docId = item.id || ('news_' + (item.newsId || (count + 1)));
+          await setDoc(doc(db, "municipal_news", docId), {
+            id: docId,
+            title: item.title,
+            url: item.url || '',
+            image: item.image || '',
+            publishedAtText: item.publishedAtText || 'Güncel',
+            newsId: item.newsId || (7400 + count),
+            pageIndex: item.pageIndex || 1,
+            itemIndex: item.itemIndex || count,
+            summary: item.summary || item.title,
+            title_en: item.title_en || item.title,
+            title_ar: item.title_ar || item.title,
+            summary_en: item.summary_en || (item.summary || item.title),
+            summary_ar: item.summary_ar || (item.summary || item.title),
+            category: "Belediye",
+            source: "Gebze Belediyesi",
+            syncedAt: serverTimestamp()
+          }, { merge: true });
+          count++;
+        }
+
+        showToast(`✅ ${count} adet resmi belediye haberi başarıyla Firestore'a aktarıldı!`);
+        loadNews();
+        loadDashboard();
+      } catch (err) {
+        alert("Haber senkronizasyonu hatası: " + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+    window.seedOfficialNews = seedOfficialNews;
 
     // ───────────────── 4. ETKİNLİKLER & KÜLTÜR ─────────────────
     window.eventsListCache = [];
@@ -4581,8 +4628,9 @@
             </form>
           </div>
           <div>
-            <div class="panel-header">
+            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <div class="panel-title">Kayıtlı Belediye Haberleri</div>
+              <button type="button" class="btn btn-outline btn-sm" id="btnSyncOfficialNews" onclick="seedOfficialNews()">🔄 Belediye Haberlerini Senkronize Et (28 Güncel Haber)</button>
             </div>
             <div class="items-grid" id="newsGrid"></div>
           </div>
@@ -5657,6 +5705,7 @@
             <button class="btn btn-outline btn-sm" onclick="seedEBelediyeOnly()">🏛️ E-Belediye Şablonunu Eşitle</button>
             <button class="btn btn-outline btn-sm" onclick="seedFoods()">🍲 6 Yöresel Lezzeti Eşitle</button>
             <button class="btn btn-outline btn-sm" onclick="seedPicnic()">🌲 15 Doğa & Piknik Alanını Eşitle</button>
+            <button class="btn btn-outline btn-sm" onclick="seedOfficialNews()">📰 28 Resmi Haberi Eşitle</button>
           </div>
         </div>
 

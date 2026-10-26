@@ -4,6 +4,7 @@
   "description": "",
   "main": "sync-news.js",
   "scripts": {
+    "sync:cache": "node fetch-cache.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

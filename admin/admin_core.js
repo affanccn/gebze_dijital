@@ -1230,6 +1230,52 @@ async function loadNews() {
 }
 window.loadNews = loadNews;
 
+async function seedOfficialNews() {
+  const btn = document.getElementById("btnSyncOfficialNews");
+  if (btn) btn.disabled = true;
+  try {
+    const newsData = window.GEBZE_OFFICIAL_NEWS;
+    if (!Array.isArray(newsData) || newsData.length === 0) {
+      throw new Error("Resmi haber veri paketi (gebze_haber_cache.js) bulunamadı.");
+    }
+
+    showToast(`${newsData.length} resmi belediye haberi senkronize ediliyor...`);
+
+    let count = 0;
+    for (const item of newsData) {
+      const docId = item.id || ('news_' + (item.newsId || (count + 1)));
+      await setDoc(doc(db, "municipal_news", docId), {
+        id: docId,
+        title: item.title,
+        url: item.url || '',
+        image: item.image || '',
+        publishedAtText: item.publishedAtText || 'Güncel',
+        newsId: item.newsId || (7400 + count),
+        pageIndex: item.pageIndex || 1,
+        itemIndex: item.itemIndex || count,
+        summary: item.summary || item.title,
+        title_en: item.title_en || item.title,
+        title_ar: item.title_ar || item.title,
+        summary_en: item.summary_en || (item.summary || item.title),
+        summary_ar: item.summary_ar || (item.summary || item.title),
+        category: "Belediye",
+        source: "Gebze Belediyesi",
+        syncedAt: serverTimestamp()
+      }, { merge: true });
+      count++;
+    }
+
+    showToast(`✅ ${count} adet resmi belediye haberi başarıyla Firestore'a aktarıldı!`);
+    loadNews();
+    loadDashboard();
+  } catch (err) {
+    alert("Haber senkronizasyonu hatası: " + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+window.seedOfficialNews = seedOfficialNews;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 10. ETKİNLİKLER & KÜLTÜR-SANAT
 // ─────────────────────────────────────────────────────────────────────────────
