@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'bot82_fab.dart';
+import 'gebze_robot_asset.dart';
 
 class Bot82ChatAvatar extends StatefulWidget {
   const Bot82ChatAvatar({
@@ -10,8 +11,8 @@ class Bot82ChatAvatar extends StatefulWidget {
     this.size = 44,
     this.animated = false,
     this.thinking = false,
-    this.heightFactor = 0.62,
-    this.asset = 'assets/images/bot82_full.png',
+    this.heightFactor = 0.58,
+    this.asset = 'assets/images/gebzechatbot.png',
   });
 
   final double size;
@@ -75,17 +76,11 @@ class _Bot82ChatAvatarState extends State<Bot82ChatAvatar>
   Widget build(BuildContext context) {
     final w = widget.size;
     final fullH = w / kBot82Aspect;
-    final dpr = MediaQuery.devicePixelRatioOf(context);
 
-    final image = Image.asset(
-      widget.asset,
+    final image = buildGebzeRobotImage(
       width: w,
       height: fullH,
       fit: BoxFit.contain,
-      cacheWidth: (w * dpr).ceil(),
-      filterQuality: FilterQuality.medium,
-      gaplessPlayback: true,
-      errorBuilder: (context, error, stackTrace) => const Icon(Icons.smart_toy),
     );
 
     Widget framed(Widget content) => SizedBox(

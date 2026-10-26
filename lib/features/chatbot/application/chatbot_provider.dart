@@ -38,13 +38,14 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
     return ChatbotState(
       messages: [
         ChatMessage.bot(
-          'Merhaba 👋\nBen Gebze Dijital Asistanı Bot82. Size nasıl yardımcı olabilirim?',
+          'Merhaba 👋\nBen Gebze Dijital Asistanı. Size nasıl yardımcı olabilirim?',
           action: const ChatAction(type: ChatActionType.suggest),
           suggestions: const [
             'Su Kesintileri',
             'Nöbetçi Eczaneler',
             'Hava Durumu',
-            'Belediyeye Ulaş',
+            'Etkinlikler',
+            'Gebze Pati',
             'Talep Bildir',
           ],
         ),
@@ -218,7 +219,7 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
     state = state.copyWith(
       messages: [...state.messages, botMsg],
       isProcessing: false,
-      showConfetti: intent.intentId == 'easter_egg_82',
+      showConfetti: false,
     );
 
     ref.read(bot82Provider.notifier).endThinking();

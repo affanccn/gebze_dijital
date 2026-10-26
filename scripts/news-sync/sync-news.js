@@ -76,6 +76,7 @@ async function getHtml(url, maxRetries = 3) {
       console.log(`Bağlanılıyor (${attempt}/${maxRetries}): ${url}`);
       const response = await fetch(url, {
         headers: BROWSER_HEADERS,
+        dispatcher: agent,
         signal: AbortSignal.timeout(45000),
       });
 
@@ -491,17 +492,22 @@ async function main() {
 }
 
 main().catch((error) => {
-  const isTimeout =
+  const isNetworkError =
     error?.code === "UND_ERR_CONNECT_TIMEOUT" ||
     error?.cause?.code === "UND_ERR_CONNECT_TIMEOUT" ||
     error?.name === "TimeoutError" ||
     error?.message?.includes("Connect Timeout") ||
-    error?.message?.includes("fetch failed");
+    error?.message?.includes("fetch failed") ||
+    error?.message?.includes("ETIMEDOUT") ||
+    error?.message?.includes("ECONNRESET") ||
+    error?.message?.includes("ENOTFOUND") ||
+    error?.cause?.message?.includes("Connect Timeout");
 
-  if (isTimeout) {
+  if (isNetworkError) {
     console.warn(
-      "\n⚠️ [UYARI] Belediye sunucusuna bağlantı sağlanamadığı için senkronizasyon pas geçildi." +
-      "\nFirestore veritabanı güvenle korundu.\n"
+      "\n⚠️ [UYARI] Belediye sunucusuna bağlantı sağlanamadığı için senkronizasyon pas geçildi: " +
+      (error?.cause?.message || error?.message || error) +
+      "\nFirestore veritabanı güvenle korundu. Workflow hatasız sonlandırılıyor.\n"
     );
     process.exitCode = 0;
     return;

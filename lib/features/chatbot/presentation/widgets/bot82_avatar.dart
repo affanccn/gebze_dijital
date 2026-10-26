@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'gebze_robot_asset.dart';
+
 enum Bot82AvatarState { normal, thinking, error }
 
 class Bot82Avatar extends StatefulWidget {
@@ -123,10 +125,6 @@ class _Bot82AvatarState extends State<Bot82Avatar>
               height: widget.radius * 2,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/bot82_full.png'),
-                  fit: BoxFit.cover,
-                ),
                 boxShadow: widget.state == Bot82AvatarState.thinking
                     ? [
                         BoxShadow(
@@ -148,6 +146,11 @@ class _Bot82AvatarState extends State<Bot82Avatar>
                         ),
                       ]
                     : null,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: buildGebzeRobotImage(
+                fit: BoxFit.cover,
+                alignment: const Alignment(0, -0.65),
               ),
             ),
           ),

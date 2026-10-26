@@ -65,7 +65,9 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
     setState(() => _bubble = false);
     notifier.setChatOpen(true);
 
-    await showModalBottomSheet<void>(
+    final navigator = navKey?.currentState ?? Navigator.of(navContext);
+
+    final result = await showModalBottomSheet<String>(
       context: navContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -95,7 +97,18 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
       ),
     );
 
-    notifier.setChatOpen(false);
+    if (result == 'expand' && mounted) {
+      await navigator.push<void>(
+        MaterialPageRoute(
+          settings: const RouteSettings(name: '/chatbot'),
+          builder: (_) => const ChatbotScreen(isMini: false),
+        ),
+      );
+    }
+
+    if (mounted) {
+      notifier.setChatOpen(false);
+    }
   }
 
   @override

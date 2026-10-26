@@ -200,7 +200,7 @@ class _Category {
   });
 }
   String _nurseryTitle(String lang) =>
-     lang == 'en' ? 'Nurseries' : (lang == 'ar' ? 'دور الحضانة' : 'Kreşler');
+     lang == 'en' ? 'Nurseries' : (lang == 'ar' ? 'دور الحضانة' : 'Kreş ve Atölyeler');
 List<_Category> _getCategories(String lang) => [
   _Category(
     'etkinlikler',
@@ -399,6 +399,86 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       detailUrl:
           'https://www.gebze.bel.tr/gebze-tarihi-yerler_ballikayalar_8.html',
       image: 'gorsel/tarihi_yerler/ballikaya.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'beylikdagi',
+      name: isEn
+          ? 'Beylikdagi Forest Walk'
+          : isAr
+          ? 'مسار غابة بيليك داغي'
+          : 'Beylikdağı Orman Yürüyüşü',
+      summary: isEn
+          ? 'One of Gebze\'s natural green areas, Beylikdagi City Forest offers a peaceful route for open-air walking, fresh air, and nature photography.'
+          : isAr
+          ? 'تعتبر غابة بيليك داغي الحضرية إحدى المناطق الخضراء الطبيعية في جبزة، وتوفر مساراً رائعاً للمشي في الهواء الطلق واستنشاق الهواء النقي.'
+          : 'Gebze\'nin doğal yeşil alanlarından biri olan Beylikdağı Kent Ormanı, ağaçlandırılmış yamaçları ve orman dokusuyla açık havada yürüyüş yapmak ve doğa fotoğrafları çekmek isteyenler için harika bir rotadır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/beylikdagi.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'denizli_goleti',
+      name: isEn
+          ? 'Denizli Pond Nature Route'
+          : isAr
+          ? 'مسار بركة دينيزلي الطبيعي'
+          : 'Denizli Göleti Doğa Rotası',
+      summary: isEn
+          ? 'Denizli Pond combines lake views with rural nature. Trails along dirt roads and forest paths offer a serene escape from city hustle.'
+          : isAr
+          ? 'تقع بركة دينيزلي بالقرب من حي دينيزلي في جبزة، وتجمع بين إطلالة البحيرة والطبيعة الريفية مع مسارات المشي عبر الطرق الترابية.'
+          : 'Gebze\'nin Denizli Mahallesi çevresinde yer alan Denizli Göleti, gölet manzarasını kırsal doğayla buluşturan keyifli bir yürüyüş noktasıdır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/denizli_goleti.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'denizli_yoruk_yaylalari',
+      name: isEn
+          ? 'Denizli Pond – Yoruk Plateaus Route'
+          : isAr
+          ? 'مسار بركة دينيزلي – هضاب يوروك'
+          : 'Denizli Göleti – Yörük Yaylaları Doğa Rotası',
+      summary: isEn
+          ? 'Extending into rural Gebze, this nature route combines forest tracks, wide meadows, and plateau views, ideal for longer treks.'
+          : isAr
+          ? 'يمتد هذا المسار الطبيعي من بركة دينيزلي نحو ريف جبزة، جامعاً بين طرق الغابات والمروج الخضراء الواسعة وإطلالات الهضاب الخلابة.'
+          : 'Denizli Göleti\'nden başlayarak Gebze\'nin kırsal alanlarına uzanan bu doğa rotası; orman yollarını, geniş çayırlıkları ve yayla manzaralarını bir araya getirir.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/denizli_yoruk_yaylalari.png',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'elmalidere_selalesi',
+      name: isEn
+          ? 'Elmalidere Waterfall & Forest Trails'
+          : isAr
+          ? 'شلال إلماليده ره ومسارات الغابة'
+          : 'Elmalıdere Şelalesi ve Orman Patikaları',
+      summary: isEn
+          ? 'Elmalidere Waterfall attracts hiking enthusiasts with its stream bed, natural flora, and forest paths.'
+          : isAr
+          ? 'يقع شلال إلماليده ره في ريف دينيزلي بجبزة، ويجذب عشاق المشي الطبيعي بمجراه المائي وغطائه النباتي ومساراته بين الغابات.'
+          : 'Gebze\'nin Denizli kırsalı çevresinde bulunan Elmalıdere Şelalesi, dere yatağı, doğal bitki örtüsü ve orman yollarıyla doğa yürüyüşü meraklılarının ilgisini çeken bir noktadır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/elmalidere_selalesi.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'yelken_tepe',
+      name: isEn
+          ? 'Yelken Tepe Nature Walk'
+          : isAr
+          ? 'مسار جبل يلكن تيبي'
+          : 'Yelken Tepe Doğa Yürüyüşü',
+      summary: isEn
+          ? 'Yelken Tepe in rural Denizli is a peak hiking spot featuring paths through forest terrain and panoramic rural vistas.'
+          : isAr
+          ? 'تعتبر قمة يلكن تيبي في ريف دينيزلي وجهة مميزة للمشي الجبلي والمسارات الغابية والمناظر الريفية البانورامية.'
+          : 'Gebze\'nin Denizli kırsalındaki Yelken Tepe, gölet ve yayla güzergâhlarıyla birleşen ve tepeden panoramik kırsal manzaralar sunan bir doğa yürüyüşü noktasıdır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/yelken_tepe.png',
       category: catDoga,
     ),
         HistoricPlace(
@@ -1794,24 +1874,7 @@ class _InstitutionCard extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      if (data['category'] != null &&
-                          data['category'].toString().isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: color.withAlpha(isDark ? 50 : 25),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            data['category'].toString(),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: color,
-                            ),
-                          ),
-                        ),
+                    
                       if (data['formattedDate'] != null &&
                           data['formattedDate'].toString().isNotEmpty)
                         Row(

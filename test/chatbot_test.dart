@@ -241,12 +241,45 @@ void main() {
       }
     });
 
-    test('Easter Egg 82 Intent Tests', () {
-      final inputs = ['Plaka 82', 'Gebze il olsun', '82 numara'];
+    test('Events & Culture Intent Tests', () {
+      final inputs = [
+        'Etkinlikler neler',
+        'Bu hafta ne var',
+        'Tiyatro var mı',
+        'Konser ne zaman',
+      ];
 
       for (final input in inputs) {
         final intent = IntentMatcher.match(input);
-        expect(intent?.id, 'easter_egg_82', reason: 'Failed on input: $input');
+        expect(intent?.id, 'events', reason: 'Failed on input: $input');
+      }
+    });
+
+    test('Nature & Picnic Intent Tests', () {
+      final inputs = [
+        'Piknik yerleri',
+        'Nerede piknik yapabilirim',
+        'Denizli göleti nerede',
+        'Ballıkayalar kanyonu',
+      ];
+
+      for (final input in inputs) {
+        final intent = IntentMatcher.match(input);
+        expect(intent?.id, 'doga_piknik', reason: 'Failed on input: $input');
+      }
+    });
+
+    test('Historical Places Intent Tests', () {
+      final inputs = [
+        'Tarihi yerler nereler',
+        'Gezilecek tarihi yerler',
+        'Eskihisar kalesi nerede',
+        'Çoban mustafa paşa külliyesi',
+      ];
+
+      for (final input in inputs) {
+        final intent = IntentMatcher.match(input);
+        expect(intent?.id, 'historical_places', reason: 'Failed on input: $input');
       }
     });
 
@@ -325,7 +358,7 @@ void main() {
 
       notifier.reset();
       expect(container.read(chatbotProvider).messages.length, 1);
-      expect(container.read(chatbotProvider).messages.first.text, contains('Bot82'));
+      expect(container.read(chatbotProvider).messages.first.text, contains('Gebze Dijital Asistanı'));
     });
 
     test('Guest user asking for auth-required intents receives register redirect', () async {

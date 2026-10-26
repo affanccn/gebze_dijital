@@ -2,7 +2,7 @@
   "project": "Gebze Dijital",
   "version": "2.0",
   "language": "tr-TR",
-  "purpose": "Gebze Dijital Vatandaş Platformu yerel asistanı Bot82 için kapsamlı niyet ve rota eşleştirme kataloğu.",
+  "purpose": "Gebze Dijital Vatandaş Platformu yerel akıllı asistanı için kapsamlı niyet ve rota eşleştirme kataloğu.",
   "matching": {
     "strategy": "hybrid_local_intent",
     "weights": {
@@ -22,7 +22,7 @@
     "pharmacies": "/services/pharmacies",
     "weather": "/services/weather",
     "news": "/services/content",
-    "events": "/services/content",
+    "events": "/events",
     "neighborhood": "/services/neighborhood",
     "roadworks": "/services/neighborhood",
     "animals": "/services/animals",
@@ -41,11 +41,16 @@
     "parks": "/places/parklar",
     "sports_facilities": "/places/spor",
     "cultural_facilities": "/places/kultur",
-    "historical_places": "/places",
+    "historical_places": "/places/tarihi",
     "profile": "/profile",
     "accessibility": "/profile",
     "services": "/services",
-    "contact": "/services"
+    "contact": "/services",
+    "doga_piknik": "/places/doga",
+    "mezarliklar": "/places/mezarliklar",
+    "kresler": "/places/kresler",
+    "sports": "/places/spor",
+    "kultur": "/places/kultur"
   },
   "intents": [
     {
@@ -69,11 +74,12 @@
         "iyi günler",
         "günaydın",
         "iyi akşamlar",
-        "merhaba bot82",
         "selam asistan",
-        "nasılsın"
+        "nasılsın",
+        "merhaba asistan",
+        "merhaba gebze asistanı"
       ],
-      "response": "Merhaba 👋 Ben Gebze Dijital Asistanı Bot82. Gebze'deki tüm belediye hizmetleri, kesintiler, nöbetçi eczaneler, mahalle çalışmaları ve etkinlikler konusunda size yardımcı olmak için buradayım. Size nasıl yardımcı olabilirim?",
+      "response": "Merhaba 👋 Ben Gebze Dijital Asistanı. Gebze'deki tüm belediye hizmetleri, kesintiler, nöbetçi eczaneler, mahalle çalışmaları, etkinlikler ve şehir rehberi konusunda size yardımcı olmak için buradayım. Size nasıl yardımcı olabilirim?",
       "choices": [
         {
           "label": "Su Kesintileri",
@@ -116,7 +122,7 @@
         "yardım et",
         "yardım menüsü"
       ],
-      "response": "Bot82 olarak Gebze Belediyesi'nin tüm dijital hizmetlerinde yanınızdayım:\n\n💧 Su ve elektrik kesintilerini kontrol edebilir,\n💊 Nöbetçi eczaneleri bulabilir,\n⛅ Güncel hava durumunu öğrenebilir,\n🚧 Mahallenizdeki kazı ve yol çalışmalarını görebilir,\n🐾 Gebze Pati ile sokak hayvanları ve sahiplendirmeyi inceleyebilir,\n🚗 Otopark doluluklarını takip edebilir,\n🗳️ Söz Sende ile anketlerde oy kullanabilir,\n📸 Çek & Gönder ile belediyemize talep iletebilirsiniz.",
+      "response": "Gebze Belediyesi Dijital Asistanı olarak tüm şehir ve belediye hizmetlerinde yanınızdayım:\n\n💧 Su ve elektrik kesintilerini kontrol edebilir,\n💊 Nöbetçi eczaneleri bulabilir,\n⛅ Güncel hava durumunu öğrenebilir,\n🚧 Mahallenizdeki kazı ve yol çalışmalarını görebilir,\n🐾 Gebze Pati ile sokak hayvanları ve sahiplendirmeyi inceleyebilir,\n🚗 Otopark doluluklarını takip edebilir,\n🎭 Güncel kültür-sanat etkinliklerini görebilir,\n🍲 Kent Lokantası ve Şehir Rehberi'ni keşfedebilir,\n🗳️ Söz Sende ile anketlerde oy kullanabilir,\n📸 Çek & Gönder ile belediyemize talep iletebilirsiniz.",
       "choices": [
         {
           "label": "Kesintileri Gör",
@@ -137,26 +143,27 @@
       ]
     },
     {
-      "id": "about_bot82",
+      "id": "about_assistant",
       "category": "general",
       "action": "answer",
       "priority": 3,
       "keywords": [
-        "bot82",
+        "asistan",
         "kimsin",
         "adın ne",
         "nesin",
         "sen kimsin",
-        "robot"
+        "robot",
+        "gebze asistan"
       ],
       "phrases": [
-        "bot82 kimdir",
+        "gebze asistanı kimdir",
         "sen kimsin",
         "adın ne",
-        "bot82 nedir",
+        "asistan nedir",
         "kimsin sen"
       ],
-      "response": "Ben Bot82 🤖 Gebze Belediyesi Dijital Vatandaş Platformu'nun akıllı şehir asistanıyım. Gebze'nin 82 numaralı il vizyonundan ilham alarak tasarlandım. Şehrimizdeki tüm hizmetlere hızlıca ulaşmanız için buradayım!",
+      "response": "Ben Gebze Dijital Asistanı 🤖 Gebze Belediyesi Dijital Vatandaş Platformu'nun akıllı şehir asistanıyım. Şehrimizdeki tüm hizmetlere hızlıca ulaşmanız ve işlemlerinizi kolayca halletmeniz için buradayım!",
       "choices": [
         {
           "label": "Hizmetleri Keşfet",
@@ -477,71 +484,68 @@
       "id": "pet_adoption",
       "category": "animals",
       "action": "navigate",
-      "priority": 5,
+      "priority": 6,
       "route_key": "animals",
       "keywords": [
         "sahiplen",
         "sahiplenme",
-        "kedi sahiplenmek",
-        "köpek sahiplenmek",
-        "ücretsiz kedi",
-        "yavru kedi",
-        "yavru köpek",
-        "yuva arayanlar"
+        "kedi sahiplen",
+        "kopek sahiplen",
+        "yuva",
+        "pati yuva",
+        "evcil hayvan"
       ],
       "phrases": [
-        "hayvan sahiplenmek istiyorum",
-        "kedi sahiplenme",
+        "kedi sahiplenmek istiyorum",
         "köpek sahiplenme",
-        "ücretsiz hayvan sahiplen",
-        "barınaktan kedi al",
-        "yuva olmak istiyorum"
+        "hayvan sahiplen",
+        "pati sahiplendirme"
       ],
-      "response": "Gebze Pati Sahiplendirme sayfamızda sıcak bir yuva bekleyen sevimli can dostlarımızın fotoğraflarını, yaş ve cinsiyet bilgilerini inceleyebilir ve sahiplenme başvurusunda bulunabilirsiniz 🐾",
+      "response": "Gebze Pati platformumuz üzerinden sıcak bir yuvaya ihtiyaç duyan can dostlarımızı inceleyebilir ve sahiplenme başvurusunda bulunabilirsiniz. 🐾",
       "choices": [
         {
-          "label": "Sahiplendirme İlanları",
+          "label": "Pati Sahiplen",
           "value": "gebze pati"
         },
         {
-          "label": "Mama Odakları",
-          "value": "mama noktaları"
+          "label": "Mama Noktaları",
+          "value": "mama noktalari"
         }
-      ]
+      ],
+      "route": "/services/animals"
     },
     {
       "id": "animal_ambulance",
       "category": "animals",
       "action": "navigate",
-      "priority": 5,
+      "priority": 7,
       "route_key": "animals",
       "keywords": [
-        "yaralı hayvan",
-        "hayvan ambulansı",
-        "araba çarptı",
-        "hasta kedi",
-        "hasta köpek",
-        "acil hayvan",
-        "veteriner ambulans"
+        "ambulans",
+        "hayvan ambulansi",
+        "yarali kedi",
+        "yarali kopek",
+        "hasta hayvan",
+        "acil veteriner"
       ],
       "phrases": [
         "yaralı kedi gördüm",
-        "yaralı köpek var",
         "hayvan ambulansı çağır",
-        "sokak hayvanı acil",
-        "yaralı hayvan bildir"
+        "sokak hayvanı yaralı",
+        "acil hayvan bakımı"
       ],
-      "response": "🚨 Yaralı veya acil müdahaleye muhtaç sokak hayvanları için Gebze Belediyesi Hayvan Ambulansı hizmet vermektedir. Gebze Pati ekranından doğrudan çağrı yapabilir veya 444 04 43 hattını arayabilirsiniz.",
+      "response": "Acil durumlarda Gebze Belediyesi Hayvan Ambulansı hizmetimizden yararlanabilirsiniz. Çağrı Merkezimiz: 444 04 43 veya Gebze Pati sayfamızdan acil bildirime ulaşabilirsiniz.",
       "choices": [
         {
-          "label": "Hemen Ara (444 04 43)",
-          "value": "iletişim"
+          "label": "Gebze Pati Aç",
+          "value": "gebze pati"
         },
         {
-          "label": "Gebze Pati'yi Aç",
-          "value": "gebze pati"
+          "label": "Belediyeyi Ara",
+          "value": "belediye iletisim"
         }
-      ]
+      ],
+      "route": "/services/animals"
     },
     {
       "id": "feeding_points",
@@ -1240,40 +1244,40 @@
     },
     {
       "id": "events",
-      "category": "info",
+      "category": "culture",
       "action": "navigate",
-      "priority": 4,
+      "priority": 5,
       "route_key": "events",
       "keywords": [
         "etkinlik",
+        "etkinlikler",
         "konser",
         "tiyatro",
-        "kültür",
-        "sanat",
-        "sinema",
-        "festival",
-        "program",
-        "çocuk tiyatrosu"
+        "soylesi",
+        "kultur sanat",
+        "kultur merkezi",
+        "program"
       ],
       "phrases": [
-        "bugün etkinlik var mı",
-        "bu hafta konser var mı",
-        "kültür sanat etkinlikleri",
-        "tiyatro oyunu",
-        "hafta sonu ne yapabilirim",
-        "gebzede konser"
+        "etkinlikler neler",
+        "bu hafta ne var",
+        "tiyatro var mı",
+        "konser ne zaman",
+        "etkinlik takvimi",
+        "yaklasan etkinlikler"
       ],
-      "response": "Gebze'deki konserler, yetişkin ve çocuk tiyatroları, sergiler ve söyleşi programları Haberler & Etkinlikler sayfamızda güncel olarak yayınlanmaktadır 🎭",
+      "response": "Gebze Belediyesi güncel kültür-sanat etkinlikleri, tiyatrolar ve konser takvimini Etkinlikler sayfamızdan inceleyebilirsiniz.",
       "choices": [
         {
           "label": "Etkinlikleri Gör",
           "value": "etkinlikler"
         },
         {
-          "label": "Şehir Rehberi",
-          "value": "gezilecek yerler"
+          "label": "Kültür Merkezleri",
+          "value": "kultur merkezleri"
         }
-      ]
+      ],
+      "route": "/events"
     },
     {
       "id": "kent_lokantasi",
@@ -1421,34 +1425,42 @@
       "id": "historical_places",
       "category": "places",
       "action": "navigate",
-      "priority": 4,
+      "priority": 5,
       "route_key": "historical_places",
       "keywords": [
         "tarihi",
-        "tarih",
-        "osmanlı",
-        "bizans",
-        "eser",
-        "tarihi eser",
-        "anıtsal"
+        "tarihi yerler",
+        "coban mustafa pasa",
+        "eskihisar kalesi",
+        "osman hamdi bey",
+        "hunkar cayiri",
+        "anibal",
+        "hannibal",
+        "anit mezar",
+        "muze",
+        "kale"
       ],
       "phrases": [
-        "tarihi yerler",
-        "gebzenin tarihi eserleri",
-        "osmanlı eserleri",
-        "tarihi yapılar"
+        "tarihi yerler nereler",
+        "gezilecek tarihi yerler",
+        "çoban mustafa paşa külliyesi",
+        "eskihisar kalesi nerede",
+        "osman hamdi bey müzesi",
+        "hünkar çayırı fatih sultan mehmet",
+        "anibalın mezarı nerede"
       ],
-      "response": "Gebze zengin tarihiyle Çoban Mustafa Paşa Camii, Sultan Orhan Camii, İlyas Bey Camii, Eskihisar Kalesi, Hünkar Çayırı ve Anibal'ın Mezarı gibi çok sayıda mirasa ev sahipliği yapar 🏛️",
+      "response": "Gebze zengin bir tarihe sahiptir! Çoban Mustafa Paşa Külliyesi, Eskihisar Kalesi, Osman Hamdi Bey Evi ve Müzesi, Fatih Sultan Mehmet'in otağ kurduğu Hünkar Çayırı ve Anibal Anıt Mezarı gibi tarihi mekanlarımızı Şehir Rehberimizden keşfedebilirsiniz. 🏛️",
       "choices": [
         {
-          "label": "Tarihi Yerleri Aç",
+          "label": "Tarihi Yerleri Gör",
           "value": "gezilecek yerler"
         },
         {
-          "label": "Eskihisar Kalesi",
-          "value": "eskihisar"
+          "label": "Doğa Alanları",
+          "value": "piknik yerleri"
         }
-      ]
+      ],
+      "route": "/places/tarihi"
     },
     {
       "id": "coban_mustafa_pasa",
@@ -1815,35 +1827,146 @@
       ]
     },
     {
-      "id": "easter_egg_82",
-      "category": "easter_egg",
-      "action": "answer",
-      "priority": 10,
+      "id": "doga_piknik",
+      "category": "places",
+      "action": "navigate",
+      "route": "/places/doga",
+      "priority": 5,
       "keywords": [
-        "82",
-        "plaka 82",
-        "il olsun",
-        "gebze il",
-        "82 gebze",
-        "gebze 82",
-        "vilayet"
+        "piknik",
+        "doga",
+        "yuruyus",
+        "gol",
+        "golet",
+        "denizli goleti",
+        "gaziler dagi",
+        "ballikayalar",
+        "yelken tepe",
+        "selale",
+        "elmalidere",
+        "mesire"
       ],
       "phrases": [
-        "82",
-        "plaka 82",
-        "gebze il olsun",
-        "gebze il olacak mı",
-        "82 numara"
+        "piknik yerleri",
+        "nerede piknik yapabilirim",
+        "doğa yürüyüşü",
+        "denizli göleti nerede",
+        "gaziler dağı",
+        "ballıkayalar kanyonu",
+        "mesire alanları"
       ],
-      "response": "🎉 Plaka 82: Gönüllerin Başkenti Gebze! Sanayisi, tarihi ve çalışkan insanlarıyla Gebze 82'yi çoktan hak etti! 🚀🇹🇷",
+      "response": "Gebze'nin doğa harikaları: Gaziler Dağı Tabiat Parkı, Denizli Göleti & Yörük Yaylaları, Ballıkayalar Kanyonu, Yelken Tepe ve Elmalıdere Şelalesi doğa ve yürüyüş rotalarımızı Şehir Rehberimizden inceleyebilirsiniz. 🌲",
       "choices": [
         {
-          "label": "Bot82 Hakkında",
-          "value": "bot82 kimdir"
+          "label": "Rehberi Aç",
+          "value": "rehber"
         },
         {
-          "label": "Hizmetleri Gör",
+          "label": "Kent Lokantası",
+          "value": "kent lokantasi"
+        }
+      ]
+    },
+    {
+      "id": "mezarliklar",
+      "category": "services",
+      "action": "navigate",
+      "route": "/places/mezarliklar",
+      "priority": 4,
+      "keywords": [
+        "mezar",
+        "mezarlik",
+        "mezarliklar",
+        "vefat",
+        "cenaze",
+        "defin",
+        "taziye",
+        "mezar yeri"
+      ],
+      "phrases": [
+        "mezarlık nerede",
+        "cenaze hizmetleri",
+        "vefat edenler",
+        "defin işlemleri",
+        "gebze mezarlıkları"
+      ],
+      "response": "Gebze Belediyesi Mezarlıklar Müdürlüğü; defin, nakil, taziye ve mezarlık bakım hizmetlerini yürütmektedir. Detaylı bilgi ve mezarlık konumlarına Şehir Rehberimizden ulaşabilirsiniz.",
+      "choices": [
+        {
+          "label": "Mezarlıkları Gör",
+          "value": "mezarliklar"
+        },
+        {
+          "label": "İletişim",
+          "value": "belediye iletisim"
+        }
+      ]
+    },
+    {
+      "id": "kresler",
+      "category": "services",
+      "action": "navigate",
+      "route": "/places/kresler",
+      "priority": 4,
+      "keywords": [
+        "kres",
+        "kresler",
+        "akcem",
+        "anaokulu",
+        "anne cocuk",
+        "atolye",
+        "cocuk egitim"
+      ],
+      "phrases": [
+        "belediye kreşi",
+        "akçem nedir",
+        "kreş başvurusu",
+        "anne çocuk eğitim merkezi",
+        "çocuk atölyeleri"
+      ],
+      "response": "AKÇEM (Anne, Kadın ve Çocuk Eğitim Merkezleri) ve belediye kreşlerimiz ile çocuklarımızın gelişimine ve ailelerimize destek oluyoruz. Detaylı bilgi Şehir Rehberimizde!",
+      "choices": [
+        {
+          "label": "AKÇEM & Kreşler",
+          "value": "kresler"
+        },
+        {
+          "label": "Tüm Hizmetler",
           "value": "hizmetler"
+        }
+      ]
+    },
+    {
+      "id": "sports_facilities",
+      "category": "places",
+      "action": "navigate",
+      "route": "/places/spor",
+      "priority": 4,
+      "keywords": [
+        "spor",
+        "havuz",
+        "yuzme havuzu",
+        "fitness",
+        "hali saha",
+        "spor salonu",
+        "spor tesisleri",
+        "gebes"
+      ],
+      "phrases": [
+        "yüzme havuzu nerede",
+        "spor salonu kayıt",
+        "belediye spor tesisleri",
+        "halı saha rezervasyon"
+      ],
+      "response": "Gebze Belediyesi kapalı yüzme havuzları, spor salonları ve açık spor alanlarıyla vatandaşlarımızın hizmetindedir. Tesis detaylarını Şehir Rehberimizden inceleyebilirsiniz. ⚽🏊",
+      "choices": [
+        {
+          "label": "Spor Tesisleri",
+          "value": "spor tesisleri"
+        },
+        {
+          "label": "Parklar",
+          "value": "parklar"
         }
       ]
     }
