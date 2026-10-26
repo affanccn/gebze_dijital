@@ -86,21 +86,30 @@ class ChatbotNavigator {
     if (cleanRoute.contains('/places/pazar') || cleanRoute.contains('pazar')) {
       return const GuideCategoryScreen(categoryId: 'pazar');
     }
-    if (cleanRoute.contains('/places/parklar')) {
+    if (cleanRoute.contains('/places/parklar') || cleanRoute.contains('park')) {
       return const GuideCategoryScreen(categoryId: 'parklar');
     }
-    if (cleanRoute.contains('/places/spor')) {
+    if (cleanRoute.contains('/places/spor') || cleanRoute.contains('spor')) {
       return const GuideCategoryScreen(categoryId: 'spor');
     }
-    if (cleanRoute.contains('/places/kultur')) {
+    if (cleanRoute.contains('/places/kultur') || cleanRoute.contains('kultur')) {
       return const GuideCategoryScreen(categoryId: 'kultur');
+    }
+    if (cleanRoute.contains('mezarlik') || cleanRoute.contains('vefat')) {
+      return const GuideCategoryScreen(categoryId: 'mezarliklar');
+    }
+    if (cleanRoute.contains('kres') || cleanRoute.contains('akcem')) {
+      return const GuideCategoryScreen(categoryId: 'kresler');
     }
     if (cleanRoute.contains('/places/belediye')) {
       return const GuideCategoryScreen(categoryId: 'belediye');
     }
 
-    // Genel Rehber / Keşfet
-    if (cleanRoute.contains('places') ||
+    // Genel Rehber / Keşfet (Doğa, Piknik, Tarihi Yerler)
+    if (cleanRoute.contains('doga') ||
+        cleanRoute.contains('piknik') ||
+        cleanRoute.contains('tarihi') ||
+        cleanRoute.contains('places') ||
         cleanRoute.contains('guide') ||
         cleanRoute.contains('rehber')) {
       return const GuideScreen(initialTab: 1);

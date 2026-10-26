@@ -1,4 +1,4 @@
-// Barrel file for Chatbot (Bot82) feature
+// Barrel file for Gebze Chatbot feature
 
 // Domain
 export 'domain/chat_action.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
-/// Bot82 eğim kaynağı (Tilt Source)
+/// Gebze Chatbot eğim kaynağı (Tilt Source)
 /// Sensör olmasa bile (Windows, Web, masaüstü, emülatör) sıfır bağımlılıkla
 /// güvenli ve akıcı bir şekilde çalışır.
 class Bot82TiltSource {

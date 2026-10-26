@@ -47,5 +47,6 @@ flutter:
     - gorsel/tesisler/
     - gorsel/yemek/
     - assets/images/
+    - assets/images/gebzechatbot.png
     - assets/images/avatars/
     - assets/mock/

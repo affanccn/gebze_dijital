@@ -28,10 +28,18 @@ class BotMessageWidget extends ConsumerWidget {
     }
     if (r.contains('pharmacies')) return 'Nöbetçi Eczaneleri Gör';
     if (r.contains('weather')) return 'Hava Durumunu Aç';
-    if (r.contains('content') || r.contains('news')) return 'Haberleri Oku';
+    if (r.contains('content') || r.contains('news') || r.contains('haber')) return 'Haberleri Oku';
+    if (r.contains('etkinlik') || r.contains('events')) return 'Etkinlikleri Gör';
     if (r.contains('lokanta')) return 'Kent Lokantalarını Aç';
     if (r.contains('pazar')) return 'Semt Pazarlarını Gör';
-    if (r.contains('places') || r.contains('guide')) {
+    if (r.contains('park')) return 'Park ve Bahçeleri Gör';
+    if (r.contains('spor')) return 'Spor Tesislerini Gör';
+    if (r.contains('kultur')) return 'Kültür Merkezlerini Gör';
+    if (r.contains('mezarlik') || r.contains('vefat')) return 'Mezarlık Hizmetlerini Gör';
+    if (r.contains('kres') || r.contains('akcem')) return 'Kreş ve AKÇEM Merkezleri';
+    if (r.contains('doga') || r.contains('piknik')) return 'Doğa ve Piknik Alanlarını Gör';
+    if (r.contains('tarihi')) return 'Tarihi Yerleri Keşfet';
+    if (r.contains('places') || r.contains('guide') || r.contains('rehber')) {
       return 'Gebze Rehberini Aç';
     }
     if (r.contains('report')) return 'Talep Oluştur (Çek & Gönder)';

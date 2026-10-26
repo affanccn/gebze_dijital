@@ -11,6 +11,7 @@ import 'chatbot_navigator.dart';
 import 'widgets/bot82_chat_avatar.dart';
 import 'widgets/bot_message.dart';
 import 'widgets/chat_input.dart';
+import 'widgets/gebze_robot_asset.dart';
 import 'widgets/user_message.dart';
 
 class ChatbotScreen extends ConsumerStatefulWidget {
@@ -123,14 +124,12 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                         width: 1.5,
                       ),
                     ),
-                    padding: const EdgeInsets.all(4),
-                    child: Image.asset(
-                      'assets/images/bot82_full.png',
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.smart_toy,
-                        color: Color(0xFF22D3EE),
-                        size: 20,
-                      ),
+                    clipBehavior: Clip.antiAlias,
+                    child: buildGebzeRobotImage(
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                      alignment: const Alignment(0, -0.65),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -142,7 +141,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                         const Row(
                           children: [
                             Text(
-                              'Bot82 Asistan',
+                              'Gebze Asistanı',
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 17,
@@ -198,12 +197,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                       ),
                       tooltip: 'Tam Ekran',
                       onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ChatbotScreen(isMini: false),
-                          ),
-                        );
+                        Navigator.of(context).pop('expand');
                       },
                     ),
                 ],
@@ -345,6 +339,27 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                       onTap: () => ref
                           .read(chatbotProvider.notifier)
                           .sendMessage('Otopark ücretleri ve boş yerler'),
+                    ),
+                    const SizedBox(width: 6),
+                    _QuickFaqChip(
+                      label: '🌲 Doğa & Piknik',
+                      onTap: () => ref
+                          .read(chatbotProvider.notifier)
+                          .sendMessage('Piknik ve doğa alanları'),
+                    ),
+                    const SizedBox(width: 6),
+                    _QuickFaqChip(
+                      label: '🏛️ Tarihi Yerler',
+                      onTap: () => ref
+                          .read(chatbotProvider.notifier)
+                          .sendMessage('Gebze tarihi yerler'),
+                    ),
+                    const SizedBox(width: 6),
+                    _QuickFaqChip(
+                      label: '💳 E-Belediye',
+                      onTap: () => ref
+                          .read(chatbotProvider.notifier)
+                          .sendMessage('E-Belediye vergi borcu ödeme'),
                     ),
                   ],
                 ),

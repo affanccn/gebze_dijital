@@ -7,14 +7,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/bot82_state.dart';
 import 'bot82_tilt_source.dart';
+import 'gebze_robot_asset.dart';
 
 const _cyan = Color(0xFF22D3EE);
 
-/// assets/images/bot82_full.png için ölçüler
-const double kBot82Aspect = 0.833;
+/// assets/images/gebzechatbot.png için ölçüler
+const double kBot82Aspect = 0.724;
 
 /// Robotun ekran (yüz) alanı
-const Rect kBot82FaceRect = Rect.fromLTWH(0.37, 0.058, 0.285, 0.185);
+const Rect kBot82FaceRect = Rect.fromLTWH(0.34, 0.09, 0.30, 0.18);
 
 class Bot82Fab extends ConsumerStatefulWidget {
   const Bot82Fab({
@@ -22,7 +23,7 @@ class Bot82Fab extends ConsumerStatefulWidget {
     required this.onTap,
     this.width = 88,
     this.aspect = kBot82Aspect,
-    this.bodyAsset = 'assets/images/bot82_full.png',
+    this.bodyAsset = 'assets/images/gebzechatbot.png',
     this.headAsset,
     this.faceRect = kBot82FaceRect,
     this.artBuilder,
@@ -168,25 +169,18 @@ class _Bot82FabState extends ConsumerState<Bot82Fab>
 
     final w = widget.width;
     final h = widget.height;
-    final dpr = MediaQuery.devicePixelRatioOf(context);
 
     final art =
         widget.artBuilder?.call(context) ??
-        Image.asset(
-          widget.bodyAsset,
+        buildGebzeRobotImage(
           width: w,
           height: h,
           fit: BoxFit.contain,
-          cacheWidth: (w * dpr).ceil(),
-          filterQuality: FilterQuality.medium,
-          gaplessPlayback: true,
-          errorBuilder: (context, error, stackTrace) =>
-              const Icon(Icons.smart_toy, size: 48),
         );
 
     return Semantics(
       button: true,
-      label: 'Bot82 asistan, sohbeti aç',
+      label: 'Gebze Dijital Asistanı, sohbeti aç',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _handleTap,

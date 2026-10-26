@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Bot82 temel animasyon durumları
+/// Gebze Asistanı temel animasyon durumları
 enum Bot82Mode { idle, thinking, tapped }
 
 class Bot82State {
@@ -72,12 +72,18 @@ class Bot82Notifier extends Notifier<Bot82State> {
   void setChatOpen(bool open) {
     if (open) {
       if (_chatScreensCount < 1) _chatScreensCount = 1;
+      Future.microtask(() {
+        state = state.copyWith(chatOpen: true);
+      });
     } else {
-      _chatScreensCount = 0;
+      if (_chatScreensCount > 0) _chatScreensCount--;
+      if (_chatScreensCount <= 0) {
+        _chatScreensCount = 0;
+        Future.microtask(() {
+          state = state.copyWith(chatOpen: false);
+        });
+      }
     }
-    Future.microtask(() {
-      state = state.copyWith(chatOpen: open);
-    });
   }
 
   void _sync() {
