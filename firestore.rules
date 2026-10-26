@@ -109,7 +109,17 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // 15. Genel Güvenlik Kuralı
+    // 15. Otopark & Doluluk Yönetimi
+    match /parking_lots/{id} {
+      allow read, write: if true;
+    }
+
+    // 16. Kreşler ve Çocuk Bakımevleri
+    match /nurseries/{id} {
+      allow read, write: if true;
+    }
+
+    // 17. Genel Güvenlik Kuralı
     match /{document=**} {
       allow read, write: if true;
     }

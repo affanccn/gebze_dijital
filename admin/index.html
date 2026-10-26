@@ -978,81 +978,333 @@
       --shadow-md: 0 4px 14px rgba(10, 42, 102, 0.08);
     }
 
-    * { font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; }
-    body { line-height: 1.5; font-variant-numeric: tabular-nums; }
+    * {
+      font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+    }
 
     /* Kenar çubuğu: etiketler normal yazım, aktif öğe turuncu işaretçiyle */
-    .sidebar { box-shadow: none; border-right: 1px solid rgba(255, 255, 255, 0.06); background: var(--navy-deep); }
+    .sidebar {
+      box-shadow: none;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--navy-deep);
+    }
+
     .nav-group-label {
-      text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600;
-      color: rgba(255, 255, 255, 0.5); padding: 18px 14px 6px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      padding: 18px 14px 6px;
     }
-    .nav-item { position: relative; border-radius: 8px; font-weight: 500; font-size: 13.5px; }
-    .nav-item.active { background: rgba(255, 255, 255, 0.1); box-shadow: none; font-weight: 600; }
+
+    .nav-item {
+      position: relative;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 13.5px;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+      font-weight: 600;
+    }
+
     .nav-item.active::before {
-      content: ''; position: absolute; left: -12px; top: 8px; bottom: 8px;
-      width: 3px; border-radius: 0 3px 3px 0; background: var(--orange);
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: var(--orange);
     }
-    .brand-logo { box-shadow: none; border-radius: 10px; }
+
+    .brand-logo {
+      box-shadow: none;
+      border-radius: 10px;
+    }
 
     /* Üst çubuk */
-    .topbar { height: 64px; box-shadow: none; }
-    .page-title h1 { font-size: 18px; font-weight: 700; }
-    .page-title p { font-size: 12.5px; }
+    .topbar {
+      height: 64px;
+      box-shadow: none;
+    }
+
+    .page-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .page-title p {
+      font-size: 12.5px;
+    }
 
     /* Kartlar: gölge yerine ince çizgi; hareket yok */
-    .tab-view { animation: none; }
-    .panel { border-radius: 12px; box-shadow: none; padding: 22px; }
-    .panel-title { font-size: 15px; font-weight: 700; }
-    .kpi-card { border-radius: 12px; box-shadow: none; padding: 16px 18px; transition: border-color .15s; }
-    .kpi-card:hover { transform: none; box-shadow: none; border-color: var(--navy-light); }
-    .kpi-icon { width: 44px; height: 44px; border-radius: 10px; font-size: 20px; }
-    .kpi-info h3 { font-size: 26px; font-weight: 700; }
-    .kpi-info p { font-weight: 500; }
-    .item-card { border-radius: 12px; box-shadow: none; transition: border-color .15s; }
-    .item-card:hover { transform: none; box-shadow: none; border-color: var(--navy-light); }
-    .item-card-title { font-weight: 700; }
+    .tab-view {
+      animation: none;
+    }
+
+    .panel {
+      border-radius: 12px;
+      box-shadow: none;
+      padding: 22px;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .kpi-card {
+      border-radius: 12px;
+      box-shadow: none;
+      padding: 16px 18px;
+      transition: border-color .15s;
+    }
+
+    .kpi-card:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--navy-light);
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 20px;
+    }
+
+    .kpi-info h3 {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .kpi-info p {
+      font-weight: 500;
+    }
+
+    .item-card {
+      border-radius: 12px;
+      box-shadow: none;
+      transition: border-color .15s;
+    }
+
+    .item-card:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--navy-light);
+    }
+
+    .item-card-title {
+      font-weight: 700;
+    }
 
     /* Düğmeler, alanlar, rozetler */
-    .btn { border-radius: 8px; font-weight: 600; }
-    .btn-sm { border-radius: 6px; }
-    input, select, textarea { border-radius: 8px; }
-    .badge { border-radius: 6px; font-weight: 600; }
-    .modal-card { border-radius: 14px; }
-    .form-group label { font-weight: 600; }
+    .btn {
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .btn-sm {
+      border-radius: 6px;
+    }
+
+    input,
+    select,
+    textarea {
+      border-radius: 8px;
+    }
+
+    .badge {
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .modal-card {
+      border-radius: 14px;
+    }
+
+    .form-group label {
+      font-weight: 600;
+    }
 
     /* Tablolar */
-    th { background: #F8FAFC; text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+    th {
+      background: #F8FAFC;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
 
     /* Klavye odağı */
-    :focus-visible { outline: 2px solid var(--navy-light); outline-offset: 2px; }
-    input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; }
+    :focus-visible {
+      outline: 2px solid var(--navy-light);
+      outline-offset: 2px;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline-offset: 0;
+    }
 
     /* Rehber bileşenleri */
-    .chip-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
-      border: 1px solid var(--border); border-radius: 999px; background: #fff;
-      font-size: 13px; font-weight: 500; color: var(--text-dark); cursor: pointer;
+    .chip-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
     }
-    .chip span { font-size: 12px; color: var(--text-muted); }
-    .chip:hover { border-color: var(--navy-light); }
-    .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
-    .chip.active span { color: rgba(255, 255, 255, 0.7); }
-    .count-pill {
-      display: inline-block; min-width: 24px; padding: 1px 8px; margin-left: 6px; border-radius: 999px;
-      background: var(--navy-soft); color: var(--navy); font-size: 12px; font-weight: 600; text-align: center;
-    }
-    .form-note { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--warning-soft); color: #7A5200; font-size: 12.5px; line-height: 1.5; }
 
-    .item-card-meta span:not(.badge) { color: var(--text-muted); font-weight: 500; }
-    .btn-primary { box-shadow: none; }
-    @media (max-width: 900px) {
-      .content-area { padding: 20px 16px 48px; }
-      .topbar { padding: 0 16px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dark);
+      cursor: pointer;
     }
-    @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+
+    .chip span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .chip:hover {
+      border-color: var(--navy-light);
+    }
+
+    .chip.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+    }
+
+    .chip.active span {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .count-pill {
+      display: inline-block;
+      min-width: 24px;
+      padding: 1px 8px;
+      margin-left: 6px;
+      border-radius: 999px;
+      background: var(--navy-soft);
+      color: var(--navy);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .form-note {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--warning-soft);
+      color: #7A5200;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    .item-card-meta span:not(.badge) {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      box-shadow: none;
+    }
+
+    @media (max-width: 900px) {
+      .content-area {
+        padding: 20px 16px 48px;
+      }
+
+      .topbar {
+        padding: 0 16px;
+      }
+    }
+
+    /* Otopark Yönetimi & Canlı Göstergeler */
+    .parking-progress {
+      width: 100%;
+      height: 8px;
+      background: #E2E8F0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .parking-progress-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+      border-radius: 999px;
+    }
+
+    .parking-progress-fill.status-musait {
+      background: #22C55E;
+    }
+
+    .parking-progress-fill.status-yogun {
+      background: #F59E0B;
+    }
+
+    .parking-progress-fill.status-dolu {
+      background: #EF4444;
+    }
+
+    .quick-stepper {
+      display: inline-flex;
+      align-items: center;
+      background: #F1F5F9;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 6px;
+    }
+
+    .quick-stepper button {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 26px;
+      height: 26px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--navy);
+      transition: background 0.15s;
+    }
+
+    .quick-stepper button:hover {
+      background: var(--navy-soft);
+    }
+
+    .quick-stepper span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dark);
+      min-width: 36px;
+      text-align: center;
     }
   </style>
 
@@ -1129,7 +1381,7 @@
           const out = document.getElementById('btnSignOut');
           if (out) out.style.display = 'inline-flex';
           loadDashboard();
-                loadUsers();
+          loadUsers();
         })
         .catch(err => {
           console.warn("Otomatik oturum:", err.message);
@@ -1151,7 +1403,7 @@
       if (who) who.innerText = auth.currentUser?.email || 'Yetkili Yönetici (Canlı)';
       if (out) out.style.display = 'inline-flex';
       loadDashboard();
-        loadUsers();
+      loadUsers();
       showToast("Yönetici paneli başarıyla açıldı.");
     };
 
@@ -1161,7 +1413,7 @@
       const who = document.getElementById('adminWho');
       if (who) who.innerText = 'Yönetici (Önizleme Modu)';
       loadDashboard();
-        loadUsers();
+      loadUsers();
       showToast("Önizleme modunda açıldı.");
     };
 
@@ -1216,6 +1468,9 @@
 
       // İlgili modül verilerini yükle
       if (tabId === 'dashboard') loadDashboard();
+      if (tabId === 'reports') initRealtimeReports();
+      if (tabId === 'parking') loadParkingLots();
+      if (tabId === 'nurseries') loadNurseries();
       if (tabId === 'suggestions') loadSuggestions();
       if (tabId === 'polls') loadPolls();
       if (tabId === 'news') loadNews();
@@ -1267,7 +1522,10 @@
           guideSnap,
           placesSnap,
           foodsSnap,
-          picnicSnap
+          picnicSnap,
+          parkingSnap,
+          reportsSnap,
+          nurseriesSnap
         ] = await Promise.all([
           safeFetch("municipal_news"),
           safeFetch("suggestions"),
@@ -1282,7 +1540,10 @@
           safeFetch("guide_institutions"),
           safeFetch("guide_places"),
           safeFetch("guide_foods"),
-          safeFetch("guide_picnic")
+          safeFetch("guide_picnic"),
+          safeFetch("parking_lots"),
+          safeFetch("reports"),
+          safeFetch("nurseries")
         ]);
 
         // Öneriler
@@ -1296,6 +1557,34 @@
           bSugg.innerText = pendingSugg;
           bSugg.style.display = pendingSugg > 0 ? 'inline-block' : 'none';
         }
+
+        // Vatandaş Talepleri (Çek & Gönder)
+        let pendingReports = 0;
+        reportsSnap.forEach(d => {
+          const s = (d.data().status || '').trim();
+          if (s === 'Beklemede' || s === 'İnceleniyor' || s === 'İşleme Alındı' || s === 'pending') pendingReports++;
+        });
+        const elKpiReports = document.getElementById('kpiReports');
+        if (elKpiReports) elKpiReports.innerText = pendingReports;
+        const bRep = document.getElementById('badgePendingReports');
+        if (bRep) {
+          bRep.innerText = pendingReports;
+          bRep.style.display = pendingReports > 0 ? 'inline-block' : 'none';
+        }
+
+        // Otopark İstatistikleri
+        let parkTotalCap = 0;
+        let parkTotalOcc = 0;
+        parkingSnap.forEach(d => {
+          const data = d.data();
+          parkTotalCap += (Number(data.capacity) || 0);
+          parkTotalOcc += (Number(data.occupied) || 0);
+        });
+        const parkFree = Math.max(0, parkTotalCap - parkTotalOcc);
+        const elKpiParkingLots = document.getElementById('kpiParkingLots');
+        if (elKpiParkingLots) elKpiParkingLots.innerText = parkingSnap.size;
+        const elKpiParkingSpots = document.getElementById('kpiParkingSpots');
+        if (elKpiParkingSpots) elKpiParkingSpots.innerText = `${parkFree} Boş (${parkTotalCap})`;
 
         const setKpi = (id, val) => {
           const el = document.getElementById(id);
@@ -1314,6 +1603,7 @@
         setKpi('kpiPlaces', placesSnap.size);
         setKpi('kpiFoods', foodsSnap.size);
         setKpi('kpiPicnic', picnicSnap.size);
+        setKpi('kpiNurseries', nurseriesSnap.size);
 
         // Mahallemde aktif çalışmalar
         let activeWorks = 0;
@@ -2968,9 +3258,9 @@
       const list = (window.foodsCache || []).filter(f => {
         if (!q) return true;
         return (f.name || '').toLowerCase().includes(q) ||
-               (f.summary || '').toLowerCase().includes(q) ||
-               (f.whereToEat || '').toLowerCase().includes(q) ||
-               (f.origin || '').toLowerCase().includes(q);
+          (f.summary || '').toLowerCase().includes(q) ||
+          (f.whereToEat || '').toLowerCase().includes(q) ||
+          (f.origin || '').toLowerCase().includes(q);
       }).sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
 
       const countEl = document.getElementById('foodsCount');
@@ -3345,9 +3635,9 @@
         if (filterType !== 'all' && (p.type || 'piknik') !== filterType) return false;
         if (!q) return true;
         return (p.name || '').toLowerCase().includes(q) ||
-               (p.summary || '').toLowerCase().includes(q) ||
-               (p.village || '').toLowerCase().includes(q) ||
-               (p.address || '').toLowerCase().includes(q);
+          (p.summary || '').toLowerCase().includes(q) ||
+          (p.village || '').toLowerCase().includes(q) ||
+          (p.address || '').toLowerCase().includes(q);
       }).sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
 
       const countEl = document.getElementById('picnicCount');
@@ -3887,8 +4177,8 @@
       }
 
       if (notice) {
-        notice.innerText = isVer 
-          ? "Bu vatandaşın belediye / kimlik doğrulaması tamamlanmıştır ve hesabı aktiftir." 
+        notice.innerText = isVer
+          ? "Bu vatandaşın belediye / kimlik doğrulaması tamamlanmıştır ve hesabı aktiftir."
           : "Bu vatandaşın hesabı henüz doğrulanmamış (onay bekliyor durumunda).";
       }
 
@@ -3989,8 +4279,8 @@
 
       const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
       const name = u ? (u.fullName || 'Vatandaş') : 'Vatandaş';
-      const actionText = isVerified 
-        ? `"${name}" isimli vatandaşın hesabını onaylamak (doğrulamak) istiyor musunuz?` 
+      const actionText = isVerified
+        ? `"${name}" isimli vatandaşın hesabını onaylamak (doğrulamak) istiyor musunuz?`
         : `"${name}" isimli vatandaşın onayını kaldırmak (bekleme durumuna almak) istiyor musunuz?`;
 
       if (!confirm(actionText)) return;
@@ -4033,8 +4323,8 @@
 
       const isCurrentAdmin = u.role === 'admin';
       const newRole = isCurrentAdmin ? 'citizen' : 'admin';
-      const promptText = isCurrentAdmin 
-        ? `"${u.fullName || 'Vatandaş'}" kullanıcısının Yönetici (Admin) yetkisini kaldırıp normal Vatandaş yapmak istiyor musunuz?` 
+      const promptText = isCurrentAdmin
+        ? `"${u.fullName || 'Vatandaş'}" kullanıcısının Yönetici (Admin) yetkisini kaldırıp normal Vatandaş yapmak istiyor musunuz?`
         : `"${u.fullName || 'Vatandaş'}" kullanıcısına Yönetici (Admin) yetkisi vermek istiyor musunuz?`;
 
       if (!confirm(promptText)) return;
@@ -4574,26 +4864,957 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
     }
 
-    // ───────────────── LIGHTBOX & TOAST ─────────────────
-    window.openLightbox = (url) => {
-      const box = document.getElementById("imageLightbox");
-      const img = document.getElementById("lightboxImg");
-      img.src = url;
-      box.style.display = "flex";
-    };
-    window.closeLightbox = () => {
-      document.getElementById("imageLightbox").style.display = "none";
-    };
+    // ══════════════════════════════════════════════════════════════════════════════
+    // OTOPARK YÖNETİMİ & CANLI DOLULUK KONTROLÜ
+    // ══════════════════════════════════════════════════════════════════════════════
+      window.parkingCache = [];
+      window.parkingEditId = null;
 
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.className = "toast show";
-      setTimeout(() => toast.className = "toast", 3500);
-    }
-    window.showToast = showToast;
+      const OFFICIAL_PARKING_LOTS = [
+        {
+          code: 'GBZ-001',
+          name: 'Gebze Katlı Otopark',
+          capacity: 476,
+          occupied: 310,
+          lat: 40.8000,
+          lng: 29.4300,
+          profile: 'katli',
+          pricing: 'İlk 15 dk ücretsiz • 1 saat 30 ₺',
+          neighborhood: 'Hacıhalil',
+          address: 'Hükümet Cd. No:12',
+          features: 'Asansör, 7/24 Güvenlik, Plaka Tanıma, Şarj Ünitesi',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-002',
+          name: 'Gebze Yol Üstü Otoparkı (İstanbul Cad.)',
+          capacity: 13,
+          occupied: 9,
+          lat: 40.8015,
+          lng: 29.4310,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Hacıhalil',
+          address: 'İstanbul Cad.',
+          features: 'Parkomat, Kısa Süreli Park',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-003',
+          name: 'Gebze Yol Üstü Otoparkı (Hükümet Cad.)',
+          capacity: 18,
+          occupied: 14,
+          lat: 40.8020,
+          lng: 29.4295,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Mustafapaşa',
+          address: 'Hükümet Cad.',
+          features: 'Parkomat, Yol Üstü',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-004',
+          name: 'Gebze Yol Üstü Otoparkı (Ali Rıza Efendi Cad.)',
+          capacity: 55,
+          occupied: 38,
+          lat: 40.7985,
+          lng: 29.4280,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Osman Yılmaz',
+          address: 'Ali Rıza Efendi Cad.',
+          features: 'Parkomat, Yol Üstü',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-005',
+          name: 'Gebze Yol Üstü Otoparkı (Zübeyde Hanım Cad.)',
+          capacity: 42,
+          occupied: 28,
+          lat: 40.8035,
+          lng: 29.4325,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Arapçeşme',
+          address: 'Zübeyde Hanım Cad.',
+          features: 'Parkomat, Yol Üstü',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-006',
+          name: 'Gebze Yol Üstü Otoparkı (İsmetpaşa Cad.)',
+          capacity: 33,
+          occupied: 21,
+          lat: 40.8010,
+          lng: 29.4340,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Hacıhalil',
+          address: 'İsmetpaşa Cad.',
+          features: 'Parkomat, Yol Üstü',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-007',
+          name: 'Gebze Yol Üstü Otoparkı (Adliye Cad.)',
+          capacity: 10,
+          occupied: 9,
+          lat: 40.8040,
+          lng: 29.4360,
+          profile: 'adliye',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Gaziler',
+          address: 'Adliye Cad.',
+          features: 'Adliye Çevresi, Parkomat',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-008',
+          name: 'Gebze Yol Üstü Otoparkı (Atatürk Cad.)',
+          capacity: 23,
+          occupied: 15,
+          lat: 40.7990,
+          lng: 29.4315,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Osman Yılmaz',
+          address: 'Atatürk Cad.',
+          features: 'Parkomat, Yol Üstü',
+          status: 'aktif'
+        },
+        {
+          code: 'GBZ-009',
+          name: 'Gebze Yol Üstü Otoparkı (Körfez Cad.)',
+          capacity: 25,
+          occupied: 16,
+          lat: 40.8005,
+          lng: 29.4270,
+          profile: 'yolUstu',
+          pricing: 'İlk 15 dk ücretsiz • Saatlik 20 ₺',
+          neighborhood: 'Mustafapaşa',
+          address: 'Körfez Cad.',
+          features: 'Parkomat, Yol Üstü',
+          status: 'aktif'
+        }
+      ];
+
+      async function loadParkingLots() {
+        const grid = document.getElementById("parkingGrid");
+        if (!grid) return;
+        grid.innerHTML = '<div class="empty-state">Otopark bilgileri yükleniyor...</div>';
+        try {
+          const snap = await getDocs(collection(db, "parking_lots"));
+          if (snap.empty) {
+            window.parkingCache = [];
+            grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px;">
+              <div style="font-size:36px; margin-bottom:10px;">🅿️</div>
+              <p style="font-size:15px; font-weight:700; margin-bottom:6px;">Henüz kayıtlı otopark verisi bulunamadı.</p>
+              <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Gebze genelindeki 9 adet resmi otoparkı (Katlı ve Yol Üstü) tek tıkla veritabanına aktarabilirsiniz.</p>
+              <button class="btn btn-primary" onclick="window.seedParkingLots()">⚡ Resmi Otoparkları Eşitle (GBZ-001..009)</button>
+            </div>
+          `;
+            updateParkingKpis([]);
+            return;
+          }
+
+          const list = [];
+          snap.forEach(d => {
+            list.push({ id: d.id, ...d.data() });
+          });
+
+          list.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+          window.parkingCache = list;
+          renderParkingView();
+        } catch (e) {
+          console.error("loadParkingLots hatası:", e);
+          grid.innerHTML = `<div class="empty-state">Hata oluştu: ${e.message}</div>`;
+        }
+      }
+      window.loadParkingLots = loadParkingLots;
+
+      function updateParkingKpis(list) {
+        const totalLots = list.length;
+        let totalCap = 0;
+        let totalOcc = 0;
+        list.forEach(item => {
+          totalCap += (Number(item.capacity) || 0);
+          totalOcc += (Number(item.occupied) || 0);
+        });
+        const totalFree = Math.max(0, totalCap - totalOcc);
+        const avgPercent = totalCap > 0 ? Math.round((totalOcc / totalCap) * 100) : 0;
+
+        const elLots = document.getElementById("statParkingLots");
+        if (elLots) elLots.innerText = totalLots;
+        const elCap = document.getElementById("statParkingCapacity");
+        if (elCap) elCap.innerText = totalCap;
+        const elOcc = document.getElementById("statParkingOccupied");
+        if (elOcc) elOcc.innerText = totalOcc;
+        const elFree = document.getElementById("statParkingFree");
+        if (elFree) elFree.innerText = totalFree;
+        const elPct = document.getElementById("statParkingPercent");
+        if (elPct) elPct.innerText = `%${avgPercent}`;
+
+        const kpiLots = document.getElementById("kpiParkingLots");
+        if (kpiLots) kpiLots.innerText = totalLots;
+        const kpiSpots = document.getElementById("kpiParkingSpots");
+        if (kpiSpots) kpiSpots.innerText = `${totalFree} Boş (${totalCap})`;
+      }
+
+      function renderParkingView() {
+        const grid = document.getElementById("parkingGrid");
+        if (!grid) return;
+
+        const filterProfile = document.getElementById("parkingFilterProfile")?.value || 'all';
+        const filterStatus = document.getElementById("parkingFilterStatus")?.value || 'all';
+        const search = (document.getElementById("parkingSearchInput")?.value || '').trim().toLowerCase();
+
+        const filtered = (window.parkingCache || []).filter(item => {
+          const prof = (item.profile || 'katli').toLowerCase();
+          if (filterProfile !== 'all' && prof !== filterProfile) return false;
+
+          const cap = Number(item.capacity) || 1;
+          const occ = Number(item.occupied) || 0;
+          const ratio = occ / cap;
+          let status = 'musait';
+          if (ratio >= 0.95) status = 'dolu';
+          else if (ratio >= 0.80) status = 'yogun';
+
+          if (filterStatus !== 'all' && status !== filterStatus) return false;
+
+          if (search) {
+            const name = (item.name || '').toLowerCase();
+            const code = (item.code || '').toLowerCase();
+            const hood = (item.neighborhood || '').toLowerCase();
+            const addr = (item.address || '').toLowerCase();
+            if (!name.includes(search) && !code.includes(search) && !hood.includes(search) && !addr.includes(search)) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        updateParkingKpis(window.parkingCache || []);
+
+        const countBadge = document.getElementById("parkingCountBadge");
+        if (countBadge) countBadge.innerText = `${filtered.length} Otopark`;
+
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">Kriterlere uyan otopark kaydı bulunamadı.</div>';
+          return;
+        }
+
+        grid.innerHTML = '';
+        filtered.forEach(p => {
+          const cap = Number(p.capacity) || 0;
+          const occ = Math.min(cap, Math.max(0, Number(p.occupied) || 0));
+          const free = Math.max(0, cap - occ);
+          const ratio = cap > 0 ? (occ / cap) : 0;
+          const pct = Math.round(ratio * 100);
+
+          let statusText = 'Müsait';
+          let statusCls = 'badge-success';
+          let progCls = 'status-musait';
+          if (ratio >= 0.95) {
+            statusText = 'Dolu';
+            statusCls = 'badge-danger';
+            progCls = 'status-dolu';
+          } else if (ratio >= 0.80) {
+            statusText = 'Yoğun';
+            statusCls = 'badge-warning';
+            progCls = 'status-yogun';
+          }
+
+          const profileLabels = {
+            'katli': '🏢 Katlı Otopark',
+            'yolUstu': '🛣️ Yol Üstü Otoparkı',
+            'adliye': '⚖️ Adliye Otoparkı',
+            'acik': '🅿️ Açık Otopark'
+          };
+          const profLabel = profileLabels[p.profile] || '🅿️ Otopark';
+
+          const card = document.createElement("div");
+          card.className = "item-card";
+          card.innerHTML = `
+          <div class="item-card-body" style="padding:16px;">
+            <div class="item-card-meta" style="margin-bottom:8px;">
+              <span style="font-family:monospace; font-weight:800; color:var(--navy); font-size:12px;">${p.code || 'GBZ'}</span>
+              <span class="badge ${statusCls}" style="margin-left:auto;">${statusText} (%${pct})</span>
+            </div>
+            <div class="item-card-title" style="font-size:15px; margin-bottom:4px;">${p.name}</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+              ${profLabel} • 📍 ${p.neighborhood || 'Gebze'} ${p.address ? ('• ' + p.address) : ''}
+            </div>
+
+            <div class="parking-progress">
+              <div class="parking-progress-fill ${progCls}" style="width: ${Math.min(100, pct)}%;"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; background:#F8FAFC; border-radius:8px; padding:8px 10px; margin-bottom:12px; text-align:center;">
+              <div>
+                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">KAPASİTE</div>
+                <div style="font-size:14px; font-weight:800; color:var(--text-dark);">${cap}</div>
+              </div>
+              <div>
+                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">DOLU ARAÇ</div>
+                <div style="font-size:14px; font-weight:800; color:#DC2626;">${occ}</div>
+              </div>
+              <div>
+                <div style="font-size:10.5px; color:var(--text-muted); font-weight:600;">BOŞ YER</div>
+                <div style="font-size:14px; font-weight:800; color:#166534;">${free}</div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:12px;">
+              <span style="font-weight:600; color:var(--text-muted);">Canlı Doluluk Ayarla:</span>
+              <div class="quick-stepper">
+                <button type="button" title="-5 Araç" onclick="window.quickUpdateParkingOccupancy('${p.id}', -5)">-5</button>
+                <button type="button" title="-1 Araç" onclick="window.quickUpdateParkingOccupancy('${p.id}', -1)">-1</button>
+                <span>${occ}</span>
+                <button type="button" title="+1 Araç" onclick="window.quickUpdateParkingOccupancy('${p.id}', 1)">+1</button>
+                <button type="button" title="+5 Araç" onclick="window.quickUpdateParkingOccupancy('${p.id}', 5)">+5</button>
+              </div>
+            </div>
+
+            ${p.pricing ? `<div style="font-size:11.5px; color:var(--text-muted); margin-bottom:6px;">💰 <strong>Tarife:</strong> ${p.pricing}</div>` : ''}
+            ${p.features ? `<div style="font-size:11px; color:#475569; background:#EFF6FF; border-radius:6px; padding:4px 8px; margin-bottom:8px;">✨ ${p.features}</div>` : ''}
+          </div>
+
+          <div class="item-card-footer" style="padding:10px 16px; background:#FAFAFA; border-top:1px solid var(--border);">
+            ${(p.lat && p.lng) ? `<a href="https://www.google.com/maps?q=${p.lat},${p.lng}" target="_blank" class="badge badge-info" style="text-decoration:none;">🗺️ Harita</a>` : ''}
+            <div style="margin-left:auto; display:flex; gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="window.editParkingLot('${p.id}')">Düzenle</button>
+              <button class="btn btn-danger btn-sm" onclick="window.deleteParkingLot('${p.id}')">Sil</button>
+            </div>
+          </div>
+        `;
+          grid.appendChild(card);
+        });
+      }
+      window.renderParkingView = renderParkingView;
+
+      window.quickUpdateParkingOccupancy = async (id, delta) => {
+        const lot = (window.parkingCache || []).find(x => x.id === id);
+        if (!lot) return;
+        const cap = Number(lot.capacity) || 0;
+        const currentOcc = Number(lot.occupied) || 0;
+        const nextOcc = Math.min(cap, Math.max(0, currentOcc + delta));
+
+        try {
+          const ref = doc(db, "parking_lots", id);
+          await updateDoc(ref, {
+            occupied: nextOcc,
+            updatedAt: serverTimestamp()
+          });
+          lot.occupied = nextOcc;
+          renderParkingView();
+          showToast(`${lot.name} doluluk ${nextOcc} olarak güncellendi.`);
+        } catch (err) {
+          alert("Doluluk güncellenemedi: " + err.message);
+        }
+      };
+
+      window.seedParkingLots = async () => {
+        if (!confirm("Gebze Belediyesi resmi otopark verileri (GBZ-001..009) veritabanına aktarılsın mı?")) return;
+        try {
+          for (const lot of OFFICIAL_PARKING_LOTS) {
+            const ref = doc(db, "parking_lots", lot.code);
+            await setDoc(ref, {
+              ...lot,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          }
+          showToast("9 adet resmi Gebze otoparkı başarıyla eşitlendi!");
+          await loadParkingLots();
+        } catch (err) {
+          alert("Otoparklar eşitlenirken hata: " + err.message);
+        }
+      };
+
+      window.saveParkingLot = async (e) => {
+        if (e) e.preventDefault();
+        const code = document.getElementById("parkingCode").value.trim().toUpperCase();
+        const name = document.getElementById("parkingName").value.trim();
+        const profile = document.getElementById("parkingProfile").value;
+        const capacity = Number(document.getElementById("parkingCapacity").value) || 0;
+        const occupied = Number(document.getElementById("parkingOccupied").value) || 0;
+        const neighborhood = document.getElementById("parkingNeighborhood").value;
+        const address = document.getElementById("parkingAddress").value.trim();
+        const pricing = document.getElementById("parkingPricing").value.trim();
+        const lat = parseFloat(document.getElementById("parkingLat").value) || 40.8000;
+        const lng = parseFloat(document.getElementById("parkingLng").value) || 29.4300;
+        const features = document.getElementById("parkingFeatures").value.trim();
+        const status = document.getElementById("parkingStatus").value || 'aktif';
+
+        const btn = document.getElementById("btnSaveParking");
+        if (btn) btn.disabled = true;
+
+        try {
+          const data = {
+            code,
+            name,
+            profile,
+            capacity,
+            occupied: Math.min(capacity, Math.max(0, occupied)),
+            neighborhood,
+            address,
+            pricing,
+            lat,
+            lng,
+            features,
+            status,
+            updatedAt: serverTimestamp()
+          };
+
+          if (window.parkingEditId) {
+            await updateDoc(doc(db, "parking_lots", window.parkingEditId), data);
+            showToast("Otopark bilgileri güncellendi!");
+          } else {
+            data.createdAt = serverTimestamp();
+            const targetDocId = code || ('GBZ-' + Date.now().toString().slice(-4));
+            await setDoc(doc(db, "parking_lots", targetDocId), data, { merge: true });
+            showToast("Yeni otopark başarıyla eklendi!");
+          }
+
+          window.cancelParkingEdit();
+          await loadParkingLots();
+        } catch (err) {
+          alert("Otopark kaydedilirken hata: " + err.message);
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      };
+
+      window.editParkingLot = (id) => {
+        const p = (window.parkingCache || []).find(x => x.id === id);
+        if (!p) return;
+        window.parkingEditId = id;
+
+        document.getElementById("parkingCode").value = p.code || '';
+        document.getElementById("parkingName").value = p.name || '';
+        document.getElementById("parkingProfile").value = p.profile || 'katli';
+        document.getElementById("parkingCapacity").value = p.capacity || 0;
+        document.getElementById("parkingOccupied").value = p.occupied || 0;
+        document.getElementById("parkingNeighborhood").value = p.neighborhood || 'Hacıhalil';
+        document.getElementById("parkingAddress").value = p.address || '';
+        document.getElementById("parkingPricing").value = p.pricing || '';
+        document.getElementById("parkingLat").value = p.lat ?? '';
+        document.getElementById("parkingLng").value = p.lng ?? '';
+        document.getElementById("parkingFeatures").value = p.features || '';
+        document.getElementById("parkingStatus").value = p.status || 'aktif';
+
+        document.getElementById("parkingFormTitle").innerText = "Otoparkı Düzenle (" + (p.code || p.name) + ")";
+        document.getElementById("btnSaveParking").innerText = "Değişiklikleri Kaydet";
+        document.getElementById("btnCancelParking").style.display = "inline-flex";
+
+        document.getElementById("formParking")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      window.cancelParkingEdit = () => {
+        window.parkingEditId = null;
+        document.getElementById("formParking")?.reset();
+        document.getElementById("parkingFormTitle").innerText = "Yeni Otopark Ekle";
+        document.getElementById("btnSaveParking").innerText = "Otoparkı Kaydet";
+        document.getElementById("btnCancelParking").style.display = "none";
+      };
+
+      window.deleteParkingLot = async (id) => {
+        if (!confirm("Bu otopark kaydını silmek istediğinize emin misiniz?")) return;
+        try {
+          await deleteDoc(doc(db, "parking_lots", id));
+          showToast("Otopark kaydı silindi.");
+          await loadParkingLots();
+        } catch (err) {
+          alert("Silinemedi: " + err.message);
+        }
+      };
+
+      // ══════════════════════════════════════════════════════════════════════════════
+      // VATANDAŞ BAŞVURULARI & ÇEK-GÖNDER ÇÖZÜM MASASI
+      // ══════════════════════════════════════════════════════════════════════════════
+      window.reportsCache = [];
+      window.reportsUnsub = null;
+      window.activeReportId = null;
+
+      async function initRealtimeReports() {
+        if (window.reportsUnsub) window.reportsUnsub();
+
+        try {
+          const uSnap = await getDocs(collection(db, "users"));
+          uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
+        } catch (_) { }
+
+        try {
+          const q = query(collection(db, "reports"));
+          window.reportsUnsub = onSnapshot(q, (snapshot) => {
+            const list = [];
+            snapshot.forEach(docSnap => {
+              list.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            list.sort((a, b) => {
+              const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+              const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+              return tb - ta;
+            });
+            window.reportsCache = list;
+
+            let pendingCount = 0;
+            list.forEach(r => {
+              const st = (r.status || '').trim();
+              if (st === 'Beklemede' || st === 'İnceleniyor' || st === 'İşleme Alındı' || st === 'pending') pendingCount++;
+            });
+            const bRep = document.getElementById('badgePendingReports');
+            if (bRep) {
+              bRep.innerText = pendingCount;
+              bRep.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+            }
+            const elKpi = document.getElementById('kpiReports');
+            if (elKpi) elKpi.innerText = pendingCount;
+
+            renderReportsView();
+          }, (err) => {
+            console.warn("Reports snapshot uyarısı:", err.message);
+            const tbody = document.getElementById("reportsTableBody");
+            if (tbody && (!window.reportsCache || window.reportsCache.length === 0)) {
+              tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
+              ℹ️ Vatandaş başvurularını listelemek için yönetici hesabıyla oturum açınız.
+            </td></tr>`;
+            }
+          });
+        } catch (e) {
+          console.error("initRealtimeReports hatası:", e);
+        }
+      }
+      window.initRealtimeReports = initRealtimeReports;
+
+      const REPORT_STATUS_MAP = {
+        'Beklemede': { label: 'Beklemede', cls: 'badge-warning' },
+        'pending': { label: 'Beklemede', cls: 'badge-warning' },
+        'İnceleniyor': { label: 'İnceleniyor', cls: 'badge-primary' },
+        'reviewing': { label: 'İnceleniyor', cls: 'badge-primary' },
+        'İşleme Alındı': { label: 'İşleme Alındı', cls: 'badge-info' },
+        'in_progress': { label: 'İşleme Alındı', cls: 'badge-info' },
+        'Çözüldü': { label: 'Çözüldü', cls: 'badge-success' },
+        'resolved': { label: 'Çözüldü', cls: 'badge-success' },
+        'Reddedildi': { label: 'Reddedildi', cls: 'badge-danger' },
+        'rejected': { label: 'Reddedildi', cls: 'badge-danger' }
+      };
+
+      function renderReportsView() {
+        const container = document.getElementById("reportsTableBody");
+        const gridContainer = document.getElementById("reportsGrid");
+        if (!container || !gridContainer) return;
+
+        const filterStatus = document.getElementById("reportFilterStatus")?.value || 'all';
+        const filterHood = document.getElementById("reportFilterNeighborhood")?.value || '';
+        const filterCat = document.getElementById("reportFilterCategory")?.value || '';
+        const searchTxt = (document.getElementById("reportSearch")?.value || '').trim().toLowerCase();
+
+        const filtered = (window.reportsCache || []).filter(r => {
+          const s = (r.status || 'Beklemede').trim();
+          if (filterStatus === 'pending' && (s !== 'Beklemede' && s !== 'pending')) return false;
+          if (filterStatus === 'reviewing' && (s !== 'İnceleniyor' && s !== 'reviewing')) return false;
+          if (filterStatus === 'in_progress' && (s !== 'İşleme Alındı' && s !== 'in_progress')) return false;
+          if (filterStatus === 'resolved' && (s !== 'Çözüldü' && s !== 'resolved')) return false;
+          if (filterStatus === 'rejected' && (s !== 'Reddedildi' && s !== 'rejected')) return false;
+
+          if (filterHood && r.neighborhood !== filterHood) return false;
+          if (filterCat && r.category !== filterCat && r.categoryKey !== filterCat) return false;
+
+          if (searchTxt) {
+            const matchTicket = (r.ticketNo || '').toLowerCase().includes(searchTxt);
+            const matchName = (r.userName || '').toLowerCase().includes(searchTxt);
+            const matchPhone = (r.userPhone || '').toLowerCase().includes(searchTxt);
+            const matchDesc = (r.description || '').toLowerCase().includes(searchTxt);
+            if (!matchTicket && !matchName && !matchPhone && !matchDesc) return false;
+          }
+          return true;
+        });
+
+        const b = document.getElementById('reportCountBadge');
+        if (b) b.innerText = `${filtered.length} Talep`;
+
+        if (filtered.length === 0) {
+          container.innerHTML = `<tr><td colspan="7" class="empty-state">Kriterlere uygun başvuru kaydı bulunamadı.</td></tr>`;
+          gridContainer.innerHTML = `<div class="empty-state">Kriterlere uygun başvuru kaydı bulunamadı.</div>`;
+          return;
+        }
+
+        // Tablo Görünümü
+        container.innerHTML = '';
+        filtered.forEach(r => {
+          const tr = document.createElement("tr");
+          const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
+
+          let dateStr = '–';
+          if (r.createdAt?.toMillis) {
+            dateStr = new Date(r.createdAt.toMillis()).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          } else if (r.createdAt) {
+            dateStr = new Date(r.createdAt).toLocaleDateString('tr-TR');
+          }
+
+          const ticketNo = r.ticketNo || ('GBZ-' + r.id.substring(0, 6).toUpperCase());
+          const userName = r.userName || (r.userId && window.usersMap[r.userId]?.fullName) || 'Gebze Sakini';
+          const location = [r.neighborhood, r.address].filter(Boolean).join(' • ') || 'Gebze';
+          const descShort = (r.description || 'Açıklama belirtilmemiş').length > 55 ? (r.description || '').substring(0, 55) + '...' : (r.description || '');
+
+          tr.innerHTML = `
+          <td><strong style="color:var(--navy-light); font-family:monospace;">${ticketNo}</strong></td>
+          <td style="white-space:nowrap; font-size:12px; color:var(--text-muted);">${dateStr}</td>
+          <td>
+            <div style="font-weight:700;">${userName}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${r.userPhone || ''}</div>
+          </td>
+          <td>
+            <div style="font-weight:600;">${r.category || 'Genel Şikayet'}</div>
+            <div style="font-size:11.5px; color:var(--text-muted);">📍 ${location}</div>
+          </td>
+          <td style="max-width:260px;">
+            <span style="font-size:12.5px; line-height:1.4;">${descShort}</span>
+            ${r.imageUrl ? ` <span style="cursor:pointer;" onclick="openLightbox('${r.imageUrl}')" title="Fotoğraf">📸</span>` : ''}
+          </td>
+          <td><span class="badge ${stInfo.cls}">${stInfo.label}</span></td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="window.openReportDetailModal('${r.id}')">İncele & Yanıtla</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('reports', '${r.id}', window.initRealtimeReports)">Sil</button>
+            </div>
+          </td>
+        `;
+          container.appendChild(tr);
+        });
+
+        // Kart Görünümü
+        gridContainer.innerHTML = '';
+        filtered.forEach(r => {
+          const card = document.createElement("div");
+          card.className = "item-card";
+          const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
+          const ticketNo = r.ticketNo || ('GBZ-' + r.id.substring(0, 6).toUpperCase());
+          const userName = r.userName || (r.userId && window.usersMap[r.userId]?.fullName) || 'Gebze Sakini';
+
+          card.innerHTML = `
+          ${r.imageUrl ? `<img src="${r.imageUrl}" class="item-card-image" onclick="openLightbox('${r.imageUrl}')" alt="talep">` : ''}
+          <div class="item-card-body" style="padding:16px;">
+            <div class="item-card-meta">
+              <span style="font-family:monospace; font-weight:800; color:var(--navy);">${ticketNo}</span>
+              <span class="badge ${stInfo.cls}" style="margin-left:auto;">${stInfo.label}</span>
+            </div>
+            <div class="item-card-title">${r.category || 'Vatandaş Talebi'}</div>
+            <div class="item-card-desc">${r.description || ''}</div>
+            <div style="font-size:11.5px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:8px;">
+              👤 ${userName} • 📍 ${r.neighborhood || 'Gebze'}
+            </div>
+          </div>
+          <div class="item-card-footer" style="padding:10px 16px;">
+            <button class="btn btn-primary btn-sm" onclick="window.openReportDetailModal('${r.id}')">İncele / Yanıtla</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDocItem('reports', '${r.id}', window.initRealtimeReports)">Sil</button>
+          </div>
+        `;
+          gridContainer.appendChild(card);
+        });
+      }
+      window.renderReportsView = renderReportsView;
+
+      window.switchReportsView = (viewMode) => {
+        const table = document.getElementById("reportsTableView");
+        const grid = document.getElementById("reportsGrid");
+        const btnTable = document.getElementById("btnViewTable");
+        const btnGrid = document.getElementById("btnViewGrid");
+        if (viewMode === 'grid') {
+          if (table) table.style.display = 'none';
+          if (grid) grid.style.display = 'grid';
+          if (btnGrid) { btnGrid.classList.add('btn-primary'); btnGrid.classList.remove('btn-outline'); }
+          if (btnTable) { btnTable.classList.remove('btn-primary'); btnTable.classList.add('btn-outline'); }
+        } else {
+          if (table) table.style.display = 'block';
+          if (grid) grid.style.display = 'none';
+          if (btnTable) { btnTable.classList.add('btn-primary'); btnTable.classList.remove('btn-outline'); }
+          if (btnGrid) { btnGrid.classList.remove('btn-primary'); btnGrid.classList.add('btn-outline'); }
+        }
+      };
+
+      window.openReportDetailModal = (id) => {
+        const r = (window.reportsCache || []).find(x => x.id === id);
+        if (!r) return;
+        window.activeReportId = id;
+
+        const ticketNo = r.ticketNo || ('GBZ-' + r.id.substring(0, 6).toUpperCase());
+        const userName = r.userName || (r.userId && window.usersMap[r.userId]?.fullName) || 'Gebze Sakini';
+
+        document.getElementById("modalReportTicket").innerText = ticketNo;
+        document.getElementById("modalReportCitizen").innerText = `${userName} (${r.userPhone || 'Tel yok'})`;
+        document.getElementById("modalReportCategory").innerText = r.category || 'Genel Şikayet';
+
+        const loc = [r.neighborhood, r.address].filter(Boolean).join(' • ') || 'Gebze';
+        document.getElementById("modalReportLocation").innerText = loc;
+
+        const mapBtn = document.getElementById("modalReportMapBtn");
+        if (r.lat && r.lng) {
+          mapBtn.href = `https://www.google.com/maps?q=${r.lat},${r.lng}`;
+          mapBtn.style.display = 'inline-flex';
+        } else {
+          mapBtn.style.display = 'none';
+        }
+
+        document.getElementById("modalReportDesc").innerText = r.description || 'Açıklama belirtilmemiş.';
+
+        const imgBox = document.getElementById("modalReportImageBox");
+        if (r.imageUrl) {
+          imgBox.innerHTML = `
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:4px;">Eklenen Fotoğraf</div>
+          <img src="${r.imageUrl}" style="max-height:220px; border-radius:10px; cursor:pointer; border:1px solid var(--border);" onclick="openLightbox('${r.imageUrl}')" alt="talep fotoğrafı">
+        `;
+          imgBox.style.display = 'block';
+        } else {
+          imgBox.style.display = 'none';
+        }
+
+        document.getElementById("modalReportStatusSelect").value = r.status || 'Beklemede';
+        document.getElementById("modalReportNoteInput").value = r.response || r.adminNote || '';
+
+        const histBox = document.getElementById("modalReportHistory");
+        if (r.history && Array.isArray(r.history) && r.history.length > 0) {
+          histBox.innerHTML = r.history.map(h => `
+          <div style="font-size:12px; margin-bottom:4px; padding:6px 10px; background:#F1F5F9; border-radius:6px;">
+            <strong>${h.status || 'Güncelleme'}</strong> • <span style="color:var(--text-muted);">${h.date || ''}</span>
+            ${h.note ? `<div style="color:var(--text-dark); margin-top:2px;">${h.note}</div>` : ''}
+          </div>
+        `).join('');
+        } else {
+          histBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">Henüz geçmiş işlem kaydı yok.</div>';
+        }
+
+        document.getElementById("reportDetailModal").style.display = 'flex';
+      };
+
+      window.closeReportDetailModal = () => {
+        document.getElementById("reportDetailModal").style.display = 'none';
+        window.activeReportId = null;
+      };
+
+      window.saveReportAction = async () => {
+        if (!window.activeReportId) return;
+        const status = document.getElementById("modalReportStatusSelect").value;
+        const note = document.getElementById("modalReportNoteInput").value.trim();
+        const btn = document.getElementById("btnSaveReportAction");
+        btn.disabled = true;
+
+        try {
+          const historyItem = {
+            status,
+            note,
+            date: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            who: auth.currentUser?.email || 'Yönetici'
+          };
+
+          const docRef = doc(db, "reports", window.activeReportId);
+          await updateDoc(docRef, {
+            status,
+            response: note,
+            adminNote: note,
+            updatedAt: serverTimestamp(),
+            history: arrayUnion(historyItem)
+          });
+
+          showToast("Talep durumu ve resmi birim yanıtı kaydedildi!");
+          closeReportDetailModal();
+        } catch (err) {
+          alert("Kayıt sırasında hata oluştu: " + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      // ══════════════════════════════════════════════════════════════════════════════
+      // GÜNDÜZ BAKIMEVLERİ & KREŞLER
+      // ══════════════════════════════════════════════════════════════════════════════
+      window.nurseriesCache = [];
+
+      const OFFICIAL_NURSERIES = [
+        {
+          name: "Gebze Belediyesi Şehit İlker Ağır Çocuk Bakımevi",
+          neighborhood: "Mustafapaşa",
+          capacity: 120,
+          ageGroup: "36-66 Ay",
+          phone: "0262 642 04 30",
+          address: "Mustafapaşa Mah. 714. Sok. No:4",
+          description: "Modern eğitim sınıfları, oyun bahçesi, pedagog desteği ve uzman eğitmen kadrosu.",
+          status: "aktif"
+        },
+        {
+          name: "Gebze Belediyesi Arapçeşme Gündüz Bakımevi",
+          neighborhood: "Arapçeşme",
+          capacity: 90,
+          ageGroup: "36-66 Ay",
+          phone: "0262 642 04 31",
+          address: "Arapçeşme Mah. Gençlik Cad. No:18",
+          description: "Çocuk atölyeleri, müzik ve resim odaları, tam zamanlı güvenlik ve yemekhane.",
+          status: "aktif"
+        },
+        {
+          name: "Gebze Belediyesi Yenikent Çocuk Eğitim & Kreş Merkezi",
+          neighborhood: "Yenikent",
+          capacity: 110,
+          ageGroup: "36-66 Ay",
+          phone: "0262 642 04 32",
+          address: "Yenikent Mah. Barış Parkı Yanı",
+          description: "Geniş peyzaj bahçesi, montessori eğitim modülleri ve drama atölyesi.",
+          status: "aktif"
+        },
+        {
+          name: "Gebze Belediyesi Beylikbağı Çocuk Gelişim Merkezi",
+          neighborhood: "Beylikbağı",
+          capacity: 85,
+          ageGroup: "36-66 Ay",
+          phone: "0262 642 04 33",
+          address: "Beylikbağı Mah. Ankara Cad. No:110",
+          description: "Sosyal beceri geliştirme alanları, uyku odaları ve uzman psikolog danışmanlığı.",
+          status: "aktif"
+        }
+      ];
+
+      async function loadNurseries() {
+        const container = document.getElementById("nurseriesGrid");
+        if (!container) return;
+        container.innerHTML = '<div class="empty-state">Kreşler yükleniyor...</div>';
+        try {
+          const snap = await getDocs(collection(db, "nurseries"));
+          if (snap.empty) {
+            window.nurseriesCache = [];
+            container.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px;">
+              <div style="font-size:36px; margin-bottom:10px;">🧸</div>
+              <p style="font-size:15px; font-weight:700; margin-bottom:6px;">Kayıtlı belediye kreşi bulunamadı.</p>
+              <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Resmi Gebze Belediyesi çocuk bakımevlerini sisteme eşitlemek için aşağıdaki butonu kullanabilirsiniz.</p>
+              <button class="btn btn-primary" onclick="window.seedNurseries()">👶 Resmi Kreşleri Eşitle</button>
+            </div>
+          `;
+            return;
+          }
+
+          const list = [];
+          snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+          window.nurseriesCache = list;
+
+          const countBadge = document.getElementById("nurseriesCountBadge");
+          if (countBadge) countBadge.innerText = `${list.length} Kreş`;
+
+          container.innerHTML = '';
+          list.forEach(d => {
+            const card = document.createElement("div");
+            card.className = "item-card";
+            card.innerHTML = `
+            ${d.imageUrl ? `<img src="${d.imageUrl}" class="item-card-image" onclick="openLightbox('${d.imageUrl}')" alt="kreş">` : ''}
+            <div class="item-card-body" style="padding:16px;">
+              <div class="item-card-meta" style="margin-bottom:6px;">
+                <span>👶 ${d.neighborhood || 'Gebze'}</span>
+                <span class="badge badge-purple" style="margin-left:auto;">${d.capacity ? (d.capacity + ' Kontenjan') : 'Aktif'}</span>
+              </div>
+              <div class="item-card-title" style="font-size:15px; margin-bottom:4px;">${d.name}</div>
+              <div style="font-size:12px; color:var(--text-muted); line-height:1.5; margin-bottom:8px;">
+                📍 ${d.address || 'Gebze'}<br>
+                📞 ${d.phone || '0262 642 04 30'}<br>
+                ${d.ageGroup ? `🎓 <strong>Yaş Grubu:</strong> ${d.ageGroup}` : ''}
+              </div>
+              ${d.description ? `<div style="font-size:12px; color:#475569; background:#F8FAFC; padding:8px; border-radius:6px;">${d.description}</div>` : ''}
+            </div>
+            <div class="item-card-footer" style="padding:10px 16px; background:#FAFAFA; border-top:1px solid var(--border);">
+              <span class="badge badge-success">Kayıt Alıyor</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('nurseries', '${d.id}', window.loadNurseries)">Sil</button>
+            </div>
+          `;
+            container.appendChild(card);
+          });
+        } catch (e) {
+          container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+        }
+      }
+      window.loadNurseries = loadNurseries;
+
+      window.seedNurseries = async () => {
+        if (!confirm("Gebze Belediyesi resmi çocuk bakımevleri veritabanına aktarılsın mı?")) return;
+        try {
+          for (const n of OFFICIAL_NURSERIES) {
+            await addDoc(collection(db, "nurseries"), {
+              ...n,
+              createdAt: serverTimestamp()
+            });
+          }
+          showToast("Resmi kreş ve bakımevleri başarıyla eklendi!");
+          await loadNurseries();
+        } catch (err) {
+          alert("Kreşler eklenirken hata: " + err.message);
+        }
+      };
+
+      window.saveNursery = async (e) => {
+        if (e) e.preventDefault();
+        const name = document.getElementById("nurseryName").value.trim();
+        const neighborhood = document.getElementById("nurseryNeighborhood").value;
+        const capacity = Number(document.getElementById("nurseryCapacity").value) || 0;
+        const ageGroup = document.getElementById("nurseryAgeGroup").value.trim();
+        const phone = document.getElementById("nurseryPhone").value.trim();
+        const address = document.getElementById("nurseryAddress").value.trim();
+        const imageUrl = document.getElementById("nurseryImage").value.trim();
+        const description = document.getElementById("nurseryDesc").value.trim();
+
+        const btn = document.getElementById("btnSaveNursery");
+        if (btn) btn.disabled = true;
+        try {
+          await addDoc(collection(db, "nurseries"), {
+            name,
+            neighborhood,
+            capacity,
+            ageGroup,
+            phone,
+            address,
+            imageUrl,
+            description,
+            createdAt: serverTimestamp()
+          });
+          showToast("Yeni kreş başarıyla eklendi!");
+          document.getElementById("formNursery")?.reset();
+          await loadNurseries();
+        } catch (err) {
+          alert("Kreş eklenirken hata: " + err.message);
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      };
+
+      // Form dinleyicileri
+      (function bindDynamicForms() {
+        const ready = (f) => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', f) : f();
+        ready(() => {
+          document.getElementById('formParking')?.addEventListener('submit', window.saveParkingLot);
+          document.getElementById('formNursery')?.addEventListener('submit', window.saveNursery);
+        });
+      })();
+
+      // ───────────────── LIGHTBOX & TOAST ─────────────────
+      window.openLightbox = (url) => {
+        const box = document.getElementById("imageLightbox");
+        const img = document.getElementById("lightboxImg");
+        img.src = url;
+        box.style.display = "flex";
+      };
+      window.closeLightbox = () => {
+        document.getElementById("imageLightbox").style.display = "none";
+      };
+
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.innerText = msg;
+        toast.className = "toast show";
+        setTimeout(() => toast.className = "toast", 3500);
+      }
+      window.showToast = showToast;
   </script>
 </head>
 
@@ -4618,6 +5839,12 @@
       </div>
 
       <div class="nav-group-label">Vatandaş etkileşimi</div>
+      <div class="nav-item" id="nav-reports"
+        onclick="switchNav('reports', 'Vatandaş Talepleri (Çek & Gönder)', 'Çözüm masası arıza bildirimleri, şikayetler ve vatandaş başvuruları')">
+        <span class="icon">📢</span>
+        <span>Vatandaş Talepleri</span>
+        <span class="nav-badge" id="badgePendingReports" style="display:none;">0</span>
+      </div>
       <div class="nav-item" id="nav-suggestions"
         onclick="switchNav('suggestions', 'Vatandaş Önerileri', 'Söz Sende önerileri ve moderasyon onay süreci')">
         <span class="icon">💡</span>
@@ -4648,6 +5875,11 @@
       </div>
 
       <div class="nav-group-label">Şehir hizmetleri ve altyapı</div>
+      <div class="nav-item" id="nav-parking"
+        onclick="switchNav('parking', 'Otopark Yönetimi', 'Katlı ve yol üstü otoparklar, anlık doluluk oranları, kapasite ve canlı durum')">
+        <span class="icon">🅿️</span>
+        <span>Otoparklar</span>
+      </div>
       <div class="nav-item" id="nav-outages"
         onclick="switchNav('outages', 'Kesinti Bildirimleri', 'İSU, SEDAŞ ve PALGAZ su, elektrik, doğalgaz planlı kesintileri')">
         <span class="icon">⚡</span>
@@ -4689,6 +5921,11 @@
         onclick="switchNav('picnic', 'Doğa & Piknik Alanları', 'Köy ve mahallelerdeki mesire, orman, yürüyüş ve piknik rotaları')">
         <span class="icon">🌲</span>
         <span>Doğa & Piknik Alanları</span>
+      </div>
+      <div class="nav-item" id="nav-nurseries"
+        onclick="switchNav('nurseries', 'Kreşler & Gündüz Bakımevleri', 'Gebze Belediyesi kreşleri, kontenjan, yaş grubu ve kayıt yönetimi')">
+        <span class="icon">🧸</span>
+        <span>Kreş & Bakımevleri</span>
       </div>
 
       <div class="nav-group-label">Can dostlarımız</div>
@@ -4751,6 +5988,20 @@
       <section class="tab-view active" id="view-dashboard">
         <!-- KPI Cards -->
         <div class="kpi-grid">
+          <div class="kpi-card" onclick="switchNav('reports', 'Vatandaş Talepleri (Çek & Gönder)')">
+            <div class="kpi-icon" style="background:#FEE2E2; color:#DC2626;">📢</div>
+            <div class="kpi-info">
+              <h3 id="kpiReports">0</h3>
+              <p>İşlem Bekleyen Talep</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('parking', 'Otopark Yönetimi')">
+            <div class="kpi-icon" style="background:#E0F2FE; color:#0284C7;">🅿️</div>
+            <div class="kpi-info">
+              <h3 id="kpiParkingSpots">0 Boş</h3>
+              <p><span id="kpiParkingLots">0</span> Otopark Noktası</p>
+            </div>
+          </div>
           <div class="kpi-card" onclick="switchNav('suggestions', 'Vatandaş Önerileri')">
             <div class="kpi-icon" style="background:var(--warning-soft); color:var(--warning);">💡</div>
             <div class="kpi-info">
@@ -4807,7 +6058,15 @@
               <p>Kültür & Sanat Etkinliği</p>
             </div>
           </div>
-          <div class="kpi-card" onclick="switchNav('guide', 'Şehir Rehberi', 'Uygulamadaki Rehber kategorilerinde görünen kurumlar ve mekanlar')">
+          <div class="kpi-card" onclick="switchNav('nurseries', 'Kreşler & Gündüz Bakımevleri')">
+            <div class="kpi-icon" style="background:#FCE7F3; color:#BE185D;">🧸</div>
+            <div class="kpi-info">
+              <h3 id="kpiNurseries">0</h3>
+              <p>Belediye Kreşi</p>
+            </div>
+          </div>
+          <div class="kpi-card"
+            onclick="switchNav('guide', 'Şehir Rehberi', 'Uygulamadaki Rehber kategorilerinde görünen kurumlar ve mekanlar')">
             <div class="kpi-icon" style="background:#E8F5E9; color:#2E7D32;">🧭</div>
             <div class="kpi-info">
               <h3 id="kpiGuide">0</h3>
@@ -4843,7 +6102,13 @@
             <div class="panel-title">⚡ Hızlı İşlemler & Belediye Yönetici Kısayolları</div>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:12px;">
-            <button class="btn btn-primary" onclick="switchNav('guide', 'Şehir Rehberi')">🧭 Rehbere Yeni Kayıt Ekle</button>
+            <button class="btn btn-primary" onclick="switchNav('parking', 'Otopark Yönetimi')">🅿️ Otopark Durumunu
+              Güncelle</button>
+            <button class="btn btn-outline" onclick="switchNav('reports', 'Vatandaş Talepleri')">📢 Talepleri İncele &
+              Yanıtla</button>
+            <button class="btn btn-outline" onclick="switchNav('guide', 'Şehir Rehberi')">🧭 Rehbere Yeni Kayıt
+              Ekle</button>
+            <button class="btn btn-outline" onclick="switchNav('nurseries')">🧸 Kreşleri Yönet</button>
             <button class="btn btn-outline" onclick="switchNav('foods')">🍲 Yöresel Lezzet Ekle</button>
             <button class="btn btn-outline" onclick="switchNav('picnic')">🌲 Doğa / Piknik Alanı Ekle</button>
             <button class="btn btn-outline" onclick="switchNav('broadcast')">📡 Acil Bildirim / Duyuru Yayınla</button>
@@ -4914,9 +6179,11 @@
             </form>
           </div>
           <div>
-            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div class="panel-header"
+              style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
               <div class="panel-title">Kayıtlı Belediye Haberleri</div>
-              <button type="button" class="btn btn-outline btn-sm" id="btnSyncOfficialNews" onclick="seedOfficialNews()">🔄 Belediye Haberlerini Senkronize Et (28 Güncel Haber)</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btnSyncOfficialNews"
+                onclick="seedOfficialNews()">🔄 Belediye Haberlerini Senkronize Et (28 Güncel Haber)</button>
             </div>
             <div class="items-grid" id="newsGrid"></div>
           </div>
@@ -5027,6 +6294,96 @@
             </div>
             <div class="items-grid" id="pollsGrid"></div>
           </div>
+        </div>
+      </section>
+
+      <!-- ════════ VATANDAŞ TALEPLERİ (ÇEK-GÖNDER) TAB ════════ -->
+      <section class="tab-view" id="view-reports">
+        <div class="panel">
+          <div class="panel-header" style="flex-wrap: wrap; gap: 12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="panel-title" style="margin:0;">📢 Vatandaş Talepleri & Başvurular (Çek-Gönder)</div>
+              <span class="badge badge-primary" id="reportCountBadge">0 Talep</span>
+            </div>
+            <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <button class="btn btn-primary btn-sm" id="btnViewTable" onclick="switchReportsView('table')">📋 Tablo</button>
+              <button class="btn btn-outline btn-sm" id="btnViewGrid" onclick="switchReportsView('grid')">🔲 Kartlar</button>
+              <button class="btn btn-outline btn-sm" onclick="initRealtimeReports()">🔄 Yenile</button>
+            </div>
+          </div>
+
+          <!-- Filtre ve Arama Çubuğu -->
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:10px; margin-bottom:18px; align-items:center;">
+            <input type="text" id="reportSearch" placeholder="🔍 Takip No, vatandaş adı, telefon veya şikayet metni ara..." oninput="renderReportsView()" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+            <select id="reportFilterStatus" onchange="renderReportsView()" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+              <option value="all">Tüm Durumlar</option>
+              <option value="pending">⏳ Beklemede</option>
+              <option value="reviewing">🔍 İnceleniyor</option>
+              <option value="in_progress">⚙️ İşleme Alındı</option>
+              <option value="resolved">✅ Çözüldü</option>
+              <option value="rejected">❌ Reddedildi</option>
+            </select>
+            <select id="reportFilterCategory" onchange="renderReportsView()" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+              <option value="">Tüm Kategoriler</option>
+              <option value="Yol & Asfalt">Yol & Asfalt</option>
+              <option value="Çevre & Temizlik">Çevre & Temizlik</option>
+              <option value="Park & Bahçe">Park & Bahçe</option>
+              <option value="Sokak Hayvanları">Sokak Hayvanları</option>
+              <option value="Zabıta & Denetim">Zabıta & Denetim</option>
+              <option value="Aydınlatma & Elektrik">Aydınlatma & Elektrik</option>
+              <option value="Su & Kanalizasyon">Su & Kanalizasyon</option>
+              <option value="Ulaşım & Trafik">Ulaşım & Trafik</option>
+              <option value="Diğer">Diğer</option>
+            </select>
+            <select id="reportFilterNeighborhood" onchange="renderReportsView()" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+              <option value="">Tüm Mahalleler</option>
+              <option value="Mustafapaşa">Mustafapaşa</option>
+              <option value="Osman Yılmaz">Osman Yılmaz</option>
+              <option value="Arapçeşme">Arapçeşme</option>
+              <option value="Hacıhalil">Hacıhalil</option>
+              <option value="Mevlana">Mevlana</option>
+              <option value="Gaziler">Gaziler</option>
+              <option value="Eskihisar">Eskihisar</option>
+              <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+              <option value="Güzeller">Güzeller</option>
+              <option value="Yenikent">Yenikent</option>
+              <option value="İnönü">İnönü</option>
+              <option value="İstasyon">İstasyon</option>
+              <option value="Tatlıkuyu">Tatlıkuyu</option>
+              <option value="Barış">Barış</option>
+              <option value="Kirazpınar">Kirazpınar</option>
+              <option value="Sultan Orhan">Sultan Orhan</option>
+              <option value="Ulus">Ulus</option>
+              <option value="Yavuz Selim">Yavuz Selim</option>
+              <option value="Cumhuriyet">Cumhuriyet</option>
+              <option value="Beylikbağı">Beylikbağı</option>
+              <option value="Hürriyet">Hürriyet</option>
+              <option value="Mimar Sinan">Mimar Sinan</option>
+            </select>
+          </div>
+
+          <!-- Tablo Görünümü -->
+          <div id="reportsTableView" style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:120px;">Takip No</th>
+                  <th style="width:110px;">Tarih</th>
+                  <th style="width:150px;">Vatandaş</th>
+                  <th style="width:170px;">Kategori / Konum</th>
+                  <th>Açıklama / Fotoğraf</th>
+                  <th style="width:110px;">Durum</th>
+                  <th style="width:160px;">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody">
+                <tr><td colspan="7" class="empty-state">Talepler yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Kart Görünümü (Alternatif) -->
+          <div class="items-grid" id="reportsGrid" style="display:none; margin-top:16px;"></div>
         </div>
       </section>
 
@@ -5148,6 +6505,198 @@
               <div class="panel-title">Kayıtlı Planlı Kesintiler</div>
             </div>
             <div class="items-grid" id="outagesGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ OTOPARK VE DOLULUK YÖNETİMİ TAB ════════ -->
+      <section class="tab-view" id="view-parking">
+        <!-- Otopark KPI Kartları -->
+        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
+          <div class="kpi-card" style="cursor:default;">
+            <div class="kpi-icon" style="background:#EFF6FF; color:#2563EB;">🅿️</div>
+            <div class="kpi-info">
+              <h3 id="statParkingLots">0</h3>
+              <p>Toplam Otopark</p>
+            </div>
+          </div>
+          <div class="kpi-card" style="cursor:default;">
+            <div class="kpi-icon" style="background:#F1F5F9; color:#475569;">🚗</div>
+            <div class="kpi-info">
+              <h3 id="statParkingCapacity">0</h3>
+              <p>Toplam Kapasite</p>
+            </div>
+          </div>
+          <div class="kpi-card" style="cursor:default;">
+            <div class="kpi-icon" style="background:#FEF2F2; color:#DC2626;">🔴</div>
+            <div class="kpi-info">
+              <h3 id="statParkingOccupied" style="color:#DC2626;">0</h3>
+              <p>Dolu Park Yeri</p>
+            </div>
+          </div>
+          <div class="kpi-card" style="cursor:default;">
+            <div class="kpi-icon" style="background:#ECFDF5; color:#10B981;">🟢</div>
+            <div class="kpi-info">
+              <h3 id="statParkingFree" style="color:#10B981;">0</h3>
+              <p>Boş Park Yeri</p>
+            </div>
+          </div>
+          <div class="kpi-card" style="cursor:default;">
+            <div class="kpi-icon" style="background:#FFFBEB; color:#D97706;">📊</div>
+            <div class="kpi-info">
+              <h3 id="statParkingPercent">-%</h3>
+              <p>Ortalama Doluluk</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid">
+          <!-- Otopark Ekle / Düzenle Formu -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title" id="parkingFormTitle">🅿️ Yeni Otopark Ekle</div>
+            </div>
+            <form id="formParking">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Otopark Kodu *</label>
+                  <input type="text" id="parkingCode" placeholder="Örn: GBZ-010" required>
+                </div>
+                <div class="form-group">
+                  <label>Otopark Türü *</label>
+                  <select id="parkingProfile">
+                    <option value="katli">🏢 Katlı Otopark</option>
+                    <option value="yolUstu">🛣️ Yol Üstü Otoparkı</option>
+                    <option value="adliye">⚖️ Adliye Otoparkı</option>
+                    <option value="acik">🅿️ Açık Otopark</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Otopark Adı *</label>
+                <input type="text" id="parkingName" placeholder="Örn: Kent Meydanı Katlı Otoparkı" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Toplam Kapasite *</label>
+                  <input type="number" id="parkingCapacity" min="1" value="50" required>
+                </div>
+                <div class="form-group">
+                  <label>Mevcut Dolu Araç *</label>
+                  <input type="number" id="parkingOccupied" min="0" value="0">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Bulunduğu Mahalle</label>
+                  <select id="parkingNeighborhood">
+                    <option value="Hacıhalil">Hacıhalil</option>
+                    <option value="Mustafapaşa">Mustafapaşa</option>
+                    <option value="Osman Yılmaz">Osman Yılmaz</option>
+                    <option value="Arapçeşme">Arapçeşme</option>
+                    <option value="Mevlana">Mevlana</option>
+                    <option value="Gaziler">Gaziler</option>
+                    <option value="Eskihisar">Eskihisar</option>
+                    <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+                    <option value="Güzeller">Güzeller</option>
+                    <option value="Yenikent">Yenikent</option>
+                    <option value="İnönü">İnönü</option>
+                    <option value="İstasyon">İstasyon</option>
+                    <option value="Tatlıkuyu">Tatlıkuyu</option>
+                    <option value="Barış">Barış</option>
+                    <option value="Kirazpınar">Kirazpınar</option>
+                    <option value="Sultan Orhan">Sultan Orhan</option>
+                    <option value="Ulus">Ulus</option>
+                    <option value="Yavuz Selim">Yavuz Selim</option>
+                    <option value="Cumhuriyet">Cumhuriyet</option>
+                    <option value="Beylikbağı">Beylikbağı</option>
+                    <option value="Hürriyet">Hürriyet</option>
+                    <option value="Mimar Sinan">Mimar Sinan</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Durum</label>
+                  <select id="parkingStatus">
+                    <option value="aktif">Aktif / Açık</option>
+                    <option value="pasif">Geçici Kapalı</option>
+                    <option value="bakimda">Bakımda</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Açık Adres</label>
+                <input type="text" id="parkingAddress" placeholder="Örn: Hükümet Cad. No: 12, Gebze">
+              </div>
+
+              <div class="form-group">
+                <label>Ücret Tarifesi & Bilgisi</label>
+                <input type="text" id="parkingPricing" placeholder="Örn: İlk 1 saat ücretsiz, sonraki saatler 25₺">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Enlem (Lat)</label>
+                  <input type="number" step="any" id="parkingLat" value="40.8025">
+                </div>
+                <div class="form-group">
+                  <label>Boylam (Lng)</label>
+                  <input type="number" step="any" id="parkingLng" value="29.4300">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Özellikler (Virgülle ayırın)</label>
+                <input type="text" id="parkingFeatures" placeholder="Örn: Kapalı, 7/24 Güvenlik, Engelli Parkı, Elektrikli Şarj">
+              </div>
+
+              <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary" id="btnSaveParking" style="flex:1;">Otoparkı Kaydet</button>
+                <button type="button" class="btn btn-outline" id="btnCancelParking" style="display:none;" onclick="cancelParkingEdit()">Vazgeç</button>
+              </div>
+              <p class="form-note">
+                Kaydettiğiniz doluluk oranları, mobil uygulamadaki <strong>Otopark</strong> ekranında anlık ve gerçek zamanlı olarak güncellenir.
+              </p>
+            </form>
+          </div>
+
+          <!-- Otopark Listesi ve Hızlı Doluluk Kontrolü -->
+          <div>
+            <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="panel-title" style="margin:0;">🅿️ Otoparklar & Doluluk</div>
+                <span class="badge badge-primary" id="parkingCountBadge">0 Otopark</span>
+              </div>
+              <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="seedParkingLots()" title="Mobil uygulamadaki 9 resmi otoparkı veritabanına aktarır">
+                  📥 Resmi Otoparkları Eşitle
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="loadParkingLots()">🔄 Yenile</button>
+              </div>
+            </div>
+
+            <!-- Filtreler -->
+            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-bottom:14px;">
+              <input type="text" id="parkingSearchInput" placeholder="🔍 Otopark adı, kod veya mahalle ara..." oninput="renderParkingView()" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:12.5px;">
+              <select id="parkingFilterProfile" onchange="renderParkingView()" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:12.5px;">
+                <option value="all">Tüm Tipler</option>
+                <option value="katli">Katlı Otoparklar</option>
+                <option value="yolUstu">Yol Üstü Parklanma</option>
+                <option value="adliye">Adliye Otoparkı</option>
+                <option value="acik">Açık Otoparklar</option>
+              </select>
+              <select id="parkingFilterStatus" onchange="renderParkingView()" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:12.5px;">
+                <option value="all">Tüm Doluluklar</option>
+                <option value="musait">🟢 Müsait (&lt; %80)</option>
+                <option value="yogun">🟠 Yoğun (%80-%95)</option>
+                <option value="dolu">🔴 Dolu (≥ %95)</option>
+              </select>
+            </div>
+
+            <div class="items-grid" id="parkingGrid"></div>
           </div>
         </div>
       </section>
@@ -5457,7 +7006,8 @@
               </div>
               <p class="form-note">
                 Etkinlikler bu listede değil, <strong>Etkinlikler</strong> sekmesinden yönetilir. Mezarlıklar ve Kreşler
-                kategorisinde hiç kayıt yoksa uygulama yerleşik örnek listeyi gösterir; kayıtları Firebase'e aktardığınızda
+                kategorisinde hiç kayıt yoksa uygulama yerleşik örnek listeyi gösterir; kayıtları Firebase'e
+                aktardığınızda
                 tüm veriler veritabanı üzerinden canlı olarak yönetilir.
               </p>
             </form>
@@ -5466,9 +7016,12 @@
             <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
               <div class="panel-title">Rehber kayıtları <span class="count-pill" id="guideCount">0</span></div>
               <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-outline btn-sm" id="btnSeedCemeteries" onclick="seedCemeteries()">🪦 Mezarlıkları Aktar</button>
-                <button type="button" class="btn btn-outline btn-sm" id="btnSeedNurseries" onclick="seedNurseries()">🧸 Kreşleri Aktar</button>
-                <button type="button" class="btn btn-primary btn-sm" id="btnSeedAllGuide" onclick="seedAllGuide()">⚡ Tümünü Yükle</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedCemeteries"
+                  onclick="seedCemeteries()">🪦 Mezarlıkları Aktar</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedNurseries" onclick="seedNurseries()">🧸
+                  Kreşleri Aktar</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSeedAllGuide" onclick="seedAllGuide()">⚡
+                  Tümünü Yükle</button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="loadGuide()">🔄 Yenile</button>
               </div>
             </div>
@@ -5493,7 +7046,8 @@
               </div>
               <div class="form-group">
                 <label>Kısa özet *</label>
-                <textarea id="placeSummary" rows="3" placeholder="Kartta görünecek 1-2 cümlelik açıklama" required></textarea>
+                <textarea id="placeSummary" rows="3" placeholder="Kartta görünecek 1-2 cümlelik açıklama"
+                  required></textarea>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -5533,7 +7087,8 @@
             <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
               <div class="panel-title">Kayıtlı yerler <span class="count-pill" id="placesCount">0</span></div>
               <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-outline btn-sm" id="btnSeedPlaces" onclick="seedPlaces()">🏰 Tarihi Yerleri Firebase'e Aktar</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedPlaces" onclick="seedPlaces()">🏰 Tarihi
+                  Yerleri Firebase'e Aktar</button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="loadPlaces()">🔄 Yenile</button>
               </div>
             </div>
@@ -5566,19 +7121,23 @@
               </div>
               <div class="form-group">
                 <label>Kısa Özet / Tanıtım *</label>
-                <textarea id="foodSummary" rows="3" placeholder="Uygulamadaki kartta görünecek açıklama" required></textarea>
+                <textarea id="foodSummary" rows="3" placeholder="Uygulamadaki kartta görünecek açıklama"
+                  required></textarea>
               </div>
               <div class="form-group">
                 <label>Kökeni / Nereden Geliyor? (Tarihçe)</label>
-                <textarea id="foodOrigin" rows="2" placeholder="Örn: Osmanlı saray mutfağına uzanan menzil lezzeti..."></textarea>
+                <textarea id="foodOrigin" rows="2"
+                  placeholder="Örn: Osmanlı saray mutfağına uzanan menzil lezzeti..."></textarea>
               </div>
               <div class="form-group">
                 <label>Malzemeler (Virgülle veya alt alta yazın)</label>
-                <textarea id="foodIngredients" rows="2" placeholder="Örn: Buğday unu, Nohut mayası, Tereyağı, Tarçın, Anason, Susam"></textarea>
+                <textarea id="foodIngredients" rows="2"
+                  placeholder="Örn: Buğday unu, Nohut mayası, Tereyağı, Tarçın, Anason, Susam"></textarea>
               </div>
               <div class="form-group">
                 <label>Nasıl Yapılır? (Tarif / Hazırlanış Adımları - Her adımı yeni satıra yazın)</label>
-                <textarea id="foodRecipe" rows="4" placeholder="1. Nohut mayası bir gün önceden ılık suyla hazırlanır.&#10;2. Baharatlar un ile harmanlanıp hamur yoğrulur.&#10;3. Taş fırında odun ateşinde pişirilir."></textarea>
+                <textarea id="foodRecipe" rows="4"
+                  placeholder="1. Nohut mayası bir gün önceden ılık suyla hazırlanır.&#10;2. Baharatlar un ile harmanlanıp hamur yoğrulur.&#10;3. Taş fırında odun ateşinde pişirilir."></textarea>
               </div>
               <div class="form-group">
                 <label>Nerede Yenir? (Önerilen Mekanlar / Lokasyon)</label>
@@ -5596,10 +7155,12 @@
               </div>
               <div style="display:flex; gap:8px;">
                 <button type="submit" class="btn btn-primary" id="foodSubmitBtn" style="flex:1;">Lezzeti ekle</button>
-                <button type="button" class="btn btn-outline" id="foodCancelBtn" style="display:none;" onclick="cancelFoodEdit()">Vazgeç</button>
+                <button type="button" class="btn btn-outline" id="foodCancelBtn" style="display:none;"
+                  onclick="cancelFoodEdit()">Vazgeç</button>
               </div>
               <p class="form-note">
-                Buraya eklenen lezzetler, mobil uygulamanın <strong>Gebze'yi Keşfet &rarr; Lezzetler</strong> sekmesinde fotoğraflı kart ve detay sayfası olarak canlı görünür.
+                Buraya eklenen lezzetler, mobil uygulamanın <strong>Gebze'yi Keşfet &rarr; Lezzetler</strong> sekmesinde
+                fotoğraflı kart ve detay sayfası olarak canlı görünür.
               </p>
             </form>
           </div>
@@ -5607,8 +7168,10 @@
             <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
               <div class="panel-title">Kayıtlı lezzetler <span class="count-pill" id="foodsCount">0</span></div>
               <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
-                <input type="text" id="foodsSearchInput" placeholder="🔍 Lezzet ara..." oninput="renderFoods()" style="padding:6px 12px; font-size:12.5px; width:160px; border:1px solid var(--border); border-radius:8px;">
-                <button type="button" class="btn btn-outline btn-sm" id="btnSeedFoods" onclick="seedFoods()">🍲 6 Resmi Lezzeti Firebase'e Yükle</button>
+                <input type="text" id="foodsSearchInput" placeholder="🔍 Lezzet ara..." oninput="renderFoods()"
+                  style="padding:6px 12px; font-size:12.5px; width:160px; border:1px solid var(--border); border-radius:8px;">
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedFoods" onclick="seedFoods()">🍲 6 Resmi
+                  Lezzeti Firebase'e Yükle</button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="loadFoods()">🔄 Yenile</button>
               </div>
             </div>
@@ -5627,7 +7190,8 @@
             <form id="formPicnic">
               <div class="form-group">
                 <label>Alan / Rota Adı *</label>
-                <input type="text" id="picnicName" placeholder="Örn: Beylikdağı Orman Yürüyüşü, Denizli Göleti" required>
+                <input type="text" id="picnicName" placeholder="Örn: Beylikdağı Orman Yürüyüşü, Denizli Göleti"
+                  required>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -5660,11 +7224,13 @@
               </div>
               <div class="form-group">
                 <label>Tanıtım & Açıklama *</label>
-                <textarea id="picnicSummary" rows="3" placeholder="Ziyaretçiler için rota, çevre ve doğa detayları..." required></textarea>
+                <textarea id="picnicSummary" rows="3" placeholder="Ziyaretçiler için rota, çevre ve doğa detayları..."
+                  required></textarea>
               </div>
               <div class="form-group">
                 <label>Öne Çıkan Özellikler (Virgülle ayırın)</label>
-                <textarea id="picnicFeatures" rows="2" placeholder="Örn: Gölet Manzarası, Orman Yürüyüşü, Piknik Masaları, Otopark, Çeşme"></textarea>
+                <textarea id="picnicFeatures" rows="2"
+                  placeholder="Örn: Gölet Manzarası, Orman Yürüyüşü, Piknik Masaları, Otopark, Çeşme"></textarea>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -5692,10 +7258,12 @@
               </div>
               <div style="display:flex; gap:8px;">
                 <button type="submit" class="btn btn-primary" id="picnicSubmitBtn" style="flex:1;">Alanı ekle</button>
-                <button type="button" class="btn btn-outline" id="picnicCancelBtn" style="display:none;" onclick="cancelPicnicEdit()">Vazgeç</button>
+                <button type="button" class="btn btn-outline" id="picnicCancelBtn" style="display:none;"
+                  onclick="cancelPicnicEdit()">Vazgeç</button>
               </div>
               <p class="form-note">
-                Buraya eklenen alanlar mobil uygulamanın <strong>Gebze'yi Keşfet &rarr; Doğa & Piknik</strong> sekmesinde tür filtreleri (Piknik, Mesire, Doğa, Park) ve tek tıkla yol tarifiyle görüntülenir.
+                Buraya eklenen alanlar mobil uygulamanın <strong>Gebze'yi Keşfet &rarr; Doğa & Piknik</strong>
+                sekmesinde tür filtreleri (Piknik, Mesire, Doğa, Park) ve tek tıkla yol tarifiyle görüntülenir.
               </p>
             </form>
           </div>
@@ -5703,13 +7271,112 @@
             <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
               <div class="panel-title">Doğa & Piknik Alanları <span class="count-pill" id="picnicCount">0</span></div>
               <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
-                <input type="text" id="picnicSearchInput" placeholder="🔍 Alan / köy ara..." oninput="renderPicnic()" style="padding:6px 12px; font-size:12.5px; width:160px; border:1px solid var(--border); border-radius:8px;">
-                <button type="button" class="btn btn-outline btn-sm" id="btnSeedPicnic" onclick="seedPicnic()">🌲 15 Resmi Alanı Firebase'e Yükle</button>
+                <input type="text" id="picnicSearchInput" placeholder="🔍 Alan / köy ara..." oninput="renderPicnic()"
+                  style="padding:6px 12px; font-size:12.5px; width:160px; border:1px solid var(--border); border-radius:8px;">
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedPicnic" onclick="seedPicnic()">🌲 15
+                  Resmi Alanı Firebase'e Yükle</button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="loadPicnic()">🔄 Yenile</button>
               </div>
             </div>
             <div class="chip-bar" id="picnicTypeChips"></div>
             <div class="items-grid" id="picnicGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ KREŞLER & ÇOCUK BAKIMEVLERİ TAB ════════ -->
+      <section class="tab-view" id="view-nurseries">
+        <div class="panel-grid">
+          <!-- Kreş Ekle Formu -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">👶 Yeni Kreş / Çocuk Bakımevi Ekle</div>
+            </div>
+            <form id="formNursery">
+              <div class="form-group">
+                <label>Kurum / Kreş Adı *</label>
+                <input type="text" id="nurseryName" placeholder="Örn: Beylikbağı Çocuk Bakımevi" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Mahalle *</label>
+                  <select id="nurseryNeighborhood" required>
+                    <option value="Beylikbağı">Beylikbağı</option>
+                    <option value="Mustafapaşa">Mustafapaşa</option>
+                    <option value="Arapçeşme">Arapçeşme</option>
+                    <option value="Gaziler">Gaziler</option>
+                    <option value="Hacıhalil">Hacıhalil</option>
+                    <option value="Osman Yılmaz">Osman Yılmaz</option>
+                    <option value="Mevlana">Mevlana</option>
+                    <option value="Yenikent">Yenikent</option>
+                    <option value="İnönü">İnönü</option>
+                    <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+                    <option value="Tatlıkuyu">Tatlıkuyu</option>
+                    <option value="Barış">Barış</option>
+                    <option value="Kirazpınar">Kirazpınar</option>
+                    <option value="Sultan Orhan">Sultan Orhan</option>
+                    <option value="Ulus">Ulus</option>
+                    <option value="Yavuz Selim">Yavuz Selim</option>
+                    <option value="Cumhuriyet">Cumhuriyet</option>
+                    <option value="Hürriyet">Hürriyet</option>
+                    <option value="Mimar Sinan">Mimar Sinan</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Kontenjan / Kapasite</label>
+                  <input type="number" id="nurseryCapacity" placeholder="Örn: 120" min="0">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Yaş Grubu</label>
+                  <input type="text" id="nurseryAgeGroup" placeholder="Örn: 36 - 66 Ay">
+                </div>
+                <div class="form-group">
+                  <label>İletişim Telefonu</label>
+                  <input type="text" id="nurseryPhone" placeholder="Örn: 0262 642 04 30">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Açık Adres</label>
+                <input type="text" id="nurseryAddress" placeholder="Örn: Beylikbağı Mah. Ankara Cad. No: 45, Gebze">
+              </div>
+
+              <div class="form-group">
+                <label>Görsel Bağlantısı (URL)</label>
+                <input type="text" id="nurseryImage" placeholder="https://... veya assets/images/kres.jpg">
+              </div>
+
+              <div class="form-group">
+                <label>Açıklama & Sunulan Hizmetler</label>
+                <textarea id="nurseryDesc" rows="3" placeholder="Örn: Uzman pedagoglar eşliğinde okul öncesi eğitim, drama ve açık oyun alanları..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="btnSaveNursery" style="width:100%;">Kreşi Kaydet</button>
+              <p class="form-note">
+                Eklenen çocuk bakımevleri mobil uygulamanın <strong>Şehir Rehberi &rarr; Kreşler & Bakımevleri</strong> bölümünde ailelere listelenir.
+              </p>
+            </form>
+          </div>
+
+          <!-- Kreş Listesi -->
+          <div>
+            <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="panel-title" style="margin:0;">👶 Kreşler & Gündüz Bakımevleri</div>
+                <span class="badge badge-primary" id="nurseriesCountBadge">0 Kreş</span>
+              </div>
+              <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="seedNurseries()" title="Gebze Belediyesi resmi kreşlerini yükler">
+                  📥 Resmi Kreşleri Eşitle
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="loadNurseries()">🔄 Yenile</button>
+              </div>
+            </div>
+            <div class="items-grid" id="nurseriesGrid"></div>
           </div>
         </div>
       </section>
@@ -5912,23 +7579,32 @@
         <button class="modal-close" onclick="closeUserDetailModal()">×</button>
       </div>
       <div class="modal-body">
-        
+
         <!-- Hesap Doğrulama & Yetki Paneli (Hızlı İşlemler) -->
-        <div style="background:linear-gradient(135deg, #F8FAFC 0%, #EEF4FF 100%); border:1px solid #D0E0FD; border-radius:12px; padding:14px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div
+          style="background:linear-gradient(135deg, #F8FAFC 0%, #EEF4FF 100%); border:1px solid #D0E0FD; border-radius:12px; padding:14px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
           <div>
-            <div style="font-size:11px; text-transform:uppercase; font-weight:800; color:var(--navy-light); letter-spacing:0.5px;">🛡️ Hesap Doğrulama & Yetki İşlemi</div>
-            <div id="modalVerificationNotice" style="font-size:13px; color:var(--text-dark); font-weight:600; margin-top:2px;">
+            <div
+              style="font-size:11px; text-transform:uppercase; font-weight:800; color:var(--navy-light); letter-spacing:0.5px;">
+              🛡️ Hesap Doğrulama & Yetki İşlemi</div>
+            <div id="modalVerificationNotice"
+              style="font-size:13px; color:var(--text-dark); font-weight:600; margin-top:2px;">
               Bu vatandaşın hesabı henüz doğrulanmamış (onay bekliyor).
             </div>
           </div>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <button type="button" class="btn btn-success btn-sm" id="btnModalApprove" onclick="toggleUserVerification(window.currentDetailUserId, true)" style="display:flex; align-items:center; gap:6px; font-weight:700;">
+            <button type="button" class="btn btn-success btn-sm" id="btnModalApprove"
+              onclick="toggleUserVerification(window.currentDetailUserId, true)"
+              style="display:flex; align-items:center; gap:6px; font-weight:700;">
               <span>✓</span> Hesabı Onayla (Doğrula)
             </button>
-            <button type="button" class="btn btn-warning btn-sm" id="btnModalRevoke" onclick="toggleUserVerification(window.currentDetailUserId, false)" style="display:none; align-items:center; gap:6px; font-weight:700;">
+            <button type="button" class="btn btn-warning btn-sm" id="btnModalRevoke"
+              onclick="toggleUserVerification(window.currentDetailUserId, false)"
+              style="display:none; align-items:center; gap:6px; font-weight:700;">
               <span>✕</span> Doğrulamayı Kaldır
             </button>
-            <button type="button" class="btn btn-outline btn-sm" id="btnModalToggleRole" onclick="toggleUserRole(window.currentDetailUserId)" style="font-weight:700;">
+            <button type="button" class="btn btn-outline btn-sm" id="btnModalToggleRole"
+              onclick="toggleUserRole(window.currentDetailUserId)" style="font-weight:700;">
               👑 Yönetici Yap
             </button>
           </div>
@@ -5936,37 +7612,58 @@
 
         <!-- Düzenlenebilir Vatandaş Bilgileri Formu -->
         <div style="margin-bottom:18px;">
-          <div style="font-size:12px; font-weight:800; color:var(--navy); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+          <div
+            style="font-size:12px; font-weight:800; color:var(--navy); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
             ✏️ Vatandaş Profil Bilgilerini Düzenle
-            <span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Belediye kayıtlarıyla senkronize etmek için bilgileri güncelleyebilirsiniz)</span>
+            <span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Belediye kayıtlarıyla senkronize
+              etmek için bilgileri güncelleyebilirsiniz)</span>
           </div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
             <div class="form-group" style="margin-bottom:0;">
-              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Ad Soyad</label>
-              <input type="text" id="modalEditFullName" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="Ad Soyad">
+              <label
+                style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Ad
+                Soyad</label>
+              <input type="text" id="modalEditFullName"
+                style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;"
+                placeholder="Ad Soyad">
             </div>
             <div class="form-group" style="margin-bottom:0;">
-              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">T.C. Kimlik No</label>
-              <input type="text" id="modalEditTcNo" maxlength="11" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:monospace;" placeholder="11 Haneli T.C. Kimlik No">
+              <label
+                style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">T.C.
+                Kimlik No</label>
+              <input type="text" id="modalEditTcNo" maxlength="11"
+                style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:monospace;"
+                placeholder="11 Haneli T.C. Kimlik No">
             </div>
           </div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
             <div class="form-group" style="margin-bottom:0;">
-              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">E-Posta Adresi</label>
-              <input type="email" id="modalEditEmail" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="ornek@email.com">
+              <label
+                style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">E-Posta
+                Adresi</label>
+              <input type="email" id="modalEditEmail"
+                style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;"
+                placeholder="ornek@email.com">
             </div>
             <div class="form-group" style="margin-bottom:0;">
-              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Telefon Numarası</label>
-              <input type="tel" id="modalEditPhone" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="05XXXXXXXXX">
+              <label
+                style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Telefon
+                Numarası</label>
+              <input type="tel" id="modalEditPhone"
+                style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;"
+                placeholder="05XXXXXXXXX">
             </div>
           </div>
 
           <div style="display:grid; grid-template-columns:1fr 2fr; gap:12px;">
             <div class="form-group" style="margin-bottom:0;">
-              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">İkamet Mahallesi</label>
-              <select id="modalEditNeighborhood" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+              <label
+                style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">İkamet
+                Mahallesi</label>
+              <select id="modalEditNeighborhood"
+                style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
                 <option value="">Seçiniz / Belirtilmedi</option>
                 <option value="Mustafapaşa">Mustafapaşa</option>
                 <option value="Osman Yılmaz">Osman Yılmaz</option>
@@ -5993,19 +7690,26 @@
               </select>
             </div>
             <div class="form-group" style="margin-bottom:0;">
-              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Açık İkamet Adresi</label>
-              <input type="text" id="modalEditAddress" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="Mahalle, cadde, sokak, bina, daire no...">
+              <label
+                style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Açık
+                İkamet Adresi</label>
+              <input type="text" id="modalEditAddress"
+                style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;"
+                placeholder="Mahalle, cadde, sokak, bina, daire no...">
             </div>
           </div>
         </div>
 
         <!-- Mobil Uygulama & Sistem Bilgileri (Salt Okunur) -->
         <div style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:12px 16px;">
-          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:8px;">📱 Mobil Uygulama Tercihleri & Meta Veriler</div>
+          <div
+            style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:8px;">
+            📱 Mobil Uygulama Tercihleri & Meta Veriler</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px;">
             <div>
               <span style="color:var(--text-muted);">Firebase UID:</span>
-              <code id="modalUserUid" style="background:#E2E8F0; padding:2px 6px; border-radius:4px; font-size:11px; font-family:monospace;"></code>
+              <code id="modalUserUid"
+                style="background:#E2E8F0; padding:2px 6px; border-radius:4px; font-size:11px; font-family:monospace;"></code>
             </div>
             <div>
               <span style="color:var(--text-muted);">Kayıt Tarihi:</span>
@@ -6031,10 +7735,86 @@
         <div id="modalSaveStatus" style="font-size:12px; font-weight:600;"></div>
         <div style="display:flex; gap:10px;">
           <button type="button" class="btn btn-outline" onclick="closeUserDetailModal()">Kapat</button>
-          <button type="button" class="btn btn-primary" id="btnSaveUserChanges" onclick="saveUserDetailChanges()" style="display:flex; align-items:center; gap:6px; font-weight:700;">
+          <button type="button" class="btn btn-primary" id="btnSaveUserChanges" onclick="saveUserDetailChanges()"
+            style="display:flex; align-items:center; gap:6px; font-weight:700;">
             <span>💾</span> Bilgileri Kaydet
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VATANDAŞ BAŞVURU & TALEPLERİ İNCELEME MODALI ─── -->
+  <div class="modal-overlay" id="reportDetailModal" style="display:none;" onclick="if(event.target===this) closeReportDetailModal()">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="margin:0;">📢 Vatandaş Başvuru Detayı & Yanıtlama</h3>
+          <span id="modalReportTicket" class="badge badge-primary" style="font-family:monospace; font-size:13px;"></span>
+        </div>
+        <button class="modal-close" onclick="closeReportDetailModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Bilgi Özeti -->
+        <div style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:16px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:10px;">
+            <div>
+              <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Vatandaş</div>
+              <div id="modalReportCitizen" style="font-size:14px; font-weight:700; color:var(--text-dark); margin-top:2px;"></div>
+            </div>
+            <div>
+              <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Kategori</div>
+              <div id="modalReportCategory" style="font-size:14px; font-weight:700; color:var(--navy-light); margin-top:2px;"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Konum / Adres</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px; flex-wrap:wrap; gap:8px;">
+              <span id="modalReportLocation" style="font-size:13px; color:var(--text-dark);"></span>
+              <a id="modalReportMapBtn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none; text-decoration:none;">📍 Haritada Göster</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Şikayet / Talep Metni -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:4px;">Başvuru Açıklaması</div>
+          <div id="modalReportDesc" style="background:#FFFFFF; border:1px solid var(--border); border-radius:8px; padding:12px; font-size:13.5px; line-height:1.5; color:var(--text-dark); min-height:60px;"></div>
+        </div>
+
+        <!-- Fotoğraf Varsa Göster -->
+        <div id="modalReportImageBox" style="margin-bottom:16px; display:none;"></div>
+
+        <!-- Durum ve Belediye Yanıtı Düzenleme -->
+        <div style="border-top:1px dashed var(--border); padding-top:16px; margin-bottom:16px;">
+          <div style="font-size:12px; font-weight:800; color:var(--navy); text-transform:uppercase; margin-bottom:10px;">
+            ⚙️ Belediye İşlem Durumu & Vatandaşa İletilecek Resmi Yanıt
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-weight:700;">Başvuru Durumu</label>
+            <select id="modalReportStatusSelect" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-weight:600;">
+              <option value="Beklemede">⏳ Beklemede</option>
+              <option value="İnceleniyor">🔍 İnceleniyor</option>
+              <option value="İşleme Alındı">⚙️ İşleme Alındı (Ekipler Sahada)</option>
+              <option value="Çözüldü">✅ Çözüldü (İşlem Tamamlandı)</option>
+              <option value="Reddedildi">❌ Reddedildi (Yetki Alanı Dışı vb.)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label style="font-weight:700;">Vatandaşa Bildirilecek Not / Çözüm Açıklaması</label>
+            <textarea id="modalReportNoteInput" rows="3" placeholder="Örn: Ekiplerimiz olay yerine intikal etmiş olup çukur onarımı tamamlanmıştır..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:13px;"></textarea>
+          </div>
+        </div>
+
+        <!-- İşlem Geçmişi -->
+        <div>
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:6px;">İşlem Geçmişi</div>
+          <div id="modalReportHistory" style="max-height:140px; overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-outline" onclick="closeReportDetailModal()">Kapat</button>
+        <button type="button" class="btn btn-primary" id="btnSaveReportAction" onclick="saveReportAction()">Durumu Güncelle & Kaydet</button>
       </div>
     </div>
   </div>
@@ -6065,8 +7845,10 @@
             senkronize edebilirsiniz.
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="seedAssemblyAreas()">🛡️ Resmi Toplanma Alanlarını Eşitle</button>
-            <button class="btn btn-outline btn-sm" onclick="seedEBelediyeOnly()">🏛️ E-Belediye Şablonunu Eşitle</button>
+            <button class="btn btn-primary btn-sm" onclick="seedAssemblyAreas()">🛡️ Resmi Toplanma Alanlarını
+              Eşitle</button>
+            <button class="btn btn-outline btn-sm" onclick="seedEBelediyeOnly()">🏛️ E-Belediye Şablonunu
+              Eşitle</button>
             <button class="btn btn-outline btn-sm" onclick="seedFoods()">🍲 6 Yöresel Lezzeti Eşitle</button>
             <button class="btn btn-outline btn-sm" onclick="seedPicnic()">🌲 15 Doğa & Piknik Alanını Eşitle</button>
             <button class="btn btn-outline btn-sm" onclick="seedOfficialNews()">📰 28 Resmi Haberi Eşitle</button>
