@@ -2064,7 +2064,20 @@ function renderUsersView() {
       </td>
       <td style="font-size:12px; color:var(--text-muted);">${dateStr}</td>
       <td>
-        <button class="btn btn-outline btn-sm" onclick="openUserDetailModal('${u.id}')">Detay Profil</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="openUserDetailModal('${u.id}')" title="Detaylı Profil & Düzenleme" style="font-weight:700;">
+            🔍 Detay
+          </button>
+          ${!isVerified ? `
+            <button class="btn btn-success btn-sm" onclick="toggleUserVerification('${u.id}', true, event)" title="Hesabı Hemen Onayla ve Doğrula" style="white-space:nowrap; padding:5px 9px; font-size:11.5px; font-weight:700;">
+              ✓ Onayla
+            </button>
+          ` : `
+            <button class="btn btn-outline btn-sm" onclick="toggleUserVerification('${u.id}', false, event)" title="Onayı Kaldır (Beklemeye Al)" style="white-space:nowrap; padding:5px 9px; font-size:11.5px; color:var(--text-muted);">
+              ✕ Kaldır
+            </button>
+          `}
+        </div>
       </td>
     `;
     container.appendChild(tr);
@@ -2072,47 +2085,280 @@ function renderUsersView() {
 }
 window.renderUsersView = renderUsersView;
 
+window.currentDetailUserId = null;
+
 window.openUserDetailModal = (userId) => {
-  const u = (window.usersListCache || []).find(x => x.id === userId);
+  window.currentDetailUserId = userId;
+  const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
   if (!u) return;
 
-  document.getElementById("modalUserFullName").innerText = u.fullName || 'İsimsiz Sakin';
-  document.getElementById("modalUserUid").innerText = `UID: ${u.id}`;
-  document.getElementById("modalUserTc").innerText = u.tcKimlik || 'T.C. Kimlik Belirtilmemiş';
-  document.getElementById("modalUserEmail").innerText = u.email || '–';
-  document.getElementById("modalUserPhone").innerText = u.phone || '–';
-  document.getElementById("modalUserHood").innerText = u.neighborhood ? `${u.neighborhood} Mahallesi` : 'İkamet Mahallesi Belirtilmemiş';
-  document.getElementById("modalUserAddress").innerText = u.address || 'Detaylı adres girilmemiş';
-  document.getElementById("modalUserTheme").innerText = `Tema: ${u.themeMode || 'Sistem'}`;
-  document.getElementById("modalUserFont").innerText = `Yazı: ${u.fontScale ? u.fontScale + 'x' : '1.0x'}`;
+  const isVer = u.isVerified === true;
+  const statusBadge = document.getElementById("modalUserStatusBadge");
+  const notice = document.getElementById("modalVerificationNotice");
+  const btnApprove = document.getElementById("btnModalApprove");
+  const btnRevoke = document.getElementById("btnModalRevoke");
+  const btnRole = document.getElementById("btnModalToggleRole");
 
-  const prefs = [];
-  if (u.notifyOutages) prefs.push("Kesintiler");
-  if (u.notifyEvents) prefs.push("Etkinlikler");
-  if (u.notifyAnnouncements !== false) prefs.push("Duyurular");
-  document.getElementById("modalUserPrefs").innerText = prefs.length > 0 ? prefs.join(' • ') : 'Bildirimler kapalı';
-
-  const userReports = (window.reportsCache || []).filter(r => r.userId === userId);
-  const rListBox = document.getElementById("modalUserReportsList");
-  if (userReports.length === 0) {
-    rListBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">Bu vatandaş henüz talep iletmemiştir.</div>';
-  } else {
-    rListBox.innerHTML = userReports.map(r => `
-      <div style="background:#F8FAFC; border:1px solid var(--border); border-radius:8px; padding:10px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="font-size:12.5px; color:var(--navy);">${r.ticketNo || 'Talep'} - ${r.category || 'Şikayet'}</strong>
-          <span class="badge ${r.status === 'Çözüldü' ? 'badge-success' : 'badge-warning'}">${r.status || 'Beklemede'}</span>
-        </div>
-        <div style="font-size:12px; color:var(--text-dark); margin-top:4px;">${r.description || ''}</div>
-      </div>
-    `).join('');
+  if (statusBadge) {
+    statusBadge.className = isVer ? "badge badge-success" : "badge badge-warning";
+    statusBadge.innerText = isVer ? "✅ Doğrulanmış Hesap" : "⏳ Doğrulama Bekliyor";
   }
 
-  document.getElementById("userDetailModal").style.display = 'flex';
+  if (notice) {
+    notice.innerText = isVer 
+      ? "Bu vatandaşın belediye / kimlik doğrulaması tamamlanmıştır ve hesabı aktiftir." 
+      : "Bu vatandaşın hesabı henüz doğrulanmamış (onay bekliyor durumunda).";
+  }
+
+  if (btnApprove) btnApprove.style.display = isVer ? "none" : "inline-flex";
+  if (btnRevoke) btnRevoke.style.display = isVer ? "inline-flex" : "none";
+
+  const isAdm = u.role === 'admin';
+  if (btnRole) {
+    btnRole.innerText = isAdm ? "👤 Vatandaş Rolüne Al" : "👑 Yönetici (Admin) Yetkisi Ver";
+    btnRole.className = isAdm ? "btn btn-outline btn-sm" : "btn btn-purple btn-sm";
+  }
+
+  const inputName = document.getElementById("modalEditFullName");
+  const inputTc = document.getElementById("modalEditTcNo");
+  const inputEmail = document.getElementById("modalEditEmail");
+  const inputPhone = document.getElementById("modalEditPhone");
+  const inputHood = document.getElementById("modalEditNeighborhood");
+  const inputAddr = document.getElementById("modalEditAddress");
+
+  if (inputName) inputName.value = u.fullName || '';
+  if (inputTc) inputTc.value = u.tcNo || u.tcKimlik || '';
+  if (inputEmail) inputEmail.value = u.email || '';
+  if (inputPhone) inputPhone.value = u.phoneNumber || u.phone || '';
+  if (inputHood) inputHood.value = u.neighborhood || '';
+  if (inputAddr) inputAddr.value = u.address || '';
+
+  const uidElem = document.getElementById("modalUserUid");
+  if (uidElem) uidElem.innerText = u.id || '-';
+
+  const dateElem = document.getElementById("modalUserCreatedAt");
+  if (dateElem) {
+    let regDate = '–';
+    const rawDate = u.createdAt || u.updatedAt;
+    if (rawDate) {
+      if (rawDate.toMillis) regDate = new Date(rawDate.toMillis()).toLocaleString('tr-TR');
+      else if (rawDate.seconds) regDate = new Date(rawDate.seconds * 1000).toLocaleString('tr-TR');
+      else {
+        try {
+          const d = new Date(rawDate);
+          if (!isNaN(d.getTime())) regDate = d.toLocaleString('tr-TR');
+        } catch (_) { }
+      }
+    }
+    dateElem.innerText = regDate;
+  }
+
+  const themeElem = document.getElementById("modalUserTheme");
+  if (themeElem) themeElem.innerText = u.themeMode === 'dark' ? '🌙 Koyu Tema' : '☀️ Açık Tema';
+  const fontElem = document.getElementById("modalUserFont");
+  if (fontElem) fontElem.innerText = u.largeFont ? '🔍 Büyük Yazı' : 'Standart Boyut';
+
+  const actElem = document.getElementById("modalUserActivity");
+  if (actElem) actElem.innerText = `💡 ${u.totalSuggestions || 0} Öneri • 👍 ${u.totalSupported || 0} Destek`;
+
+  const np = u.notificationPreferences || {};
+  const prefs = [];
+  if (np.sms || u.notifySms) prefs.push('📱 SMS');
+  if (np.push || u.notifyPush) prefs.push('🔔 Push');
+  if (np.emergency || u.notifyEmergency) prefs.push('🚨 Afet/Acil');
+  if (np.outages || u.notifyOutages) prefs.push('⚡ Kesinti');
+  if (np.news || u.notifyNews) prefs.push('📰 Haberler');
+  if (np.sozSende) prefs.push('🗳️ Söz Sende');
+  const prefsElem = document.getElementById("modalUserPrefs");
+  if (prefsElem) prefsElem.innerText = prefs.length ? prefs.join(' • ') : 'Tüm bildirimler açık';
+
+  const statusElem = document.getElementById("modalSaveStatus");
+  if (statusElem) {
+    statusElem.innerText = '';
+    statusElem.style.color = 'var(--text-muted)';
+  }
+
+  const modal = document.getElementById("userDetailModal");
+  if (modal) {
+    modal.classList.add("open");
+    modal.classList.add("active");
+    modal.style.display = "flex";
+  }
 };
 
 window.closeUserDetailModal = () => {
-  document.getElementById("userDetailModal").style.display = 'none';
+  const modal = document.getElementById("userDetailModal");
+  if (modal) {
+    modal.classList.remove("open");
+    modal.classList.remove("active");
+    modal.style.display = "none";
+  }
+  window.currentDetailUserId = null;
+};
+
+window.toggleUserVerification = async (userId, isVerified, event) => {
+  if (event && event.stopPropagation) event.stopPropagation();
+  if (!userId) return;
+
+  const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
+  const name = u ? (u.fullName || 'Vatandaş') : 'Vatandaş';
+  const actionText = isVerified 
+    ? `"${name}" isimli vatandaşın hesabını onaylamak (doğrulamak) istiyor musunuz?` 
+    : `"${name}" isimli vatandaşın onayını kaldırmak (bekleme durumuna almak) istiyor musunuz?`;
+
+  if (!confirm(actionText)) return;
+
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      isVerified: isVerified,
+      updatedAt: serverTimestamp()
+    });
+
+    if (window.usersMap && window.usersMap[userId]) {
+      window.usersMap[userId].isVerified = isVerified;
+    }
+    if (window.usersListCache) {
+      const item = window.usersListCache.find(x => x.id === userId);
+      if (item) item.isVerified = isVerified;
+    }
+
+    renderUsersView();
+
+    if (window.currentDetailUserId === userId) {
+      openUserDetailModal(userId);
+    }
+
+    if (window.showToast) {
+      window.showToast(isVerified ? `✅ ${name} hesabı başarıyla onaylandı!` : `⚠️ ${name} hesabı onayı kaldırıldı.`);
+    }
+  } catch (e) {
+    console.error("toggleUserVerification hatası:", e);
+    alert("Hesap durumu güncellenirken hata oluştu: " + e.message);
+  }
+};
+
+window.toggleUserRole = async (userId) => {
+  if (!userId) return;
+  const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
+  if (!u) return;
+
+  const isCurrentAdmin = u.role === 'admin';
+  const newRole = isCurrentAdmin ? 'citizen' : 'admin';
+  const promptText = isCurrentAdmin 
+    ? `"${u.fullName || 'Vatandaş'}" kullanıcısının Yönetici (Admin) yetkisini kaldırıp normal Vatandaş yapmak istiyor musunuz?` 
+    : `"${u.fullName || 'Vatandaş'}" kullanıcısına Yönetici (Admin) yetkisi vermek istiyor musunuz?`;
+
+  if (!confirm(promptText)) return;
+
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      role: newRole,
+      updatedAt: serverTimestamp()
+    });
+
+    if (window.usersMap && window.usersMap[userId]) {
+      window.usersMap[userId].role = newRole;
+    }
+    if (window.usersListCache) {
+      const item = window.usersListCache.find(x => x.id === userId);
+      if (item) item.role = newRole;
+    }
+
+    renderUsersView();
+    if (window.currentDetailUserId === userId) {
+      openUserDetailModal(userId);
+    }
+
+    if (window.showToast) {
+      window.showToast(`Rol güncellendi: ${newRole === 'admin' ? '👑 Yönetici' : '👤 Vatandaş'}`);
+    }
+  } catch (e) {
+    console.error("toggleUserRole hatası:", e);
+    alert("Rol güncellenirken hata oluştu: " + e.message);
+  }
+};
+
+window.saveUserDetailChanges = async () => {
+  const userId = window.currentDetailUserId;
+  if (!userId) return alert("Düzenlenecek kullanıcı seçili değil.");
+
+  const inputName = document.getElementById("modalEditFullName");
+  const inputTc = document.getElementById("modalEditTcNo");
+  const inputEmail = document.getElementById("modalEditEmail");
+  const inputPhone = document.getElementById("modalEditPhone");
+  const inputHood = document.getElementById("modalEditNeighborhood");
+  const inputAddr = document.getElementById("modalEditAddress");
+  const btnSave = document.getElementById("btnSaveUserChanges");
+  const statusElem = document.getElementById("modalSaveStatus");
+
+  const fullName = (inputName?.value || '').trim();
+  const tcNo = (inputTc?.value || '').trim();
+  const email = (inputEmail?.value || '').trim();
+  const phoneNumber = (inputPhone?.value || '').trim();
+  const neighborhood = (inputHood?.value || '').trim();
+  const address = (inputAddr?.value || '').trim();
+
+  if (tcNo && tcNo.length !== 11) {
+    alert("T.C. Kimlik Numarası 11 haneli olmalıdır.");
+    if (inputTc) inputTc.focus();
+    return;
+  }
+
+  if (btnSave) {
+    btnSave.disabled = true;
+    btnSave.innerText = "⏳ Kaydediliyor...";
+  }
+  if (statusElem) {
+    statusElem.innerText = "Veritabanına kaydediliyor...";
+    statusElem.style.color = "var(--navy-light)";
+  }
+
+  try {
+    const userRef = doc(db, "users", userId);
+    const updateData = {
+      fullName,
+      tcNo,
+      email,
+      phoneNumber,
+      neighborhood,
+      address,
+      updatedAt: serverTimestamp()
+    };
+
+    await updateDoc(userRef, updateData);
+
+    if (window.usersMap && window.usersMap[userId]) {
+      Object.assign(window.usersMap[userId], updateData);
+    }
+    if (window.usersListCache) {
+      const item = window.usersListCache.find(x => x.id === userId);
+      if (item) Object.assign(item, updateData);
+    }
+
+    renderUsersView();
+
+    if (statusElem) {
+      statusElem.innerText = "✅ Değişiklikler başarıyla kaydedildi.";
+      statusElem.style.color = "var(--success)";
+    }
+    if (window.showToast) {
+      window.showToast("💾 Vatandaş bilgileri başarıyla kaydedildi.");
+    }
+  } catch (e) {
+    console.error("saveUserDetailChanges hatası:", e);
+    alert("Bilgiler kaydedilirken hata oluştu: " + e.message);
+    if (statusElem) {
+      statusElem.innerText = "❌ Hata: " + e.message;
+      statusElem.style.color = "var(--danger)";
+    }
+  } finally {
+    if (btnSave) {
+      btnSave.disabled = false;
+      btnSave.innerHTML = `<span>💾</span> Bilgileri Kaydet`;
+    }
+  }
 };
 
 window.exportUsersCsv = () => {

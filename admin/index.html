@@ -357,6 +357,28 @@
       color: var(--navy-light);
     }
 
+    .btn-purple {
+      background: var(--purple-soft);
+      color: var(--purple);
+      border: 1px solid rgba(124, 58, 237, 0.25);
+    }
+
+    .btn-purple:hover {
+      background: var(--purple);
+      color: white;
+    }
+
+    .btn-warning {
+      background: var(--warning-soft);
+      color: #B45309;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .btn-warning:hover {
+      background: #F59E0B;
+      color: white;
+    }
+
     .btn-sm {
       padding: 6px 12px;
       font-size: 12px;
@@ -747,7 +769,8 @@
       animation: fadeIn 0.2s ease-out;
     }
 
-    .modal-overlay.open {
+    .modal-overlay.open,
+    .modal-overlay.active {
       display: flex;
     }
 
@@ -3820,7 +3843,20 @@
           <td>${verBadge}</td>
           <td><span style="font-size:12px; color:var(--text-muted);">${regDate}</span></td>
           <td>
-            <button class="btn btn-outline btn-sm" onclick="openUserDetailModal('${u.id}')">🔍 Detay</button>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="openUserDetailModal('${u.id}')" title="Detaylı Profil & Düzenleme" style="font-weight:700;">
+                🔍 Detay
+              </button>
+              ${!isVer ? `
+                <button class="btn btn-success btn-sm" onclick="toggleUserVerification('${u.id}', true, event)" title="Hesabı Hemen Onayla ve Doğrula" style="white-space:nowrap; padding:5px 9px; font-size:11.5px; font-weight:700;">
+                  ✓ Onayla
+                </button>
+              ` : `
+                <button class="btn btn-outline btn-sm" onclick="toggleUserVerification('${u.id}', false, event)" title="Onayı Kaldır (Beklemeye Al)" style="white-space:nowrap; padding:5px 9px; font-size:11.5px; color:var(--text-muted);">
+                  ✕ Kaldır
+                </button>
+              `}
+            </div>
           </td>
         `;
         container.appendChild(tr);
@@ -3828,37 +3864,287 @@
     }
     window.renderUsersView = renderUsersView;
 
-    // Vatandaş Detay Modalı
+    // ───────────────── VATANDAŞ HESAP YÖNETİMİ & DETAY MODALI ─────────────────
+    window.currentDetailUserId = null;
+
+    // 1. Vatandaş Detay Modalı Açma
     window.openUserDetailModal = (userId) => {
+      window.currentDetailUserId = userId;
       const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
       if (!u) return alert("Kullanıcı bilgisi bulunamadı.");
 
-      document.getElementById("modalUserFullName").innerText = u.fullName || 'İsimsiz Vatandaş';
-      document.getElementById("modalUserUid").innerText = u.id;
-      document.getElementById("modalUserTc").innerText = u.tcNo || 'Belirtilmedi';
-      document.getElementById("modalUserEmail").innerText = u.email || 'Belirtilmedi';
-      document.getElementById("modalUserPhone").innerText = u.phoneNumber || 'Belirtilmedi';
-      document.getElementById("modalUserHood").innerText = u.neighborhood ? (u.neighborhood + ' Mahallesi') : 'Belirtilmedi';
-      document.getElementById("modalUserAddress").innerText = u.address || 'Açık adres girilmemiş';
-      document.getElementById("modalUserTheme").innerText = u.themeMode === 'dark' ? '🌙 Koyu Tema' : '☀️ Açık Tema';
-      document.getElementById("modalUserFont").innerText = u.largeFont ? '🔍 Büyük Yazı Tipi' : 'Standart Boyut';
+      // Durum ve Doğrulama Butonları
+      const statusBadge = document.getElementById("modalUserStatusBadge");
+      const notice = document.getElementById("modalVerificationNotice");
+      const btnApprove = document.getElementById("btnModalApprove");
+      const btnRevoke = document.getElementById("btnModalRevoke");
+      const btnRole = document.getElementById("btnModalToggleRole");
+
+      const isVer = u.isVerified === true;
+      if (statusBadge) {
+        statusBadge.className = isVer ? "badge badge-success" : "badge badge-warning";
+        statusBadge.innerText = isVer ? "✅ Doğrulanmış Hesap" : "⏳ Doğrulama Bekliyor";
+      }
+
+      if (notice) {
+        notice.innerText = isVer 
+          ? "Bu vatandaşın belediye / kimlik doğrulaması tamamlanmıştır ve hesabı aktiftir." 
+          : "Bu vatandaşın hesabı henüz doğrulanmamış (onay bekliyor durumunda).";
+      }
+
+      if (btnApprove) btnApprove.style.display = isVer ? "none" : "inline-flex";
+      if (btnRevoke) btnRevoke.style.display = isVer ? "inline-flex" : "none";
+
+      const isAdm = u.role === 'admin';
+      if (btnRole) {
+        btnRole.innerText = isAdm ? "👤 Vatandaş Rolüne Al" : "👑 Yönetici (Admin) Yetkisi Ver";
+        btnRole.className = isAdm ? "btn btn-outline btn-sm" : "btn btn-purple btn-sm";
+      }
+
+      // Düzenlenebilir form alanları
+      const inputName = document.getElementById("modalEditFullName");
+      const inputTc = document.getElementById("modalEditTcNo");
+      const inputEmail = document.getElementById("modalEditEmail");
+      const inputPhone = document.getElementById("modalEditPhone");
+      const inputHood = document.getElementById("modalEditNeighborhood");
+      const inputAddr = document.getElementById("modalEditAddress");
+
+      if (inputName) inputName.value = u.fullName || '';
+      if (inputTc) inputTc.value = u.tcNo || u.tcKimlik || '';
+      if (inputEmail) inputEmail.value = u.email || '';
+      if (inputPhone) inputPhone.value = u.phoneNumber || u.phone || '';
+      if (inputHood) inputHood.value = u.neighborhood || '';
+      if (inputAddr) inputAddr.value = u.address || '';
+
+      // Salt Okunur Bilgiler
+      const uidElem = document.getElementById("modalUserUid");
+      if (uidElem) uidElem.innerText = u.id || '-';
+
+      const dateElem = document.getElementById("modalUserCreatedAt");
+      if (dateElem) {
+        let regDate = '–';
+        const rawDate = u.createdAt || u.updatedAt;
+        if (rawDate) {
+          if (rawDate.toMillis) regDate = new Date(rawDate.toMillis()).toLocaleString('tr-TR');
+          else if (rawDate.seconds) regDate = new Date(rawDate.seconds * 1000).toLocaleString('tr-TR');
+          else {
+            try {
+              const d = new Date(rawDate);
+              if (!isNaN(d.getTime())) regDate = d.toLocaleString('tr-TR');
+            } catch (_) { }
+          }
+        }
+        dateElem.innerText = regDate;
+      }
+
+      const themeElem = document.getElementById("modalUserTheme");
+      if (themeElem) themeElem.innerText = u.themeMode === 'dark' ? '🌙 Koyu Tema' : '☀️ Açık Tema';
+      const fontElem = document.getElementById("modalUserFont");
+      if (fontElem) fontElem.innerText = u.largeFont ? '🔍 Büyük Yazı' : 'Standart Boyut';
+
+      const actElem = document.getElementById("modalUserActivity");
+      if (actElem) actElem.innerText = `💡 ${u.totalSuggestions || 0} Öneri • 👍 ${u.totalSupported || 0} Destek`;
 
       // Bildirim izinleri
       const np = u.notificationPreferences || {};
       const prefs = [];
       if (np.sms) prefs.push('📱 SMS');
-      if (np.push) prefs.push('🔔 Push Bildirim');
-      if (np.emergency) prefs.push('🚨 Acil Durum / Afet');
-      if (np.outages) prefs.push('⚡ Kesinti Uyarıları');
-      if (np.news) prefs.push('📰 Belediye Haberleri');
+      if (np.push) prefs.push('🔔 Push');
+      if (np.emergency) prefs.push('🚨 Afet/Acil');
+      if (np.outages) prefs.push('⚡ Kesinti');
+      if (np.news) prefs.push('📰 Haberler');
       if (np.sozSende) prefs.push('🗳️ Söz Sende');
-      document.getElementById("modalUserPrefs").innerText = prefs.length ? prefs.join(' • ') : 'Tüm bildirimler açık';
+      const prefsElem = document.getElementById("modalUserPrefs");
+      if (prefsElem) prefsElem.innerText = prefs.length ? prefs.join(' • ') : 'Tüm bildirimler açık';
 
-      document.getElementById("userDetailModal").classList.add("active");
+      const statusElem = document.getElementById("modalSaveStatus");
+      if (statusElem) {
+        statusElem.innerText = '';
+        statusElem.style.color = 'var(--text-muted)';
+      }
+
+      const modal = document.getElementById("userDetailModal");
+      if (modal) {
+        modal.classList.add("open");
+        modal.classList.add("active");
+        modal.style.display = "flex";
+      }
     };
 
+    // 2. Modalı Kapatma
     window.closeUserDetailModal = () => {
-      document.getElementById("userDetailModal").classList.remove("active");
+      const modal = document.getElementById("userDetailModal");
+      if (modal) {
+        modal.classList.remove("open");
+        modal.classList.remove("active");
+        modal.style.display = "none";
+      }
+      window.currentDetailUserId = null;
+    };
+
+    // 3. Hesap Doğrulama / Onaylama (isVerified: true / false)
+    window.toggleUserVerification = async (userId, isVerified, event) => {
+      if (event && event.stopPropagation) event.stopPropagation();
+      if (!userId) return;
+
+      const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
+      const name = u ? (u.fullName || 'Vatandaş') : 'Vatandaş';
+      const actionText = isVerified 
+        ? `"${name}" isimli vatandaşın hesabını onaylamak (doğrulamak) istiyor musunuz?` 
+        : `"${name}" isimli vatandaşın onayını kaldırmak (bekleme durumuna almak) istiyor musunuz?`;
+
+      if (!confirm(actionText)) return;
+
+      try {
+        const userRef = doc(db, "users", userId);
+        await updateDoc(userRef, {
+          isVerified: isVerified,
+          updatedAt: serverTimestamp()
+        });
+
+        // Yerel önbelleği güncelle
+        if (window.usersMap && window.usersMap[userId]) {
+          window.usersMap[userId].isVerified = isVerified;
+        }
+        if (window.usersListCache) {
+          const item = window.usersListCache.find(x => x.id === userId);
+          if (item) item.isVerified = isVerified;
+        }
+
+        renderUsersView();
+
+        // Eğer detay modalı açık ve bu kullanıcı seçiliyse modalı da güncelle
+        if (window.currentDetailUserId === userId) {
+          openUserDetailModal(userId);
+        }
+
+        showToast(isVerified ? `✅ ${name} hesabı başarıyla onaylandı (Doğrulandı)!` : `⚠️ ${name} hesabı onayı kaldırıldı.`);
+      } catch (e) {
+        console.error("toggleUserVerification hatası:", e);
+        alert("Hesap durumu güncellenirken hata oluştu: " + e.message);
+      }
+    };
+
+    // 4. Yönetici / Vatandaş Rolünü Değiştirme
+    window.toggleUserRole = async (userId) => {
+      if (!userId) return;
+      const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
+      if (!u) return;
+
+      const isCurrentAdmin = u.role === 'admin';
+      const newRole = isCurrentAdmin ? 'citizen' : 'admin';
+      const promptText = isCurrentAdmin 
+        ? `"${u.fullName || 'Vatandaş'}" kullanıcısının Yönetici (Admin) yetkisini kaldırıp normal Vatandaş yapmak istiyor musunuz?` 
+        : `"${u.fullName || 'Vatandaş'}" kullanıcısına Yönetici (Admin) yetkisi vermek istiyor musunuz?`;
+
+      if (!confirm(promptText)) return;
+
+      try {
+        const userRef = doc(db, "users", userId);
+        await updateDoc(userRef, {
+          role: newRole,
+          updatedAt: serverTimestamp()
+        });
+
+        if (window.usersMap && window.usersMap[userId]) {
+          window.usersMap[userId].role = newRole;
+        }
+        if (window.usersListCache) {
+          const item = window.usersListCache.find(x => x.id === userId);
+          if (item) item.role = newRole;
+        }
+
+        renderUsersView();
+        if (window.currentDetailUserId === userId) {
+          openUserDetailModal(userId);
+        }
+
+        showToast(`Rol güncellendi: ${newRole === 'admin' ? '👑 Yönetici' : '👤 Vatandaş'}`);
+      } catch (e) {
+        console.error("toggleUserRole hatası:", e);
+        alert("Rol güncellenirken hata oluştu: " + e.message);
+      }
+    };
+
+    // 5. Vatandaş Bilgilerini Kaydetme
+    window.saveUserDetailChanges = async () => {
+      const userId = window.currentDetailUserId;
+      if (!userId) return alert("Düzenlenecek kullanıcı seçili değil.");
+
+      const inputName = document.getElementById("modalEditFullName");
+      const inputTc = document.getElementById("modalEditTcNo");
+      const inputEmail = document.getElementById("modalEditEmail");
+      const inputPhone = document.getElementById("modalEditPhone");
+      const inputHood = document.getElementById("modalEditNeighborhood");
+      const inputAddr = document.getElementById("modalEditAddress");
+      const btnSave = document.getElementById("btnSaveUserChanges");
+      const statusElem = document.getElementById("modalSaveStatus");
+
+      const fullName = (inputName?.value || '').trim();
+      const tcNo = (inputTc?.value || '').trim();
+      const email = (inputEmail?.value || '').trim();
+      const phoneNumber = (inputPhone?.value || '').trim();
+      const neighborhood = (inputHood?.value || '').trim();
+      const address = (inputAddr?.value || '').trim();
+
+      if (tcNo && tcNo.length !== 11) {
+        alert("T.C. Kimlik Numarası 11 haneli olmalıdır.");
+        if (inputTc) inputTc.focus();
+        return;
+      }
+
+      if (btnSave) {
+        btnSave.disabled = true;
+        btnSave.innerText = "⏳ Kaydediliyor...";
+      }
+      if (statusElem) {
+        statusElem.innerText = "Veritabanına kaydediliyor...";
+        statusElem.style.color = "var(--navy-light)";
+      }
+
+      try {
+        const userRef = doc(db, "users", userId);
+        const updateData = {
+          fullName,
+          tcNo,
+          email,
+          phoneNumber,
+          neighborhood,
+          address,
+          updatedAt: serverTimestamp()
+        };
+
+        await updateDoc(userRef, updateData);
+
+        // Önbellekleri güncelle
+        if (window.usersMap && window.usersMap[userId]) {
+          Object.assign(window.usersMap[userId], updateData);
+        }
+        if (window.usersListCache) {
+          const item = window.usersListCache.find(x => x.id === userId);
+          if (item) Object.assign(item, updateData);
+        }
+
+        renderUsersView();
+
+        if (statusElem) {
+          statusElem.innerText = "✅ Değişiklikler başarıyla kaydedildi.";
+          statusElem.style.color = "var(--success)";
+        }
+        showToast("💾 Vatandaş bilgileri başarıyla kaydedildi.");
+      } catch (e) {
+        console.error("saveUserDetailChanges hatası:", e);
+        alert("Bilgiler kaydedilirken hata oluştu: " + e.message);
+        if (statusElem) {
+          statusElem.innerText = "❌ Hata: " + e.message;
+          statusElem.style.color = "var(--danger)";
+        }
+      } finally {
+        if (btnSave) {
+          btnSave.disabled = false;
+          btnSave.innerHTML = `<span>💾</span> Bilgileri Kaydet`;
+        }
+      }
     };
 
     window.exportUsersCsv = () => {
@@ -5573,6 +5859,14 @@
                 <option value="İstasyon">İstasyon</option>
                 <option value="Tatlıkuyu">Tatlıkuyu</option>
                 <option value="Barış">Barış</option>
+                <option value="Kirazpınar">Kirazpınar</option>
+                <option value="Sultan Orhan">Sultan Orhan</option>
+                <option value="Ulus">Ulus</option>
+                <option value="Yavuz Selim">Yavuz Selim</option>
+                <option value="Cumhuriyet">Cumhuriyet</option>
+                <option value="Beylikbağı">Beylikbağı</option>
+                <option value="Hürriyet">Hürriyet</option>
+                <option value="Mimar Sinan">Mimar Sinan</option>
               </select>
             </div>
             <div class="form-group" style="margin-bottom:0;">
@@ -5607,70 +5901,140 @@
     </main>
   </div>
 
-  <!-- ─── VATANDAŞ DETAY MODALI ─── -->
-  <div class="modal-overlay" id="userDetailModal">
+  <!-- ─── VATANDAŞ DETAY & HESAP YÖNETİMİ MODALI ─── -->
+  <div class="modal-overlay" id="userDetailModal" onclick="if(event.target===this) closeUserDetailModal()">
     <div class="modal-card modal-lg">
       <div class="modal-header">
-        <h3>👤 Vatandaş Profil Kartı & Mobil Kayıt Detayı</h3>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="margin:0;">👤 Vatandaş Hesap Yönetimi & Profil Detayı</h3>
+          <span id="modalUserStatusBadge" class="badge badge-warning">⏳ Onay Bekliyor</span>
+        </div>
         <button class="modal-close" onclick="closeUserDetailModal()">×</button>
       </div>
       <div class="modal-body">
-        <!-- Temel Bilgiler -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        
+        <!-- Hesap Doğrulama & Yetki Paneli (Hızlı İşlemler) -->
+        <div style="background:linear-gradient(135deg, #F8FAFC 0%, #EEF4FF 100%); border:1px solid #D0E0FD; border-radius:12px; padding:14px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
           <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Ad Soyad
+            <div style="font-size:11px; text-transform:uppercase; font-weight:800; color:var(--navy-light); letter-spacing:0.5px;">🛡️ Hesap Doğrulama & Yetki İşlemi</div>
+            <div id="modalVerificationNotice" style="font-size:13px; color:var(--text-dark); font-weight:600; margin-top:2px;">
+              Bu vatandaşın hesabı henüz doğrulanmamış (onay bekliyor).
             </div>
-            <div id="modalUserFullName"
-              style="font-weight:800; font-size:16px; color:var(--navy-deep); margin-top:2px;"></div>
-            <div id="modalUserUid"
-              style="font-size:11px; color:var(--text-muted); font-family:monospace; margin-top:2px;"></div>
           </div>
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">T.C. Kimlik
-              No</div>
-            <div id="modalUserTc"
-              style="font-weight:700; font-size:15px; font-family:monospace; color:var(--text-dark); margin-top:2px;">
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn btn-success btn-sm" id="btnModalApprove" onclick="toggleUserVerification(window.currentDetailUserId, true)" style="display:flex; align-items:center; gap:6px; font-weight:700;">
+              <span>✓</span> Hesabı Onayla (Doğrula)
+            </button>
+            <button type="button" class="btn btn-warning btn-sm" id="btnModalRevoke" onclick="toggleUserVerification(window.currentDetailUserId, false)" style="display:none; align-items:center; gap:6px; font-weight:700;">
+              <span>✕</span> Doğrulamayı Kaldır
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="btnModalToggleRole" onclick="toggleUserRole(window.currentDetailUserId)" style="font-weight:700;">
+              👑 Yönetici Yap
+            </button>
+          </div>
+        </div>
+
+        <!-- Düzenlenebilir Vatandaş Bilgileri Formu -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:12px; font-weight:800; color:var(--navy); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            ✏️ Vatandaş Profil Bilgilerini Düzenle
+            <span style="font-size:11px; font-weight:normal; color:var(--text-muted);">(Belediye kayıtlarıyla senkronize etmek için bilgileri güncelleyebilirsiniz)</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Ad Soyad</label>
+              <input type="text" id="modalEditFullName" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="Ad Soyad">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">T.C. Kimlik No</label>
+              <input type="text" id="modalEditTcNo" maxlength="11" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:monospace;" placeholder="11 Haneli T.C. Kimlik No">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">E-Posta Adresi</label>
+              <input type="email" id="modalEditEmail" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="ornek@email.com">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Telefon Numarası</label>
+              <input type="tel" id="modalEditPhone" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="05XXXXXXXXX">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">İkamet Mahallesi</label>
+              <select id="modalEditNeighborhood" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+                <option value="">Seçiniz / Belirtilmedi</option>
+                <option value="Mustafapaşa">Mustafapaşa</option>
+                <option value="Osman Yılmaz">Osman Yılmaz</option>
+                <option value="Arapçeşme">Arapçeşme</option>
+                <option value="Hacıhalil">Hacıhalil</option>
+                <option value="Mevlana">Mevlana</option>
+                <option value="Gaziler">Gaziler</option>
+                <option value="Eskihisar">Eskihisar</option>
+                <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+                <option value="Güzeller">Güzeller</option>
+                <option value="Yenikent">Yenikent</option>
+                <option value="İnönü">İnönü</option>
+                <option value="İstasyon">İstasyon</option>
+                <option value="Tatlıkuyu">Tatlıkuyu</option>
+                <option value="Barış">Barış</option>
+                <option value="Kirazpınar">Kirazpınar</option>
+                <option value="Sultan Orhan">Sultan Orhan</option>
+                <option value="Ulus">Ulus</option>
+                <option value="Yavuz Selim">Yavuz Selim</option>
+                <option value="Cumhuriyet">Cumhuriyet</option>
+                <option value="Beylikbağı">Beylikbağı</option>
+                <option value="Hürriyet">Hürriyet</option>
+                <option value="Mimar Sinan">Mimar Sinan</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label style="font-size:11.5px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Açık İkamet Adresi</label>
+              <input type="text" id="modalEditAddress" style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;" placeholder="Mahalle, cadde, sokak, bina, daire no...">
             </div>
           </div>
         </div>
 
-        <!-- İletişim & Adres -->
-        <div
-          style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; background:#F8FAFC; padding:14px; border-radius:10px; border:1px solid var(--border);">
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">E-posta &
-              Telefon</div>
-            <div id="modalUserEmail" style="font-size:13.5px; font-weight:600; margin-top:2px;"></div>
-            <div id="modalUserPhone" style="font-size:13px; color:var(--text-dark); margin-top:2px;"></div>
-          </div>
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">İkamet
-              Mahallesi & Adres</div>
-            <div id="modalUserHood" style="font-size:13.5px; font-weight:700; color:var(--navy); margin-top:2px;"></div>
-            <div id="modalUserAddress" style="font-size:12.5px; color:var(--text-muted); margin-top:2px;"></div>
-          </div>
-        </div>
-
-        <!-- Tercihler & Ayarlar -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Görünüm &
-              Erişilebilirlik</div>
-            <div style="font-size:13px; font-weight:600; margin-top:2px;">
+        <!-- Mobil Uygulama & Sistem Bilgileri (Salt Okunur) -->
+        <div style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:12px 16px;">
+          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:8px;">📱 Mobil Uygulama Tercihleri & Meta Veriler</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px;">
+            <div>
+              <span style="color:var(--text-muted);">Firebase UID:</span>
+              <code id="modalUserUid" style="background:#E2E8F0; padding:2px 6px; border-radius:4px; font-size:11px; font-family:monospace;"></code>
+            </div>
+            <div>
+              <span style="color:var(--text-muted);">Kayıt Tarihi:</span>
+              <strong id="modalUserCreatedAt" style="color:var(--navy);">–</strong>
+            </div>
+            <div>
+              <span style="color:var(--text-muted);">Görünüm:</span>
               <span id="modalUserTheme"></span> • <span id="modalUserFont"></span>
             </div>
-          </div>
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Bildirim
-              Tercihleri</div>
-            <div id="modalUserPrefs" style="font-size:12.5px; color:var(--text-dark); font-weight:600; margin-top:2px;">
+            <div>
+              <span style="color:var(--text-muted);">Aktivite:</span>
+              <span id="modalUserActivity" style="font-weight:700; color:var(--purple);"></span>
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <span style="color:var(--text-muted);">Bildirim İzinleri:</span>
+              <span id="modalUserPrefs" style="font-weight:600; color:var(--navy-deep);"></span>
             </div>
           </div>
         </div>
 
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeUserDetailModal()">Kapat</button>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <div id="modalSaveStatus" style="font-size:12px; font-weight:600;"></div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeUserDetailModal()">Kapat</button>
+          <button type="button" class="btn btn-primary" id="btnSaveUserChanges" onclick="saveUserDetailChanges()" style="display:flex; align-items:center; gap:6px; font-weight:700;">
+            <span>💾</span> Bilgileri Kaydet
+          </button>
+        </div>
       </div>
     </div>
   </div>
