@@ -26,7 +26,9 @@ final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     debugPrint('Firebase.initializeApp failed: $e');
   }
@@ -55,7 +57,9 @@ class _MyAppState extends ConsumerState<MyApp> {
             backgroundColor: const Color(0xFF0A2A66),
             behavior: SnackBarBehavior.floating,
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             content: Row(
               children: [
@@ -65,7 +69,11 @@ class _MyAppState extends ConsumerState<MyApp> {
                     color: Colors.white.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(notif.icon, color: const Color(0xFFFFB300), size: 22),
+                  child: Icon(
+                    notif.icon,
+                    color: const Color(0xFFFFB300),
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -103,7 +111,9 @@ class _MyAppState extends ConsumerState<MyApp> {
               textColor: const Color(0xFFFFB300),
               onPressed: () {
                 navigatorKey.currentState?.push(
-                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
                 );
               },
             ),
