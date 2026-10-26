@@ -568,6 +568,44 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
   ];
 }
 
+bool _isPlacesSeeding = false;
+void _ensurePlacesSeeded() {
+  if (_isPlacesSeeding) return;
+  _isPlacesSeeding = true;
+  Future.microtask(() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_places')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        final list = _getFallbackPlaces('tr');
+        final batch = FirebaseFirestore.instance.batch();
+        for (final p in list) {
+          final docRef = FirebaseFirestore.instance
+              .collection('guide_places')
+              .doc(p.id);
+          batch.set(docRef, {
+            'name': p.name,
+            'summary': p.summary,
+            'category': p.category,
+            'detailUrl': p.detailUrl,
+            'image': p.image,
+            'distanceKm': p.distanceKm,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        await batch.commit();
+        debugPrint('Places: 18 tarihi ve gezilecek yer Firebase guide_places koleksiyonuna başarıyla eşitlendi.');
+      }
+    } catch (e) {
+      debugPrint('Places seed hatası: $e');
+      _isPlacesSeeding = false;
+    }
+  });
+}
+
 List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
   final isEn = lang == 'en';
   final isAr = lang == 'ar';
@@ -822,6 +860,43 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
     },
   ];
 }
+
+bool _isCemeteriesSeeding = false;
+void _ensureCemeteriesSeeded() {
+  if (_isCemeteriesSeeding) return;
+  _isCemeteriesSeeding = true;
+  Future.microtask(() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_institutions')
+          .where('category', isEqualTo: 'mezarliklar')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        final list = _getFallbackCemeteries('tr');
+        final batch = FirebaseFirestore.instance.batch();
+        for (int i = 0; i < list.length; i++) {
+          final item = list[i];
+          final docId = 'mezarlik_${(i + 1).toString().padLeft(2, '0')}';
+          final docRef = FirebaseFirestore.instance
+              .collection('guide_institutions')
+              .doc(docId);
+          batch.set(docRef, {
+            ...item,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        await batch.commit();
+        debugPrint('Cemeteries: 13 mezarlık Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.');
+      }
+    } catch (e) {
+      debugPrint('Cemeteries seed hatası: $e');
+      _isCemeteriesSeeding = false;
+    }
+  });
+}
+
 List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
   final isEn = lang == 'en';
   final isAr = lang == 'ar';
@@ -964,6 +1039,42 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'category': 'kresler',
     },
   ];
+}
+
+bool _isNurseriesSeeding = false;
+void _ensureNurseriesSeeded() {
+  if (_isNurseriesSeeding) return;
+  _isNurseriesSeeding = true;
+  Future.microtask(() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_institutions')
+          .where('category', isEqualTo: 'kresler')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        final list = _getFallbackNurseries('tr');
+        final batch = FirebaseFirestore.instance.batch();
+        for (int i = 0; i < list.length; i++) {
+          final item = list[i];
+          final docId = 'kres_${(i + 1).toString().padLeft(2, '0')}';
+          final docRef = FirebaseFirestore.instance
+              .collection('guide_institutions')
+              .doc(docId);
+          batch.set(docRef, {
+            ...item,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        await batch.commit();
+        debugPrint('Nurseries: 8 kreş ve çocuk atölyesi Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.');
+      }
+    } catch (e) {
+      debugPrint('Nurseries seed hatası: $e');
+      _isNurseriesSeeding = false;
+    }
+  });
 }
 
 // ───────────────────────── Ana Ekran ─────────────────────────
@@ -1607,6 +1718,11 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                 rawItems = category.id == 'kresler'
                     ? _getFallbackNurseries(lang)
                     : _getFallbackCemeteries(lang);
+                if (category.id == 'mezarliklar') {
+                  _ensureCemeteriesSeeded();
+                } else if (category.id == 'kresler') {
+                  _ensureNurseriesSeeded();
+                }
               } else {
                 rawItems = docs.map((d) => d.data()).toList();
               } 
@@ -2291,6 +2407,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
                     .toList();
               } else {
                 basePlaces = fallbackPlaces;
+                _ensurePlacesSeeded();
               }
 
               final filtered = _applyFilters(basePlaces, filterAll, favLabel, favIds);

@@ -1899,6 +1899,349 @@
     window.guideFilter = 'all';
     window.guideEditId = null;
 
+    // Resmi Gebze Mezarlıkları ve Defin Bilgileri (Yerel Hazır Liste)
+    const DEFAULT_CEMETERIES = [
+      {
+        id: "mezarlik_01",
+        name: "Gebze Merkez Mezarlığı ve Şehitliği",
+        description: "Gebze'nin ana asri mezarlığıdır; bünyesinde Gebze Şehitliği ve Mezarlıklar Şube Müdürlüğü yer alır.",
+        address: "Gaziler Mah. Fatih Sultan Mehmet Cad. No:120, Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Gebze Merkez Mezarlığı ve Şehitliği",
+        lat: 40.809088,
+        lng: 29.435012,
+        image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_02",
+        name: "Gebze Belediyesi Mezarlıklar Müdürlüğü",
+        description: "7/24 Alo Cenaze 188 hattı, ücretsiz cenaze nakil, defin işlemleri, mezar yeri tahsisi ve taziye çadırı birimi.",
+        address: "Gaziler Mah. Işıkgöl Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Gebze Belediyesi Mezarlıklar Müdürlüğü",
+        lat: 40.809200,
+        lng: 29.435200,
+        image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_03",
+        name: "Pelitli Mezarlığı",
+        description: "Gebze'nin kuzey aksında yer alan geniş kapasiteli, modern parsellenmiş ana defin mezarlığı.",
+        address: "Pelitli Mah. Sanayi Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Pelitli Mezarlığı Gebze",
+        lat: 40.865500,
+        lng: 29.449000,
+        image: "https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_04",
+        name: "Adem Yavuz Mezarlığı",
+        description: "Adem Yavuz, Cumhuriyet ve çevre mahalle sakinlerine hizmet veren semt mezarlığı.",
+        address: "Adem Yavuz Mah. Yavuz Sultan Selim Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Adem Yavuz Mezarlığı Gebze",
+        lat: 40.816000,
+        lng: 29.398000,
+        image: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_05",
+        name: "Mimar Sinan Mezarlığı",
+        description: "Mimar Sinan Mahallesi sakinlerine defin ve kabir ziyareti hizmeti sunan semt mezarlığı.",
+        address: "Mimar Sinan Mah. Mimar Sinan Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Mimar Sinan Mezarlığı Gebze",
+        lat: 40.822000,
+        lng: 29.405000,
+        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_06",
+        name: "Balçık Köyü Mezarlığı",
+        description: "Balçık Mahallesi sakinlerinin kullanımında olan, doğal dokusu korunan yerel mezarlık.",
+        address: "Balçık Mah. Balçık Köy İçi Yolu, Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Balçık Köyü Mezarlığı Gebze",
+        lat: 40.887000,
+        lng: 29.412000,
+        image: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_07",
+        name: "Denizli Köyü Mezarlığı",
+        description: "Denizli Mahallesi sınırlarında bulunan tarihi ve doğa hattına yakın kırsal mahalle mezarlığı.",
+        address: "Denizli Mah. Köy İçi Mevkii, Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Denizli Mezarlığı Gebze",
+        lat: 40.892000,
+        lng: 29.508000,
+        image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_08",
+        name: "Mollafenari Mezarlığı",
+        description: "Gebze'nin tarihi köylerinden Mollafenari bölgesinde bulunan yerel mezarlık.",
+        address: "Mollafenari Mah. Eski İstanbul Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Mollafenari Mezarlığı Gebze",
+        lat: 40.881000,
+        lng: 29.539000,
+        image: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_09",
+        name: "Tavşanlı Köyü Mezarlığı",
+        description: "Ballıkayalar Tabiat Parkı güzergahındaki Tavşanlı Mahallesi yerel mezarlığı.",
+        address: "Tavşanlı Mah. Kömürcüoğlu Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Tavşanlı Mezarlığı Gebze",
+        lat: 40.789000,
+        lng: 29.525000,
+        image: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_10",
+        name: "Cumaköy Mezarlığı",
+        description: "Cumaköy Mahallesi ve çevre kırsal yerleşimlerin defin ve kabristan alanı.",
+        address: "Cumaköy Mah. Fatih Sultan Mehmet Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Cumaköy Mezarlığı Gebze",
+        lat: 40.915000,
+        lng: 29.467000,
+        image: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_11",
+        name: "Ovacık Mezarlığı",
+        description: "Ovacık Mahallesi yerel kabristanı ve defin sahası.",
+        address: "Ovacık Mah. Köy İçi Mevkii, Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Ovacık Mezarlığı Gebze",
+        lat: 40.899000,
+        lng: 29.582000,
+        image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_12",
+        name: "Barış Mahallesi Mezarlığı",
+        description: "Barış Mahallesi ve D-100 aksındaki semt sakinleri için hizmet veren mezarlık alanı.",
+        address: "Barış Mah. Koşuyolu Cad. Gebze / Kocaeli",
+        phone: "0262 642 04 30",
+        mapQuery: "Barış Mahallesi Mezarlığı Gebze",
+        lat: 40.795000,
+        lng: 29.418000,
+        image: "https://images.unsplash.com/photo-1596276020587-8044fe049813?auto=format&fit=crop&w=800&q=80",
+        category: "mezarliklar"
+      },
+      {
+        id: "mezarlik_13",
+        name: "e-Devlet Mezar Yeri ve Defin Bilgisi Sorgulama",
+        description: "Gebze Belediyesi e-Devlet hizmeti ile vefat eden yakınlarınızın mezarlık, ada ve parsel bilgilerini online sorgulayabilirsiniz.",
+        address: "Gebze Belediyesi Online Hizmetler / e-Devlet",
+        phone: "188",
+        mapQuery: "Gebze Belediyesi",
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80",
+        url: "https://www.turkiye.gov.tr/gebze-belediyesi-defin-ve-mezar-yeri-sorgulama",
+        category: "mezarliklar"
+      }
+    ];
+
+    window.seedCemeteries = async (silent = false) => {
+      if (!silent && !confirm("Gebze'deki 13 resmi mezarlık ve defin hizmeti kaydı Firebase 'guide_institutions' veritabanına aktarılsın mı?")) return;
+      const btn = document.getElementById('btnSeedCemeteries');
+      const origText = btn ? btn.innerText : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Aktarılıyor...";
+      }
+      try {
+        let count = 0;
+        for (const m of DEFAULT_CEMETERIES) {
+          const docData = {
+            category: 'mezarliklar',
+            name: m.name,
+            description: m.description,
+            address: m.address,
+            phone: m.phone,
+            mapQuery: m.mapQuery || (m.name + ' Gebze'),
+            image: m.image,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          if (m.lat != null) docData.lat = m.lat;
+          if (m.lng != null) docData.lng = m.lng;
+          if (m.url) docData.url = m.url;
+
+          await setDoc(doc(db, 'guide_institutions', m.id), docData, { merge: true });
+          count++;
+        }
+        if (!silent) showToast(`${count} adet mezarlık ve defin hizmeti Firebase veritabanına başarıyla aktarıldı!`);
+        await loadGuide();
+        if (window.loadDashboard) loadDashboard();
+      } catch (err) {
+        alert("Mezarlıklar aktarılırken hata: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = origText || "🪦 Mezarlıkları Aktar";
+        }
+      }
+    };
+    window.seedCemeteries = seedCemeteries;
+
+    // Resmi Gebze Kreşleri ve Enderun Çocuk Atölyeleri (Yerel Hazır Liste)
+    const DEFAULT_NURSERIES = [
+      {
+        id: "kres_01",
+        name: "Gebze Belediyesi Güzide Bebek ve Çocuk Bakım Evi",
+        description: "0–66 ay arası çocuklara 7/24 gece ve gündüz bakım hizmeti ile gelişim atölyeleri sunar. Kayıt ve başvuru bilgisi için Gebze Belediyesi Çözüm Merkezi ile görüşebilirsiniz.",
+        address: "Osman Yılmaz Mah. 608/2. Sokak No: 7, Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "Güzide 7/24 Bebek ve Çocuk Bakım Evi Gebze",
+        image: "gorsel/tesisler/guzide_kress.jpg",
+        category: "kresler"
+      },
+      {
+        id: "kres_02",
+        name: "Enderun Çocuk Atölyeleri - Mustafa Paşa Birimi",
+        description: "2-6 yaş çocukların gelişimini oyun, keşif ve atölyelerle destekleyen çocuk merkezli eğitim alanı.",
+        address: "Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "Enderun Çocuk Atölyeleri Mustafa Paşa Gebze",
+        image: "gorsel/tesisler/enderuncocukatolyesi.jpeg",
+        category: "kresler"
+      },
+      {
+        id: "kres_03",
+        name: "Enderun Çocuk Atölyeleri - İstasyon Şubesi",
+        description: "İstasyon Bilim Sanat Merkezi bünyesinde çocuklara yönelik sanat, bilim ve değerler eğitimi atölyeleri.",
+        address: "İstasyon Mah. 1409/1. Sokak No: 14, 41400 Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "İstasyon Bilim Sanat Merkezi Gebze",
+        image: "gorsel/tesisler/enderuncocukatolyesi.jpeg",
+        category: "kresler"
+      },
+      {
+        id: "kres_04",
+        name: "Enderun Çocuk Atölyeleri - Arapçeşme Şubesi",
+        description: "Arapçeşme Bilim Sanat Merkezi bünyesinde 2-6 yaş grubuna özel eğitim ve atölye faaliyetleri.",
+        address: "Arapçeşme Mah. Kavak Cad. 1066. Sokak No: 27, Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "Arapçeşme Bilim Sanat Merkezi Gebze",
+        image: "gorsel/tesisler/enderuncocukatolyesi.jpeg",
+        category: "kresler"
+      },
+      {
+        id: "kres_05",
+        name: "Enderun Çocuk Atölyeleri - Âdem Yavuz Şubesi",
+        description: "Âdem Yavuz Mahallesi sosyal tesis alanı içerisinde çocuk gelişim atölyeleri.",
+        address: "Adem Yavuz Mah. 2341. Sokak No: 31, Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "Adem Yavuz Sosyal Tesisleri Gebze",
+        image: "gorsel/tesisler/enderuncocukatolyesi.jpeg",
+        category: "kresler"
+      },
+      {
+        id: "kres_06",
+        name: "Sportif Çocuk Atölyesi - Eray Şamdan Şubesi",
+        description: "5-8 yaş çocuklara cimnastik, basketbol, masa tenisi, koordinasyon parkurları ve eğlenceli atletizm imkanı.",
+        address: "Cumhuriyet Mah. Necip Fazıl Cad. No: 102 (Eray Şamdan Spor Salonu), Gebze / Kocaeli",
+        phone: "0262 641 24 93",
+        mapQuery: "Eray Şamdan Kapalı Spor Salonu Gebze",
+        image: "gorsel/tesisler/sportifcocukatolyesi.jpg",
+        category: "kresler"
+      },
+      {
+        id: "kres_07",
+        name: "Enderun Çocuk Atölyeleri - Kirazpınar Şubesi",
+        description: "Kirazpınar bölgesindeki çocuklara yönelik okul öncesi eğitsel atölyeler.",
+        address: "Kirazpınar Mah. 2814. Sokak (Takva Mescidi Yanı), Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "Kirazpınar Gebze",
+        image: "gorsel/tesisler/enderuncocukatolyesi.jpeg",
+        category: "kresler"
+      },
+      {
+        id: "kres_08",
+        name: "AKÇEM - Anne, Kadın ve Çocuk Eğitim Merkezi",
+        description: "Annelerin, kadınların ve çocukların eğitim ile sosyal gelişim süreçlerini destekleyen aile odaklı merkez.",
+        address: "Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli",
+        phone: "444 0 290",
+        mapQuery: "AKÇEM Gebze",
+        image: "gorsel/tesisler/annecocukatolyesi.jpg",
+        category: "kresler"
+      }
+    ];
+
+    window.seedNurseries = async (silent = false) => {
+      if (!silent && !confirm("Gebze'deki 8 kreş ve çocuk atölyesi kaydı Firebase 'guide_institutions' veritabanına aktarılsın mı?")) return;
+      const btn = document.getElementById('btnSeedNurseries');
+      const origText = btn ? btn.innerText : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Aktarılıyor...";
+      }
+      try {
+        let count = 0;
+        for (const k of DEFAULT_NURSERIES) {
+          const docData = {
+            category: 'kresler',
+            name: k.name,
+            description: k.description,
+            address: k.address,
+            phone: k.phone,
+            mapQuery: k.mapQuery || (k.name + ' Gebze'),
+            image: k.image,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          await setDoc(doc(db, 'guide_institutions', k.id), docData, { merge: true });
+          count++;
+        }
+        if (!silent) showToast(`${count} adet kreş ve çocuk atölyesi Firebase veritabanına başarıyla aktarıldı!`);
+        await loadGuide();
+        if (window.loadDashboard) loadDashboard();
+      } catch (err) {
+        alert("Kreşler aktarılırken hata: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = origText || "🧸 Kreşleri Aktar";
+        }
+      }
+    };
+    window.seedNurseries = seedNurseries;
+
+    window.seedAllGuide = async () => {
+      if (!confirm("Mezarlıklar (13 kayıt) ve Kreş/Çocuk Atölyeleri (8 kayıt) Firebase veritabanına aktarılsın mı?")) return;
+      const btn = document.getElementById('btnSeedAllGuide');
+      if (btn) { btn.disabled = true; btn.innerText = "⏳ Aktarılıyor..."; }
+      try {
+        await seedCemeteries(true);
+        await seedNurseries(true);
+        showToast("Tüm hazır mezarlık ve kreş kayıtları Firebase'e başarıyla aktarıldı!");
+        await loadGuide();
+        if (window.loadDashboard) loadDashboard();
+      } catch (e) {
+        alert("Toplu aktarım hatası: " + e.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = "⚡ Tümünü Yükle"; }
+      }
+    };
+    window.seedAllGuide = seedAllGuide;
+
     async function loadGuide() {
       const grid = document.getElementById('guideGrid');
       grid.innerHTML = '<div class="empty-state">Rehber kayıtları yükleniyor...</div>';
@@ -1918,6 +2261,35 @@
       const counts = {};
       all.forEach(g => { counts[g.category] = (counts[g.category] || 0) + 1; });
 
+      const mezarlikCount = counts['mezarliklar'] || 0;
+      const kreslerCount = counts['kresler'] || 0;
+      const alertBanner = document.getElementById('guideAlertBanner');
+      if (alertBanner) {
+        const missing = [];
+        if (mezarlikCount === 0) missing.push('🪦 13 Mezarlık');
+        if (kreslerCount === 0) missing.push('🧸 8 Kreş & Çocuk Atölyesi');
+
+        if (missing.length > 0) {
+          alertBanner.innerHTML = `
+            <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">ℹ️</span>
+                <div>
+                  <div style="font-weight: 800; color: #92400E; font-size: 13.5px;">Firebase'e Aktarılmamış Yerel Kayıtlar Bulunuyor</div>
+                  <div style="color: #B45309; font-size: 12px; margin-top: 2px;">${missing.join(' ve ')} şu an yerel kodda. Tek tıkla Firebase veritabanına yükleyip panelden yönetebilirsiniz.</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${mezarlikCount === 0 ? `<button type="button" class="btn btn-outline btn-sm" onclick="seedCemeteries()">🪦 13 Mezarlığı Aktar</button>` : ''}
+                ${kreslerCount === 0 ? `<button type="button" class="btn btn-outline btn-sm" onclick="seedNurseries()">🧸 8 Kreşi Aktar</button>` : ''}
+                <button type="button" class="btn btn-primary btn-sm" onclick="seedAllGuide()">⚡ Tümünü Yükle</button>
+              </div>
+            </div>`;
+        } else {
+          alertBanner.innerHTML = '';
+        }
+      }
+
       const chip = (key, label, n) =>
         `<button type="button" class="chip ${f === key ? 'active' : ''}" onclick="setGuideFilter('${key}')">${label}<span>${n}</span></button>`;
       document.getElementById('guideChips').innerHTML =
@@ -1930,7 +2302,33 @@
 
       const grid = document.getElementById('guideGrid');
       if (!list.length) {
-        grid.innerHTML = '<div class="empty-state">Bu kategoride kayıt yok. Soldaki formla ilk kaydı ekleyin.</div>';
+        if (f === 'mezarliklar') {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: white; border-radius: var(--radius); border: 2px dashed var(--border);">
+              <div style="font-size: 42px; margin-bottom: 12px;">🪦</div>
+              <div style="font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px;">Firebase'de Henüz Mezarlık Kaydı Yok</div>
+              <div style="font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto 18px; line-height: 1.5;">
+                Gebze Merkez Mezarlığı, Alo Cenaze 188, Pelitli, Adem Yavuz ve köy mezarlıkları dahil 13 resmi kayıt hazır bekliyor.
+              </div>
+              <button type="button" class="btn btn-primary" onclick="seedCemeteries()">
+                ⚡ 13 Resmi Mezarlığı Firebase'e Yükle
+              </button>
+            </div>`;
+        } else if (f === 'kresler') {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: white; border-radius: var(--radius); border: 2px dashed var(--border);">
+              <div style="font-size: 42px; margin-bottom: 12px;">🧸</div>
+              <div style="font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px;">Firebase'de Henüz Kreş & Çocuk Atölyesi Kaydı Yok</div>
+              <div style="font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto 18px; line-height: 1.5;">
+                Güzide Bebek ve Çocuk Bakım Evi, Mustafa Paşa, İstasyon, Arapçeşme, Âdem Yavuz, Kirazpınar Enderun Atölyeleri, Sportif Çocuk Atölyesi ve AKÇEM dahil 8 resmi kayıt hazır bekliyor.
+              </div>
+              <button type="button" class="btn btn-primary" onclick="seedNurseries()">
+                ⚡ 8 Kreş & Çocuk Atölyesini Firebase'e Yükle
+              </button>
+            </div>`;
+        } else {
+          grid.innerHTML = '<div class="empty-state">Bu kategoride kayıt yok. Soldaki formla ilk kaydı ekleyin.</div>';
+        }
         return;
       }
       grid.innerHTML = list.map(g => `
@@ -1943,7 +2341,8 @@
             <div class="item-card-meta" style="margin-top:8px; flex-direction:column; align-items:flex-start; gap:2px;">
               ${g.address ? `<span>📍 ${esc(g.address)}</span>` : ''}
               ${g.phone ? `<span>📞 ${esc(g.phone)}</span>` : ''}
-              ${(g.lat != null && g.lng != null) ? '' : '<span style="color:var(--warning);">Konum bilgisi yok</span>'}
+              ${g.url ? `<span>🔗 <a href="${esc(g.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--navy-light); text-decoration:underline;">Resmi / e-Devlet Linki</a></span>` : ''}
+              ${(g.lat != null && g.lng != null) ? `<span>🌐 ${esc(g.lat)}, ${esc(g.lng)}</span>` : '<span style="color:var(--warning);">Konum bilgisi yok</span>'}
             </div>
           </div>
           <div class="item-card-footer">
@@ -1968,6 +2367,8 @@
       document.getElementById('guideLat').value = g.lat ?? '';
       document.getElementById('guideLng').value = g.lng ?? '';
       document.getElementById('guideImage').value = g.image || '';
+      const urlInput = document.getElementById('guideUrl');
+      if (urlInput) urlInput.value = g.url || '';
       document.getElementById('guideFormTitle').innerText = 'Kaydı düzenle';
       document.getElementById('guideSubmitBtn').innerText = 'Değişiklikleri kaydet';
       document.getElementById('guideCancelBtn').style.display = 'inline-flex';
@@ -1977,10 +2378,196 @@
     window.cancelGuideEdit = () => {
       window.guideEditId = null;
       document.getElementById('formGuide').reset();
+      const urlInput = document.getElementById('guideUrl');
+      if (urlInput) urlInput.value = '';
       document.getElementById('guideFormTitle').innerText = 'Rehbere yeni kayıt ekle';
       document.getElementById('guideSubmitBtn').innerText = 'Rehbere ekle';
       document.getElementById('guideCancelBtn').style.display = 'none';
     };
+
+    // Resmi Gebze Tarihi & Gezilecek Yerleri (18 Adet Hazır Liste)
+    const DEFAULT_PLACES = [
+      {
+        id: 'cmp_camii',
+        name: 'Çoban Mustafa Paşa Camii ve Külliyesi',
+        summary: 'Çoban Mustafa Paşa\'nın 1523\'te yaptırdığı cami ve külliye, Gebze\'nin en önemli Osmanlı eserlerinden biridir.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-camii-ve-kulliyesi_1.html',
+        image: 'gorsel/tarihi_yerler/cmpasa.jpg',
+        category: 'Camiler'
+      },
+      {
+        id: 'sultan_orhan',
+        name: 'Sultan Orhan Camii',
+        summary: 'Yaklaşık 1323-1331 yıllarında Orhan Bey tarafından yaptırılan, ilk dönem Osmanlı mimarisinin sade bir örneği.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze/sultan-orhan-camii_2.html',
+        image: 'gorsel/tarihi_yerler/sorhan.jpg',
+        category: 'Camiler'
+      },
+      {
+        id: 'ilyas_bey',
+        name: 'İlyas Bey Camii',
+        summary: 'Osmanlı\'dan kalan en eski cami olarak kabul edilir. Kubbesizdir, girişinde sülüs yazılı bir kitabe bulunur.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_ilyas-bey-camii_3.html',
+        image: 'gorsel/tarihi_yerler/ilyasb.jpg',
+        category: 'Camiler'
+      },
+      {
+        id: 'anibal',
+        name: 'Anibal\'ın (Hannibal) Mezarı',
+        summary: 'Selvilerle çevrili alanda duran 24 tonluk taş lahit, beş dilde yazılmış kitabelerle komutanın hayatını anlatır.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_anibalin-mezari_4.html',
+        image: 'gorsel/tarihi_yerler/anibal.jpg',
+        category: 'Tarihi'
+      },
+      {
+        id: 'hunkar',
+        name: 'Hünkar Çayırı',
+        summary: 'Fatih Sultan Mehmet\'in 1481\'de ordusunu dinlendirdiği çayırlık alan. Bugün park olarak düzenlenmiştir.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_hunkar-cayiri_5.html',
+        image: 'gorsel/tarihi_yerler/hunkar.jpg',
+        category: 'Doğa'
+      },
+      {
+        id: 'osman_hamdi',
+        name: 'Osman Hamdi Bey Yalısı',
+        summary: 'Osman Hamdi Bey\'in 1884\'te Eskihisar\'da yaptırdığı iki katlı yalı, bugün müze olarak ziyaret edilebiliyor.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_osman-hamdi-bey-yalisi_6.html',
+        image: 'gorsel/tarihi_yerler/osmanbey.jpg',
+        category: 'Müzeler'
+      },
+      {
+        id: 'eskihisar_kalesi',
+        name: 'Eskihisar Kalesi',
+        summary: 'Bizans döneminden kalma tarihi kale. 10 burcu ve 4 kapısıyla özgün yapısını büyük ölçüde korur.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze/eskihisar-kalesi_7.html',
+        image: 'gorsel/tarihi_yerler/eskale.jpg',
+        category: 'Tarihi'
+      },
+      {
+        id: 'ballikayalar',
+        name: 'Ballıkayalar',
+        summary: 'Karstik vadi; göletleri, şelaleleri, travertenleri ve çok sayıda mağarasıyla doğal güzelliğiyle öne çıkar.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_ballikayalar_8.html',
+        image: 'gorsel/tarihi_yerler/ballikaya.jpg',
+        category: 'Doğa'
+      },
+      {
+        id: 'beylikdagi',
+        name: 'Beylikdağı Orman Yürüyüşü',
+        summary: 'Gebze\'nin doğal yeşil alanlarından biri olan Beylikdağı Kent Ormanı, açık havada yürüyüş ve doğa fotoğrafları için harika bir rotadır.',
+        detailUrl: 'https://www.gebze.bel.tr',
+        image: 'gorsel/piknik/beylikdagi.jpg',
+        category: 'Doğa'
+      },
+      {
+        id: 'denizli_goleti',
+        name: 'Denizli Göleti Doğa Rotası',
+        summary: 'Gebze\'nin Denizli Mahallesi çevresinde yer alan Denizli Göleti, gölet manzarasını kırsal doğayla buluşturan keyifli bir yürüyüş noktasıdır.',
+        detailUrl: 'https://www.gebze.bel.tr',
+        image: 'gorsel/piknik/denizli_goleti.jpg',
+        category: 'Doğa'
+      },
+      {
+        id: 'denizli_yoruk_yaylalari',
+        name: 'Denizli Göleti – Yörük Yaylaları Doğa Rotası',
+        summary: 'Denizli Göleti\'nden başlayarak Gebze\'nin kırsal alanlarına uzanan bu doğa rotası geniş çayırlıklar ve yayla manzaraları sunar.',
+        detailUrl: 'https://www.gebze.bel.tr',
+        image: 'gorsel/piknik/denizli_yoruk_yaylalari.png',
+        category: 'Doğa'
+      },
+      {
+        id: 'elmalidere_selalesi',
+        name: 'Elmalıdere Şelalesi ve Orman Patikaları',
+        summary: 'Gebze\'nin Denizli kırsalı çevresinde bulunan Elmalıdere Şelalesi dere yatağı ve orman yollarıyla yürüyüş meraklılarının gözdesidir.',
+        detailUrl: 'https://www.gebze.bel.tr',
+        image: 'gorsel/piknik/elmalidere_selalesi.jpg',
+        category: 'Doğa'
+      },
+      {
+        id: 'yelken_tepe',
+        name: 'Yelken Tepe Doğa Yürüyüşü',
+        summary: 'Gebze\'nin Denizli kırsalındaki Yelken Tepe, tepeden panoramik kırsal manzaralar sunan bir doğa yürüyüşü noktasıdır.',
+        detailUrl: 'https://www.gebze.bel.tr',
+        image: 'gorsel/piknik/yelken_tepe.png',
+        category: 'Doğa'
+      },
+      {
+        id: 'ibrahim_pasa_cesmesi',
+        name: 'İbrahim Paşa Çeşmesi (Çarşı Çeşmesi)',
+        summary: 'Gebze şehir merkezinde, Çoban Mustafa Paşa Hamamı\'nın hemen yanında yer alan; Vezir İbrahim Paşa tarafından 17. yüzyılda yaptırılan Osmanlı çeşmesi.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
+        image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg',
+        category: 'Tarihi'
+      },
+      {
+        id: 'eskihisar_cesmesi',
+        name: 'Eskihisar Çeşmesi',
+        summary: 'Eskihisar köyünde bulunan, bölgenin Osmanlı dönemi su kültürünü yansıtan tarihi çeşme.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_eskihisar-cesmesi_11.html',
+        image: 'gorsel/tarihi_yerler/escesme.jpg',
+        category: 'Tarihi'
+      },
+      {
+        id: 'su_dolabi',
+        name: 'Tarihi Su Dolabı',
+        summary: '1664\'te İbrahim Paşa tarafından yaptırılan yapı; Gebze Belediyesi tarafından restore edildi.',
+        detailUrl: 'https://sende.gebze.bel.tr/tesislerimiz/su-dolabi',
+        image: 'gorsel/tarihi_yerler/sudolabi.jpg',
+        category: 'Tarihi'
+      },
+      {
+        id: 'cmp_sadirvani',
+        name: 'Çoban Mustafa Paşa Şadırvanı',
+        summary: '16. yüzyılda inşa edilen Çoban Mustafa Paşa Külliyesi\'nin klasik dönem Osmanlı mimarisini yansıtan şadırvanı.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
+        image: 'gorsel/tarihi_yerler/sadirvan.jpg',
+        category: 'Tarihi'
+      },
+      {
+        id: 'cmp_hamami',
+        name: 'Çoban Mustafa Paşa Hamamı',
+        summary: 'Çoban Mustafa Paşa Külliyesi\'nin 16. yüzyıldan kalan tarihi hamamı; Gebze\'nin eski çarşı bölgesinde yer alır.',
+        detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-hamami_12.html',
+        image: 'gorsel/tarihi_yerler/hamam.jpg',
+        category: 'Tarihi'
+      }
+    ];
+
+    window.seedPlaces = async () => {
+      if (!confirm("Gebze'deki 18 tarihi ve gezilecek yer kaydı Firebase 'guide_places' veritabanına aktarılsın mı?")) return;
+      const btn = document.getElementById('btnSeedPlaces');
+      const origText = btn ? btn.innerText : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Aktarılıyor...";
+      }
+      try {
+        let count = 0;
+        for (const p of DEFAULT_PLACES) {
+          await setDoc(doc(db, 'guide_places', p.id), {
+            name: p.name,
+            summary: p.summary,
+            category: p.category,
+            detailUrl: p.detailUrl,
+            image: p.image,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          count++;
+        }
+        showToast(`${count} adet tarihi ve gezilecek yer Firebase'e başarıyla aktarıldı!`);
+        await loadPlaces();
+        if (window.loadDashboard) loadDashboard();
+      } catch (err) {
+        alert("Yerler aktarılırken hata: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = origText || "🏰 Tarihi Yerleri Firebase'e Aktar";
+        }
+      }
+    };
+    window.seedPlaces = seedPlaces;
 
     async function loadPlaces() {
       const grid = document.getElementById('placesGrid');
@@ -1990,7 +2577,17 @@
         window.placesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         document.getElementById('placesCount').innerText = window.placesCache.length;
         if (!window.placesCache.length) {
-          grid.innerHTML = '<div class="empty-state">Kayıtlı yer yok. Uygulama şu an yerleşik örnek listeyi gösteriyor.</div>';
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: white; border-radius: var(--radius); border: 2px dashed var(--border);">
+              <div style="font-size: 42px; margin-bottom: 12px;">🏰</div>
+              <div style="font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px;">Firebase'de Henüz Kayıtlı Yer Yok</div>
+              <div style="font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto 18px; line-height: 1.5;">
+                Çoban Mustafa Paşa, Eskihisar Kalesi, Osman Hamdi Bey, Ballıkayalar ve gölet rotaları dahil 18 resmi yer hazır bekliyor.
+              </div>
+              <button type="button" class="btn btn-primary" onclick="seedPlaces()">
+                ⚡ 18 Tarihi & Gezilecek Yeri Firebase'e Yükle
+              </button>
+            </div>`;
           return;
         }
         grid.innerHTML = window.placesCache
@@ -2005,6 +2602,7 @@
               </div>
               <div class="item-card-title">${esc(p.name)}</div>
               <div class="item-card-desc">${esc(p.summary || '')}</div>
+              ${p.detailUrl ? `<div style="margin-top:6px;"><a href="${esc(p.detailUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--navy-light); font-weight:700; text-decoration:none; font-size:12px;">🔗 Detay Sayfası &rarr;</a></div>` : ''}
             </div>
             <div class="item-card-footer">
               <button class="btn btn-outline btn-sm" onclick="editPlace('${p.id}')">Düzenle</button>
@@ -2060,7 +2658,8 @@
             address: document.getElementById('guideAddress').value.trim(),
             phone: document.getElementById('guidePhone').value.trim(),
             mapQuery: document.getElementById('guideMapQuery').value.trim() || (name + ' Gebze'),
-            image: document.getElementById('guideImage').value.trim()
+            image: document.getElementById('guideImage').value.trim(),
+            url: document.getElementById('guideUrl')?.value.trim() || ''
           };
           if (lat !== null) { data.lat = lat; data.lng = lng; }
           btn.disabled = true;
@@ -3740,6 +4339,10 @@
                 <label>Görsel adresi (URL)</label>
                 <input type="url" id="guideImage" placeholder="https://...">
               </div>
+              <div class="form-group">
+                <label>Web Bağlantısı / e-Devlet Linki (Opsiyonel)</label>
+                <input type="url" id="guideUrl" placeholder="https://www.turkiye.gov.tr/...">
+              </div>
               <div style="display:flex; gap:8px;">
                 <button type="submit" class="btn btn-primary" id="guideSubmitBtn" style="flex:1;">Rehbere ekle</button>
                 <button type="button" class="btn btn-outline" id="guideCancelBtn" style="display:none;"
@@ -3747,16 +4350,23 @@
               </div>
               <p class="form-note">
                 Etkinlikler bu listede değil, <strong>Etkinlikler</strong> sekmesinden yönetilir. Mezarlıklar ve Kreşler
-                kategorisinde hiç kayıt yoksa uygulama yerleşik örnek listeyi gösterir; ilk kaydı eklediğinizde bu liste
-                yerine sizin kayıtlarınız görünür.
+                kategorisinde hiç kayıt yoksa uygulama yerleşik örnek listeyi gösterir; kayıtları Firebase'e aktardığınızda
+                tüm veriler veritabanı üzerinden canlı olarak yönetilir.
               </p>
             </form>
           </div>
           <div>
-            <div class="panel-header">
+            <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
               <div class="panel-title">Rehber kayıtları <span class="count-pill" id="guideCount">0</span></div>
+              <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedCemeteries" onclick="seedCemeteries()">🪦 Mezarlıkları Aktar</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedNurseries" onclick="seedNurseries()">🧸 Kreşleri Aktar</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSeedAllGuide" onclick="seedAllGuide()">⚡ Tümünü Yükle</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="loadGuide()">🔄 Yenile</button>
+              </div>
             </div>
             <div class="chip-bar" id="guideChips"></div>
+            <div id="guideAlertBanner"></div>
             <div class="items-grid" id="guideGrid"></div>
           </div>
         </div>
@@ -3813,8 +4423,12 @@
             </form>
           </div>
           <div>
-            <div class="panel-header">
+            <div class="panel-header" style="flex-wrap: wrap; gap: 8px;">
               <div class="panel-title">Kayıtlı yerler <span class="count-pill" id="placesCount">0</span></div>
+              <div style="margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="btnSeedPlaces" onclick="seedPlaces()">🏰 Tarihi Yerleri Firebase'e Aktar</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="loadPlaces()">🔄 Yenile</button>
+              </div>
             </div>
             <div class="items-grid" id="placesGrid"></div>
           </div>
