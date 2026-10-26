@@ -9,7 +9,7 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
   <!-- Gebze Belediyesi Resmi Etkinlikler Önbelleği (CORS Korumalı Doğrudan Paket) -->
@@ -944,6 +944,92 @@
       margin: 4px 0 12px;
       font-weight: 600;
     }
+
+    /* ═══════════ Arayüz yenilemesi (üstteki kuralları geçersiz kılar) ═══════════ */
+    :root {
+      --bg: #F3F5F9;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: none;
+      --shadow-md: 0 4px 14px rgba(10, 42, 102, 0.08);
+    }
+
+    * { font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif; }
+    body { line-height: 1.5; font-variant-numeric: tabular-nums; }
+
+    /* Kenar çubuğu: etiketler normal yazım, aktif öğe turuncu işaretçiyle */
+    .sidebar { box-shadow: none; border-right: 1px solid rgba(255, 255, 255, 0.06); background: var(--navy-deep); }
+    .nav-group-label {
+      text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600;
+      color: rgba(255, 255, 255, 0.5); padding: 18px 14px 6px;
+    }
+    .nav-item { position: relative; border-radius: 8px; font-weight: 500; font-size: 13.5px; }
+    .nav-item.active { background: rgba(255, 255, 255, 0.1); box-shadow: none; font-weight: 600; }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: -12px; top: 8px; bottom: 8px;
+      width: 3px; border-radius: 0 3px 3px 0; background: var(--orange);
+    }
+    .brand-logo { box-shadow: none; border-radius: 10px; }
+
+    /* Üst çubuk */
+    .topbar { height: 64px; box-shadow: none; }
+    .page-title h1 { font-size: 18px; font-weight: 700; }
+    .page-title p { font-size: 12.5px; }
+
+    /* Kartlar: gölge yerine ince çizgi; hareket yok */
+    .tab-view { animation: none; }
+    .panel { border-radius: 12px; box-shadow: none; padding: 22px; }
+    .panel-title { font-size: 15px; font-weight: 700; }
+    .kpi-card { border-radius: 12px; box-shadow: none; padding: 16px 18px; transition: border-color .15s; }
+    .kpi-card:hover { transform: none; box-shadow: none; border-color: var(--navy-light); }
+    .kpi-icon { width: 44px; height: 44px; border-radius: 10px; font-size: 20px; }
+    .kpi-info h3 { font-size: 26px; font-weight: 700; }
+    .kpi-info p { font-weight: 500; }
+    .item-card { border-radius: 12px; box-shadow: none; transition: border-color .15s; }
+    .item-card:hover { transform: none; box-shadow: none; border-color: var(--navy-light); }
+    .item-card-title { font-weight: 700; }
+
+    /* Düğmeler, alanlar, rozetler */
+    .btn { border-radius: 8px; font-weight: 600; }
+    .btn-sm { border-radius: 6px; }
+    input, select, textarea { border-radius: 8px; }
+    .badge { border-radius: 6px; font-weight: 600; }
+    .modal-card { border-radius: 14px; }
+    .form-group label { font-weight: 600; }
+
+    /* Tablolar */
+    th { background: #F8FAFC; text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+
+    /* Klavye odağı */
+    :focus-visible { outline: 2px solid var(--navy-light); outline-offset: 2px; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; }
+
+    /* Rehber bileşenleri */
+    .chip-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+      border: 1px solid var(--border); border-radius: 999px; background: #fff;
+      font-size: 13px; font-weight: 500; color: var(--text-dark); cursor: pointer;
+    }
+    .chip span { font-size: 12px; color: var(--text-muted); }
+    .chip:hover { border-color: var(--navy-light); }
+    .chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .chip.active span { color: rgba(255, 255, 255, 0.7); }
+    .count-pill {
+      display: inline-block; min-width: 24px; padding: 1px 8px; margin-left: 6px; border-radius: 999px;
+      background: var(--navy-soft); color: var(--navy); font-size: 12px; font-weight: 600; text-align: center;
+    }
+    .form-note { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--warning-soft); color: #7A5200; font-size: 12.5px; line-height: 1.5; }
+
+    .item-card-meta span:not(.badge) { color: var(--text-muted); font-weight: 500; }
+    .btn-primary { box-shadow: none; }
+    @media (max-width: 900px) {
+      .content-area { padding: 20px 16px 48px; }
+      .topbar { padding: 0 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+    }
   </style>
 
   <!-- Firebase Modular SDK -->
@@ -990,14 +1076,10 @@
     window.db = db;
     window.auth = auth;
 
-    // Global durum önbelleği
-    window.reportsCache = [];
-    window.reportsUnsub = null;
-    window.activeReportId = null;
+    window.usersMap = window.usersMap || {};
 
     // Sayfa açılır açılmaz Firestore verilerini doğrudan yükle ve canlı dinle
     loadDashboard();
-    initRealtimeReports();
     loadUsers();
 
     // ───────────────── YÖNETİCİ GİRİŞİ & OTURUM ─────────────────
@@ -1023,8 +1105,7 @@
           const out = document.getElementById('btnSignOut');
           if (out) out.style.display = 'inline-flex';
           loadDashboard();
-          initRealtimeReports();
-          loadUsers();
+                loadUsers();
         })
         .catch(err => {
           console.warn("Otomatik oturum:", err.message);
@@ -1046,8 +1127,7 @@
       if (who) who.innerText = auth.currentUser?.email || 'Yetkili Yönetici (Canlı)';
       if (out) out.style.display = 'inline-flex';
       loadDashboard();
-      initRealtimeReports();
-      loadUsers();
+        loadUsers();
       showToast("Yönetici paneli başarıyla açıldı.");
     };
 
@@ -1057,8 +1137,7 @@
       const who = document.getElementById('adminWho');
       if (who) who.innerText = 'Yönetici (Önizleme Modu)';
       loadDashboard();
-      initRealtimeReports();
-      loadUsers();
+        loadUsers();
       showToast("Önizleme modunda açıldı.");
     };
 
@@ -1091,7 +1170,6 @@
 
     window.adminSignOut = async () => {
       if (confirm('Yönetim panelinden güvenli çıkış yapılsın mı?')) {
-        if (window.reportsUnsub) window.reportsUnsub();
         await signOut(auth);
         const overlay = document.getElementById('loginOverlay');
         if (overlay) overlay.style.display = 'flex';
@@ -1114,7 +1192,6 @@
 
       // İlgili modül verilerini yükle
       if (tabId === 'dashboard') loadDashboard();
-      if (tabId === 'reports') renderReportsView();
       if (tabId === 'suggestions') loadSuggestions();
       if (tabId === 'polls') loadPolls();
       if (tabId === 'news') loadNews();
@@ -1124,6 +1201,8 @@
       if (tabId === 'works') loadWorks();
       if (tabId === 'pharmacies') loadPharmacies();
       if (tabId === 'assembly') loadAssemblyAreas();
+      if (tabId === 'guide') loadGuide();
+      if (tabId === 'places') loadPlaces();
       if (tabId === 'pets') loadPatiData();
       if (tabId === 'ebelediye') loadEBelediye();
       if (tabId === 'users') loadUsers();
@@ -1149,7 +1228,6 @@
         };
 
         const [
-          reportsSnap,
           newsSnap,
           suggSnap,
           pollsSnap,
@@ -1159,9 +1237,10 @@
           worksSnap,
           assemblySnap,
           usersSnap,
-          eventsSnap
+          eventsSnap,
+          guideSnap,
+          placesSnap
         ] = await Promise.all([
-          safeFetch("reports"),
           safeFetch("municipal_news"),
           safeFetch("suggestions"),
           safeFetch("polls"),
@@ -1171,25 +1250,10 @@
           safeFetch("neighborhood_works"),
           safeFetch("assembly_areas"),
           safeFetch("users"),
-          safeFetch("events")
+          safeFetch("events"),
+          safeFetch("guide_institutions"),
+          safeFetch("guide_places")
         ]);
-
-        // Çek Gönder: bekleyen / aktif talepler
-        let pendingReports = 0;
-        reportsSnap.forEach(d => {
-          const s = (d.data().status || '').trim();
-          if (s === 'Beklemede' || s === 'İnceleniyor' || s === 'İşleme Alındı' || s === 'pending') {
-            pendingReports++;
-          }
-        });
-        const elKpiRep = document.getElementById('kpiReports');
-        if (elKpiRep) elKpiRep.innerText = pendingReports;
-
-        const bRep = document.getElementById('badgePendingReports');
-        if (bRep) {
-          bRep.innerText = pendingReports;
-          bRep.style.display = pendingReports > 0 ? 'inline-block' : 'none';
-        }
 
         // Öneriler
         let pendingSugg = 0;
@@ -1216,6 +1280,8 @@
         setKpi('kpiAssembly', assemblySnap.size);
         setKpi('kpiUsers', usersSnap.size);
         setKpi('kpiEvents', eventsSnap.size);
+        setKpi('kpiGuide', guideSnap.size);
+        setKpi('kpiPlaces', placesSnap.size);
 
         // Mahallemde aktif çalışmalar
         let activeWorks = 0;
@@ -1231,317 +1297,6 @@
       }
     }
     window.loadDashboard = loadDashboard;
-
-    // ───────────────── 2. ÇEK & GÖNDER (REPORTS / TALEPLER) ─────────────────
-    window.usersMap = window.usersMap || {};
-
-    async function initRealtimeReports() {
-      if (window.reportsUnsub) window.reportsUnsub();
-
-      // Kullanıcı verilerini arka planda önbelleğe al
-      try {
-        const uSnap = await getDocs(collection(db, "users"));
-        uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
-      } catch (_) { }
-
-      try {
-        const q = query(collection(db, "reports"));
-        window.reportsUnsub = onSnapshot(q, (snapshot) => {
-          const list = [];
-          snapshot.forEach(docSnap => {
-            list.push({ id: docSnap.id, ...docSnap.data() });
-          });
-          // Tarihe göre ters sırala
-          list.sort((a, b) => {
-            const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-            const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-            return tb - ta;
-          });
-          window.reportsCache = list;
-
-          // Aktif talepler sayacını güncelle
-          let pendingCount = 0;
-          list.forEach(r => {
-            const st = (r.status || '').trim();
-            if (st === 'Beklemede' || st === 'İnceleniyor' || st === 'İşleme Alındı' || st === 'pending') pendingCount++;
-          });
-          const bRep = document.getElementById('badgePendingReports');
-          if (bRep) {
-            bRep.innerText = pendingCount;
-            bRep.style.display = pendingCount > 0 ? 'inline-block' : 'none';
-          }
-          const kpiRep = document.getElementById('kpiReports');
-          if (kpiRep) kpiRep.innerText = pendingCount;
-
-          renderReportsView();
-        }, (err) => {
-          console.warn("Reports snapshot uyarısı:", err.message);
-          const tbody = document.getElementById("reportsTableBody");
-          if (tbody && (!window.reportsCache || window.reportsCache.length === 0)) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="padding:28px;">
-              ℹ️ Vatandaş başvurularını listelemek için üst menüden yetkili yönetici hesabıyla oturum açınız.
-            </td></tr>`;
-          }
-        });
-      } catch (e) {
-        console.error("initRealtimeReports hatası:", e);
-      }
-    }
-
-    const REPORT_STATUS_MAP = {
-      'Beklemede': { label: 'Beklemede', cls: 'badge-warning' },
-      'pending': { label: 'Beklemede', cls: 'badge-warning' },
-      'İnceleniyor': { label: 'İnceleniyor', cls: 'badge-primary' },
-      'reviewing': { label: 'İnceleniyor', cls: 'badge-primary' },
-      'İşleme Alındı': { label: 'İşleme Alındı', cls: 'badge-info' },
-      'in_progress': { label: 'İşleme Alındı', cls: 'badge-info' },
-      'Çözüldü': { label: 'Çözüldü', cls: 'badge-success' },
-      'resolved': { label: 'Çözüldü', cls: 'badge-success' },
-      'Reddedildi': { label: 'Reddedildi', cls: 'badge-danger' },
-      'rejected': { label: 'Reddedildi', cls: 'badge-danger' }
-    };
-
-    function renderReportsView() {
-      const container = document.getElementById("reportsTableBody");
-      const gridContainer = document.getElementById("reportsGrid");
-      if (!container || !gridContainer) return;
-
-      const filterStatus = document.getElementById("reportFilterStatus")?.value || 'all';
-      const filterHood = document.getElementById("reportFilterNeighborhood")?.value || '';
-      const filterCat = document.getElementById("reportFilterCategory")?.value || '';
-      const searchTxt = (document.getElementById("reportSearch")?.value || '').trim().toLowerCase();
-
-      const filtered = (window.reportsCache || []).filter(r => {
-        const s = (r.status || 'Beklemede').trim();
-        if (filterStatus === 'pending' && (s !== 'Beklemede' && s !== 'pending')) return false;
-        if (filterStatus === 'reviewing' && (s !== 'İnceleniyor' && s !== 'reviewing')) return false;
-        if (filterStatus === 'in_progress' && (s !== 'İşleme Alındı' && s !== 'in_progress')) return false;
-        if (filterStatus === 'resolved' && (s !== 'Çözüldü' && s !== 'resolved')) return false;
-        if (filterStatus === 'rejected' && (s !== 'Reddedildi' && s !== 'rejected')) return false;
-
-        if (filterHood && r.neighborhood !== filterHood) return false;
-        if (filterCat && r.category !== filterCat && r.categoryKey !== filterCat) return false;
-
-        if (searchTxt) {
-          const matchTicket = (r.ticketNo || '').toLowerCase().includes(searchTxt);
-          const matchName = (r.userName || '').toLowerCase().includes(searchTxt);
-          const matchPhone = (r.userPhone || '').toLowerCase().includes(searchTxt);
-          const matchDesc = (r.description || '').toLowerCase().includes(searchTxt);
-          if (!matchTicket && !matchName && !matchPhone && !matchDesc) return false;
-        }
-        return true;
-      });
-
-      document.getElementById('reportCountBadge').innerText = `${filtered.length} Talep`;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<tr><td colspan="7" class="empty-state">Kriterlere uygun kayıtlı vatandaş talebi bulunamadı.</td></tr>`;
-        gridContainer.innerHTML = `<div class="empty-state">Kriterlere uygun kayıtlı vatandaş talebi bulunamadı.</div>`;
-        return;
-      }
-
-      // 1. Tablo Görünümü
-      container.innerHTML = '';
-      filtered.forEach(r => {
-        const tr = document.createElement("tr");
-        const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
-
-        let dateStr = '–';
-        if (r.createdAt?.toMillis) {
-          dateStr = new Date(r.createdAt.toMillis()).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        }
-
-        const photoThumb = (r.photoUrl || (r.photoBase64 ? 'data:image/jpeg;base64,' + r.photoBase64 : ''));
-        const thumbHtml = photoThumb
-          ? `<img src="${photoThumb}" onclick="openLightbox('${photoThumb}')" style="width:40px; height:40px; object-fit:cover; border-radius:8px; cursor:zoom-in; border:1px solid var(--border);" alt="foto">`
-          : `<span style="font-size:11px; color:var(--text-muted); font-style:italic;">Yok</span>`;
-
-        const uDoc = (window.usersMap && r.userId) ? window.usersMap[r.userId] : null;
-        const effectiveName = r.userName || uDoc?.fullName || (r.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş');
-        const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
-
-        tr.innerHTML = `
-          <td><strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0, 8).toUpperCase()}</strong></td>
-          <td>
-            <div style="font-weight:700;">${effectiveName}</div>
-            <div style="font-size:11.5px; color:var(--text-muted);">${effectivePhone ? '📞 ' + effectivePhone : ''}</div>
-          </td>
-          <td>
-            <span class="badge badge-info">${r.category || 'Genel'}</span>
-            <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">📍 ${r.neighborhood || 'Gebze'}</div>
-          </td>
-          <td style="max-width:260px;">
-            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; color:var(--text-dark);" title="${r.description || ''}">
-              ${r.description || ''}
-            </div>
-            ${r.adminNote ? `<div style="font-size:11px; color:var(--success); font-weight:700; margin-top:2px;">💬 ${r.adminNote}</div>` : ''}
-          </td>
-          <td>${thumbHtml}</td>
-          <td><span class="badge ${stInfo.cls}">${stInfo.label}</span></td>
-          <td>
-            <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary btn-sm" onclick="openReportDetailModal('${r.id}')">İncele & Yanıtla</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('reports', '${r.id}', renderReportsView)">Sil</button>
-            </div>
-          </td>
-        `;
-        container.appendChild(tr);
-      });
-
-      // 2. Kart Görünümü (Alternatif)
-      gridContainer.innerHTML = '';
-      filtered.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "item-card";
-        const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
-        const photoThumb = (r.photoUrl || (r.photoBase64 ? 'data:image/jpeg;base64,' + r.photoBase64 : ''));
-        const uDoc = (window.usersMap && r.userId) ? window.usersMap[r.userId] : null;
-        const effectiveName = r.userName || uDoc?.fullName || (r.isGuest ? 'Misafir Vatandaş' : 'Kayıtlı Vatandaş');
-        const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
-
-        card.innerHTML = `
-          ${photoThumb ? `<img src="${photoThumb}" class="item-card-image" onclick="openLightbox('${photoThumb}')" alt="talep-foto">` : ''}
-          <div class="item-card-body">
-            <div class="item-card-meta">
-              <span class="badge ${stInfo.cls}">${stInfo.label}</span>
-              <strong style="color:var(--navy); font-size:12px; margin-left:auto;">${r.ticketNo || r.id.substring(0, 8).toUpperCase()}</strong>
-            </div>
-            <div class="item-card-title">${r.category || 'Belediye Hizmeti'} • ${r.neighborhood || 'Gebze'} Mah.</div>
-            <div class="item-card-desc">${r.description || ''}</div>
-            <div style="font-size:12px; color:var(--text-muted); line-height:1.4; border-top:1px dashed var(--border); padding-top:8px;">
-              👤 <strong>${effectiveName}</strong> ${effectivePhone ? '• ' + effectivePhone : ''}<br>
-              ${r.address ? `📍 ${r.address}<br>` : ''}
-              ${r.adminNote ? `<span style="color:var(--success); font-weight:700;">💬 Belediye Notu: ${r.adminNote}</span>` : ''}
-            </div>
-          </div>
-          <div class="item-card-footer">
-            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="openReportDetailModal('${r.id}')">İncele & Güncelle</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteDocItem('reports', '${r.id}', renderReportsView)">Sil</button>
-          </div>
-        `;
-        gridContainer.appendChild(card);
-      });
-    }
-    window.renderReportsView = renderReportsView;
-
-    window.switchReportsView = (viewMode) => {
-      const tableWrap = document.getElementById("reportsTableWrap");
-      const gridWrap = document.getElementById("reportsGridWrap");
-      const btnTable = document.getElementById("btnViewTable");
-      const btnGrid = document.getElementById("btnViewGrid");
-
-      if (viewMode === 'grid') {
-        tableWrap.style.display = 'none';
-        gridWrap.style.display = 'block';
-        btnTable.classList.remove('active');
-        btnGrid.classList.add('active');
-      } else {
-        tableWrap.style.display = 'block';
-        gridWrap.style.display = 'none';
-        btnTable.classList.add('active');
-        btnGrid.classList.remove('active');
-      }
-    };
-
-    window.openReportDetailModal = (id) => {
-      window.activeReportId = id;
-      const r = (window.reportsCache || []).find(item => item.id === id);
-      if (!r) return;
-
-      const uDoc = (window.usersMap && r.userId) ? window.usersMap[r.userId] : null;
-      const effectiveName = r.userName || uDoc?.fullName || (r.isGuest ? 'Misafir' : 'Kayıtlı Vatandaş');
-      const effectivePhone = r.userPhone || uDoc?.phoneNumber || '';
-
-      document.getElementById('modalReportTicket').innerText = r.ticketNo || r.id;
-      document.getElementById('modalReportCategory').innerText = r.category || 'Genel';
-      document.getElementById('modalReportCitizen').innerText = `${effectiveName} ${effectivePhone ? '(' + effectivePhone + ')' : ''}`;
-      document.getElementById('modalReportLocation').innerText = `${r.neighborhood || 'Gebze'} Mah. ${r.address ? '– ' + r.address : ''}`;
-      document.getElementById('modalReportDesc').innerText = r.description || '';
-      document.getElementById('modalReportNoteInput').value = r.adminNote || '';
-
-      const photoThumb = (r.photoUrl || (r.photoBase64 ? 'data:image/jpeg;base64,' + r.photoBase64 : ''));
-      const imgBox = document.getElementById('modalReportImageBox');
-      if (photoThumb) {
-        imgBox.innerHTML = `<img src="${photoThumb}" style="max-height:220px; width:100%; object-fit:cover; border-radius:12px; cursor:zoom-in; border:1px solid var(--border);" onclick="openLightbox('${photoThumb}')" alt="talep-gorsel">`;
-        imgBox.style.display = 'block';
-      } else {
-        imgBox.style.display = 'none';
-      }
-
-      const mapBtn = document.getElementById('modalReportMapBtn');
-      if (r.location && r.location.latitude && r.location.longitude) {
-        mapBtn.href = `https://www.google.com/maps?q=${r.location.latitude},${r.location.longitude}`;
-        mapBtn.style.display = 'inline-flex';
-      } else {
-        mapBtn.style.display = 'none';
-      }
-
-      // Statü seçimi
-      let currentStatus = r.status || 'Beklemede';
-      if (currentStatus === 'pending') currentStatus = 'Beklemede';
-      if (currentStatus === 'reviewing') currentStatus = 'İnceleniyor';
-      if (currentStatus === 'in_progress') currentStatus = 'İşleme Alındı';
-      if (currentStatus === 'resolved') currentStatus = 'Çözüldü';
-      if (currentStatus === 'rejected') currentStatus = 'Reddedildi';
-      document.getElementById('modalReportStatusSelect').value = currentStatus;
-
-      // Durum Geçmişi
-      const histBox = document.getElementById('modalReportHistory');
-      histBox.innerHTML = '';
-      const hist = r.statusHistory || [];
-      if (hist.length === 0) {
-        histBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">Durum geçmişi kaydı bulunmuyor.</div>';
-      } else {
-        hist.forEach((h, i) => {
-          let atStr = '–';
-          if (h.at?.toMillis) atStr = new Date(h.at.toMillis()).toLocaleString('tr-TR');
-          else if (h.at) atStr = new Date(h.at).toLocaleString('tr-TR');
-          histBox.innerHTML += `
-            <div style="font-size:12px; margin-bottom:6px; padding-left:12px; border-left:2px solid var(--navy-light);">
-              <strong>${h.status || 'Kayıt'}</strong> • <span style="color:var(--text-muted);">${atStr}</span>
-              ${h.note ? `<div style="color:var(--navy); font-weight:600;">"${h.note}"</div>` : ''}
-            </div>
-          `;
-        });
-      }
-
-      document.getElementById('reportDetailModal').classList.add('open');
-    };
-
-    window.closeReportDetailModal = () => {
-      document.getElementById('reportDetailModal').classList.remove('open');
-      window.activeReportId = null;
-    };
-
-    window.saveReportAction = async () => {
-      if (!window.activeReportId) return;
-      const newStatus = document.getElementById('modalReportStatusSelect').value;
-      const note = document.getElementById('modalReportNoteInput').value.trim();
-      const saveBtn = document.getElementById('btnSaveReportAction');
-
-      saveBtn.disabled = true;
-      try {
-        const updatePayload = {
-          status: newStatus,
-          updatedAt: serverTimestamp(),
-          statusHistory: arrayUnion({
-            status: newStatus,
-            at: Timestamp.now(),
-            note: note || ''
-          })
-        };
-        if (note) updatePayload.adminNote = note;
-
-        await updateDoc(doc(db, "reports", window.activeReportId), updatePayload);
-        showToast("Talep durumu ve belediye birim yanıtı başarıyla kaydedildi!");
-        closeReportDetailModal();
-        loadDashboard();
-      } catch (e) {
-        alert("Güncellenirken hata oluştu: " + e.message);
-      } finally {
-        saveBtn.disabled = false;
-      }
-    };
 
     // ───────────────── 3. HABERLER & DUYURULAR ─────────────────
     async function loadNews() {
@@ -2132,6 +1887,228 @@
     }
     window.loadPharmacies = loadPharmacies;
 
+    // ───────────────── REHBER (guide_institutions & guide_places) ─────────────────
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return Number.isFinite(n) ? n : null; };
+
+    const GUIDE_CATS = {
+      parklar: '🌳 Parklar', lokantalar: '🍽️ Lokantalar', pazar: '🛒 Pazar yerleri', spor: '⚽ Spor tesisleri',
+      kultur: '🎭 Kültür merkezleri', mezarliklar: '🪦 Mezarlıklar', kresler: '🧸 Kreşler', belediye: '🏛️ Belediye birimleri'
+    };
+    window.guideCache = [];
+    window.guideFilter = 'all';
+    window.guideEditId = null;
+
+    async function loadGuide() {
+      const grid = document.getElementById('guideGrid');
+      grid.innerHTML = '<div class="empty-state">Rehber kayıtları yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, 'guide_institutions'));
+        window.guideCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderGuide();
+      } catch (e) {
+        grid.innerHTML = `<div class="empty-state">Kayıtlar okunamadı: ${esc(e.message)}</div>`;
+      }
+    }
+    window.loadGuide = loadGuide;
+
+    function renderGuide() {
+      const all = window.guideCache;
+      const f = window.guideFilter;
+      const counts = {};
+      all.forEach(g => { counts[g.category] = (counts[g.category] || 0) + 1; });
+
+      const chip = (key, label, n) =>
+        `<button type="button" class="chip ${f === key ? 'active' : ''}" onclick="setGuideFilter('${key}')">${label}<span>${n}</span></button>`;
+      document.getElementById('guideChips').innerHTML =
+        chip('all', 'Tümü', all.length) + Object.entries(GUIDE_CATS).map(([k, l]) => chip(k, l, counts[k] || 0)).join('');
+
+      const list = all
+        .filter(g => f === 'all' || g.category === f)
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+      document.getElementById('guideCount').innerText = list.length;
+
+      const grid = document.getElementById('guideGrid');
+      if (!list.length) {
+        grid.innerHTML = '<div class="empty-state">Bu kategoride kayıt yok. Soldaki formla ilk kaydı ekleyin.</div>';
+        return;
+      }
+      grid.innerHTML = list.map(g => `
+        <div class="item-card">
+          ${g.image ? `<img src="${esc(g.image)}" class="item-card-image" onclick="openLightbox('${esc(g.image)}')" alt="" onerror="this.style.display='none'">` : ''}
+          <div class="item-card-body">
+            <div class="item-card-meta"><span class="badge badge-primary">${esc(GUIDE_CATS[g.category] || g.category || 'Kategorisiz')}</span></div>
+            <div class="item-card-title">${esc(g.name)}</div>
+            <div class="item-card-desc">${esc(g.description || '')}</div>
+            <div class="item-card-meta" style="margin-top:8px; flex-direction:column; align-items:flex-start; gap:2px;">
+              ${g.address ? `<span>📍 ${esc(g.address)}</span>` : ''}
+              ${g.phone ? `<span>📞 ${esc(g.phone)}</span>` : ''}
+              ${(g.lat != null && g.lng != null) ? '' : '<span style="color:var(--warning);">Konum bilgisi yok</span>'}
+            </div>
+          </div>
+          <div class="item-card-footer">
+            <button class="btn btn-outline btn-sm" onclick="editGuide('${g.id}')">Düzenle</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDocItem('guide_institutions', '${g.id}', loadGuide)">Sil</button>
+          </div>
+        </div>`).join('');
+    }
+
+    window.setGuideFilter = (k) => { window.guideFilter = k; renderGuide(); };
+
+    window.editGuide = (id) => {
+      const g = window.guideCache.find(x => x.id === id);
+      if (!g) return;
+      window.guideEditId = id;
+      document.getElementById('guideCategory').value = g.category || 'parklar';
+      document.getElementById('guideName').value = g.name || '';
+      document.getElementById('guideDesc').value = g.description || '';
+      document.getElementById('guideAddress').value = g.address || '';
+      document.getElementById('guidePhone').value = g.phone || '';
+      document.getElementById('guideMapQuery').value = g.mapQuery || '';
+      document.getElementById('guideLat').value = g.lat ?? '';
+      document.getElementById('guideLng').value = g.lng ?? '';
+      document.getElementById('guideImage').value = g.image || '';
+      document.getElementById('guideFormTitle').innerText = 'Kaydı düzenle';
+      document.getElementById('guideSubmitBtn').innerText = 'Değişiklikleri kaydet';
+      document.getElementById('guideCancelBtn').style.display = 'inline-flex';
+      document.getElementById('formGuide').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.cancelGuideEdit = () => {
+      window.guideEditId = null;
+      document.getElementById('formGuide').reset();
+      document.getElementById('guideFormTitle').innerText = 'Rehbere yeni kayıt ekle';
+      document.getElementById('guideSubmitBtn').innerText = 'Rehbere ekle';
+      document.getElementById('guideCancelBtn').style.display = 'none';
+    };
+
+    async function loadPlaces() {
+      const grid = document.getElementById('placesGrid');
+      grid.innerHTML = '<div class="empty-state">Yerler yükleniyor...</div>';
+      try {
+        const snap = await getDocs(collection(db, 'guide_places'));
+        window.placesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        document.getElementById('placesCount').innerText = window.placesCache.length;
+        if (!window.placesCache.length) {
+          grid.innerHTML = '<div class="empty-state">Kayıtlı yer yok. Uygulama şu an yerleşik örnek listeyi gösteriyor.</div>';
+          return;
+        }
+        grid.innerHTML = window.placesCache
+          .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'))
+          .map(p => `
+          <div class="item-card">
+            ${p.image ? `<img src="${esc(p.image)}" class="item-card-image" onclick="openLightbox('${esc(p.image)}')" alt="" onerror="this.style.display='none'">` : ''}
+            <div class="item-card-body">
+              <div class="item-card-meta">
+                <span class="badge badge-purple">${esc(p.category || 'Tarihi')}</span>
+                ${p.distanceKm != null ? `<span style="margin-left:auto;">${esc(p.distanceKm)} km</span>` : ''}
+              </div>
+              <div class="item-card-title">${esc(p.name)}</div>
+              <div class="item-card-desc">${esc(p.summary || '')}</div>
+            </div>
+            <div class="item-card-footer">
+              <button class="btn btn-outline btn-sm" onclick="editPlace('${p.id}')">Düzenle</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('guide_places', '${p.id}', loadPlaces)">Sil</button>
+            </div>
+          </div>`).join('');
+      } catch (e) {
+        grid.innerHTML = `<div class="empty-state">Kayıtlar okunamadı: ${esc(e.message)}</div>`;
+      }
+    }
+    window.loadPlaces = loadPlaces;
+    window.placesCache = [];
+    window.placeEditId = null;
+
+    window.editPlace = (id) => {
+      const p = window.placesCache.find(x => x.id === id);
+      if (!p) return;
+      window.placeEditId = id;
+      document.getElementById('placeName').value = p.name || '';
+      document.getElementById('placeSummary').value = p.summary || '';
+      document.getElementById('placeCategory').value = p.category || 'Tarihi';
+      document.getElementById('placeDistance').value = p.distanceKm ?? '';
+      document.getElementById('placeUrl').value = p.detailUrl || '';
+      document.getElementById('placeImage').value = p.image || '';
+      document.getElementById('placeFormTitle').innerText = 'Yeri düzenle';
+      document.getElementById('placeSubmitBtn').innerText = 'Değişiklikleri kaydet';
+      document.getElementById('placeCancelBtn').style.display = 'inline-flex';
+      document.getElementById('formPlace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.cancelPlaceEdit = () => {
+      window.placeEditId = null;
+      document.getElementById('formPlace').reset();
+      document.getElementById('placeFormTitle').innerText = 'Yeni yer ekle';
+      document.getElementById('placeSubmitBtn').innerText = 'Yeri ekle';
+      document.getElementById('placeCancelBtn').style.display = 'none';
+    };
+
+    (function bindGuideForms() {
+      const ready = (f) => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', f) : f();
+      ready(() => {
+        document.getElementById('formGuide')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById('guideSubmitBtn');
+          const name = document.getElementById('guideName').value.trim();
+          const lat = num(document.getElementById('guideLat').value);
+          const lng = num(document.getElementById('guideLng').value);
+          if ((lat === null) !== (lng === null)) { alert('Enlem ve boylam birlikte girilmeli ya da ikisi de boş bırakılmalı.'); return; }
+          const data = {
+            category: document.getElementById('guideCategory').value,
+            name,
+            description: document.getElementById('guideDesc').value.trim(),
+            address: document.getElementById('guideAddress').value.trim(),
+            phone: document.getElementById('guidePhone').value.trim(),
+            mapQuery: document.getElementById('guideMapQuery').value.trim() || (name + ' Gebze'),
+            image: document.getElementById('guideImage').value.trim()
+          };
+          if (lat !== null) { data.lat = lat; data.lng = lng; }
+          btn.disabled = true;
+          try {
+            if (window.guideEditId) {
+              await updateDoc(doc(db, 'guide_institutions', window.guideEditId), { ...data, updatedAt: serverTimestamp() });
+              showToast('Kayıt güncellendi.');
+            } else {
+              await addDoc(collection(db, 'guide_institutions'), { ...data, createdAt: serverTimestamp() });
+              showToast('Rehbere eklendi.');
+            }
+            cancelGuideEdit();
+            loadGuide();
+            loadDashboard();
+          } catch (err) { alert('Kaydedilemedi: ' + err.message); }
+          finally { btn.disabled = false; }
+        });
+
+        document.getElementById('formPlace')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById('placeSubmitBtn');
+          const data = {
+            name: document.getElementById('placeName').value.trim(),
+            summary: document.getElementById('placeSummary').value.trim(),
+            category: document.getElementById('placeCategory').value,
+            detailUrl: document.getElementById('placeUrl').value.trim(),
+            image: document.getElementById('placeImage').value.trim()
+          };
+          const km = num(document.getElementById('placeDistance').value);
+          if (km !== null) data.distanceKm = km;
+          btn.disabled = true;
+          try {
+            if (window.placeEditId) {
+              await updateDoc(doc(db, 'guide_places', window.placeEditId), { ...data, updatedAt: serverTimestamp() });
+              showToast('Yer güncellendi.');
+            } else {
+              await addDoc(collection(db, 'guide_places'), { ...data, createdAt: serverTimestamp() });
+              showToast('Yer eklendi.');
+            }
+            cancelPlaceEdit();
+            loadPlaces();
+            loadDashboard();
+          } catch (err) { alert('Kaydedilemedi: ' + err.message); }
+          finally { btn.disabled = false; }
+        });
+      });
+    })();
+
     // ───────────────── 11. GEBZE PATİ ─────────────────
     window.switchPatiTab = (subTab) => {
       document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
@@ -2447,7 +2424,6 @@
           </td>
           <td>
             <div style="display:flex; flex-direction:column; gap:3px;">
-              <span class="badge badge-info" style="font-size:11px;">📋 ${u.totalRequests || 0} Talep</span>
               <span class="badge badge-purple" style="font-size:11px;">💡 ${u.totalSuggestions || 0} Öneri</span>
             </div>
           </td>
@@ -2488,27 +2464,6 @@
       if (np.sozSende) prefs.push('🗳️ Söz Sende');
       document.getElementById("modalUserPrefs").innerText = prefs.length ? prefs.join(' • ') : 'Tüm bildirimler açık';
 
-      // Kullanıcının Talepleri
-      const userReports = (window.reportsCache || []).filter(r => r.userId === userId);
-      const repContainer = document.getElementById("modalUserReportsList");
-      if (userReports.length === 0) {
-        repContainer.innerHTML = '<div style="font-size:12.5px; color:var(--text-muted); padding:10px; background:#F8FAFC; border-radius:8px;">Bu vatandaşa ait aktif Çek & Gönder talebi bulunmuyor.</div>';
-      } else {
-        repContainer.innerHTML = userReports.map(r => `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:10px 12px; border-radius:8px; margin-bottom:6px; border:1px solid var(--border);">
-            <div>
-              <strong style="color:var(--navy); font-size:12.5px;">${r.ticketNo || r.id.substring(0, 8)}</strong> - 
-              <span style="font-size:12.5px; font-weight:600;">${r.category || 'Talep'}</span>
-              <div style="font-size:11.5px; color:var(--text-muted);">${(r.description || '').substring(0, 60)}...</div>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="badge ${r.status === 'Çözüldü' ? 'badge-success' : 'badge-warning'}">${r.status || 'Beklemede'}</span>
-              <button class="btn btn-outline btn-sm" onclick="closeUserDetailModal(); openReportDetailModal('${r.id}');">Talebi Gör</button>
-            </div>
-          </div>
-        `).join('');
-      }
-
       document.getElementById("userDetailModal").classList.add("active");
     };
 
@@ -2519,9 +2474,9 @@
     window.exportUsersCsv = () => {
       const list = window.usersListCache || [];
       if (!list.length) return alert("Dışa aktarılacak vatandaş verisi bulunamadı.");
-      let csv = "ID;Ad Soyad;TC Kimlik;E-posta;Telefon;Mahalle;Adres;Talep Sayisi;Durum\n";
+      let csv = "ID;Ad Soyad;TC Kimlik;E-posta;Telefon;Mahalle;Adres;Durum\n";
       list.forEach(u => {
-        csv += `"${u.id}";"${u.fullName || ''}";"${u.tcNo || ''}";"${u.email || ''}";"${u.phoneNumber || ''}";"${u.neighborhood || ''}";"${(u.address || '').replace(/"/g, '""')}";"${u.totalRequests || 0}";"${u.isVerified ? 'Dogrulandi' : 'Bekliyor'}"\n`;
+        csv += `"${u.id}";"${u.fullName || ''}";"${u.tcNo || ''}";"${u.email || ''}";"${u.phoneNumber || ''}";"${u.neighborhood || ''}";"${(u.address || '').replace(/"/g, '""')}";"${u.isVerified ? 'Dogrulandi' : 'Bekliyor'}"\n`;
       });
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -2931,39 +2886,7 @@
       }
     };
 
-    // ───────────────── DIŞA AKTAR (CSV / JSON EXPORT) ─────────────────
-    window.exportData = (colName, format) => {
-      let items = [];
-      if (colName === 'reports') items = window.reportsCache || [];
-
-      if (items.length === 0) {
-        alert("Dışa aktarılacak kayıt bulunmuyor.");
-        return;
-      }
-
-      if (format === 'json') {
-        const jsonStr = JSON.stringify(items, null, 2);
-        downloadFile(`gebze_${colName}_${Date.now()}.json`, 'application/json', jsonStr);
-      } else {
-        // CSV
-        const headers = ["TalepNo", "Vatandas", "Telefon", "Kategori", "Mahalle", "Adres", "Durum", "Aciklama", "Tarih"];
-        const rows = items.map(r => [
-          `"${r.ticketNo || r.id}"`,
-          `"${r.userName || (r.isGuest ? 'Misafir' : 'Vatandaş')}"`,
-          `"${r.userPhone || ''}"`,
-          `"${r.category || ''}"`,
-          `"${r.neighborhood || ''}"`,
-          `"${(r.address || '').replace(/"/g, '""')}"`,
-          `"${r.status || 'Beklemede'}"`,
-          `"${(r.description || '').replace(/"/g, '""')}"`,
-          `"${r.createdAt?.toMillis ? new Date(r.createdAt.toMillis()).toLocaleString('tr-TR') : ''}"`
-        ]);
-        const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map(e => e.join(";"))].join("\n");
-        downloadFile(`gebze_${colName}_${Date.now()}.csv`, 'text/csv;charset=utf-8;', csvContent);
-      }
-      showToast(`${items.length} adet kayıt başarıyla dışa aktarıldı.`);
-    };
-
+    // ───────────────── DIŞA AKTAR ─────────────────
     function downloadFile(filename, type, data) {
       const blob = new Blob([data], { type });
       const a = document.createElement('a');
@@ -3008,20 +2931,14 @@
     </div>
 
     <div class="sidebar-nav">
-      <div class="nav-group-label">GENEL</div>
+      <div class="nav-group-label">Genel</div>
       <div class="nav-item active" id="nav-dashboard"
         onclick="switchNav('dashboard', 'Genel Bakış', 'Belediye dijital hizmet istatistikleri ve sistem durumu')">
         <span class="icon">📊</span>
         <span>Genel Bakış</span>
       </div>
 
-      <div class="nav-group-label">VATANDAŞ TALEPLERİ & İLETİŞİM</div>
-      <div class="nav-item" id="nav-reports"
-        onclick="switchNav('reports', 'Çek & Gönder (Talepler & Şikayetler)', 'Mobil uygulamadan vatandaşlar tarafından iletilen sorunlar ve birim yanıtları')">
-        <span class="icon">📸</span>
-        <span>Çek & Gönder (Talepler)</span>
-        <span class="nav-badge danger" id="badgePendingReports" style="display:none;">0</span>
-      </div>
+      <div class="nav-group-label">Vatandaş etkileşimi</div>
       <div class="nav-item" id="nav-suggestions"
         onclick="switchNav('suggestions', 'Vatandaş Önerileri', 'Söz Sende önerileri ve moderasyon onay süreci')">
         <span class="icon">💡</span>
@@ -3034,7 +2951,7 @@
         <span>Söz Sende (Anketler)</span>
       </div>
 
-      <div class="nav-group-label">HABER & DUYURU YAYINI</div>
+      <div class="nav-group-label">Haber ve duyuru yayını</div>
       <div class="nav-item" id="nav-news"
         onclick="switchNav('news', 'Haberler & Duyurular', 'Belediyemizden en güncel haberler ve mobil kart ön okuma metinleri')">
         <span class="icon">📰</span>
@@ -3051,7 +2968,7 @@
         <span>Acil Duyuru & Bildirim</span>
       </div>
 
-      <div class="nav-group-label">ŞEHİR HİZMETLERİ & ALTYAPI</div>
+      <div class="nav-group-label">Şehir hizmetleri ve altyapı</div>
       <div class="nav-item" id="nav-outages"
         onclick="switchNav('outages', 'Kesinti Bildirimleri', 'İSU, SEDAŞ ve PALGAZ su, elektrik, doğalgaz planlı kesintileri')">
         <span class="icon">⚡</span>
@@ -3073,14 +2990,26 @@
         <span>Afet Toplanma Alanları</span>
       </div>
 
-      <div class="nav-group-label">CAN DOSTLARIMIZ</div>
+      <div class="nav-group-label">Şehir rehberi</div>
+      <div class="nav-item" id="nav-guide"
+        onclick="switchNav('guide', 'Şehir Rehberi', 'Parklar, lokantalar, pazarlar, mezarlıklar, kreşler ve belediye birimleri')">
+        <span class="icon">🧭</span>
+        <span>Rehber Kurumları</span>
+      </div>
+      <div class="nav-item" id="nav-places"
+        onclick="switchNav('places', 'Gebze\'yi Keşfet', 'Camiler, müzeler, tarihi yapılar ve doğa alanları')">
+        <span class="icon">🏰</span>
+        <span>Tarihi & Gezilecek Yerler</span>
+      </div>
+
+      <div class="nav-group-label">Can dostlarımız</div>
       <div class="nav-item" id="nav-pets"
         onclick="switchNav('pets', 'Gebze Pati Portalı', 'Sahiplendirme, besleme odakları ve nöbetçi veterinerler')">
         <span class="icon">🐾</span>
         <span>Gebze Pati</span>
       </div>
 
-      <div class="nav-group-label">KURUMSAL & YÖNETİM</div>
+      <div class="nav-group-label">Kurumsal ve yönetim</div>
       <div class="nav-item" id="nav-ebelediye"
         onclick="switchNav('ebelediye', 'E-Belediye Hizmetleri', 'Vergi, imar, beyan ve resmi portal yönlendirmeleri')">
         <span class="icon">🏛️</span>
@@ -3133,13 +3062,6 @@
       <section class="tab-view active" id="view-dashboard">
         <!-- KPI Cards -->
         <div class="kpi-grid">
-          <div class="kpi-card" onclick="switchNav('reports', 'Çek & Gönder (Talepler & Şikayetler)')">
-            <div class="kpi-icon" style="background:var(--danger-soft); color:var(--danger);">📸</div>
-            <div class="kpi-info">
-              <h3 id="kpiReports">0</h3>
-              <p>Aktif / Bekleyen Talep</p>
-            </div>
-          </div>
           <div class="kpi-card" onclick="switchNav('suggestions', 'Vatandaş Önerileri')">
             <div class="kpi-icon" style="background:var(--warning-soft); color:var(--warning);">💡</div>
             <div class="kpi-info">
@@ -3196,6 +3118,20 @@
               <p>Kültür & Sanat Etkinliği</p>
             </div>
           </div>
+          <div class="kpi-card" onclick="switchNav('guide', 'Şehir Rehberi', 'Uygulamadaki Rehber kategorilerinde görünen kurumlar ve mekanlar')">
+            <div class="kpi-icon" style="background:#E8F5E9; color:#2E7D32;">🧭</div>
+            <div class="kpi-info">
+              <h3 id="kpiGuide">0</h3>
+              <p>Rehber Kaydı</p>
+            </div>
+          </div>
+          <div class="kpi-card" onclick="switchNav('places', 'Gebze\'yi Keşfet', 'Tarihi ve gezilecek yerler')">
+            <div class="kpi-icon" style="background:#F3E5F5; color:#8E24AA;">🏰</div>
+            <div class="kpi-info">
+              <h3 id="kpiPlaces">0</h3>
+              <p>Tarihi / Gezilecek Yer</p>
+            </div>
+          </div>
         </div>
 
         <!-- Hızlı İşlemler & Kısayollar -->
@@ -3204,7 +3140,7 @@
             <div class="panel-title">⚡ Hızlı İşlemler & Belediye Yönetici Kısayolları</div>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:12px;">
-            <button class="btn btn-primary" onclick="switchNav('reports')">📸 Çek & Gönder Taleplerini Yönet</button>
+            <button class="btn btn-primary" onclick="switchNav('guide', 'Şehir Rehberi')">🧭 Rehbere Yeni Kayıt Ekle</button>
             <button class="btn btn-outline" onclick="switchNav('broadcast')">📡 Acil Bildirim / Duyuru Yayınla</button>
             <button class="btn btn-outline" onclick="switchNav('news')">➕ Yeni Haber Yayınla</button>
             <button class="btn btn-outline" onclick="switchNav('outages')">➕ Kesinti Bildir (İSU/SEDAŞ/PALGAZ)</button>
@@ -3219,106 +3155,10 @@
             <div class="panel-title">🟢 Sistem Durumu & Canlı Senkronizasyon</div>
           </div>
           <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
-            Bu yönetim portalı, Gebze Belediyesi mobil uygulamasının (Flutter) bulut veritabanını (Google Cloud
-            Firestore) doğrudan <strong>canlı ve iki yönlü</strong> olarak yönetir. Vatandaşların telefonlarından Çek &
-            Gönder ile ilettiği şikayetler bu panele anında düşer; burada güncellediğiniz statü ("İnceleniyor", "İşleme
-            Alındı", "Çözüldü") ve eklediğiniz birim yanıtı vatandaşın cihazında anlık olarak güncellenir.
+            Bu portal, Gebze Belediyesi mobil uygulamasının bulut veritabanını (Cloud Firestore) canlı olarak yönetir.
+            Burada eklediğiniz haber, duyuru, kesinti ve rehber kayıtları uygulamada anında görünür. Talep, şikayet ve
+            öneri başvuruları uygulamada ULAKBEL (Çözüm Masası) sayfasına yönlendirildiği için bu panelde yönetilmez.
           </p>
-        </div>
-      </section>
-
-      <!-- ════════ 2. ÇEK & GÖNDER (REPORTS / TALEPLER) TAB ════════ -->
-      <section class="tab-view" id="view-reports">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <span>📸 Vatandaş Çek & Gönder Şikayet ve Talepleri</span>
-              <span class="badge badge-primary" id="reportCountBadge">0 Talep</span>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-outline btn-sm active" id="btnViewTable" onclick="switchReportsView('table')">📋
-                Tablo</button>
-              <button class="btn btn-outline btn-sm" id="btnViewGrid" onclick="switchReportsView('grid')">🔲
-                Kartlar</button>
-              <button class="btn btn-success btn-sm" onclick="exportData('reports', 'csv')">📥 Excel / CSV
-                İndir</button>
-              <button class="btn btn-outline btn-sm" onclick="renderReportsView()">🔄 Yenile</button>
-            </div>
-          </div>
-
-          <!-- Filtreleme & Arama -->
-          <div class="filter-bar">
-            <div class="search-input">
-              <input type="text" id="reportSearch" placeholder="🔍 Talep No, Vatandaş Adı, Telefon..."
-                oninput="renderReportsView()">
-            </div>
-            <select id="reportFilterStatus" onchange="renderReportsView()" style="width:auto;">
-              <option value="all">Tüm Durumlar</option>
-              <option value="pending">Beklemede</option>
-              <option value="reviewing">İnceleniyor</option>
-              <option value="in_progress">İşleme Alındı</option>
-              <option value="resolved">Çözüldü</option>
-              <option value="rejected">Reddedildi</option>
-            </select>
-            <select id="reportFilterNeighborhood" onchange="renderReportsView()" style="width:auto;">
-              <option value="">Tüm Mahalleler</option>
-              <option value="Mustafapaşa">Mustafapaşa</option>
-              <option value="Osman Yılmaz">Osman Yılmaz</option>
-              <option value="Arapçeşme">Arapçeşme</option>
-              <option value="Hacıhalil">Hacıhalil</option>
-              <option value="Mevlana">Mevlana</option>
-              <option value="Gaziler">Gaziler</option>
-              <option value="Eskihisar">Eskihisar</option>
-              <option value="Köşklü Çeşme">Köşklü Çeşme</option>
-              <option value="Güzeller">Güzeller</option>
-              <option value="Yenikent">Yenikent</option>
-              <option value="İnönü">İnönü</option>
-              <option value="İstasyon">İstasyon</option>
-              <option value="Tatlıkuyu">Tatlıkuyu</option>
-              <option value="Barış">Barış</option>
-              <option value="Kirazpınar">Kirazpınar</option>
-              <option value="Sultan Orhan">Sultan Orhan</option>
-              <option value="Ulus">Ulus</option>
-              <option value="Yavuz Selim">Yavuz Selim</option>
-              <option value="Cumhuriyet">Cumhuriyet</option>
-              <option value="Beylikbağı">Beylikbağı</option>
-              <option value="Hürriyet">Hürriyet</option>
-              <option value="Mimar Sinan">Mimar Sinan</option>
-            </select>
-            <select id="reportFilterCategory" onchange="renderReportsView()" style="width:auto;">
-              <option value="">Tüm Kategoriler</option>
-              <option value="pothole">Çukur & Asfalt</option>
-              <option value="garbage">Çöp & Temizlik</option>
-              <option value="pavement">Kaldırım & Parke</option>
-              <option value="lighting">Aydınlatma & Lamba</option>
-              <option value="water">Su & Kanalizasyon</option>
-              <option value="park">Park & Bahçe</option>
-              <option value="other">Diğer</option>
-            </select>
-          </div>
-
-          <!-- Tablo Görünümü -->
-          <div id="reportsTableWrap" class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Takip No</th>
-                  <th>Vatandaş</th>
-                  <th>Kategori / Mahalle</th>
-                  <th>Şikayet Özeti</th>
-                  <th>Fotoğraf</th>
-                  <th>Durum</th>
-                  <th>İşlem</th>
-                </tr>
-              </thead>
-              <tbody id="reportsTableBody"></tbody>
-            </table>
-          </div>
-
-          <!-- Kart Görünümü (Alternatif) -->
-          <div id="reportsGridWrap" style="display:none;">
-            <div class="items-grid" id="reportsGrid"></div>
-          </div>
         </div>
       </section>
 
@@ -3843,6 +3683,144 @@
         </div>
       </section>
 
+      <!-- ════════ REHBER KURUMLARI TAB ════════ -->
+      <section class="tab-view" id="view-guide">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title" id="guideFormTitle">Rehbere yeni kayıt ekle</div>
+            </div>
+            <form id="formGuide">
+              <div class="form-group">
+                <label>Kategori *</label>
+                <select id="guideCategory" required>
+                  <option value="parklar">🌳 Parklar</option>
+                  <option value="lokantalar">🍽️ Lokantalar</option>
+                  <option value="pazar">🛒 Pazar yerleri</option>
+                  <option value="spor">⚽ Spor tesisleri</option>
+                  <option value="kultur">🎭 Kültür merkezleri</option>
+                  <option value="mezarliklar">🪦 Mezarlıklar</option>
+                  <option value="kresler">🧸 Kreşler</option>
+                  <option value="belediye">🏛️ Belediye birimleri</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Ad *</label>
+                <input type="text" id="guideName" placeholder="Örn: Gebze Merkez Mezarlığı" required>
+              </div>
+              <div class="form-group">
+                <label>Açıklama</label>
+                <textarea id="guideDesc" rows="3" placeholder="Uygulamadaki kartta görünecek kısa açıklama"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Adres</label>
+                <input type="text" id="guideAddress" placeholder="Mahalle, cadde, no">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Telefon</label>
+                  <input type="text" id="guidePhone" placeholder="0262 642 04 30">
+                </div>
+                <div class="form-group">
+                  <label>Harita arama metni</label>
+                  <input type="text" id="guideMapQuery" placeholder="Boşsa ad + Gebze kullanılır">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Enlem</label>
+                  <input type="text" id="guideLat" inputmode="decimal" placeholder="40.8090">
+                </div>
+                <div class="form-group">
+                  <label>Boylam</label>
+                  <input type="text" id="guideLng" inputmode="decimal" placeholder="29.4350">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Görsel adresi (URL)</label>
+                <input type="url" id="guideImage" placeholder="https://...">
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary" id="guideSubmitBtn" style="flex:1;">Rehbere ekle</button>
+                <button type="button" class="btn btn-outline" id="guideCancelBtn" style="display:none;"
+                  onclick="cancelGuideEdit()">Vazgeç</button>
+              </div>
+              <p class="form-note">
+                Etkinlikler bu listede değil, <strong>Etkinlikler</strong> sekmesinden yönetilir. Mezarlıklar ve Kreşler
+                kategorisinde hiç kayıt yoksa uygulama yerleşik örnek listeyi gösterir; ilk kaydı eklediğinizde bu liste
+                yerine sizin kayıtlarınız görünür.
+              </p>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header">
+              <div class="panel-title">Rehber kayıtları <span class="count-pill" id="guideCount">0</span></div>
+            </div>
+            <div class="chip-bar" id="guideChips"></div>
+            <div class="items-grid" id="guideGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════ TARİHİ & GEZİLECEK YERLER TAB ════════ -->
+      <section class="tab-view" id="view-places">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title" id="placeFormTitle">Yeni yer ekle</div>
+            </div>
+            <form id="formPlace">
+              <div class="form-group">
+                <label>Yer adı *</label>
+                <input type="text" id="placeName" placeholder="Örn: Çoban Mustafa Paşa Camii ve Külliyesi" required>
+              </div>
+              <div class="form-group">
+                <label>Kısa özet *</label>
+                <textarea id="placeSummary" rows="3" placeholder="Kartta görünecek 1-2 cümlelik açıklama" required></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Kategori *</label>
+                  <select id="placeCategory" required>
+                    <option value="Tarihi">🏰 Tarihi</option>
+                    <option value="Camiler">🕌 Camiler</option>
+                    <option value="Müzeler">🏛️ Müzeler</option>
+                    <option value="Doğa">🌿 Doğa</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Merkeze uzaklık (km)</label>
+                  <input type="text" id="placeDistance" inputmode="decimal" placeholder="Örn: 2.5">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Detay sayfası linki</label>
+                <input type="url" id="placeUrl" placeholder="https://www.gebze.bel.tr/...">
+              </div>
+              <div class="form-group">
+                <label>Görsel adresi (URL)</label>
+                <input type="url" id="placeImage" placeholder="https://...">
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary" id="placeSubmitBtn" style="flex:1;">Yeri ekle</button>
+                <button type="button" class="btn btn-outline" id="placeCancelBtn" style="display:none;"
+                  onclick="cancelPlaceEdit()">Vazgeç</button>
+              </div>
+              <p class="form-note">
+                Bu koleksiyona ilk kaydı eklediğinizde uygulama yerleşik 13 yerlik örnek listeyi bırakır ve yalnızca
+                buradaki kayıtları gösterir. Mevcut yerleri korumak istiyorsanız onları da buradan ekleyin.
+              </p>
+            </form>
+          </div>
+          <div>
+            <div class="panel-header">
+              <div class="panel-title">Kayıtlı yerler <span class="count-pill" id="placesCount">0</span></div>
+            </div>
+            <div class="items-grid" id="placesGrid"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ════════ 12. GEBZE PATİ TAB ════════ -->
       <section class="tab-view" id="view-pets">
         <div class="sub-tabs">
@@ -4022,85 +4000,6 @@
     </main>
   </div>
 
-  <!-- ─── TALEP DETAY & AKSİYON MODALI ─── -->
-  <div class="modal-overlay" id="reportDetailModal">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <h3>Talep İnceleme & Birim Yanıtı: <span id="modalReportTicket" style="color:var(--navy-light);"></span></h3>
-        <button class="modal-close" onclick="closeReportDetailModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Vatandaş
-              Bilgisi</div>
-            <div id="modalReportCitizen" style="font-weight:700; font-size:14px; margin-top:2px;"></div>
-          </div>
-          <div>
-            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Kategori
-            </div>
-            <div id="modalReportCategory" style="font-weight:700; font-size:14px; margin-top:2px;"></div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Konum & Adres
-          </div>
-          <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
-            <span id="modalReportLocation" style="font-weight:600; font-size:13.5px;"></span>
-            <a id="modalReportMapBtn" href="#" target="_blank" class="btn btn-outline btn-sm"
-              style="display:none; padding:3px 8px;">📍 Haritada Göster</a>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800;">Vatandaş
-            Şikayet Metni</div>
-          <div id="modalReportDesc"
-            style="font-size:13.5px; line-height:1.5; color:var(--text-dark); background:#F8FAFC; padding:12px; border-radius:10px; border:1px solid var(--border); margin-top:4px;">
-          </div>
-        </div>
-
-        <div id="modalReportImageBox" style="margin-bottom:16px; display:none;"></div>
-
-        <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Talep Durumunu Güncelle *</label>
-              <select id="modalReportStatusSelect" style="font-weight:700;">
-                <option value="Beklemede">⏳ Beklemede</option>
-                <option value="İnceleniyor">🔍 İnceleniyor</option>
-                <option value="İşleme Alındı">🔧 İşleme Alındı</option>
-                <option value="Çözüldü">✅ Çözüldü</option>
-                <option value="Reddedildi">❌ Reddedildi</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Vatandaşa İletilecek Resmi Birim Yanıtı / Notu</label>
-            <textarea id="modalReportNoteInput" rows="3"
-              placeholder="Örn: Ekiplerimiz olay yerine intikal etmiş olup çukur onarımı tamamlanmıştır. Teşekkür ederiz."></textarea>
-            <p style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
-              ℹ️ Bu yanıt vatandaşın telefonunda "Taleplerim" sayfasındaki yeşil kutucukta ("Belediye Yanıtı") doğrudan
-              görüntülenir.
-            </p>
-          </div>
-        </div>
-
-        <div style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
-          <div style="font-size:12px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">Durum & İşlem
-            Tarihçesi</div>
-          <div id="modalReportHistory"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeReportDetailModal()">Vazgeç</button>
-        <button class="btn btn-primary" id="btnSaveReportAction" onclick="saveReportAction()">💾 Yanıtı Kaydet & Durum
-          Güncelle</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ─── VATANDAŞ DETAY MODALI ─── -->
   <div class="modal-overlay" id="userDetailModal">
     <div class="modal-card modal-lg">
@@ -4162,13 +4061,6 @@
           </div>
         </div>
 
-        <!-- Vatandaşın Başvuruları -->
-        <div style="border-top:1px solid var(--border); padding-top:14px; margin-top:14px;">
-          <div style="font-size:12.5px; font-weight:800; color:var(--text-dark); margin-bottom:10px;">
-            📋 Vatandaşın Çek & Gönder Başvuruları
-          </div>
-          <div id="modalUserReportsList"></div>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeUserDetailModal()">Kapat</button>
@@ -4185,15 +4077,12 @@
       </div>
       <div class="modal-body">
         <div style="margin-bottom:20px;">
-          <h4 style="font-size:14px; font-weight:800; margin-bottom:6px;">📊 Resmi Raporlama & Veri İndirme</h4>
+          <h4 style="font-size:14px; font-weight:800; margin-bottom:6px;">Veri indirme</h4>
           <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">
-            Vatandaş başvurularını Excel/CSV veya JSON formatında belediye arşivine indirebilirsiniz.
+            Kayıtlı vatandaş listesini Excel ile açılabilen CSV dosyası olarak indirin.
           </p>
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-success btn-sm" onclick="exportData('reports', 'csv')">📥 Talepleri Excel (CSV)
-              İndir</button>
-            <button class="btn btn-outline btn-sm" onclick="exportData('reports', 'json')">📥 Talepleri JSON
-              İndir</button>
+            <button class="btn btn-success btn-sm" onclick="exportUsersCsv()">Vatandaş listesini indir (CSV)</button>
           </div>
         </div>
 
