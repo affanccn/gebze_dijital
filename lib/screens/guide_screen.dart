@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'auth_guard.dart';
 import 'favorites_service.dart';
 import 'guide_foods.dart';
@@ -49,9 +50,7 @@ Widget _tombstoneIcon(Color color, double size) {
   return SizedBox(
     width: size,
     height: size,
-    child: CustomPaint(
-      painter: _TombstonePainter(color: color),
-    ),
+    child: CustomPaint(painter: _TombstonePainter(color: color)),
   );
 }
 
@@ -199,8 +198,10 @@ class _Category {
     this.iconBuilder,
   });
 }
-  String _nurseryTitle(String lang) =>
-     lang == 'en' ? 'Nurseries' : (lang == 'ar' ? 'دور الحضانة' : 'Kreş ve Atölyeler');
+
+String _nurseryTitle(String lang) => lang == 'en'
+    ? 'Nurseries'
+    : (lang == 'ar' ? 'دور الحضانة' : 'Kreş ve Atölyeler');
 List<_Category> _getCategories(String lang) => [
   _Category(
     'etkinlikler',
@@ -481,7 +482,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       image: 'gorsel/piknik/yelken_tepe.png',
       category: catDoga,
     ),
-        HistoricPlace(
+    HistoricPlace(
       id: 'ibrahim_pasa_cesmesi',
       name: isEn
           ? 'Ibrahim Pasha Fountain (Market Fountain)'
@@ -493,8 +494,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
           : isAr
           ? 'سبيل عثماني من القرن السابع عشر في قلب جبزة، بناه الوزير إبراهيم باشا بجوار حمام جوبان مصطفى باشا.'
           : 'Gebze şehir merkezinde, Çoban Mustafa Paşa Hamamı\'nın hemen yanında yer alan; Vezir İbrahim Paşa tarafından 17. yüzyılda yaptırılan Osmanlı çeşmesi.',
-      detailUrl:
-          'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
       image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg', // dosya adını klasördekiyle eşleştir
       category: catTarihi,
     ),
@@ -510,8 +510,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
           : isAr
           ? 'سبيل تاريخي في قرية إسكي حصار، يذكّر بثقافة المياه العثمانية العريقة في المنطقة.'
           : 'Eskihisar köyünde bulunan, bölgenin Osmanlı dönemi su kültürünü yansıtan tarihi çeşme.',
-      detailUrl:
-          'https://www.gebze.bel.tr/gebze-tarihi-yerler_eskihisar-cesmesi_11.html',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_eskihisar-cesmesi_11.html',
       image: 'gorsel/tarihi_yerler/escesme.jpg',
       category: catTarihi,
     ),
@@ -531,7 +530,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       image: 'gorsel/tarihi_yerler/sudolabi.jpg',
       category: catTarihi,
     ),
-        HistoricPlace(
+    HistoricPlace(
       id: 'cmp_sadirvani',
       name: isEn
           ? 'Coban Mustafa Pasha Fountain (Sadirvan)'
@@ -543,8 +542,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
           : isAr
           ? 'شاذروان مجمع جوبان مصطفى باشا من القرن السادس عشر، وهو من العناصر العثمانية الكلاسيكية في المجمع.'
           : '16. yüzyılda inşa edilen Çoban Mustafa Paşa Külliyesi\'nin klasik dönem Osmanlı mimarisini yansıtan şadırvanı.',
-      detailUrl:
-          'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
       image: 'gorsel/tarihi_yerler/sadirvan.jpg', // dosya adını klasördekiyle eşleştir
       category: catTarihi,
     ),
@@ -560,8 +558,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
           : isAr
           ? 'الحمام التاريخي لمجمع جوبان مصطفى باشا، شُيّد في القرن السادس عشر ويقع في منطقة السوق القديمة بجبزة.'
           : 'Çoban Mustafa Paşa Külliyesi\'nin 16. yüzyıldan kalan tarihi hamamı; Gebze\'nin eski çarşı bölgesinde yer alır.',
-      detailUrl:
-          'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-hamami_12.html',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-hamami_12.html',
       image: 'gorsel/tarihi_yerler/hamam.jpg',
       category: catTarihi,
     ),
@@ -597,7 +594,9 @@ void _ensurePlacesSeeded() {
           }, SetOptions(merge: true));
         }
         await batch.commit();
-        debugPrint('Places: 18 tarihi ve gezilecek yer Firebase guide_places koleksiyonuna başarıyla eşitlendi.');
+        debugPrint(
+          'Places: 18 tarihi ve gezilecek yer Firebase guide_places koleksiyonuna başarıyla eşitlendi.',
+        );
       }
     } catch (e) {
       debugPrint('Places seed hatası: $e');
@@ -615,14 +614,15 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Gebze Central Cemetery & Martyrdom'
           : isAr
-              ? 'مقبرة جبزة المركزية وصرح الشهداء'
-              : 'Gebze Merkez Mezarlığı ve Şehitliği',
+          ? 'مقبرة جبزة المركزية وصرح الشهداء'
+          : 'Gebze Merkez Mezarlığı ve Şehitliği',
       'description': isEn
           ? 'Main central cemetery of Gebze including the Martyrdom area. Primary location for burial and memorial services.'
           : isAr
-              ? 'المقبرة المركزية الرئيسية في جبزة ونصب الشهداء، وتضم مكاتب إدارة الدفن والمراسم.'
-              : 'Gebze\'nin ana asri mezarlığıdır; bünyesinde Gebze Şehitliği ve Mezarlıklar Şube Müdürlüğü yer alır.',
-      'address': 'Gaziler Mah. Fatih Sultan Mehmet Cad. No:120, Gebze / Kocaeli',
+          ? 'المقبرة المركزية الرئيسية في جبزة ونصب الشهداء، وتضم مكاتب إدارة الدفن والمراسم.'
+          : 'Gebze\'nin ana asri mezarlığıdır; bünyesinde Gebze Şehitliği ve Mezarlıklar Şube Müdürlüğü yer alır.',
+      'address':
+          'Gaziler Mah. Fatih Sultan Mehmet Cad. No:120, Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Gebze Merkez Mezarlığı ve Şehitliği',
       'lat': 40.809088,
@@ -634,13 +634,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Gebze Municipality Cemetery Directorate'
           : isAr
-              ? 'مديرية المقابر وخدمات الجنائز ببلدية جبزة'
-              : 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+          ? 'مديرية المقابر وخدمات الجنائز ببلدية جبزة'
+          : 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
       'description': isEn
           ? '24/7 Alo Cenaze 188 helpline, funeral transport, burial procedures, and grave allocation services.'
           : isAr
-              ? 'خدمات الجنائز المجانية على مدار الساعة عبر 188، ونقل الجثامين وإجراءات حجز القبور.'
-              : '7/24 Alo Cenaze 188 hattı, ücretsiz cenaze nakil, defin işlemleri, mezar yeri tahsisi ve taziye çadırı birimi.',
+          ? 'خدمات الجنائز المجانية على مدار الساعة عبر 188، ونقل الجثامين وإجراءات حجز القبور.'
+          : '7/24 Alo Cenaze 188 hattı, ücretsiz cenaze nakil, defin işlemleri, mezar yeri tahsisi ve taziye çadırı birimi.',
       'address': 'Gaziler Mah. Işıkgöl Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
@@ -653,13 +653,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Pelitli Cemetery'
           : isAr
-              ? 'مقبرة بيليتلي'
-              : 'Pelitli Mezarlığı',
+          ? 'مقبرة بيليتلي'
+          : 'Pelitli Mezarlığı',
       'description': isEn
           ? 'Large modern cemetery located in the northern district of Gebze with extensive parceling.'
           : isAr
-              ? 'مقبرة حديثة وواسعة تقع في منطقة بيليتلي وتخدم التوسعات السكانية في جبزة.'
-              : 'Gebze\'nin kuzey aksında yer alan geniş kapasiteli, modern parsellenmiş ana defin mezarlığı.',
+          ? 'مقبرة حديثة وواسعة تقع في منطقة بيليتلي وتخدم التوسعات السكانية في جبزة.'
+          : 'Gebze\'nin kuzey aksında yer alan geniş kapasiteli, modern parsellenmiş ana defin mezarlığı.',
       'address': 'Pelitli Mah. Sanayi Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Pelitli Mezarlığı Gebze',
@@ -672,13 +672,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Adem Yavuz Cemetery'
           : isAr
-              ? 'مقبرة أدهم يافوز'
-              : 'Adem Yavuz Mezarlığı',
+          ? 'مقبرة أدهم يافوز'
+          : 'Adem Yavuz Mezarlığı',
       'description': isEn
           ? 'District cemetery serving residents of Adem Yavuz, Cumhuriyet, and surrounding neighborhoods.'
           : isAr
-              ? 'مقبرة حي أدهم يافوز والمناطق المحيطة بها في جبزة.'
-              : 'Adem Yavuz, Cumhuriyet ve çevre mahalle sakinlerine hizmet veren semt mezarlığı.',
+          ? 'مقبرة حي أدهم يافوز والمناطق المحيطة بها في جبزة.'
+          : 'Adem Yavuz, Cumhuriyet ve çevre mahalle sakinlerine hizmet veren semt mezarlığı.',
       'address': 'Adem Yavuz Mah. Yavuz Sultan Selim Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Adem Yavuz Mezarlığı Gebze',
@@ -691,13 +691,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Mimar Sinan Cemetery'
           : isAr
-              ? 'مقبرة معمار سنان'
-              : 'Mimar Sinan Mezarlığı',
+          ? 'مقبرة معمار سنان'
+          : 'Mimar Sinan Mezarlığı',
       'description': isEn
           ? 'Local neighborhood cemetery located in Mimar Sinan district.'
           : isAr
-              ? 'مقبرة حي معمار سنان في جبزة.'
-              : 'Mimar Sinan Mahallesi sakinlerine defin ve kabir ziyareti hizmeti sunan semt mezarlığı.',
+          ? 'مقبرة حي معمار سنان في جبزة.'
+          : 'Mimar Sinan Mahallesi sakinlerine defin ve kabir ziyareti hizmeti sunan semt mezarlığı.',
       'address': 'Mimar Sinan Mah. Mimar Sinan Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Mimar Sinan Mezarlığı Gebze',
@@ -710,13 +710,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Balçık Village Cemetery'
           : isAr
-              ? 'مقبرة قرية بالشيك'
-              : 'Balçık Köyü Mezarlığı',
+          ? 'مقبرة قرية بالشيك'
+          : 'Balçık Köyü Mezarlığı',
       'description': isEn
           ? 'Rural village cemetery in Balcik district, preserving its peaceful natural setting.'
           : isAr
-              ? 'مقبرة قرية بالشيك التاريخية في ريف جبزة.'
-              : 'Balçık Mahallesi sakinlerinin kullanımında olan, doğal dokusu korunan yerel mezarlık.',
+          ? 'مقبرة قرية بالشيك التاريخية في ريف جبزة.'
+          : 'Balçık Mahallesi sakinlerinin kullanımında olan, doğal dokusu korunan yerel mezarlık.',
       'address': 'Balçık Mah. Balçık Köy İçi Yolu, Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Balçık Köyü Mezarlığı Gebze',
@@ -729,13 +729,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Denizli Village Cemetery'
           : isAr
-              ? 'مقبرة قرية دينيزلي'
-              : 'Denizli Köyü Mezarlığı',
+          ? 'مقبرة قرية دينيزلي'
+          : 'Denizli Köyü Mezarlığı',
       'description': isEn
           ? 'Local cemetery situated near the historical Denizli village and natural pond route.'
           : isAr
-              ? 'مقبرة قرية دينيزلي الريفية بالقرب من الطبيعة والبحيرة.'
-              : 'Denizli Mahallesi sınırlarında bulunan tarihi ve doğa hattına yakın kırsal mahalle mezarlığı.',
+          ? 'مقبرة قرية دينيزلي الريفية بالقرب من الطبيعة والبحيرة.'
+          : 'Denizli Mahallesi sınırlarında bulunan tarihi ve doğa hattına yakın kırsal mahalle mezarlığı.',
       'address': 'Denizli Mah. Köy İçi Mevkii, Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Denizli Mezarlığı Gebze',
@@ -748,13 +748,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Mollafenari Cemetery'
           : isAr
-              ? 'مقبرة قرية ملا فناري'
-              : 'Mollafenari Mezarlığı',
+          ? 'مقبرة قرية ملا فناري'
+          : 'Mollafenari Mezarlığı',
       'description': isEn
           ? 'Historic rural cemetery serving the Mollafenari and surrounding countryside.'
           : isAr
-              ? 'مقبرة قرية ملا فناري التاريخية في منطقة جبزة.'
-              : 'Gebze\'nin tarihi köylerinden Mollafenari bölgesinde bulunan yerel mezarlık.',
+          ? 'مقبرة قرية ملا فناري التاريخية في منطقة جبزة.'
+          : 'Gebze\'nin tarihi köylerinden Mollafenari bölgesinde bulunan yerel mezarlık.',
       'address': 'Mollafenari Mah. Eski İstanbul Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Mollafenari Mezarlığı Gebze',
@@ -767,13 +767,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Tavşanlı Village Cemetery'
           : isAr
-              ? 'مقبرة قرية طفشانلي'
-              : 'Tavşanlı Köyü Mezarlığı',
+          ? 'مقبرة قرية طفشانلي'
+          : 'Tavşanlı Köyü Mezarlığı',
       'description': isEn
           ? 'Local cemetery in Tavsanli near Ballikayalar Nature Park.'
           : isAr
-              ? 'مقبرة قرية طفشانلي بالقرب من متنزه باليكايالار الطبيعي.'
-              : 'Ballıkayalar Tabiat Parkı güzergahındaki Tavşanlı Mahallesi yerel mezarlığı.',
+          ? 'مقبرة قرية طفشانلي بالقرب من متنزه باليكايالار الطبيعي.'
+          : 'Ballıkayalar Tabiat Parkı güzergahındaki Tavşanlı Mahallesi yerel mezarlığı.',
       'address': 'Tavşanlı Mah. Kömürcüoğlu Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Tavşanlı Mezarlığı Gebze',
@@ -786,13 +786,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Cumaköy Cemetery'
           : isAr
-              ? 'مقبرة قرية جمعه كوي'
-              : 'Cumaköy Mezarlığı',
+          ? 'مقبرة قرية جمعه كوي'
+          : 'Cumaköy Mezarlığı',
       'description': isEn
           ? 'Local cemetery in Cumakoy serving the northern countryside of Gebze.'
           : isAr
-              ? 'مقبرة قرية جمعه كوي في شمال جبزة.'
-              : 'Cumaköy Mahallesi ve çevre kırsal yerleşimlerin defin ve kabristan alanı.',
+          ? 'مقبرة قرية جمعه كوي في شمال جبزة.'
+          : 'Cumaköy Mahallesi ve çevre kırsal yerleşimlerin defin ve kabristan alanı.',
       'address': 'Cumaköy Mah. Fatih Sultan Mehmet Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Cumaköy Mezarlığı Gebze',
@@ -805,13 +805,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Ovacık Cemetery'
           : isAr
-              ? 'مقبرة قرية أوفاجيك'
-              : 'Ovacık Mezarlığı',
+          ? 'مقبرة قرية أوفاجيك'
+          : 'Ovacık Mezarlığı',
       'description': isEn
           ? 'Village cemetery located in Ovacik district of Gebze.'
           : isAr
-              ? 'مقبرة قرية أوفاجيك في ريف جبزة.'
-              : 'Ovacık Mahallesi yerel kabristanı ve defin sahası.',
+          ? 'مقبرة قرية أوفاجيك في ريف جبزة.'
+          : 'Ovacık Mahallesi yerel kabristanı ve defin sahası.',
       'address': 'Ovacık Mah. Köy İçi Mevkii, Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Ovacık Mezarlığı Gebze',
@@ -824,13 +824,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'Barış Neighborhood Cemetery'
           : isAr
-              ? 'مقبرة حي باريش'
-              : 'Barış Mahallesi Mezarlığı',
+          ? 'مقبرة حي باريش'
+          : 'Barış Mahallesi Mezarlığı',
       'description': isEn
           ? 'District cemetery serving residents along the Baris neighborhood corridor.'
           : isAr
-              ? 'مقبرة حي باريش في جبزة.'
-              : 'Barış Mahallesi ve D-100 aksındaki semt sakinleri için hizmet veren mezarlık alanı.',
+          ? 'مقبرة حي باريش في جبزة.'
+          : 'Barış Mahallesi ve D-100 aksındaki semt sakinleri için hizmet veren mezarlık alanı.',
       'address': 'Barış Mah. Koşuyolu Cad. Gebze / Kocaeli',
       'phone': '0262 642 04 30',
       'mapQuery': 'Barış Mahallesi Mezarlığı Gebze',
@@ -843,13 +843,13 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'name': isEn
           ? 'e-Government Grave Location & Deceased Inquiry'
           : isAr
-              ? 'استعلام القبور والوفيات عبر بوابة الحكومة الإلكترونية'
-              : 'e-Devlet Mezar Yeri ve Defin Bilgisi Sorgulama',
+          ? 'استعلام القبور والوفيات عبر بوابة الحكومة الإلكترونية'
+          : 'e-Devlet Mezar Yeri ve Defin Bilgisi Sorgulama',
       'description': isEn
           ? 'Query parcel, plot, and cemetery details for deceased relatives via the official Gebze Municipality e-Government portal.'
           : isAr
-              ? 'الاستعلام عن معلومات القبر والقطعة للوفيات التابعة لبلدية جبزة عبر بوابة الحكومة الإلكترونية e-Devlet.'
-              : 'Gebze Belediyesi e-Devlet hizmeti ile vefat eden yakınlarınızın mezarlık, ada ve parsel bilgilerini online sorgulayabilirsiniz.',
+          ? 'الاستعلام عن معلومات القبر والقطعة للوفيات التابعة لبلدية جبزة عبر بوابة الحكومة الإلكترونية e-Devlet.'
+          : 'Gebze Belediyesi e-Devlet hizmeti ile vefat eden yakınlarınızın mezarlık, ada ve parsel bilgilerini online sorgulayabilirsiniz.',
       'address': 'Gebze Belediyesi Online Hizmetler / e-Devlet',
       'phone': '188',
       'mapQuery': 'Gebze Belediyesi',
@@ -888,7 +888,9 @@ void _ensureCemeteriesSeeded() {
           }, SetOptions(merge: true));
         }
         await batch.commit();
-        debugPrint('Cemeteries: 13 mezarlık Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.');
+        debugPrint(
+          'Cemeteries: 13 mezarlık Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.',
+        );
       }
     } catch (e) {
       debugPrint('Cemeteries seed hatası: $e');
@@ -906,13 +908,13 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Gebze Municipality Güzide Baby & Child Care Home'
           : isAr
-              ? 'دار رعاية الرضع والأطفال Güzide ببلدية جبزة'
-              : 'Gebze Belediyesi Güzide Bebek ve Çocuk Bakım Evi',
+          ? 'دار رعاية الرضع والأطفال Güzide ببلدية جبزة'
+          : 'Gebze Belediyesi Güzide Bebek ve Çocuk Bakım Evi',
       'description': isEn
           ? '24/7 day and night care for children aged 0–66 months, with development workshops. Call the Gebze Municipality Solution Center for registration and application details.'
           : isAr
-              ? 'رعاية ليلية ونهارية على مدار الساعة للأطفال من عمر 0 إلى 66 شهراً مع ورش تنمية. للتسجيل والتقديم يمكنكم الاتصال بمركز الحلول في بلدية جبزة.'
-              : '0–66 ay arası çocuklara 7/24 gece ve gündüz bakım hizmeti ile gelişim atölyeleri sunar. Kayıt ve başvuru bilgisi için Gebze Belediyesi Çözüm Merkezi ile görüşebilirsiniz.',
+          ? 'رعاية ليلية ونهارية على مدار الساعة للأطفال من عمر 0 إلى 66 شهراً مع ورش تنمية. للتسجيل والتقديم يمكنكم الاتصال بمركز الحلول في بلدية جبزة.'
+          : '0–66 ay arası çocuklara 7/24 gece ve gündüz bakım hizmeti ile gelişim atölyeleri sunar. Kayıt ve başvuru bilgisi için Gebze Belediyesi Çözüm Merkezi ile görüşebilirsiniz.',
       'address': 'Osman Yılmaz Mah. 608/2. Sokak No: 7, Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Güzide 7/24 Bebek ve Çocuk Bakım Evi Gebze',
@@ -923,14 +925,15 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Enderun Child Workshops - Mustafa Paşa Center'
           : isAr
-              ? 'ورش عمل أندرون للأطفال - فرع مصطفى باشا الرئيسي'
-              : 'Enderun Çocuk Atölyeleri - Mustafa Paşa Birimi',
+          ? 'ورش عمل أندرون للأطفال - فرع مصطفى باشا الرئيسي'
+          : 'Enderun Çocuk Atölyeleri - Mustafa Paşa Birimi',
       'description': isEn
           ? 'Child-centered educational space supporting the development of children aged 2-6 through games, discovery, and workshops.'
           : isAr
-              ? 'مساحة تعليمية تركز على الطفل وتدعم تنمية الأطفال من عمر 2 إلى 6 سنوات من خلال اللعب والاكتشاف وورش العمل.'
-              : '2-6 yaş çocukların gelişimini oyun, keşif ve atölyelerle destekleyen çocuk merkezli eğitim alanı.',
-      'address': 'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
+          ? 'مساحة تعليمية تركز على الطفل وتدعم تنمية الأطفال من عمر 2 إلى 6 سنوات من خلال اللعب والاكتشاف وورش العمل.'
+          : '2-6 yaş çocukların gelişimini oyun, keşif ve atölyelerle destekleyen çocuk merkezli eğitim alanı.',
+      'address':
+          'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Enderun Çocuk Atölyeleri Mustafa Paşa Gebze',
       'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
@@ -940,13 +943,13 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Enderun Child Workshops - İstasyon Branch'
           : isAr
-              ? 'ورش عمل أندرون للأطفال - فرع إستاسيون'
-              : 'Enderun Çocuk Atölyeleri - İstasyon Şubesi',
+          ? 'ورش عمل أندرون للأطفال - فرع إستاسيون'
+          : 'Enderun Çocuk Atölyeleri - İstasyon Şubesi',
       'description': isEn
           ? 'Art, science, and values education workshops for children within the İstasyon Science and Art Center.'
           : isAr
-              ? 'ورش عمل في الفن والعلوم والتعليم القيمي للأطفال داخل مركز إستاسيون للعلوم والفنون.'
-              : 'İstasyon Bilim Sanat Merkezi bünyesinde çocuklara yönelik sanat, bilim ve değerler eğitimi atölyeleri.',
+          ? 'ورش عمل في الفن والعلوم والتعليم القيمي للأطفال داخل مركز إستاسيون للعلوم والفنون.'
+          : 'İstasyon Bilim Sanat Merkezi bünyesinde çocuklara yönelik sanat, bilim ve değerler eğitimi atölyeleri.',
       'address': 'İstasyon Mah. 1409/1. Sokak No: 14, 41400 Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'İstasyon Bilim Sanat Merkezi Gebze',
@@ -957,14 +960,15 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Enderun Child Workshops - Arapçeşme Branch'
           : isAr
-              ? 'ورش عمل أندرون للأطفال - فرع أرابçeşme'
-              : 'Enderun Çocuk Atölyeleri - Arapçeşme Şubesi',
+          ? 'ورش عمل أندرون للأطفال - فرع أرابçeşme'
+          : 'Enderun Çocuk Atölyeleri - Arapçeşme Şubesi',
       'description': isEn
           ? 'Specialized educational and workshop activities for children in the Arapçeşme Science and Art Center.'
           : isAr
-              ? 'أنشطة تعليمية وورش عمل خاصة للأطفال داخل مركز أرابçeşme للعلوم والفنون.'
-              : 'Arapçeşme Bilim Sanat Merkezi bünyesinde 2-6 yaş grubuna özel eğitim ve atölye faaliyetleri.',
-      'address': 'Arapçeşme Mah. Kavak Cad. 1066. Sokak No: 27, Gebze / Kocaeli',
+          ? 'أنشطة تعليمية وورش عمل خاصة للأطفال داخل مركز أرابçeşme للعلوم والفنون.'
+          : 'Arapçeşme Bilim Sanat Merkezi bünyesinde 2-6 yaş grubuna özel eğitim ve atölye faaliyetleri.',
+      'address':
+          'Arapçeşme Mah. Kavak Cad. 1066. Sokak No: 27, Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Arapçeşme Bilim Sanat Merkezi Gebze',
       'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
@@ -974,13 +978,13 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Enderun Child Workshops - Âdem Yavuz Branch'
           : isAr
-              ? 'ورش عمل أندرون للأطفال - فرع آدم ياووز'
-              : 'Enderun Çocuk Atölyeleri - Âdem Yavuz Şubesi',
+          ? 'ورش عمل أندرون للأطفال - فرع آدم ياووز'
+          : 'Enderun Çocuk Atölyeleri - Âdem Yavuz Şubesi',
       'description': isEn
           ? 'Child development workshops located within the Âdem Yavuz neighborhood social facility.'
           : isAr
-              ? 'ورش عمل لتنمية مهارات الأطفال تقع داخل المرفق الاجتماعي لحي آدم ياووز.'
-              : 'Âdem Yavuz Mahallesi sosyal tesis alanı içerisinde çocuk gelişim atölyeleri.',
+          ? 'ورش عمل لتنمية مهارات الأطفال تقع داخل المرفق الاجتماعي لحي آدم ياووز.'
+          : 'Âdem Yavuz Mahallesi sosyal tesis alanı içerisinde çocuk gelişim atölyeleri.',
       'address': 'Adem Yavuz Mah. 2341. Sokak No: 31, Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Adem Yavuz Sosyal Tesisleri Gebze',
@@ -991,13 +995,13 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Sportif Çocuk Atölyesi - Eray Şamdan Branch'
           : isAr
-              ? 'ورش عمل رياضية للأطفال - فرع إراي شامدان'
-              : 'Sportif Çocuk Atölyesi - Eray Şamdan Şubesi',
+          ? 'ورش عمل رياضية للأطفال - فرع إراي شامدان'
+          : 'Sportif Çocuk Atölyesi - Eray Şamdan Şubesi',
       'description': isEn
           ? 'Gymnastics, basketball, table tennis, coordination courses, and fun athletics for children aged 5-8.'
           : isAr
-              ? 'كورة قدم، كرة سلة، تنس الطاولة، دورات التنسيق، والرياضيات الممتعة للأطفال من 5-8 سنوات.'
-              : '5-8 yaş çocuklara cimnastik, basketbol, masa tenisi, koordinasyon parkurları ve eğlenceli atletizm imkanı.',
+          ? 'كورة قدم، كرة سلة، تنس الطاولة، دورات التنسيق، والرياضيات الممتعة للأطفال من 5-8 سنوات.'
+          : '5-8 yaş çocuklara cimnastik, basketbol, masa tenisi, koordinasyon parkurları ve eğlenceli atletizm imkanı.',
       'address': 'Cumhuriyet Mah. Necip Fazıl Cad. No: 102 (Eray Şamdan Spor Salonu), Gebze / Kocaeli',
       'phone': '0262 641 24 93',
       'mapQuery': 'Eray Şamdan Kapalı Spor Salonu Gebze',
@@ -1008,14 +1012,15 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'Enderun Child Workshops - Kirazpınar Branch'
           : isAr
-              ? 'ورش عمل أندرون للأطفال - فرع كيرازپينار'
-              : 'Enderun Çocuk Atölyeleri - Kirazpınar Şubesi',
+          ? 'ورش عمل أندرون للأطفال - فرع كيرازپينار'
+          : 'Enderun Çocuk Atölyeleri - Kirazpınar Şubesi',
       'description': isEn
           ? 'Preschool educational workshops for children in the Kirazpınar area.'
           : isAr
-              ? 'ورش عمل تعليمية للاطفال في منطقة كيرازپينار.'
-              : 'Kirazpınar bölgesindeki çocuklara yönelik okul öncesi eğitsel atölyeler.',
-      'address': 'Kirazpınar Mah. 2814. Sokak (Takva Mescidi Yanı), Gebze / Kocaeli',
+          ? 'ورش عمل تعليمية للاطفال في منطقة كيرازپينار.'
+          : 'Kirazpınar bölgesindeki çocuklara yönelik okul öncesi eğitsel atölyeler.',
+      'address':
+          'Kirazpınar Mah. 2814. Sokak (Takva Mescidi Yanı), Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'Kirazpınar Gebze',
       'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
@@ -1025,14 +1030,15 @@ List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
       'name': isEn
           ? 'AKÇEM - Mother, Woman and Child Education Center'
           : isAr
-              ? 'مركز تعليم الأمهات والنساء والأطفال'
-              : 'AKÇEM - Anne, Kadın ve Çocuk Eğitim Merkezi',
+          ? 'مركز تعليم الأمهات والنساء والأطفال'
+          : 'AKÇEM - Anne, Kadın ve Çocuk Eğitim Merkezi',
       'description': isEn
           ? 'Family-oriented center supporting mothers, women, and children in their educational and social development.'
           : isAr
-              ? 'مركز موجه للأسر يدعم الأمهات والنساء والأطفال في مشاريعهم التعليمية والاجتماعية.'
-              : 'Annelerin, kadınların ve çocukların eğitim ile sosyal gelişim süreçlerini destekleyen aile odaklı merkez.',
-      'address': 'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
+          ? 'مركز موجه للأسر يدعم الأمهات والنساء والأطفال في مشاريعهم التعليمية والاجتماعية.'
+          : 'Annelerin, kadınların ve çocukların eğitim ile sosyal gelişim süreçlerini destekleyen aile odaklı merkez.',
+      'address':
+          'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
       'phone': '444 0 290',
       'mapQuery': 'AKÇEM Gebze',
       'image': 'gorsel/tesisler/annecocukatolyesi.jpg',
@@ -1068,7 +1074,9 @@ void _ensureNurseriesSeeded() {
           }, SetOptions(merge: true));
         }
         await batch.commit();
-        debugPrint('Nurseries: 8 kreş ve çocuk atölyesi Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.');
+        debugPrint(
+          'Nurseries: 8 kreş ve çocuk atölyesi Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.',
+        );
       }
     } catch (e) {
       debugPrint('Nurseries seed hatası: $e');
@@ -1458,7 +1466,8 @@ class _InstitutionListScreen extends StatefulWidget {
 class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   final _ctrl = TextEditingController();
   String _query = '';
-  String _selectedTimeFilter = 'upcoming'; // 'upcoming', 'this_month', 'all', 'past'
+  String _selectedTimeFilter =
+      'upcoming'; // 'upcoming', 'this_month', 'all', 'past'
   String _selectedEventCategory = 'all'; // 'all', 'tiyatro', 'sinema', 'konser', 'soylesi', 'cocuk', 'diger'
 
   @override
@@ -1514,7 +1523,8 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
       } else if (_selectedEventCategory == 'konser') {
         if (!cat.contains('konser') && !cat.contains('müzik')) return false;
       } else if (_selectedEventCategory == 'soylesi') {
-        if (!cat.contains('söyleşi') && !cat.contains('konferans')) return false;
+        if (!cat.contains('söyleşi') && !cat.contains('konferans'))
+          return false;
       } else if (_selectedEventCategory == 'cocuk') {
         if (!cat.contains('çocuk') && !cat.contains('sirk')) return false;
       } else if (_selectedEventCategory == 'diger') {
@@ -1560,7 +1570,7 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                     color: const Color(0xFF1E5BC6).withAlpha(60),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -1679,15 +1689,17 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                     '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
                 String dOf(QueryDocumentSnapshot<Map<String, dynamic>> d) =>
                     (d.data()['date'] ?? '').toString();
-                final upcoming = docs.where((d) => dOf(d).compareTo(today) >= 0).toList()
-                  ..sort((a, b) => dOf(a).compareTo(dOf(b)));
-                final past = docs.where((d) => dOf(d).compareTo(today) < 0).toList()
-                  ..sort((a, b) => dOf(b).compareTo(dOf(a)));
+                final upcoming =
+                    docs.where((d) => dOf(d).compareTo(today) >= 0).toList()
+                      ..sort((a, b) => dOf(a).compareTo(dOf(b)));
+                final past =
+                    docs.where((d) => dOf(d).compareTo(today) < 0).toList()
+                      ..sort((a, b) => dOf(b).compareTo(dOf(a)));
                 final sortedDocs = [...upcoming, ...past];
                 rawItems = sortedDocs.map((d) {
                   final m = d.data();
-                  final subtitle =
-                      (m['subtitle'] ?? m['description'] ?? '').toString();
+                  final subtitle = (m['subtitle'] ?? m['description'] ?? '')
+                      .toString();
                   // 'location/address' yoksa mekanı alt başlıktan al:
                   // "Osman Hamdi Bey Kültür Merkezi • 19:30" → "Osman Hamdi Bey Kültür Merkezi"
                   final venue = subtitle.split('•').first.trim();
@@ -1725,7 +1737,7 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                 }
               } else {
                 rawItems = docs.map((d) => d.data()).toList();
-              } 
+              }
             } else {
               if (snap.hasError || docs.isEmpty) {
                 return Center(
@@ -1773,14 +1785,18 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                   // 1. Zaman Filtresi (Zaman Chipleri)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 3,
+                    ),
                     child: Row(
                       children: [
                         _buildFilterChip(
                           label: _t(lang, 'Yaklaşanlar', 'Upcoming', 'القادمة'),
                           icon: Icons.event_available_rounded,
                           isSelected: _selectedTimeFilter == 'upcoming',
-                          onTap: () => setState(() => _selectedTimeFilter = 'upcoming'),
+                          onTap: () =>
+                              setState(() => _selectedTimeFilter = 'upcoming'),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
@@ -1788,15 +1804,23 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                           label: _t(lang, 'Bu Ay', 'This Month', 'هذا الشهر'),
                           icon: Icons.calendar_month_rounded,
                           isSelected: _selectedTimeFilter == 'this_month',
-                          onTap: () => setState(() => _selectedTimeFilter = 'this_month'),
+                          onTap: () => setState(
+                            () => _selectedTimeFilter = 'this_month',
+                          ),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          label: _t(lang, 'Tüm Tarihler', 'All Dates', 'جميع التواريخ'),
+                          label: _t(
+                            lang,
+                            'Tüm Tarihler',
+                            'All Dates',
+                            'جميع التواريخ',
+                          ),
                           icon: Icons.all_inclusive_rounded,
                           isSelected: _selectedTimeFilter == 'all',
-                          onTap: () => setState(() => _selectedTimeFilter = 'all'),
+                          onTap: () =>
+                              setState(() => _selectedTimeFilter = 'all'),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
@@ -1804,7 +1828,8 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                           label: _t(lang, 'Geçmiş', 'Past', 'السابقة'),
                           icon: Icons.history_rounded,
                           isSelected: _selectedTimeFilter == 'past',
-                          onTap: () => setState(() => _selectedTimeFilter = 'past'),
+                          onTap: () =>
+                              setState(() => _selectedTimeFilter = 'past'),
                           isDark: isDark,
                         ),
                       ],
@@ -1817,10 +1842,16 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                     child: Row(
                       children: [
                         _buildFilterChip(
-                          label: _t(lang, 'Tüm Türler', 'All Categories', 'جميع الفئات'),
+                          label: _t(
+                            lang,
+                            'Tüm Türler',
+                            'All Categories',
+                            'جميع الفئات',
+                          ),
                           icon: Icons.grid_view_rounded,
                           isSelected: _selectedEventCategory == 'all',
-                          onTap: () => setState(() => _selectedEventCategory = 'all'),
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'all'),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
@@ -1828,7 +1859,9 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                           label: _t(lang, 'Tiyatro', 'Theater', 'مسرح'),
                           icon: Icons.theater_comedy_rounded,
                           isSelected: _selectedEventCategory == 'tiyatro',
-                          onTap: () => setState(() => _selectedEventCategory = 'tiyatro'),
+                          onTap: () => setState(
+                            () => _selectedEventCategory = 'tiyatro',
+                          ),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
@@ -1836,7 +1869,8 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                           label: _t(lang, 'Sinema', 'Cinema', 'سينما'),
                           icon: Icons.movie_creation_rounded,
                           isSelected: _selectedEventCategory == 'sinema',
-                          onTap: () => setState(() => _selectedEventCategory = 'sinema'),
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'sinema'),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
@@ -1844,15 +1878,23 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                           label: _t(lang, 'Konser', 'Concert', 'حفلات'),
                           icon: Icons.music_note_rounded,
                           isSelected: _selectedEventCategory == 'konser',
-                          onTap: () => setState(() => _selectedEventCategory = 'konser'),
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'konser'),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          label: _t(lang, 'Söyleşi & Konferans', 'Talks', 'ندوات'),
+                          label: _t(
+                            lang,
+                            'Söyleşi & Konferans',
+                            'Talks',
+                            'ندوات',
+                          ),
                           icon: Icons.record_voice_over_rounded,
                           isSelected: _selectedEventCategory == 'soylesi',
-                          onTap: () => setState(() => _selectedEventCategory = 'soylesi'),
+                          onTap: () => setState(
+                            () => _selectedEventCategory = 'soylesi',
+                          ),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
@@ -1860,15 +1902,22 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                           label: _t(lang, 'Çocuk', 'Kids', 'للأطفال'),
                           icon: Icons.child_care_rounded,
                           isSelected: _selectedEventCategory == 'cocuk',
-                          onTap: () => setState(() => _selectedEventCategory = 'cocuk'),
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'cocuk'),
                           isDark: isDark,
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          label: _t(lang, 'Özel Programlar', 'Special', 'برامج خاصة'),
+                          label: _t(
+                            lang,
+                            'Özel Programlar',
+                            'Special',
+                            'برامج خاصة',
+                          ),
                           icon: Icons.star_rounded,
                           isSelected: _selectedEventCategory == 'diger',
-                          onTap: () => setState(() => _selectedEventCategory = 'diger'),
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'diger'),
                           isDark: isDark,
                         ),
                       ],
@@ -1926,9 +1975,11 @@ String _directionsUrl(Map<String, dynamic> data, String name, String address) {
   } else {
     // Etkinliklerde etkinlik adı yerine mekan adıyla ara (mapQuery).
     final mapQuery = (data['mapQuery'] ?? '').toString().trim();
-    final text = [mapQuery.isNotEmpty ? mapQuery : name, if (mapQuery.isEmpty) address, 'Gebze Kocaeli']
-        .where((s) => s.trim().isNotEmpty)
-        .join(' ');
+    final text = [
+      mapQuery.isNotEmpty ? mapQuery : name,
+      if (mapQuery.isEmpty) address,
+      'Gebze Kocaeli',
+    ].where((s) => s.trim().isNotEmpty).join(' ');
     dest = Uri.encodeComponent(text);
   }
   return 'https://www.google.com/maps/dir/?api=1&destination=$dest&travelmode=driving';
@@ -1959,7 +2010,9 @@ class _InstitutionCard extends StatelessWidget {
     final desc = (data['description'] ?? '').toString();
     final image = (data['image'] ?? '').toString().trim();
     final menuUrl = (data['menuUrl'] ?? '').toString().trim();
-    final detailUrl = (data['url'] ?? data['detailUrl'] ?? '').toString().trim();
+    final detailUrl = (data['url'] ?? data['detailUrl'] ?? '')
+        .toString()
+        .trim();
     final showDirections = data['showDirections'] != false;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1990,7 +2043,6 @@ class _InstitutionCard extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                    
                       if (data['formattedDate'] != null &&
                           data['formattedDate'].toString().isNotEmpty)
                         Row(
@@ -2080,7 +2132,7 @@ class _InstitutionCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
+                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
                 // Telefonda Google Maps / varsayılan harita uygulaması açılır.
                 // Kayıtta 'showDirections': false varsa düğme gizlenir.
                 if (showDirections) ...[
@@ -2118,8 +2170,16 @@ class _InstitutionCard extends StatelessWidget {
                       onPressed: () => _openUrl(context, detailUrl, lang),
                       icon: const Icon(Icons.open_in_new_rounded, size: 16),
                       label: Text(
-                        _t(lang, 'Resmi Sayfada Gör', 'View on Official Site', 'عرض على الموقع الرسمي'),
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        _t(
+                          lang,
+                          'Resmi Sayfada Gör',
+                          'View on Official Site',
+                          'عرض على الموقع الرسمي',
+                        ),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
@@ -2267,9 +2327,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
     return all.where((p) {
       final okCat =
           _filter == filterAll ||
-          (_filter == favLabel
-              ? favIds.contains(p.id)
-              : p.category == _filter);
+          (_filter == favLabel ? favIds.contains(p.id) : p.category == _filter);
       final okQuery =
           q.isEmpty ||
           p.name.toLowerCase().contains(q) ||
@@ -2410,7 +2468,12 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
                 _ensurePlacesSeeded();
               }
 
-              final filtered = _applyFilters(basePlaces, filterAll, favLabel, favIds);
+              final filtered = _applyFilters(
+                basePlaces,
+                filterAll,
+                favLabel,
+                favIds,
+              );
 
               if (filtered.isEmpty) {
                 return Center(
@@ -2518,12 +2581,21 @@ class _DiscoverToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          pill(0, Icons.account_balance_rounded,
-              _t(lang, 'Mekanlar', 'Places', 'الأماكن')),
-          pill(1, Icons.restaurant_rounded,
-              _t(lang, 'Lezzetler', 'Flavors', 'النكهات')),
-          pill(2, Icons.forest_rounded,
-              _t(lang, 'Doğa & Piknik', 'Nature', 'الطبيعة')),
+          pill(
+            0,
+            Icons.account_balance_rounded,
+            _t(lang, 'Mekanlar', 'Places', 'الأماكن'),
+          ),
+          pill(
+            1,
+            Icons.restaurant_rounded,
+            _t(lang, 'Lezzetler', 'Flavors', 'النكهات'),
+          ),
+          pill(
+            2,
+            Icons.forest_rounded,
+            _t(lang, 'Doğa & Piknik', 'Nature', 'الطبيعة'),
+          ),
         ],
       ),
     );
@@ -2845,7 +2917,9 @@ class _PlaceDetailScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? const Color(0xFF93C5FD) : _C.navyDeep,
+                                color: isDark
+                                    ? const Color(0xFF93C5FD)
+                                    : _C.navyDeep,
                               ),
                             ),
                           ),
@@ -2865,7 +2939,9 @@ class _PlaceDetailScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 15,
                               height: 1.55,
-                              color: isDark ? const Color(0xFFCBD5E1) : _C.textDark,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : _C.textDark,
                             ),
                           ),
                           if (place.detailUrl.isNotEmpty) ...[
