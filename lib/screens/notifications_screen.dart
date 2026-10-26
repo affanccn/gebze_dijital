@@ -5,6 +5,8 @@ import 'emergency_screen.dart';
 import 'guide_screen.dart';
 import 'outages_screen.dart';
 import 'my_requests_screen.dart';
+import 'soz_sende_screen.dart';
+import '../features/news/municipal_news_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
 import '../features/pati/presentation/gebze_pati_screen.dart';
@@ -92,9 +94,127 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           MaterialPageRoute(builder: (_) => const WeatherScreen()),
         );
         break;
+      case 'news':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MunicipalNewsScreen()),
+        );
+        break;
+      case 'sozSende':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SozSendeScreen()),
+        );
+        break;
       default:
+        _showNotificationDetail(item);
         break;
     }
+  }
+
+  void _showNotificationDetail(AppNotification item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: item.color.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(item.icon, color: item.color, size: 26),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0A2A66),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.time,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Text(
+                  item.message,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    height: 1.5,
+                    color: isDark ? Colors.grey[200] : const Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 22),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A2A66),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Anladım', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override

@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/news/municipal_news_screen.dart';
 import 'core/services/events_service.dart';
 import 'core/services/push_service.dart';
+import 'core/services/notification_service.dart';
+import 'screens/notifications_screen.dart';
 import 'firebase_options.dart';
 import 'features/chatbot/chatbot.dart';
 
@@ -19,6 +21,7 @@ import 'core/theme/theme_provider.dart';
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 
 final navigatorKey = GlobalKey<NavigatorState>();
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +46,72 @@ class _MyAppState extends ConsumerState<MyApp> {
     super.initState();
     ChatbotNavigator.navigatorKey = navigatorKey;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationsNotifier.onInAppNotification = (notif) {
+        final sm = rootScaffoldMessengerKey.currentState;
+        if (sm == null) return;
+        sm.hideCurrentSnackBar();
+        sm.showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF0A2A66),
+            behavior: SnackBarBehavior.floating,
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            content: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(notif.icon, color: const Color(0xFFFFB300), size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        notif.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        notif.message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            action: SnackBarAction(
+              label: 'GÖR',
+              textColor: const Color(0xFFFFB300),
+              onPressed: () {
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                );
+              },
+            ),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      };
+
       PushService.init(
         onNewsOpened: () {
           final navigator = navigatorKey.currentState;
@@ -244,6 +313,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     return MaterialApp(
       navigatorKey: navigatorKey,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       title: 'Gebze Dijital',
       locale: Locale(activeLang),

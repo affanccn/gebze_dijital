@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'push_service.dart';
 
 enum NotificationCategory { all, outages, announcements, services }
 
@@ -117,6 +121,11 @@ class NotificationService {
 
 class NotificationsNotifier extends Notifier<List<AppNotification>> {
   final NotificationService _service = NotificationService();
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
+  bool _isInitialLoadDone = false;
+
+  /// Canlı gelen duyuruları arayüzde (In-App Banner/SnackBar) göstermek için callback
+  static void Function(AppNotification notification)? onInAppNotification;
 
   static List<AppNotification> get _initialNotifications => [
         const AppNotification(
@@ -203,7 +212,180 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
   @override
   List<AppNotification> build() {
     _loadPersistedReadStatus();
+    _initFirestoreListener();
+    ref.onDispose(() {
+      _subscription?.cancel();
+    });
     return _initialNotifications;
+  }
+
+  /// Firestore `broadcast_notifications` koleksiyonunu canlı dinler
+  void _initFirestoreListener() {
+    try {
+      if (Firebase.apps.isEmpty) return;
+
+      _subscription?.cancel();
+      _subscription = FirebaseFirestore.instance
+          .collection('broadcast_notifications')
+          .orderBy('createdAt', descending: true)
+          .limit(50)
+          .snapshots()
+          .listen((snapshot) async {
+        await _handleFirestoreSnapshot(snapshot);
+      }, onError: (e) {
+        debugPrint('[NotificationsNotifier] Firestore dinleme hatası: $e');
+      });
+    } catch (e) {
+      debugPrint('[NotificationsNotifier] Firestore başlatılamadı: $e');
+    }
+  }
+
+  Future<void> _handleFirestoreSnapshot(
+      QuerySnapshot<Map<String, dynamic>> snapshot) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final readIds = prefs.getStringList(_kReadNotificationsKey) ?? [];
+
+      final List<AppNotification> firestoreItems = [];
+
+      for (final doc in snapshot.docs) {
+        final d = doc.data();
+        final id = doc.id;
+        final title = (d['title'] as String?)?.trim() ?? 'Gebze Belediyesi Duyurusu';
+        final message = (d['message'] as String?)?.trim() ?? '';
+        final topic = d['topic'] as String?;
+        final category = d['category'] as String?;
+        final createdAt = d['createdAt'];
+        final createdAtText = d['createdAtText'] as String?;
+
+        final isRead = readIds.contains(id);
+
+        firestoreItems.add(AppNotification(
+          id: id,
+          title: title,
+          message: message,
+          time: _formatNotificationTime(createdAt, createdAtText),
+          icon: _mapIcon(topic, category),
+          color: _mapColor(topic, category),
+          category: _mapCategory(category, topic),
+          actionType: _mapActionType(topic, category),
+          isRead: isRead,
+        ));
+      }
+
+      // Başlangıç mock listesindeki çakışmayanları koru
+      final existingInitial = _initialNotifications.where(
+        (n) => !firestoreItems.any((fn) => fn.id == n.id),
+      ).map((n) {
+        if (readIds.contains(n.id)) return n.copyWith(isRead: true);
+        return n;
+      }).toList();
+
+      state = [...firestoreItems, ...existingInitial];
+
+      // Uygulama açıkken panele yeni bir bildirim eklendiyse in-app banner göster
+      if (_isInitialLoadDone) {
+        for (final change in snapshot.docChanges) {
+          if (change.type == DocumentChangeType.added) {
+            final d = change.doc.data();
+            if (d != null) {
+              final id = change.doc.id;
+              final topic = d['topic'] as String?;
+              final category = d['category'] as String?;
+              final isAllowed = await PushService.isNotificationAllowed(
+                type: topic,
+                category: category,
+              );
+              if (isAllowed) {
+                final newNotif = AppNotification(
+                  id: id,
+                  title: (d['title'] as String?)?.trim() ?? 'Gebze Belediyesi Duyurusu',
+                  message: (d['message'] as String?)?.trim() ?? '',
+                  time: 'Az önce',
+                  icon: _mapIcon(topic, category),
+                  color: _mapColor(topic, category),
+                  category: _mapCategory(category, topic),
+                  actionType: _mapActionType(topic, category),
+                  isRead: false,
+                );
+                onInAppNotification?.call(newNotif);
+              }
+            }
+          }
+        }
+      } else {
+        _isInitialLoadDone = true;
+      }
+    } catch (e) {
+      debugPrint('[NotificationsNotifier] Bildirimler işlenirken hata: $e');
+    }
+  }
+
+  String _formatNotificationTime(dynamic createdAt, String? fallbackText) {
+    if (createdAt is Timestamp) {
+      final date = createdAt.toDate();
+      final diff = DateTime.now().difference(date);
+      if (diff.isNegative) return 'Az önce';
+      if (diff.inSeconds < 60) return 'Az önce';
+      if (diff.inMinutes < 60) return '${diff.inMinutes} dk önce';
+      if (diff.inHours < 24) return '${diff.inHours} saat önce';
+      if (diff.inDays == 1) return 'Dün';
+      if (diff.inDays < 7) return '${diff.inDays} gün önce';
+      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+    }
+    return fallbackText ?? 'Yeni';
+  }
+
+  IconData _mapIcon(String? topic, String? category) {
+    if (topic == 'emergency' || category == 'emergency') {
+      return Icons.emergency_rounded;
+    }
+    if (topic == 'outages' || category == 'outages') {
+      return Icons.water_drop_rounded;
+    }
+    if (topic == 'sozSende') {
+      return Icons.how_to_vote_rounded;
+    }
+    if (category == 'services') {
+      return Icons.account_balance_rounded;
+    }
+    return Icons.campaign_rounded;
+  }
+
+  Color _mapColor(String? topic, String? category) {
+    if (topic == 'emergency' || category == 'emergency') {
+      return const Color(0xFFD32F2F);
+    }
+    if (topic == 'outages' || category == 'outages') {
+      return const Color(0xFF0288D1);
+    }
+    if (topic == 'sozSende') {
+      return const Color(0xFF7B1FA2);
+    }
+    if (category == 'services') {
+      return const Color(0xFF2E7D32);
+    }
+    return const Color(0xFF0A2A66);
+  }
+
+  NotificationCategory _mapCategory(String? category, String? topic) {
+    if (category == 'outages' || topic == 'outages') {
+      return NotificationCategory.outages;
+    }
+    if (category == 'services') {
+      return NotificationCategory.services;
+    }
+    return NotificationCategory.announcements;
+  }
+
+  String _mapActionType(String? topic, String? category) {
+    if (topic == 'emergency') return 'emergency';
+    if (topic == 'outages') return 'outages';
+    if (topic == 'sozSende') return 'sozSende';
+    if (topic == 'news') return 'news';
+    if (category == 'outages') return 'outages';
+    if (category == 'services') return 'services';
+    return 'announcements';
   }
 
   Future<void> _loadPersistedReadStatus() async {
