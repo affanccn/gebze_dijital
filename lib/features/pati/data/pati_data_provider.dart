@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/pet_adoption.dart';
 import '../models/feeding_point.dart';
 
@@ -14,7 +16,8 @@ final List<PetAdoption> kFallbackPets = [
     age: '6 Aylık',
     imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
     description: 'Sokakta yaralı bulunup merkezimizde tedavisi tamamlandı. Çok uysal, insan canlısı ve oyuncu bir can dostumuz.',
-    healthStatus: 'Karma aşıları yapıldı, iç-dış parazit uygulandı, mikroçipli.',
+    healthStatus:
+        'Karma aşıları yapıldı, iç-dış parazit uygulandı, mikroçipli.',
     centerPhone: '(0262) 642 04 30',
   ),
   const PetAdoption(
@@ -198,48 +201,91 @@ const List<DutyVetClinic> kGebzeDutyVetClinics = [
   ),
 ];
 
-/// 1. Sahiplendirme Stream Provider - Firestore 'pet_adoptions' koleksiyonu
-final petAdoptionsStreamProvider = StreamProvider.autoDispose<List<PetAdoption>>((ref) {
-  return FirebaseFirestore.instance
-      .collection('pet_adoptions')
-      .where('isAdopted', isEqualTo: false)
-      .snapshots()
-      .map((snapshot) {
-    if (snapshot.docs.isEmpty) {
-      return kFallbackPets;
-    }
-    return snapshot.docs.map((doc) => PetAdoption.fromFirestore(doc)).toList();
-  }).handleError((error) {
-    return kFallbackPets;
-  });
-});
+/// 1. Sahiplendirme Provider - Firestore 'pet_adoptions' koleksiyonu (1 saat TTL önbellekli)
+final petAdoptionsStreamProvider =
+    FutureProvider<List<PetAdoption>>((ref) async {
+      final link = ref.keepAlive();
+      final timer = Timer(const Duration(hours: 1), () {
+        link.close();
+      });
+      ref.onDispose(() => timer.cancel());
 
-/// 2. Mama ve Su Odakları Stream Provider - Firestore 'feeding_points' koleksiyonu
-final feedingPointsStreamProvider = StreamProvider.autoDispose<List<FeedingPoint>>((ref) {
-  return FirebaseFirestore.instance
-      .collection('feeding_points')
-      .snapshots()
-      .map((snapshot) {
-    if (snapshot.docs.isEmpty) {
-      return kGebzeFeedingPoints;
-    }
-    return snapshot.docs.map((doc) => FeedingPoint.fromFirestore(doc)).toList();
-  }).handleError((error) {
-    return kGebzeFeedingPoints;
-  });
-});
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('pet_adoptions')
+            .where('isAdopted', isEqualTo: false)
+            .limit(50)
+            .get(const GetOptions(source: Source.serverAndCache));
 
-/// 3. Özel & Nöbetçi Veteriner Klinikleri Stream Provider - Firestore 'vet_clinics' koleksiyonu
-final vetClinicsStreamProvider = StreamProvider.autoDispose<List<DutyVetClinic>>((ref) {
-  return FirebaseFirestore.instance
-      .collection('vet_clinics')
-      .snapshots()
-      .map((snapshot) {
-    if (snapshot.docs.isEmpty) {
-      return kGebzeDutyVetClinics;
-    }
-    return snapshot.docs.map((doc) => DutyVetClinic.fromFirestore(doc)).toList();
-  }).handleError((error) {
-    return kGebzeDutyVetClinics;
-  });
-});
+        if (snapshot.docs.isEmpty) {
+          return kFallbackPets;
+        }
+        return snapshot.docs
+            .map((doc) => PetAdoption.fromFirestore(doc))
+            .toList();
+      } catch (e) {
+        return kFallbackPets;
+      }
+    });
+
+/// 2. Mama ve Su Odakları Provider - Firestore 'feeding_points' koleksiyonu (1 saat TTL önbellekli)
+final feedingPointsStreamProvider =
+    FutureProvider<List<FeedingPoint>>((ref) async {
+      final link = ref.keepAlive();
+      final timer = Timer(const Duration(hours: 1), () {
+        link.close();
+      });
+      ref.onDispose(() => timer.cancel());
+
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('feeding_points')
+            .limit(50)
+            .get(const GetOptions(source: Source.serverAndCache));
+
+        if (snapshot.docs.isEmpty) {
+          return kGebzeFeedingPoints;
+        }
+        final list = snapshot.docs
+            .map((doc) => FeedingPoint.fromFirestore(doc))
+            .toList();
+        final seen = <String>{};
+        return list.where((p) {
+          final key = p.title.trim().toLowerCase();
+          return seen.add(key);
+        }).toList();
+      } catch (e) {
+        return kGebzeFeedingPoints;
+      }
+    });
+
+/// 3. Özel & Nöbetçi Veteriner Klinikleri Provider - Firestore 'vet_clinics' koleksiyonu (1 saat TTL önbellekli)
+final vetClinicsStreamProvider =
+    FutureProvider<List<DutyVetClinic>>((ref) async {
+      final link = ref.keepAlive();
+      final timer = Timer(const Duration(hours: 1), () {
+        link.close();
+      });
+      ref.onDispose(() => timer.cancel());
+
+      try {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('vet_clinics')
+            .limit(50)
+            .get(const GetOptions(source: Source.serverAndCache));
+
+        if (snapshot.docs.isEmpty) {
+          return kGebzeDutyVetClinics;
+        }
+        final list = snapshot.docs
+            .map((doc) => DutyVetClinic.fromFirestore(doc))
+            .toList();
+        final seen = <String>{};
+        return list.where((c) {
+          final key = c.name.trim().toLowerCase();
+          return seen.add(key);
+        }).toList();
+      } catch (e) {
+        return kGebzeDutyVetClinics;
+      }
+    });

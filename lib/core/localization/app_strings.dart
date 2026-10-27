@@ -1,12 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppLanguageNotifier extends Notifier<String> {
+  static const _kPrefKey = 'app_language';
+  static const _supported = {'tr', 'en', 'ar'};
+  bool _userChanged = false;
+
   @override
-  String build() => 'tr';
+  String build() {
+    _loadFromPrefs();
+    return 'tr';
+  }
+
+  /// Kayıtlı dili cihazdan okur (uygulama açılışında bir kez).
+  Future<void> _loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_kPrefKey);
+      if (!_userChanged &&
+          saved != null &&
+          _supported.contains(saved) &&
+          saved != state) {
+        state = saved;
+      }
+    } catch (_) {}
+  }
 
   void setLanguage(String lang) {
+    _userChanged = true;
     state = lang;
+    _saveToPrefs(lang);
+  }
+
+  Future<void> _saveToPrefs(String lang) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kPrefKey, lang);
+    } catch (_) {}
   }
 
   @override
@@ -54,6 +85,11 @@ class AppStrings {
       'ar': 'حفظ وتحديث',
     },
     'btn_send': {'tr': 'Gönder', 'en': 'Submit', 'ar': 'إرسال'},
+    'btn_retry': {
+      'tr': 'Tekrar Dene',
+      'en': 'Try Again',
+      'ar': 'إعادة المحاولة',
+    },
     'btn_back': {'tr': 'Geri', 'en': 'Back', 'ar': 'رجوع'},
     'btn_call': {'tr': 'Ara', 'en': 'Call', 'ar': 'اتصال'},
     'btn_directions': {
@@ -104,12 +140,18 @@ class AppStrings {
     },
     'qa_food': {'tr': 'YEME İÇME', 'en': 'FOOD & DRINK', 'ar': 'طعام وشراب'},
     'qa_ebel': {'tr': 'E-BEL', 'en': 'E-MUN', 'ar': 'البلدية'},
+    'qa_report': {'tr': 'BİLDİR', 'en': 'REPORT', 'ar': 'إبلاغ'},
     'qa_complaint': {
       'tr': 'MİSAFİR ŞİKAYET',
       'en': 'GUEST REPORT',
       'ar': 'شكاوى الزوار',
     },
     'qa_parking': {'tr': 'OTOPARK', 'en': 'PARKING', 'ar': 'مواقف السيارات'},
+    'qa_neighborhood': {
+      'tr': 'MAHALLEMDE',
+      'en': 'NEIGHBORHOOD',
+      'ar': 'في حيي',
+    },
     'events_title': {
       'tr': 'YAKLAŞAN ETKİNLİKLER',
       'en': 'UPCOMING EVENTS',
@@ -208,9 +250,9 @@ class AppStrings {
       'ar': 'مواقف السيارات',
     },
     'service_parking_sub': {
-      'tr': 'Boş park yerleri ve ücretler',
-      'en': 'Empty parking spots and fees',
-      'ar': 'المواقف الشاغرة والرسوم',
+      'tr': 'Tahmini boş park yerleri',
+      'en': 'Estimated empty spots',
+      'ar': 'المواقف الشاغرة التقديرية',
     },
     'service_soz_sende': {
       'tr': 'Söz Sende',
@@ -391,6 +433,31 @@ class AppStrings {
       'en': 'Disaster and Emergency',
       'ar': 'الكوارث والطوارئ',
     },
+    'utility_emergency_label': {
+      'tr': 'ARIZA & İHBAR HATLARI',
+      'en': 'UTILITY & REPORT LINES',
+      'ar': 'خطوط الأعطال والبلاغات',
+    },
+    'sedas_sub': {
+      'tr': 'Elektrik Arıza (186)',
+      'en': 'Power Outage (186)',
+      'ar': 'طوارئ الكهرباء (186)',
+    },
+    'isu_sub': {
+      'tr': 'Su & Kanal Arıza (185)',
+      'en': 'Water & Sewer Outage (185)',
+      'ar': 'طوارئ المياه والصرف (185)',
+    },
+    'palgaz_sub': {
+      'tr': 'Doğalgaz Acil (187)',
+      'en': 'Natural Gas Emergency (187)',
+      'ar': 'طوارئ الغاز الطبيعي (187)',
+    },
+    'zabita_sub': {
+      'tr': 'Zabıta & İhbar (153)',
+      'en': 'Municipal Police (153)',
+      'ar': 'شرطة البلدية (153)',
+    },
     'assembly_areas_label': {
       'tr': 'ACİL TOPLANMA ALANLARI',
       'en': 'EMERGENCY ASSEMBLY AREAS',
@@ -534,10 +601,20 @@ class AppStrings {
       'en': 'Cultural Centers',
       'ar': 'المراكز الثقافية',
     },
+    'cat_cemeteries': {
+      'tr': 'Mezarlıklar',
+      'en': 'Cemeteries',
+      'ar': 'المقابر',
+    },
     'cat_municipality': {
       'tr': 'Belediye Tesisleri',
       'en': 'Municipal Facilities',
       'ar': 'المنشآت البلدية',
+    },
+    'cat_events': {
+      'tr': 'Yaklaşan Etkinlikler',
+      'en': 'Upcoming Events',
+      'ar': 'الفعاليات القادمة',
     },
     'filter_historic': {'tr': 'Tarihi', 'en': 'Historic', 'ar': 'تاريخي'},
     'filter_museums': {'tr': 'Müzeler', 'en': 'Museums', 'ar': 'متاحف'},
@@ -620,6 +697,36 @@ class AppStrings {
       'en': 'Approved',
       'ar': 'تمت الموافقة',
     },
+    'status_under_review': {
+      'tr': 'İnceleme Aşamasında',
+      'en': 'Under Review',
+      'ar': 'قيد المراجعة',
+    },
+    'status_under_review_desc': {
+      'tr': 'Bu öneriniz inceleme aşamasındadır. Yönetici onayından sonra tüm vatandaşların oylamasına açılacaktır.',
+      'en': 'This proposal is under review. It will open for voting after admin approval.',
+      'ar': 'هذا المقترح قيد المراجعة. سيتم فتح التصويت بعد موافقة الإدارة.',
+    },
+    'status_only_you_see': {
+      'tr': 'Yalnızca Siz Görüyorsunuz',
+      'en': 'Only Visible to You',
+      'ar': 'مرئي لك فقط',
+    },
+    'status_voting_disabled_pending': {
+      'tr': 'Onaylandıktan sonra oylamaya açılacaktır',
+      'en': 'Voting opens after approval',
+      'ar': 'سيتم فتح التصويت بعد الموافقة',
+    },
+    'status_published': {
+      'tr': 'Yayında',
+      'en': 'Published',
+      'ar': 'منشور',
+    },
+    'no_suggestions_found': {
+      'tr': 'Henüz onaylanmış bir öneri bulunmuyor.',
+      'en': 'No approved suggestions found.',
+      'ar': 'لا توجد مقترحات معتمدة بعد.',
+    },
     'btn_new_suggestion': {
       'tr': 'Yeni Öneri Paylaş',
       'en': 'Share New Idea',
@@ -698,24 +805,24 @@ class AppStrings {
       'ar': 'الطعام والعيادات',
     },
     'ambulance_banner_title': {
-      'tr': 'ACİL HAYVAN AMBULANSI',
-      'en': 'EMERGENCY PET AMBULANCE',
-      'ar': 'إسعاف طوارئ الحيوانات',
+      'tr': 'Hayvan Ambulansı',
+      'en': 'Animal Ambulance',
+      'ar': 'إسعاف الحيوانات',
     },
     'ambulance_banner_team': {
-      'tr': 'Gebze Belediyesi Acil Müdahale Ekibi',
-      'en': 'Gebze Municipality Emergency Response Team',
-      'ar': 'فريق الاستجابة للطوارئ في بلدية جبزة',
+      'tr': 'Gebze Belediyesi Veteriner Hizmetleri',
+      'en': 'Gebze Municipality Veterinary Services',
+      'ar': 'خدمات الطب البيطري لبلدية جبزة',
     },
     'ambulance_banner_desc': {
-      'tr': 'Yaralı, kaza geçirmiş veya acil yardıma muhtaç sokak hayvanlarımız için Gebze Belediyesi Hayvan Ambulansı bir telefon uzağınızda.',
-      'en': 'For injured or emergency street animals, Gebze Animal Ambulance is just a call away.',
-      'ar': 'لحيوانات الشارع المصابة أو التي تحتاج لرعاية عاجلة، إسعاف بلدية جبزة على بعد مكالمة هاتفية.',
+      'tr': 'Yardıma muhtaç ve yaralı sokak hayvanlarımız için Gebze Belediyesi Hayvan Ambulansı hizmetinizdedir.',
+      'en': 'Gebze Municipality Animal Ambulance is at your service for street animals in need.',
+      'ar': 'إسعاف بلدية جبزة للحيوانات في خدمتكم لحيوانات الشارع المحتاجة للمساعدة.',
     },
     'call_ambulance_btn': {
-      'tr': 'Ambulansı Ara (0262 642 04 30)',
-      'en': 'Call Ambulance (0262 642 04 30)',
-      'ar': 'اتصل بالإسعاف (0262 642 04 30)',
+      'tr': 'Hayvan Ambulansını Ara (0262 642 04 30)',
+      'en': 'Call Animal Ambulance (0262 642 04 30)',
+      'ar': 'اتصل بإسعاف الحيوانات (0262 642 04 30)',
     },
     'ambulance_what_is_title': {
       'tr': 'Hayvan Ambulansı Nedir?',
@@ -856,6 +963,11 @@ class AppStrings {
       'en': 'Latest news and announcements regarding Gebze Municipality.',
       'ar': 'آخر الأخبار والإعلانات المتعلقة ببلدية جبزة.',
     },
+    'news_badge_title': {
+      'tr': 'GEBZE BELEDİYESİ GÜNCEL',
+      'en': 'GEBZE MUNICIPALITY NEWS',
+      'ar': 'أخبار بلدية غبزة',
+    },
     'news_preview_title': {
       'tr': 'Haber Önizlemesi',
       'en': 'News Preview',
@@ -880,6 +992,16 @@ class AppStrings {
       'tr': 'Haberi Tarayıcıda Aç',
       'en': 'Open News in Browser',
       'ar': 'فتح الخبر في المتصفح',
+    },
+    'news_read_more': {
+      'tr': 'Devamını Oku',
+      'en': 'Read More',
+      'ar': 'اقرأ المزيد',
+    },
+    'news_summary_title': {
+      'tr': 'Haber Özeti & Ön Okuma',
+      'en': 'News Summary & Preview',
+      'ar': 'ملخص الخبر والمعاينة',
     },
 
     // ───────────────────────── Profil ─────────────────────────
@@ -1343,7 +1465,6 @@ class AppStrings {
       'en': 'Gebze Animal Center',
       'ar': 'مركز جبزة لرعاية الحيوانات',
     },
-    'btn_retry': {'tr': 'Yeniden Dene', 'en': 'Retry', 'ar': 'إعادة المحاولة'},
 
     // ───────────────────────── Mama & Klinikler İlave ─────────────────────────
     'feeding_network_title': {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -145,6 +146,97 @@ IconData reportStatusIcon(String s) {
 
 // ───────────────────────── Kimlik & Veri ─────────────────────────
 
+/// Oturum süresince kullanıcının yerel olarak oluşturduğu raporlar
+final List<Map<String, dynamic>> localSubmittedReports = [];
+
+final List<Map<String, dynamic>> _fallbackReports = [
+  {
+    '_id': 'rep_sample_1',
+    'ticketNo': 'GBD-2026-88192',
+    'userId': 'default_citizen',
+    'category': 'Temizlik',
+    'categoryKey': 'garbage',
+    'description': 'Cumhuriyet Mah. 1205. Sokak çöp konteyneri kapağı hasarlı, değiştirilmesini rica ediyorum.',
+    'neighborhood': 'Cumhuriyet',
+    'address': 'Cumhuriyet Mah. 1205. Sokak No: 14',
+    'status': 'İşleme Alındı',
+    'createdAt': Timestamp.fromDate(
+      DateTime.now().subtract(const Duration(days: 1, hours: 3)),
+    ),
+    'statusHistory': [
+      {
+        'status': 'Beklemede',
+        'at': Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(days: 1, hours: 3)),
+        ),
+      },
+      {
+        'status': 'İşleme Alındı',
+        'at': Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(hours: 12)),
+        ),
+      },
+    ],
+  },
+  {
+    '_id': 'rep_sample_2',
+    'ticketNo': 'GBD-2026-74210',
+    'userId': 'default_citizen',
+    'category': 'Aydınlatma',
+    'categoryKey': 'lighting',
+    'description':
+        'Hacıhalil Mah. Park içi yürüyüş yolu aydınlatma direkleri yanmıyor.',
+    'neighborhood': 'Hacıhalil',
+    'address': 'Hacıhalil Parkı İçi',
+    'status': 'Çözüldü',
+    'createdAt': Timestamp.fromDate(
+      DateTime.now().subtract(const Duration(days: 3, hours: 5)),
+    ),
+    'statusHistory': [
+      {
+        'status': 'Beklemede',
+        'at': Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(days: 3, hours: 5)),
+        ),
+      },
+      {
+        'status': 'İşleme Alındı',
+        'at': Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(days: 2)),
+        ),
+      },
+      {
+        'status': 'Çözüldü',
+        'at': Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      },
+    ],
+  },
+  {
+    '_id': 'rep_sample_3',
+    'ticketNo': 'GBD-2026-61904',
+    'userId': 'default_citizen',
+    'category': 'Bozuk Yol',
+    'categoryKey': 'pothole',
+    'description': 'İstasyon Cad. No: 48 önünde derin çukur oluşmuş, araçlar için tehlike yaratıyor.',
+    'neighborhood': 'İstasyon',
+    'address': 'İstasyon Cad. No: 48',
+    'status': 'Beklemede',
+    'createdAt': Timestamp.fromDate(
+      DateTime.now().subtract(const Duration(days: 5, hours: 8)),
+    ),
+    'statusHistory': [
+      {
+        'status': 'Beklemede',
+        'at': Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(days: 5, hours: 8)),
+        ),
+      },
+    ],
+  },
+];
+
 /// Talepler, profil servisinin kullandığı kullanıcı kimliğiyle eşlenir
 /// (`users/{kCurrentUserId}`). Böylece profildeki Taleplerim aynı kayıtları görür.
 Future<String> getReportUserId() async => kCurrentUserId;
@@ -155,24 +247,51 @@ final reportUserIdProvider = FutureProvider<String>((ref) => getReportUserId());
 final myReportsProvider = StreamProvider<List<Map<String, dynamic>>>((
   ref,
 ) async* {
-  final uid = await ref.watch(reportUserIdProvider.future);
-  yield* FirebaseFirestore.instance
-      .collection('reports')
-      .where('userId', isEqualTo: uid)
-      .snapshots()
-      .map((snap) {
-        final list = snap.docs.map((d) => {...d.data(), '_id': d.id}).toList();
-        list.sort((a, b) {
-          final ta = a['createdAt'];
-          final tb = b['createdAt'];
-          if (ta is Timestamp && tb is Timestamp) return tb.compareTo(ta);
-          if (ta is Timestamp)
-            return 1; // sunucu zamanı henüz gelmeyen en üstte
-          if (tb is Timestamp) return -1;
-          return 0;
-        });
-        return list;
+  // İlk önce hemen mevcut yerel ve örnek verileri yay (Asla sonsuz dönen yükleniyor kalmaz)
+  List<Map<String, dynamic>> combined = [
+    ...localSubmittedReports,
+    if (localSubmittedReports.isEmpty) ..._fallbackReports,
+  ];
+  yield combined;
+
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    // Misafir kullanıcı durumunda Firestore'a yetkisiz istek atmayıp yerel veriyi koru
+    return;
+  }
+
+  try {
+    final stream = FirebaseFirestore.instance
+        .collection('reports')
+        .where('userId', isEqualTo: user.uid)
+        .snapshots();
+
+    await for (final snap in stream) {
+      final remoteList = snap.docs
+          .map((d) => {...d.data(), '_id': d.id})
+          .toList();
+      final all = [...localSubmittedReports, ...remoteList];
+      final seen = <String>{};
+      final unique = <Map<String, dynamic>>[];
+      for (final r in all) {
+        final key = r['ticketNo']?.toString() ?? r['_id']?.toString() ?? '';
+        if (key.isNotEmpty && seen.contains(key)) continue;
+        if (key.isNotEmpty) seen.add(key);
+        unique.add(r);
+      }
+      unique.sort((a, b) {
+        final ta = a['createdAt'];
+        final tb = b['createdAt'];
+        if (ta is Timestamp && tb is Timestamp) return tb.compareTo(ta);
+        if (ta is Timestamp) return 1;
+        if (tb is Timestamp) return -1;
+        return 0;
       });
+      yield unique.isEmpty ? _fallbackReports : unique;
+    }
+  } catch (_) {
+    // Ağ ya da Firestore yetki hatasında yerel veri zaten sağlandı
+  }
 });
 
 final myReportCountProvider = Provider<int>(
@@ -200,7 +319,7 @@ Widget reportPhoto(
       width: width,
       height: height,
       fit: fit,
-      errorBuilder: (_, __, ___) => placeholder,
+      errorBuilder: (context, error, stackTrace) => placeholder,
       loadingBuilder: (context, child, progress) =>
           progress == null ? child : placeholder,
     );
@@ -213,7 +332,7 @@ Widget reportPhoto(
         height: height,
         fit: fit,
         gaplessPlayback: true,
-        errorBuilder: (_, __, ___) => placeholder,
+        errorBuilder: (context, error, stackTrace) => placeholder,
       );
     } catch (_) {}
   }

@@ -1,33 +1,127 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/services/push_service.dart';
+import '../../../screens/auth_service.dart' show authStateProvider;
+import '../../../screens/favorites_service.dart' show favoritesProvider;
 import '../models/user_profile.dart';
 
-const String kCurrentUserId = 'default_citizen';
+
+String get kCurrentUserId {
+  try {
+    return FirebaseAuth.instance.currentUser?.uid ?? 'default_citizen';
+  } catch (_) {
+    return 'default_citizen';
+  }
+}
+
+
+FutureProvider<int> _subCountProvider(String sub) =>
+    FutureProvider<int>((ref) async {
+      final user = ref.watch(authStateProvider).value;
+      if (user == null) return 0;
+      try {
+        final snap = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection(sub)
+            .count()
+            .get(source: AggregateSource.server);
+        return snap.count ?? 0;
+      } catch (_) {
+        return 0;
+      }
+    });
+
+final _votesCountProvider = _subCountProvider('votes');
+final _supportedCountProvider = _subCountProvider('supported');
+
+final _mySuggestionsCountProvider = FutureProvider<int>((ref) async {
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return 0;
+  try {
+    final snap = await FirebaseFirestore.instance
+        .collection('suggestions')
+        .where('authorUid', isEqualTo: user.uid)
+        .count()
+        .get(source: AggregateSource.server);
+    return snap.count ?? 0;
+  } catch (_) {
+    return 0;
+  }
+});
 
 final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
-  final docRef = FirebaseFirestore.instance.collection('users').doc(kCurrentUserId);
 
-  return docRef.snapshots().asyncMap((doc) async {
+  final user = ref.watch(authStateProvider).value;
+
+  
+  final favCount = ref.watch(favoritesProvider.select((v) => v.value?.length));
+  final voteCount = ref.watch(_votesCountProvider.select((v) => v.value));
+  final supCount = ref.watch(_supportedCountProvider.select((v) => v.value));
+  final sugCount = ref.watch(_mySuggestionsCountProvider.select((v) => v.value));
+  UserProfile withCounts(UserProfile p) => p.copyWith(
+        totalSaved: favCount ?? p.totalSaved,
+        totalSupported: (voteCount != null && supCount != null)
+            ? voteCount + supCount
+            : p.totalSupported,
+        totalSuggestions: sugCount ?? p.totalSuggestions,
+      );
+
+  if (user == null) {
+    
+    return Stream.value(UserProfile.defaultProfile());
+  }
+
+  final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+  return docRef.snapshots().map((doc) {
     if (!doc.exists) {
-      // Döküman henüz yoksa başlangıç profilini Firestore'a yazıyoruz
+      // Döküman henüz yoksa (kayıt yazımı gecikti/başarısız) oluştur.
       final defaultProfile = UserProfile.defaultProfile();
-      await docRef.set(defaultProfile.toFirestore());
-      return defaultProfile;
+      try {
+        docRef.set(defaultProfile.toFirestore());
+      } catch (_) {}
+      return withCounts(defaultProfile);
     }
-    return UserProfile.fromFirestore(doc);
+    final profile = UserProfile.fromFirestore(doc);
+    return withCounts(profile);
   });
 });
 
 final profileServiceProvider = Provider((ref) => ProfileService());
 
 class ProfileService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  ProfileService({FirebaseFirestore? firestore}) : _customFirestore = firestore;
 
-  DocumentReference<Map<String, dynamic>> get _userRef =>
-      _firestore.collection('users').doc(kCurrentUserId);
+  final FirebaseFirestore? _customFirestore;
 
-  CollectionReference<Map<String, dynamic>> get _activitiesRef =>
-      _userRef.collection('activities');
+  FirebaseFirestore? get _firestore {
+    if (_customFirestore != null) return _customFirestore;
+    try {
+      return FirebaseFirestore.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DocumentReference<Map<String, dynamic>>? get _userRef {
+    final db = _firestore;
+    if (db == null) return null;
+    return db.collection('users').doc(kCurrentUserId);
+  }
+  
+  bool get _isAuthAvailable {
+    try {
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Profil bilgilerini (ad, eposta, telefon, adres, tc) güncelle
   Future<void> updateProfile({
@@ -38,90 +132,338 @@ class ProfileService {
     required String neighborhood,
     String? tcNo,
   }) async {
-    final updateData = <String, dynamic>{
-      'fullName': fullName,
-      'email': email,
-      'phoneNumber': phoneNumber,
-      'address': address,
-      'neighborhood': neighborhood,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    if (tcNo != null && tcNo.isNotEmpty) {
-      updateData['tcNo'] = tcNo;
-    }
-    await _userRef.set(updateData, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      final updateData = <String, dynamic>{
+        'fullName': fullName,
+        'email': email,
+        'phoneNumber': phoneNumber,
+        'address': address,
+        'neighborhood': neighborhood,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (tcNo != null && tcNo.isNotEmpty) {
+        updateData['tcNo'] = tcNo;
+      }
+      await _userRef?.set(updateData, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Mahalle seçimini doğrudan güncelle
   Future<void> updateNeighborhood(String neighborhood) async {
-    await _userRef.set({
-      'neighborhood': neighborhood,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        'neighborhood': neighborhood,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Bildirim tercihlerini güncelle
   Future<void> updateNotificationPreference(String key, bool enabled) async {
-    await _userRef.set({
-      'notificationPreferences.$key': enabled,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await PushService.syncPreference(key, enabled);
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        'notificationPreferences.$key': enabled,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Dil tercihini güncelle ('tr', 'en', 'ar')
   Future<void> updateLanguage(String languageCode) async {
-    await _userRef.set({
-      'language': languageCode,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        'language': languageCode,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // Hata artık yutulmuyor: ekran kullanıcıya gösterebilsin.
+      debugPrint('updateLanguage hatası: $e');
+      rethrow;
+    }
   }
 
   /// Büyük yazı tipi tercihini güncelle
   Future<void> updateLargeFont(bool isLarge) async {
-    await _userRef.set({
-      'isLargeFont': isLarge,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        // Kayıt sırasında (auth_service) alan adı 'largeFont', burada ise
+        // 'isLargeFont' yazılıyordu. Okuyan taraf hangisini bekliyorsa
+        // bulsun diye ikisini de yazıyoruz.
+        'largeFont': isLarge,
+        'isLargeFont': isLarge,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('updateLargeFont hatası: $e');
+      rethrow;
+    }
   }
 
   /// Tema modunu güncelle ('light', 'dark', 'system')
   Future<void> updateThemeMode(String themeMode) async {
-    await _userRef.set({
-      'themeMode': themeMode,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        'themeMode': themeMode,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Profil resmini güncelle
   Future<void> updateAvatarUrl(String avatarUrl) async {
-    await _userRef.set({
-      'avatarUrl': avatarUrl,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        'avatarUrl': avatarUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
   /// Hesabı sil
   Future<void> deleteAccount() async {
-    await _userRef.set({
-      'status': 'deleted',
-      'fullName': 'Silinmiş Kullanıcı',
-      'email': '',
-      'phoneNumber': '',
-      'deletedAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    if (!_isAuthAvailable) return;
+    try {
+      await _userRef?.set({
+        'status': 'deleted',
+        'fullName': 'Silinmiş Kullanıcı',
+        'email': '',
+        'phoneNumber': '',
+        'deletedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
   }
 
-  /// Kullanıcı aktivitelerini getir
-  Stream<List<UserActivityItem>> getActivitiesStream() {
-    return _activitiesRef.snapshots().map((snap) {
-      if (snap.docs.isEmpty) {
-        return _fallbackActivities;
+  static const List<String> _months = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+  ];
+
+  static String _fmtDate(dynamic v) {
+    if (v is! Timestamp) return '';
+    final d = v.toDate();
+    return '${d.day.toString().padLeft(2, '0')} ${_months[d.month - 1]} ${d.year}';
+  }
+
+  /// users/{uid}/favorites kaydını "Kayıtlarım" sekmesi için aktivite satırına çevirir.
+  static UserActivityItem _favoriteToActivity(
+    QueryDocumentSnapshot<Map<String, dynamic>> d,
+  ) {
+    final m = d.data();
+    return UserActivityItem(
+      id: 'fav_${d.id}',
+      type: 'kayit',
+      title: (m['name'] ?? '').toString(),
+      description: (m['summary'] ?? '').toString(),
+      date: _fmtDate(m['createdAt']),
+      status: 'Kaydedildi',
+      category: (m['category'] ?? 'Gebze Rehberi').toString(),
+    );
+  }
+
+  static List<QueryDocumentSnapshot<Map<String, dynamic>>> _byNewest(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+  ) {
+    int ms(dynamic v) => v is Timestamp ? v.millisecondsSinceEpoch : 0;
+    final list = [...docs];
+    list.sort(
+      (a, b) => ms(b.data()['createdAt']).compareTo(ms(a.data()['createdAt'])),
+    );
+    return list;
+  }
+
+  static String _optionText(dynamic options, int index) {
+    if (options is List && index >= 0 && index < options.length) {
+      final o = options[index];
+      if (o is Map) return (o['text'] ?? '').toString();
+      return o.toString();
+    }
+    return '';
+  }
+
+  /// users/{uid}/votes/{pollId} -> "Desteklerim" satırı (anket başlığı polls'tan alınır).
+  Future<UserActivityItem> _voteToActivity(
+    FirebaseFirestore db,
+    QueryDocumentSnapshot<Map<String, dynamic>> d,
+  ) async {
+    final m = d.data();
+    var title = 'Anket';
+    var category = 'Anket';
+    var choice = '';
+    try {
+      final poll = await db.collection('polls').doc(d.id).get();
+      final pm = poll.data();
+      if (pm != null) {
+        title = (pm['question'] ?? pm['title'] ?? title).toString();
+        category = (pm['category'] ?? category).toString();
+        final idx = (m['optionIndex'] as num?)?.toInt() ?? -1;
+        choice = _optionText(pm['options'], idx);
       }
-      return snap.docs
-          .map((d) => UserActivityItem.fromMap(d.data(), d.id))
-          .toList();
-    });
+    } catch (_) {}
+    return UserActivityItem(
+      id: 'vote_${d.id}',
+      type: 'destek',
+      title: title,
+      description: choice.isEmpty ? 'Ankete oy verdiniz.' : 'Oyunuz: $choice',
+      date: _fmtDate(m['createdAt']),
+      status: 'Oylandı',
+      category: category,
+    );
+  }
+
+  /// users/{uid}/supported/{suggestionId} -> "Desteklerim" satırı.
+  Future<UserActivityItem> _supportToActivity(
+    FirebaseFirestore db,
+    QueryDocumentSnapshot<Map<String, dynamic>> d,
+  ) async {
+    final m = d.data();
+    var title = 'Vatandaş Önerisi';
+    var category = 'Öneri';
+    try {
+      final sug = await db.collection('suggestions').doc(d.id).get();
+      final sm = sug.data();
+      if (sm != null) {
+        title = (sm['title'] ?? title).toString();
+        category = (sm['category'] ?? category).toString();
+      }
+    } catch (_) {}
+    return UserActivityItem(
+      id: 'support_${d.id}',
+      type: 'destek',
+      title: title,
+      description: 'Bu öneriyi desteklediniz.',
+      date: _fmtDate(m['createdAt']),
+      status: 'Desteklendi',
+      category: category,
+    );
+  }
+
+  /// Kullanıcının yazdığı öneri -> "Önerilerim" satırı.
+  static UserActivityItem _suggestionToActivity(
+    QueryDocumentSnapshot<Map<String, dynamic>> d,
+  ) {
+    final m = d.data();
+    final isApproved = m['approved'] == true;
+    final statusText = isApproved ? 'Onaylandı' : (m['status'] ?? 'İncelemede').toString();
+    return UserActivityItem(
+      id: 'sug_${d.id}',
+      type: 'oneri',
+      title: (m['title'] ?? '').toString(),
+      description: (m['description'] ?? '').toString(),
+      date: _fmtDate(m['createdAt']),
+      status: statusText,
+      category: (m['category'] ?? 'Genel').toString(),
+    );
+  }
+
+  /// Kullanıcı aktivitelerini getir.
+  /// - Misafir: örnek (demo) liste.
+  /// - Giriş yapmış kullanıcı: gerçek kayıtlar. Demo veri gösterilmez.
+  ///   activities + yazdığı öneriler + anket oyları + öneri destekleri + favoriler.
+  Stream<List<UserActivityItem>> getActivitiesStream() {
+    if (!_isAuthAvailable) {
+      return Stream.value(_fallbackActivities);
+    }
+    final userRef = _userRef;
+    final db = _firestore;
+    String? uid;
+    try {
+      uid = FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return Stream.value(_fallbackActivities);
+    }
+    if (userRef == null || db == null || uid == null) {
+      return Stream.value(_fallbackActivities);
+    }
+
+    const order = ['activities', 'suggestions', 'votes', 'supported', 'favorites'];
+    final parts = <String, List<UserActivityItem>>{};
+    final subs = <StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>[];
+    late final StreamController<List<UserActivityItem>> controller;
+
+    void emit() {
+      if (controller.isClosed) return;
+      controller.add([
+        for (final k in order) ...?parts[k],
+      ]);
+    }
+
+    void listenTo(
+      String key,
+      Query<Map<String, dynamic>> query,
+      Future<List<UserActivityItem>> Function(
+        QuerySnapshot<Map<String, dynamic>> snap,
+      ) convert,
+    ) {
+      subs.add(
+        query.snapshots().listen(
+          (snap) async {
+            try {
+              parts[key] = await convert(snap);
+            } catch (_) {
+              parts[key] = [];
+            }
+            emit();
+          },
+          onError: (_) {
+            parts[key] = [];
+            emit();
+          },
+        ),
+      );
+    }
+
+    controller = StreamController<List<UserActivityItem>>(
+      onListen: () {
+        listenTo(
+          'activities',
+          userRef.collection('activities'),
+          (snap) async => snap.docs
+              .map((d) => UserActivityItem.fromMap(d.data(), d.id))
+              .toList(),
+        );
+        listenTo(
+          'suggestions',
+          db.collection('suggestions').where('authorUid', isEqualTo: uid),
+          (snap) async =>
+              _byNewest(snap.docs).map(_suggestionToActivity).toList(),
+        );
+        listenTo(
+          'votes',
+          userRef.collection('votes'),
+          (snap) async => Future.wait(
+            _byNewest(snap.docs).map((d) => _voteToActivity(db, d)),
+          ),
+        );
+        listenTo(
+          'supported',
+          userRef.collection('supported'),
+          (snap) async => Future.wait(
+            _byNewest(snap.docs).map((d) => _supportToActivity(db, d)),
+          ),
+        );
+        listenTo(
+          'favorites',
+          userRef.collection('favorites'),
+          (snap) async =>
+              _byNewest(snap.docs).map(_favoriteToActivity).toList(),
+        );
+      },
+      onCancel: () async {
+        for (final sub in subs) {
+          await sub.cancel();
+        }
+      },
+    );
+    return controller.stream;
   }
 
   static const List<UserActivityItem> _fallbackActivities = [
@@ -156,7 +498,8 @@ class ProfileService {
       id: 'oneri_1',
       type: 'oneri',
       title: 'Sahil Yolu Akıllı Bisiklet İstasyonu',
-      description: 'Eskihisar sahil şeridine kiralık bisiklet istasyonu kurulması.',
+      description:
+          'Eskihisar sahil şeridine kiralık bisiklet istasyonu kurulması.',
       date: '08 Ekim 2026',
       status: 'Yayında',
       category: 'Ulaşım',
@@ -174,7 +517,8 @@ class ProfileService {
       id: 'destek_1',
       type: 'destek',
       title: 'Mustafapaşa Mahallesi Kütüphane & Etüt Projesi',
-      description: 'Sosyal tesis anketinde Kütüphane & Etüt Merkezini desteklediniz.',
+      description:
+          'Sosyal tesis anketinde Kütüphane & Etüt Merkezini desteklediniz.',
       date: '09 Ekim 2026',
       status: 'Oylandı',
       category: 'Sosyal Hizmet',
@@ -183,7 +527,8 @@ class ProfileService {
       id: 'destek_2',
       type: 'destek',
       title: 'Sahil Parkı Yürüyüş ve Bisiklet Yolu',
-      description: 'Eskihisar Sahil Parkı anketinde yürüyüş yolunu desteklediniz.',
+      description:
+          'Eskihisar Sahil Parkı anketinde yürüyüş yolunu desteklediniz.',
       date: '05 Ekim 2026',
       status: 'Oylandı',
       category: 'Çevre',

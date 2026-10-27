@@ -1,0 +1,74 @@
+
+name: Gebze Dijital - Unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: "Build mode"
+        required: true
+        default: release
+        type: choice
+        options:
+          - release
+          - debug
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gebze-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ios:
+    name: Build unsigned IPA
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS without signing
+        run: flutter build ios --${{ inputs.build_mode }} --no-codesign
+
+      - name: Package unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/ios/iphoneos/Runner.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Runner.app bulunamadi."
+            exit 1
+          fi
+
+          mkdir -p build/ios/unsigned/Payload
+          cp -R "$APP_PATH" build/ios/unsigned/Payload/Runner.app
+
+          cd build/ios/unsigned
+          zip -qr "$GITHUB_WORKSPACE/Gebze-Dijital-unsigned.ipa" Payload
+
+          ls -lh "$GITHUB_WORKSPACE/Gebze-Dijital-unsigned.ipa"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gebze-Dijital-unsigned-IPA
+          path: Gebze-Dijital-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7

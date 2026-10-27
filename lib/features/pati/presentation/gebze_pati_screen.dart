@@ -39,11 +39,16 @@ class _GebzePatiScreenState extends ConsumerState<GebzePatiScreen>
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5FD),
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF1F5FD),
         body: Column(
           children: [
             _buildHeader(context, lang),
@@ -92,7 +97,11 @@ class _GebzePatiScreenState extends ConsumerState<GebzePatiScreen>
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -125,7 +134,11 @@ class _GebzePatiScreenState extends ConsumerState<GebzePatiScreen>
                       color: Colors.white.withAlpha(40),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.pets_rounded, color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.pets_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),
@@ -155,14 +168,23 @@ class _GebzePatiScreenState extends ConsumerState<GebzePatiScreen>
                     ],
                   ),
                   labelColor: const Color(0xFF0A2A66),
-                  labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
-                  unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 10.5),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 10.5,
+                  ),
                   labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   dividerColor: Colors.transparent,
                   tabs: [
                     Tab(
                       height: 52,
-                      icon: const Icon(Icons.medical_services_rounded, size: 18),
+                      icon: const Icon(
+                        Icons.medical_services_rounded,
+                        size: 18,
+                      ),
                       text: AppStrings.get('tab_ambulance', lang),
                     ),
                     Tab(

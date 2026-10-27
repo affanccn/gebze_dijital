@@ -1,1 +1,28 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"gebze-dijital","appId":"1:417554808986:android:161f1a7b16613c6b301f23","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"gebze-dijital","configurations":{"android":"1:417554808986:android:161f1a7b16613c6b301f23","ios":"1:417554808986:ios:6244bbe5fee8d02b301f23","macos":"1:417554808986:ios:6244bbe5fee8d02b301f23","web":"1:417554808986:web:aea3daf07f5b6534301f23","windows":"1:417554808986:web:3a9b4ab2b7c75056301f23"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "gebze-dijital",
+          "appId": "1:417554808986:android:161f1a7b16613c6b301f23",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "gebze-dijital",
+          "configurations": {
+            "android": "1:417554808986:android:161f1a7b16613c6b301f23",
+            "ios": "1:417554808986:ios:6244bbe5fee8d02b301f23",
+            "macos": "1:417554808986:ios:6244bbe5fee8d02b301f23",
+            "web": "1:417554808986:web:aea3daf07f5b6534301f23",
+            "windows": "1:417554808986:web:3a9b4ab2b7c75056301f23"
+          }
+        }
+      }
+    }
+  }
+}

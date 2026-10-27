@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'widgets/municipal_news_list.dart';
 import '../../../core/localization/app_strings.dart';
 
@@ -11,16 +12,20 @@ class MunicipalNewsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lang = ref.watch(appLanguageProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5FD),
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF1F5FD),
         body: Column(
           children: [
             _buildHeader(context, lang),
-            const Expanded(
-              child: MunicipalNewsList(),
-            ),
+            const Expanded(child: MunicipalNewsList(itemLimit: 10)),
           ],
         ),
       ),
@@ -49,7 +54,11 @@ class MunicipalNewsScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -70,7 +79,11 @@ class MunicipalNewsScreen extends ConsumerWidget {
                       color: Colors.white.withAlpha(40),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.newspaper_rounded, color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.newspaper_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),

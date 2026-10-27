@@ -16,7 +16,8 @@ class EBelediyeCategory {
       id: map['id'] as int? ?? 0,
       name: map['name'] as String? ?? '',
       icon: map['icon'] as String? ?? '',
-      services: (map['services'] as List<dynamic>?)
+      services:
+          (map['services'] as List<dynamic>?)
               ?.map((s) => EBelediyeService.fromMap(s as Map<String, dynamic>))
               .toList() ??
           [],
@@ -60,8 +61,11 @@ class EBelediyeService {
       url: map['url'] as String? ?? '',
       hasModal: map['hasModal'] as bool? ?? false,
       isNew: map['isNew'] as bool? ?? false,
-      modalSteps: (map['modalSteps'] as List<dynamic>?)
-              ?.map((ms) => EBelediyeModalStep.fromMap(ms as Map<String, dynamic>))
+      modalSteps:
+          (map['modalSteps'] as List<dynamic>?)
+              ?.map(
+                (ms) => EBelediyeModalStep.fromMap(ms as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -98,8 +102,11 @@ class EBelediyeModalStep {
       id: map['id'] as String? ?? '',
       title: map['title'] as String? ?? '',
       backStep: map['backStep'] as String? ?? '',
-      options: (map['options'] as List<dynamic>?)
-              ?.map((o) => EBelediyeModalOption.fromMap(o as Map<String, dynamic>))
+      options:
+          (map['options'] as List<dynamic>?)
+              ?.map(
+                (o) => EBelediyeModalOption.fromMap(o as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -138,11 +145,6 @@ class EBelediyeModalOption {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'text': text,
-      'url': url,
-      'tooltip': tooltip,
-      'nextStep': nextStep,
-    };
+    return {'text': text, 'url': url, 'tooltip': tooltip, 'nextStep': nextStep};
   }
 }

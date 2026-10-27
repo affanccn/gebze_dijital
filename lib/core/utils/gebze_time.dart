@@ -66,7 +66,13 @@ class GebzeTime {
         return DateTime.utc(y, m, d, h, min);
       }
       final parsed = DateTime.parse(clean);
-      return DateTime.utc(parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute);
+      return DateTime.utc(
+        parsed.year,
+        parsed.month,
+        parsed.day,
+        parsed.hour,
+        parsed.minute,
+      );
     } catch (_) {
       return DateTime.utc(2026, 1, 1);
     }

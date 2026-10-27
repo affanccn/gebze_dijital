@@ -1,0 +1,17 @@
+{
+  "name": "events-sync",
+  "version": "1.0.0",
+  "description": "Gebze Belediyesi Resmi Web Sitesi Etkinlik Senkronizasyon Servisi",
+  "main": "sync-events.js",
+  "scripts": {
+    "start": "node sync-events.js"
+  },
+  "keywords": ["gebze", "events", "sync", "firestore"],
+  "author": "Gebze Dijital Ekibi",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "@google-cloud/firestore": "^7.11.0"
+  }
+}

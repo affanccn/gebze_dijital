@@ -2,7 +2,7 @@ name: Hava Durumu Senkronizasyonu
 
 on:
   schedule:
-    - cron: '15,45 * * * *' # Her saatin 15 ve 45. dakikalarında düzenli çalışır (yoğunluk gecikmesini önler)
+    - cron: '0 4 * * *' # Günde bir kez: Her sabah 04:00 UTC (07:00 TSİ) düzenli çalışır
   workflow_dispatch:
   push:
     paths:

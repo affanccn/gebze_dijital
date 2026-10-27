@@ -5,7 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'auth_guard.dart';
+import 'favorites_service.dart';
+import 'guide_foods.dart';
+import 'guide_picnic.dart';
 import '../core/localization/app_strings.dart';
+import '../core/utils/phone_launcher.dart';
+import 'report_screen.dart';
+import 'services_screen.dart';
+import 'profile_screen.dart';
 
 /// Gebze Belediyesi - Şehir Rehberi
 /// Dosya yolu: lib/screens/guide_screen.dart
@@ -26,15 +34,70 @@ const List<String> _kBodyFontFallback = ['Roboto', 'Noto Sans', 'sans-serif'];
 
 Widget _withFont(BuildContext context, Widget child) {
   final base = Theme.of(context);
+  final isDark = base.brightness == Brightness.dark;
   return Theme(
     data: base.copyWith(
       textTheme: base.textTheme.apply(
         fontFamily: _kBodyFont,
         fontFamilyFallback: _kBodyFontFallback,
+        bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+        displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
       ),
     ),
     child: child,
   );
+}
+
+/// Özel mezar taşı ikonu çizimi
+Widget _tombstoneIcon(Color color, double size) {
+  return SizedBox(
+    width: size,
+    height: size,
+    child: CustomPaint(painter: _TombstonePainter(color: color)),
+  );
+}
+
+class _TombstonePainter extends CustomPainter {
+  final Color color;
+  _TombstonePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final w = size.width;
+    final h = size.height;
+
+    final path = Path();
+    // Taban çizgisi
+    path.moveTo(w * 0.1, h * 0.9);
+    path.lineTo(w * 0.9, h * 0.9);
+    // Sağ kenar
+    path.lineTo(w * 0.85, h * 0.4);
+    // Üst kavis (mezar taşı yuvarlak başlığı)
+    path.arcToPoint(
+      Offset(w * 0.15, h * 0.4),
+      radius: Radius.circular(w * 0.35),
+      clockwise: false,
+    );
+    // Sol kenar
+    path.lineTo(w * 0.1, h * 0.9);
+    path.close();
+
+    canvas.drawPath(path, paint);
+
+    // Kaide/Alt taban
+    final baseRect = RRect.fromRectAndRadius(
+      Rect.fromLTRB(w * 0.05, h * 0.85, w * 0.95, h * 0.95),
+      const Radius.circular(2),
+    );
+    canvas.drawRRect(baseRect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 /// Önizleme sayfasındaki yeni metinler için yerel çeviri yardımcısı.
@@ -46,6 +109,12 @@ String _t(String lang, String tr, String en, String ar) =>
 String _normalizeImagePath(String path) => path.trim().replaceAll('\\', '/');
 
 Future<void> _openUrl(BuildContext context, String url, String lang) async {
+  if (url.startsWith('tel:')) {
+    final phone = url.substring(4);
+    await PhoneLauncher.makeCall(context, phone, lang: lang);
+    return;
+  }
+
   final ok = await launchUrl(
     Uri.parse(url),
     mode: LaunchMode.externalApplication,
@@ -120,23 +189,79 @@ class _Category {
   final String title;
   final IconData icon;
   final Color color;
-  const _Category(this.id, this.title, this.icon, this.color);
+
+  /// Hazır ikon yetmediğinde özel çizilmiş ikon (örn. mezar taşı).
+  final Widget Function(Color color, double size)? iconBuilder;
+
+  const _Category(
+    this.id,
+    this.title,
+    this.icon,
+    this.color, {
+    this.iconBuilder,
+  });
 }
 
+String _nurseryTitle(String lang) => lang == 'en'
+    ? 'Nurseries'
+    : (lang == 'ar' ? 'دور الحضانة' : 'Kreş ve Atölyeler');
 List<_Category> _getCategories(String lang) => [
-      _Category('parklar', AppStrings.get('cat_parks', lang), Icons.park_rounded,
-          const Color(0xFF43A047)),
-      _Category('lokantalar', AppStrings.get('cat_restaurants', lang),
-          Icons.restaurant_rounded, const Color(0xFFFB8C00)),
-      _Category('pazar', AppStrings.get('cat_markets', lang),
-          Icons.shopping_basket_rounded, const Color(0xFFFFB300)),
-      _Category('spor', AppStrings.get('cat_sports', lang),
-          Icons.sports_soccer_rounded, const Color(0xFF1E88E5)),
-      _Category('kultur', AppStrings.get('cat_culture', lang),
-          Icons.museum_rounded, const Color(0xFF8E24AA)),
-      _Category('belediye', AppStrings.get('cat_municipality', lang),
-          Icons.account_balance_rounded, _C.navy),
-    ];
+  _Category(
+    'etkinlikler',
+    AppStrings.get('cat_events', lang),
+    Icons.event_available_rounded,
+    const Color(0xFFE65100),
+  ),
+  _Category(
+    'parklar',
+    AppStrings.get('cat_parks', lang),
+    Icons.park_rounded,
+    const Color(0xFF43A047),
+  ),
+  _Category(
+    'lokantalar',
+    AppStrings.get('cat_restaurants', lang),
+    Icons.restaurant_rounded,
+    const Color(0xFFFB8C00),
+  ),
+  _Category(
+    'pazar',
+    AppStrings.get('cat_markets', lang),
+    Icons.shopping_basket_rounded,
+    const Color(0xFFFFB300),
+  ),
+  _Category(
+    'spor',
+    AppStrings.get('cat_sports', lang),
+    Icons.sports_soccer_rounded,
+    const Color(0xFF1E88E5),
+  ),
+  _Category(
+    'kultur',
+    AppStrings.get('cat_culture', lang),
+    Icons.museum_rounded,
+    const Color(0xFF8E24AA),
+  ),
+  _Category(
+    'mezarliklar',
+    AppStrings.get('cat_cemeteries', lang),
+    Icons.local_florist_rounded,
+    const Color(0xFF607D8B),
+    iconBuilder: _tombstoneIcon,
+  ),
+  _Category(
+    'kresler',
+    _nurseryTitle(lang),
+    Icons.child_care_rounded,
+    const Color(0xFFEC407A),
+  ),
+  _Category(
+    'belediye',
+    AppStrings.get('cat_municipality', lang),
+    Icons.account_balance_rounded,
+    _C.navy,
+  ),
+];
 
 List<HistoricPlace> _getFallbackPlaces(String lang) {
   final isEn = lang == 'en';
@@ -153,15 +278,14 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       name: isEn
           ? 'Coban Mustafa Pasha Mosque & Complex'
           : isAr
-              ? 'جامع ومجمع جوبان مصطفى باشا'
-              : 'Çoban Mustafa Paşa Camii ve Külliyesi',
+          ? 'جامع ومجمع جوبان مصطفى باشا'
+          : 'Çoban Mustafa Paşa Camii ve Külliyesi',
       summary: isEn
           ? 'Built in 1523 by Coban Mustafa Pasha, it is one of the most significant Ottoman works in Gebze.'
           : isAr
-              ? 'شيده جوبان مصطفى باشا عام 1523، وهو من أهم الآثار العثمانية في جبزة.'
-              : 'Çoban Mustafa Paşa\'nın 1523\'te yaptırdığı cami ve külliye, Gebze\'nin en önemli Osmanlı eserlerinden biridir.',
-      detailUrl:
-          'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-camii-ve-kulliyesi_1.html',
+          ? 'شيده جوبان مصطفى باشا عام 1523، وهو من أهم الآثار العثمانية في جبزة.'
+          : 'Çoban Mustafa Paşa\'nın 1523\'te yaptırdığı cami ve külliye, Gebze\'nin en önemli Osmanlı eserlerinden biridir.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-camii-ve-kulliyesi_1.html',
       image: 'gorsel/tarihi_yerler/cmpasa.jpg',
       category: catCamiler,
     ),
@@ -170,25 +294,29 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
       name: isEn
           ? 'Sultan Orhan Mosque'
           : isAr
-              ? 'جامع السلطان أورهان'
-              : 'Sultan Orhan Camii',
+          ? 'جامع السلطان أورهان'
+          : 'Sultan Orhan Camii',
       summary: isEn
           ? 'Built around 1323-1331 by Orhan Bey, a prime example of early Ottoman architecture.'
           : isAr
-              ? 'شيده أورهان باي في حوالي 1323-1331، وهو نموذج أنيق للعمارة العثمانية المبكرة.'
-              : 'Yaklaşık 1323-1331 yıllarında Orhan Bey tarafından yaptırılan, ilk dönem Osmanlı mimarisinin sade bir örneği.',
+          ? 'شيده أورهان باي في حوالي 1323-1331، وهو نموذج أنيق للعمارة العثمانية المبكرة.'
+          : 'Yaklaşık 1323-1331 yıllarında Orhan Bey tarafından yaptırılan, ilk dönem Osmanlı mimarisinin sade bir örneği.',
       detailUrl: 'https://www.gebze.bel.tr/gebze/sultan-orhan-camii_2.html',
       image: 'gorsel/tarihi_yerler/sorhan.jpg',
       category: catCamiler,
     ),
     HistoricPlace(
       id: 'ilyas_bey',
-      name: isEn ? 'Ilyas Bey Mosque' : isAr ? 'جامع إلياس باي' : 'İlyas Bey Camii',
+      name: isEn
+          ? 'Ilyas Bey Mosque'
+          : isAr
+          ? 'جامع إلياس باي'
+          : 'İlyas Bey Camii',
       summary: isEn
           ? 'Considered the oldest surviving Ottoman mosque in the district, featuring classic stonework.'
           : isAr
-              ? 'يُعد أقدم مسجد عثماني قائم في المنطقة مع كتابة بخط الثلث عند مدخله.'
-              : 'Osmanlı\'dan kalan en eski cami olarak kabul edilir. Kubbesizdir, girişinde sülüs yazılı bir kitabe bulunur.',
+          ? 'يُعد أقدم مسجد عثماني قائم في المنطقة مع كتابة بخط الثلث عند مدخله.'
+          : 'Osmanlı\'dan kalan en eski cami olarak kabul edilir. Kubbesizdir, girişinde sülüs yazılı bir kitabe bulunur.',
       detailUrl:
           'https://www.gebze.bel.tr/gebze-tarihi-yerler_ilyas-bey-camii_3.html',
       image: 'gorsel/tarihi_yerler/ilyasb.jpg',
@@ -196,12 +324,16 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
     ),
     HistoricPlace(
       id: 'anibal',
-      name: isEn ? "Hannibal's Tomb" : isAr ? 'قبر حنبعل' : 'Anibal\'ın (Hannibal) Mezarı',
+      name: isEn
+          ? "Hannibal's Tomb"
+          : isAr
+          ? 'قبر حنبعل'
+          : 'Anibal\'ın (Hannibal) Mezarı',
       summary: isEn
           ? 'A 24-ton stone sarcophagus surrounded by cypresses explaining the commander\'s life in five languages.'
           : isAr
-              ? 'ضريح صخري ضخم يزن 24 طناً محاط بأشجار السرو يشرح سيرة القائد بخمس لغات.'
-              : 'Selvilerle çevrili alanda duran 24 tonluk taş lahit, beş dilde yazılmış kitabelerle komutanın hayatını anlatır.',
+          ? 'ضريح صخري ضخم يزن 24 طناً محاط بأشجار السرو يشرح سيرة القائد بخمس لغات.'
+          : 'Selvilerle çevrili alanda duran 24 tonluk taş lahit, beş dilde yazılmış kitabelerle komutanın hayatını anlatır.',
       detailUrl:
           'https://www.gebze.bel.tr/gebze-tarihi-yerler_anibalin-mezari_4.html',
       image: 'gorsel/tarihi_yerler/anibal.jpg',
@@ -209,12 +341,16 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
     ),
     HistoricPlace(
       id: 'hunkar',
-      name: isEn ? 'Hunkar Cayiri' : isAr ? 'مرج هونكار' : 'Hünkar Çayırı',
+      name: isEn
+          ? 'Hunkar Cayiri'
+          : isAr
+          ? 'مرج هونكار'
+          : 'Hünkar Çayırı',
       summary: isEn
           ? 'The historic meadow where Mehmed the Conqueror camped with his army in 1481.'
           : isAr
-              ? 'المرج التاريخي الذي عسكر فيه السلطان محمد الفاتح بجيشه عام 1481.'
-              : 'Fatih Sultan Mehmet\'in 1481\'de ordusunu dinlendirdiği çayırlık alan. Bugün park olarak düzenlenmiştir.',
+          ? 'المرج التاريخي الذي عسكر فيه السلطان محمد الفاتح بجيشه عام 1481.'
+          : 'Fatih Sultan Mehmet\'in 1481\'de ordusunu dinlendirdiği çayırlık alan. Bugün park olarak düzenlenmiştir.',
       detailUrl:
           'https://www.gebze.bel.tr/gebze-tarihi-yerler_hunkar-cayiri_5.html',
       image: 'gorsel/tarihi_yerler/hunkar.jpg',
@@ -222,43 +358,734 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
     ),
     HistoricPlace(
       id: 'osman_hamdi',
-      name: isEn ? 'Osman Hamdi Bey Mansion' : isAr ? 'قصر عثمان حمدي باي' : 'Osman Hamdi Bey Yalısı',
+      name: isEn
+          ? 'Osman Hamdi Bey Mansion'
+          : isAr
+          ? 'قصر عثمان حمدي باي'
+          : 'Osman Hamdi Bey Yalısı',
       summary: isEn
           ? 'The historic mansion built in 1884 in Eskihisar, now serving as an art and historic museum.'
           : isAr
-              ? 'القصر التاريخي الذي شيده عثمان حمدي باي عام 1884 في إسكي حصار كمتحف فني وتاريخي.'
-              : 'Osman Hamdi Bey\'in 1884\'te Eskihisar\'da yaptırdığı iki katlı yalı, bugün müze olarak ziyaret edilebiliyor.',
-      detailUrl:
-          'https://www.gebze.bel.tr/gebze-tarihi-yerler_osman-hamdi-bey-yalisi_6.html',
+          ? 'القصر التاريخي الذي شيده عثمان حمدي باي عام 1884 في إسكي حصار كمتحف فني وتاريخي.'
+          : 'Osman Hamdi Bey\'in 1884\'te Eskihisar\'da yaptırdığı iki katlı yalı, bugün müze olarak ziyaret edilebiliyor.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_osman-hamdi-bey-yalisi_6.html',
       image: 'gorsel/tarihi_yerler/osmanbey.jpg',
       category: catMuzeler,
     ),
     HistoricPlace(
       id: 'eskihisar_kalesi',
-      name: isEn ? 'Eskihisar Castle' : isAr ? 'قلعة إسكي حصار' : 'Eskihisar Kalesi',
+      name: isEn
+          ? 'Eskihisar Castle'
+          : isAr
+          ? 'قلعة إسكي حصار'
+          : 'Eskihisar Kalesi',
       summary: isEn
           ? 'A historic fortress from the Byzantine era preserving its 10 bastions and 4 gates.'
           : isAr
-              ? 'قلعة تاريخية تعود للعهد البيزنطي تحافظ على أبراجها العشرة وبواباتها الأربع.'
-              : 'Bizans döneminden kalma tarihi kale. 10 burcu ve 4 kapısıyla özgün yapısını büyük ölçüde korur.',
+          ? 'قلعة تاريخية تعود للعهد البيزنطي تحافظ على أبراجها العشرة وبواباتها الأربع.'
+          : 'Bizans döneminden kalma tarihi kale. 10 burcu ve 4 kapısıyla özgün yapısını büyük ölçüde korur.',
       detailUrl: 'https://www.gebze.bel.tr/gebze/eskihisar-kalesi_7.html',
       image: 'gorsel/tarihi_yerler/eskale.jpg',
       category: catTarihi,
     ),
     HistoricPlace(
       id: 'ballikayalar',
-      name: isEn ? 'Ballikayalar Nature Park' : isAr ? 'حديقة باليكايالار الطبيعية' : 'Ballıkayalar',
+      name: isEn
+          ? 'Ballikayalar Nature Park'
+          : isAr
+          ? 'حديقة باليكايالار الطبيعية'
+          : 'Ballıkayalar',
       summary: isEn
           ? 'A stunning karst canyon famous for waterfalls, caves, trekking paths, and climbing routes.'
           : isAr
-              ? 'وادي كارستي خلاب يشتهر بشلالاته، كهوفه ومسارات التسلق والتنزه الطبيعي.'
-              : 'Karstik vadi; göletleri, şelaleleri, travertenleri ve çok sayıda mağarasıyla doğal güzelliğiyle öne çıkar.',
+          ? 'وادي كارستي خلاب يشتهر بشلالاته، كهوفه ومسارات التسلق والتنزه الطبيعي.'
+          : 'Karstik vadi; göletleri, şelaleleri, travertenleri ve çok sayıda mağarasıyla doğal güzelliğiyle öne çıkar.',
       detailUrl:
           'https://www.gebze.bel.tr/gebze-tarihi-yerler_ballikayalar_8.html',
       image: 'gorsel/tarihi_yerler/ballikaya.jpg',
       category: catDoga,
     ),
+    HistoricPlace(
+      id: 'beylikdagi',
+      name: isEn
+          ? 'Beylikdagi Forest Walk'
+          : isAr
+          ? 'مسار غابة بيليك داغي'
+          : 'Beylikdağı Orman Yürüyüşü',
+      summary: isEn
+          ? 'One of Gebze\'s natural green areas, Beylikdagi City Forest offers a peaceful route for open-air walking, fresh air, and nature photography.'
+          : isAr
+          ? 'تعتبر غابة بيليك داغي الحضرية إحدى المناطق الخضراء الطبيعية في جبزة، وتوفر مساراً رائعاً للمشي في الهواء الطلق واستنشاق الهواء النقي.'
+          : 'Gebze\'nin doğal yeşil alanlarından biri olan Beylikdağı Kent Ormanı, ağaçlandırılmış yamaçları ve orman dokusuyla açık havada yürüyüş yapmak ve doğa fotoğrafları çekmek isteyenler için harika bir rotadır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/beylikdagi.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'denizli_goleti',
+      name: isEn
+          ? 'Denizli Pond Nature Route'
+          : isAr
+          ? 'مسار بركة دينيزلي الطبيعي'
+          : 'Denizli Göleti Doğa Rotası',
+      summary: isEn
+          ? 'Denizli Pond combines lake views with rural nature. Trails along dirt roads and forest paths offer a serene escape from city hustle.'
+          : isAr
+          ? 'تقع بركة دينيزلي بالقرب من حي دينيزلي في جبزة، وتجمع بين إطلالة البحيرة والطبيعة الريفية مع مسارات المشي عبر الطرق الترابية.'
+          : 'Gebze\'nin Denizli Mahallesi çevresinde yer alan Denizli Göleti, gölet manzarasını kırsal doğayla buluşturan keyifli bir yürüyüş noktasıdır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/denizli_goleti.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'denizli_yoruk_yaylalari',
+      name: isEn
+          ? 'Denizli Pond – Yoruk Plateaus Route'
+          : isAr
+          ? 'مسار بركة دينيزلي – هضاب يوروك'
+          : 'Denizli Göleti – Yörük Yaylaları Doğa Rotası',
+      summary: isEn
+          ? 'Extending into rural Gebze, this nature route combines forest tracks, wide meadows, and plateau views, ideal for longer treks.'
+          : isAr
+          ? 'يمتد هذا المسار الطبيعي من بركة دينيزلي نحو ريف جبزة، جامعاً بين طرق الغابات والمروج الخضراء الواسعة وإطلالات الهضاب الخلابة.'
+          : 'Denizli Göleti\'nden başlayarak Gebze\'nin kırsal alanlarına uzanan bu doğa rotası; orman yollarını, geniş çayırlıkları ve yayla manzaralarını bir araya getirir.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/denizli_yoruk_yaylalari.png',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'elmalidere_selalesi',
+      name: isEn
+          ? 'Elmalidere Waterfall & Forest Trails'
+          : isAr
+          ? 'شلال إلماليده ره ومسارات الغابة'
+          : 'Elmalıdere Şelalesi ve Orman Patikaları',
+      summary: isEn
+          ? 'Elmalidere Waterfall attracts hiking enthusiasts with its stream bed, natural flora, and forest paths.'
+          : isAr
+          ? 'يقع شلال إلماليده ره في ريف دينيزلي بجبزة، ويجذب عشاق المشي الطبيعي بمجراه المائي وغطائه النباتي ومساراته بين الغابات.'
+          : 'Gebze\'nin Denizli kırsalı çevresinde bulunan Elmalıdere Şelalesi, dere yatağı, doğal bitki örtüsü ve orman yollarıyla doğa yürüyüşü meraklılarının ilgisini çeken bir noktadır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/elmalidere_selalesi.jpg',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'yelken_tepe',
+      name: isEn
+          ? 'Yelken Tepe Nature Walk'
+          : isAr
+          ? 'مسار جبل يلكن تيبي'
+          : 'Yelken Tepe Doğa Yürüyüşü',
+      summary: isEn
+          ? 'Yelken Tepe in rural Denizli is a peak hiking spot featuring paths through forest terrain and panoramic rural vistas.'
+          : isAr
+          ? 'تعتبر قمة يلكن تيبي في ريف دينيزلي وجهة مميزة للمشي الجبلي والمسارات الغابية والمناظر الريفية البانورامية.'
+          : 'Gebze\'nin Denizli kırsalındaki Yelken Tepe, gölet ve yayla güzergâhlarıyla birleşen ve tepeden panoramik kırsal manzaralar sunan bir doğa yürüyüşü noktasıdır.',
+      detailUrl: 'https://www.gebze.bel.tr',
+      image: 'gorsel/piknik/yelken_tepe.png',
+      category: catDoga,
+    ),
+    HistoricPlace(
+      id: 'ibrahim_pasa_cesmesi',
+      name: isEn
+          ? 'Ibrahim Pasha Fountain (Market Fountain)'
+          : isAr
+          ? 'سبيل إبراهيم باشا (سبيل السوق)'
+          : 'İbrahim Paşa Çeşmesi (Çarşı Çeşmesi)',
+      summary: isEn
+          ? 'A 17th-century Ottoman fountain in the heart of Gebze, built by Vizier Ibrahim Pasha, right next to the Coban Mustafa Pasha Bath.'
+          : isAr
+          ? 'سبيل عثماني من القرن السابع عشر في قلب جبزة، بناه الوزير إبراهيم باشا بجوار حمام جوبان مصطفى باشا.'
+          : 'Gebze şehir merkezinde, Çoban Mustafa Paşa Hamamı\'nın hemen yanında yer alan; Vezir İbrahim Paşa tarafından 17. yüzyılda yaptırılan Osmanlı çeşmesi.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
+      image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg', // dosya adını klasördekiyle eşleştir
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'eskihisar_cesmesi',
+      name: isEn
+          ? 'Eskihisar Fountain'
+          : isAr
+          ? 'سبيل إسكي حصار'
+          : 'Eskihisar Çeşmesi',
+      summary: isEn
+          ? 'A historic fountain in Eskihisar village, a reminder of the area\'s long Ottoman-era water culture.'
+          : isAr
+          ? 'سبيل تاريخي في قرية إسكي حصار، يذكّر بثقافة المياه العثمانية العريقة في المنطقة.'
+          : 'Eskihisar köyünde bulunan, bölgenin Osmanlı dönemi su kültürünü yansıtan tarihi çeşme.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_eskihisar-cesmesi_11.html',
+      image: 'gorsel/tarihi_yerler/escesme.jpg',
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'su_dolabi',
+      name: isEn
+          ? 'Historic Water Cabinet (Su Dolabı)'
+          : isAr
+          ? 'خزانة المياه التاريخية (سو دولابي)'
+          : 'Tarihi Su Dolabı',
+      summary: isEn
+          ? 'Built by Ibrahim Pasha in 1664, it once supplied Gebze\'s center with well water through clay pipes, and has been restored by the municipality.'
+          : isAr
+          ? 'بناها إبراهيم باشا عام 1664، وكانت تزوّد وسط جبزة بمياه الآبار عبر أنابيب فخارية، وقد رمّمتها البلدية.'
+          : '1664\'te İbrahim Paşa tarafından yaptırılan yapı, kuyulardan çekilen suyu kiremit borularla Gebze merkezine ulaştırırdı; Gebze Belediyesi tarafından restore edildi.',
+      detailUrl: 'https://sende.gebze.bel.tr/tesislerimiz/su-dolabi',
+      image: 'gorsel/tarihi_yerler/sudolabi.jpg',
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'cmp_sadirvani',
+      name: isEn
+          ? 'Coban Mustafa Pasha Fountain (Sadirvan)'
+          : isAr
+          ? 'شاذروان جوبان مصطفى باشا'
+          : 'Çoban Mustafa Paşa Şadırvanı',
+      summary: isEn
+          ? 'The ablution fountain of the 16th-century Coban Mustafa Pasha Complex, one of the classical Ottoman structures of the complex.'
+          : isAr
+          ? 'شاذروان مجمع جوبان مصطفى باشا من القرن السادس عشر، وهو من العناصر العثمانية الكلاسيكية في المجمع.'
+          : '16. yüzyılda inşa edilen Çoban Mustafa Paşa Külliyesi\'nin klasik dönem Osmanlı mimarisini yansıtan şadırvanı.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
+      image: 'gorsel/tarihi_yerler/sadirvan.jpg', // dosya adını klasördekiyle eşleştir
+      category: catTarihi,
+    ),
+    HistoricPlace(
+      id: 'cmp_hamami',
+      name: isEn
+          ? 'Coban Mustafa Pasha Bath'
+          : isAr
+          ? 'حمام جوبان مصطفى باشا'
+          : 'Çoban Mustafa Paşa Hamamı',
+      summary: isEn
+          ? 'The historic bathhouse of the Coban Mustafa Pasha Complex, built in the 16th century and located in the old market area of Gebze.'
+          : isAr
+          ? 'الحمام التاريخي لمجمع جوبان مصطفى باشا، شُيّد في القرن السادس عشر ويقع في منطقة السوق القديمة بجبزة.'
+          : 'Çoban Mustafa Paşa Külliyesi\'nin 16. yüzyıldan kalan tarihi hamamı; Gebze\'nin eski çarşı bölgesinde yer alır.',
+      detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-hamami_12.html',
+      image: 'gorsel/tarihi_yerler/hamam.jpg',
+      category: catTarihi,
+    ),
   ];
+}
+
+bool _isPlacesSeeding = false;
+void _ensurePlacesSeeded() {
+  if (_isPlacesSeeding) return;
+  _isPlacesSeeding = true;
+  Future.microtask(() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_places')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        final list = _getFallbackPlaces('tr');
+        final batch = FirebaseFirestore.instance.batch();
+        for (final p in list) {
+          final docRef = FirebaseFirestore.instance
+              .collection('guide_places')
+              .doc(p.id);
+          batch.set(docRef, {
+            'name': p.name,
+            'summary': p.summary,
+            'category': p.category,
+            'detailUrl': p.detailUrl,
+            'image': p.image,
+            'distanceKm': p.distanceKm,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        await batch.commit();
+        debugPrint(
+          'Places: 18 tarihi ve gezilecek yer Firebase guide_places koleksiyonuna başarıyla eşitlendi.',
+        );
+      }
+    } catch (e) {
+      debugPrint('Places seed hatası: $e');
+      _isPlacesSeeding = false;
+    }
+  });
+}
+
+List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
+  final isEn = lang == 'en';
+  final isAr = lang == 'ar';
+
+  return [
+    {
+      'name': isEn
+          ? 'Gebze Central Cemetery & Martyrdom'
+          : isAr
+          ? 'مقبرة جبزة المركزية وصرح الشهداء'
+          : 'Gebze Merkez Mezarlığı ve Şehitliği',
+      'description': isEn
+          ? 'Main central cemetery of Gebze including the Martyrdom area. Primary location for burial and memorial services.'
+          : isAr
+          ? 'المقبرة المركزية الرئيسية في جبزة ونصب الشهداء، وتضم مكاتب إدارة الدفن والمراسم.'
+          : 'Gebze\'nin ana asri mezarlığıdır; bünyesinde Gebze Şehitliği ve Mezarlıklar Şube Müdürlüğü yer alır.',
+      'address':
+          'Gaziler Mah. Fatih Sultan Mehmet Cad. No:120, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Gebze Merkez Mezarlığı ve Şehitliği',
+      'lat': 40.809088,
+      'lng': 29.435012,
+      'image': 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Gebze Municipality Cemetery Directorate'
+          : isAr
+          ? 'مديرية المقابر وخدمات الجنائز ببلدية جبزة'
+          : 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+      'description': isEn
+          ? '24/7 Alo Cenaze 188 helpline, funeral transport, burial procedures, and grave allocation services.'
+          : isAr
+          ? 'خدمات الجنائز المجانية على مدار الساعة عبر 188، ونقل الجثامين وإجراءات حجز القبور.'
+          : '7/24 Alo Cenaze 188 hattı, ücretsiz cenaze nakil, defin işlemleri, mezar yeri tahsisi ve taziye çadırı birimi.',
+      'address': 'Gaziler Mah. Işıkgöl Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Gebze Belediyesi Mezarlıklar Müdürlüğü',
+      'lat': 40.809200,
+      'lng': 29.435200,
+      'image': 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Pelitli Cemetery'
+          : isAr
+          ? 'مقبرة بيليتلي'
+          : 'Pelitli Mezarlığı',
+      'description': isEn
+          ? 'Large modern cemetery located in the northern district of Gebze with extensive parceling.'
+          : isAr
+          ? 'مقبرة حديثة وواسعة تقع في منطقة بيليتلي وتخدم التوسعات السكانية في جبزة.'
+          : 'Gebze\'nin kuzey aksında yer alan geniş kapasiteli, modern parsellenmiş ana defin mezarlığı.',
+      'address': 'Pelitli Mah. Sanayi Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Pelitli Mezarlığı Gebze',
+      'lat': 40.865500,
+      'lng': 29.449000,
+      'image': 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Adem Yavuz Cemetery'
+          : isAr
+          ? 'مقبرة أدهم يافوز'
+          : 'Adem Yavuz Mezarlığı',
+      'description': isEn
+          ? 'District cemetery serving residents of Adem Yavuz, Cumhuriyet, and surrounding neighborhoods.'
+          : isAr
+          ? 'مقبرة حي أدهم يافوز والمناطق المحيطة بها في جبزة.'
+          : 'Adem Yavuz, Cumhuriyet ve çevre mahalle sakinlerine hizmet veren semt mezarlığı.',
+      'address': 'Adem Yavuz Mah. Yavuz Sultan Selim Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Adem Yavuz Mezarlığı Gebze',
+      'lat': 40.816000,
+      'lng': 29.398000,
+      'image': 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Mimar Sinan Cemetery'
+          : isAr
+          ? 'مقبرة معمار سنان'
+          : 'Mimar Sinan Mezarlığı',
+      'description': isEn
+          ? 'Local neighborhood cemetery located in Mimar Sinan district.'
+          : isAr
+          ? 'مقبرة حي معمار سنان في جبزة.'
+          : 'Mimar Sinan Mahallesi sakinlerine defin ve kabir ziyareti hizmeti sunan semt mezarlığı.',
+      'address': 'Mimar Sinan Mah. Mimar Sinan Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Mimar Sinan Mezarlığı Gebze',
+      'lat': 40.822000,
+      'lng': 29.405000,
+      'image': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Balçık Village Cemetery'
+          : isAr
+          ? 'مقبرة قرية بالشيك'
+          : 'Balçık Köyü Mezarlığı',
+      'description': isEn
+          ? 'Rural village cemetery in Balcik district, preserving its peaceful natural setting.'
+          : isAr
+          ? 'مقبرة قرية بالشيك التاريخية في ريف جبزة.'
+          : 'Balçık Mahallesi sakinlerinin kullanımında olan, doğal dokusu korunan yerel mezarlık.',
+      'address': 'Balçık Mah. Balçık Köy İçi Yolu, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Balçık Köyü Mezarlığı Gebze',
+      'lat': 40.887000,
+      'lng': 29.412000,
+      'image': 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Denizli Village Cemetery'
+          : isAr
+          ? 'مقبرة قرية دينيزلي'
+          : 'Denizli Köyü Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery situated near the historical Denizli village and natural pond route.'
+          : isAr
+          ? 'مقبرة قرية دينيزلي الريفية بالقرب من الطبيعة والبحيرة.'
+          : 'Denizli Mahallesi sınırlarında bulunan tarihi ve doğa hattına yakın kırsal mahalle mezarlığı.',
+      'address': 'Denizli Mah. Köy İçi Mevkii, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Denizli Mezarlığı Gebze',
+      'lat': 40.892000,
+      'lng': 29.508000,
+      'image': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Mollafenari Cemetery'
+          : isAr
+          ? 'مقبرة قرية ملا فناري'
+          : 'Mollafenari Mezarlığı',
+      'description': isEn
+          ? 'Historic rural cemetery serving the Mollafenari and surrounding countryside.'
+          : isAr
+          ? 'مقبرة قرية ملا فناري التاريخية في منطقة جبزة.'
+          : 'Gebze\'nin tarihi köylerinden Mollafenari bölgesinde bulunan yerel mezarlık.',
+      'address': 'Mollafenari Mah. Eski İstanbul Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Mollafenari Mezarlığı Gebze',
+      'lat': 40.881000,
+      'lng': 29.539000,
+      'image': 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Tavşanlı Village Cemetery'
+          : isAr
+          ? 'مقبرة قرية طفشانلي'
+          : 'Tavşanlı Köyü Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery in Tavsanli near Ballikayalar Nature Park.'
+          : isAr
+          ? 'مقبرة قرية طفشانلي بالقرب من متنزه باليكايالار الطبيعي.'
+          : 'Ballıkayalar Tabiat Parkı güzergahındaki Tavşanlı Mahallesi yerel mezarlığı.',
+      'address': 'Tavşanlı Mah. Kömürcüoğlu Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Tavşanlı Mezarlığı Gebze',
+      'lat': 40.789000,
+      'lng': 29.525000,
+      'image': 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Cumaköy Cemetery'
+          : isAr
+          ? 'مقبرة قرية جمعه كوي'
+          : 'Cumaköy Mezarlığı',
+      'description': isEn
+          ? 'Local cemetery in Cumakoy serving the northern countryside of Gebze.'
+          : isAr
+          ? 'مقبرة قرية جمعه كوي في شمال جبزة.'
+          : 'Cumaköy Mahallesi ve çevre kırsal yerleşimlerin defin ve kabristan alanı.',
+      'address': 'Cumaköy Mah. Fatih Sultan Mehmet Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Cumaköy Mezarlığı Gebze',
+      'lat': 40.915000,
+      'lng': 29.467000,
+      'image': 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Ovacık Cemetery'
+          : isAr
+          ? 'مقبرة قرية أوفاجيك'
+          : 'Ovacık Mezarlığı',
+      'description': isEn
+          ? 'Village cemetery located in Ovacik district of Gebze.'
+          : isAr
+          ? 'مقبرة قرية أوفاجيك في ريف جبزة.'
+          : 'Ovacık Mahallesi yerel kabristanı ve defin sahası.',
+      'address': 'Ovacık Mah. Köy İçi Mevkii, Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Ovacık Mezarlığı Gebze',
+      'lat': 40.899000,
+      'lng': 29.582000,
+      'image': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'Barış Neighborhood Cemetery'
+          : isAr
+          ? 'مقبرة حي باريش'
+          : 'Barış Mahallesi Mezarlığı',
+      'description': isEn
+          ? 'District cemetery serving residents along the Baris neighborhood corridor.'
+          : isAr
+          ? 'مقبرة حي باريش في جبزة.'
+          : 'Barış Mahallesi ve D-100 aksındaki semt sakinleri için hizmet veren mezarlık alanı.',
+      'address': 'Barış Mah. Koşuyolu Cad. Gebze / Kocaeli',
+      'phone': '0262 642 04 30',
+      'mapQuery': 'Barış Mahallesi Mezarlığı Gebze',
+      'lat': 40.795000,
+      'lng': 29.418000,
+      'image': 'https://images.unsplash.com/photo-1596276020587-8044fe049813?auto=format&fit=crop&w=800&q=80',
+      'category': 'mezarliklar',
+    },
+    {
+      'name': isEn
+          ? 'e-Government Grave Location & Deceased Inquiry'
+          : isAr
+          ? 'استعلام القبور والوفيات عبر بوابة الحكومة الإلكترونية'
+          : 'e-Devlet Mezar Yeri ve Defin Bilgisi Sorgulama',
+      'description': isEn
+          ? 'Query parcel, plot, and cemetery details for deceased relatives via the official Gebze Municipality e-Government portal.'
+          : isAr
+          ? 'الاستعلام عن معلومات القبر والقطعة للوفيات التابعة لبلدية جبزة عبر بوابة الحكومة الإلكترونية e-Devlet.'
+          : 'Gebze Belediyesi e-Devlet hizmeti ile vefat eden yakınlarınızın mezarlık, ada ve parsel bilgilerini online sorgulayabilirsiniz.',
+      'address': 'Gebze Belediyesi Online Hizmetler / e-Devlet',
+      'phone': '188',
+      'mapQuery': 'Gebze Belediyesi',
+      'image': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
+      'url': 'https://www.turkiye.gov.tr/gebze-belediyesi-defin-ve-mezar-yeri-sorgulama',
+      'showDirections': false,
+      'category': 'mezarliklar',
+    },
+  ];
+}
+
+bool _isCemeteriesSeeding = false;
+void _ensureCemeteriesSeeded() {
+  if (_isCemeteriesSeeding) return;
+  _isCemeteriesSeeding = true;
+  Future.microtask(() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_institutions')
+          .where('category', isEqualTo: 'mezarliklar')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        final list = _getFallbackCemeteries('tr');
+        final batch = FirebaseFirestore.instance.batch();
+        for (int i = 0; i < list.length; i++) {
+          final item = list[i];
+          final docId = 'mezarlik_${(i + 1).toString().padLeft(2, '0')}';
+          final docRef = FirebaseFirestore.instance
+              .collection('guide_institutions')
+              .doc(docId);
+          batch.set(docRef, {
+            ...item,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        await batch.commit();
+        debugPrint(
+          'Cemeteries: 13 mezarlık Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.',
+        );
+      }
+    } catch (e) {
+      debugPrint('Cemeteries seed hatası: $e');
+      _isCemeteriesSeeding = false;
+    }
+  });
+}
+
+List<Map<String, dynamic>> _getFallbackNurseries(String lang) {
+  final isEn = lang == 'en';
+  final isAr = lang == 'ar';
+
+  return [
+    {
+      'name': isEn
+          ? 'Gebze Municipality Güzide Baby & Child Care Home'
+          : isAr
+          ? 'دار رعاية الرضع والأطفال Güzide ببلدية جبزة'
+          : 'Gebze Belediyesi Güzide Bebek ve Çocuk Bakım Evi',
+      'description': isEn
+          ? '24/7 day and night care for children aged 0–66 months, with development workshops. Call the Gebze Municipality Solution Center for registration and application details.'
+          : isAr
+          ? 'رعاية ليلية ونهارية على مدار الساعة للأطفال من عمر 0 إلى 66 شهراً مع ورش تنمية. للتسجيل والتقديم يمكنكم الاتصال بمركز الحلول في بلدية جبزة.'
+          : '0–66 ay arası çocuklara 7/24 gece ve gündüz bakım hizmeti ile gelişim atölyeleri sunar. Kayıt ve başvuru bilgisi için Gebze Belediyesi Çözüm Merkezi ile görüşebilirsiniz.',
+      'address': 'Osman Yılmaz Mah. 608/2. Sokak No: 7, Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'Güzide 7/24 Bebek ve Çocuk Bakım Evi Gebze',
+      'image': 'gorsel/tesisler/guzide_kress.jpg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'Enderun Child Workshops - Mustafa Paşa Center'
+          : isAr
+          ? 'ورش عمل أندرون للأطفال - فرع مصطفى باشا الرئيسي'
+          : 'Enderun Çocuk Atölyeleri - Mustafa Paşa Birimi',
+      'description': isEn
+          ? 'Child-centered educational space supporting the development of children aged 2-6 through games, discovery, and workshops.'
+          : isAr
+          ? 'مساحة تعليمية تركز على الطفل وتدعم تنمية الأطفال من عمر 2 إلى 6 سنوات من خلال اللعب والاكتشاف وورش العمل.'
+          : '2-6 yaş çocukların gelişimini oyun, keşif ve atölyelerle destekleyen çocuk merkezli eğitim alanı.',
+      'address':
+          'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'Enderun Çocuk Atölyeleri Mustafa Paşa Gebze',
+      'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'Enderun Child Workshops - İstasyon Branch'
+          : isAr
+          ? 'ورش عمل أندرون للأطفال - فرع إستاسيون'
+          : 'Enderun Çocuk Atölyeleri - İstasyon Şubesi',
+      'description': isEn
+          ? 'Art, science, and values education workshops for children within the İstasyon Science and Art Center.'
+          : isAr
+          ? 'ورش عمل في الفن والعلوم والتعليم القيمي للأطفال داخل مركز إستاسيون للعلوم والفنون.'
+          : 'İstasyon Bilim Sanat Merkezi bünyesinde çocuklara yönelik sanat, bilim ve değerler eğitimi atölyeleri.',
+      'address': 'İstasyon Mah. 1409/1. Sokak No: 14, 41400 Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'İstasyon Bilim Sanat Merkezi Gebze',
+      'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'Enderun Child Workshops - Arapçeşme Branch'
+          : isAr
+          ? 'ورش عمل أندرون للأطفال - فرع أرابçeşme'
+          : 'Enderun Çocuk Atölyeleri - Arapçeşme Şubesi',
+      'description': isEn
+          ? 'Specialized educational and workshop activities for children in the Arapçeşme Science and Art Center.'
+          : isAr
+          ? 'أنشطة تعليمية وورش عمل خاصة للأطفال داخل مركز أرابçeşme للعلوم والفنون.'
+          : 'Arapçeşme Bilim Sanat Merkezi bünyesinde 2-6 yaş grubuna özel eğitim ve atölye faaliyetleri.',
+      'address':
+          'Arapçeşme Mah. Kavak Cad. 1066. Sokak No: 27, Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'Arapçeşme Bilim Sanat Merkezi Gebze',
+      'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'Enderun Child Workshops - Âdem Yavuz Branch'
+          : isAr
+          ? 'ورش عمل أندرون للأطفال - فرع آدم ياووز'
+          : 'Enderun Çocuk Atölyeleri - Âdem Yavuz Şubesi',
+      'description': isEn
+          ? 'Child development workshops located within the Âdem Yavuz neighborhood social facility.'
+          : isAr
+          ? 'ورش عمل لتنمية مهارات الأطفال تقع داخل المرفق الاجتماعي لحي آدم ياووز.'
+          : 'Âdem Yavuz Mahallesi sosyal tesis alanı içerisinde çocuk gelişim atölyeleri.',
+      'address': 'Adem Yavuz Mah. 2341. Sokak No: 31, Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'Adem Yavuz Sosyal Tesisleri Gebze',
+      'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'Sportif Çocuk Atölyesi - Eray Şamdan Branch'
+          : isAr
+          ? 'ورش عمل رياضية للأطفال - فرع إراي شامدان'
+          : 'Sportif Çocuk Atölyesi - Eray Şamdan Şubesi',
+      'description': isEn
+          ? 'Gymnastics, basketball, table tennis, coordination courses, and fun athletics for children aged 5-8.'
+          : isAr
+          ? 'كورة قدم، كرة سلة، تنس الطاولة، دورات التنسيق، والرياضيات الممتعة للأطفال من 5-8 سنوات.'
+          : '5-8 yaş çocuklara cimnastik, basketbol, masa tenisi, koordinasyon parkurları ve eğlenceli atletizm imkanı.',
+      'address': 'Cumhuriyet Mah. Necip Fazıl Cad. No: 102 (Eray Şamdan Spor Salonu), Gebze / Kocaeli',
+      'phone': '0262 641 24 93',
+      'mapQuery': 'Eray Şamdan Kapalı Spor Salonu Gebze',
+      'image': 'gorsel/tesisler/sportifcocukatolyesi.jpg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'Enderun Child Workshops - Kirazpınar Branch'
+          : isAr
+          ? 'ورش عمل أندرون للأطفال - فرع كيرازپينار'
+          : 'Enderun Çocuk Atölyeleri - Kirazpınar Şubesi',
+      'description': isEn
+          ? 'Preschool educational workshops for children in the Kirazpınar area.'
+          : isAr
+          ? 'ورش عمل تعليمية للاطفال في منطقة كيرازپينار.'
+          : 'Kirazpınar bölgesindeki çocuklara yönelik okul öncesi eğitsel atölyeler.',
+      'address':
+          'Kirazpınar Mah. 2814. Sokak (Takva Mescidi Yanı), Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'Kirazpınar Gebze',
+      'image': 'gorsel/tesisler/enderuncocukatolyesi.jpeg',
+      'category': 'kresler',
+    },
+    {
+      'name': isEn
+          ? 'AKÇEM - Mother, Woman and Child Education Center'
+          : isAr
+          ? 'مركز تعليم الأمهات والنساء والأطفال'
+          : 'AKÇEM - Anne, Kadın ve Çocuk Eğitim Merkezi',
+      'description': isEn
+          ? 'Family-oriented center supporting mothers, women, and children in their educational and social development.'
+          : isAr
+          ? 'مركز موجه للأسر يدعم الأمهات والنساء والأطفال في مشاريعهم التعليمية والاجتماعية.'
+          : 'Annelerin, kadınların ve çocukların eğitim ile sosyal gelişim süreçlerini destekleyen aile odaklı merkez.',
+      'address':
+          'Mustafa Paşa Mah. 712/2. Sokak No: 2 Onlar Apt., Gebze / Kocaeli',
+      'phone': '444 0 290',
+      'mapQuery': 'AKÇEM Gebze',
+      'image': 'gorsel/tesisler/annecocukatolyesi.jpg',
+      'category': 'kresler',
+    },
+  ];
+}
+
+bool _isNurseriesSeeding = false;
+void _ensureNurseriesSeeded() {
+  if (_isNurseriesSeeding) return;
+  _isNurseriesSeeding = true;
+  Future.microtask(() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('guide_institutions')
+          .where('category', isEqualTo: 'kresler')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) {
+        final list = _getFallbackNurseries('tr');
+        final batch = FirebaseFirestore.instance.batch();
+        for (int i = 0; i < list.length; i++) {
+          final item = list[i];
+          final docId = 'kres_${(i + 1).toString().padLeft(2, '0')}';
+          final docRef = FirebaseFirestore.instance
+              .collection('guide_institutions')
+              .doc(docId);
+          batch.set(docRef, {
+            ...item,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        await batch.commit();
+        debugPrint(
+          'Nurseries: 8 kreş ve çocuk atölyesi Firebase guide_institutions koleksiyonuna başarıyla eşitlendi.',
+        );
+      }
+    } catch (e) {
+      debugPrint('Nurseries seed hatası: $e');
+      _isNurseriesSeeding = false;
+    }
+  });
 }
 
 // ───────────────────────── Ana Ekran ─────────────────────────
@@ -278,16 +1105,28 @@ class GuideScreen extends ConsumerWidget {
     return _withFont(
       context,
       AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light
-            .copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: DefaultTabController(
           length: 2,
           initialIndex: initialTab == 1 ? 1 : 0,
           child: Scaffold(
-            backgroundColor: _C.bg,
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF0F172A)
+                : _C.bg,
             body: Column(
               children: [
-                _Header(lang: lang),
+                _Header(
+                  lang: lang,
+                  onBack: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    } else if (onNavTap != null) {
+                      onNavTap!(0);
+                    }
+                  },
+                ),
                 Expanded(
                   child: TabBarView(
                     children: [
@@ -301,7 +1140,26 @@ class GuideScreen extends ConsumerWidget {
             bottomNavigationBar: _BottomNav(
               index: 1,
               lang: lang,
-              onTap: (i) => onNavTap?.call(i),
+              onTap: (i) {
+                if (onNavTap != null) {
+                  onNavTap!(i);
+                } else if (i != 1) {
+                  Navigator.of(context).pop();
+                  if (i == 2) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ReportScreen()),
+                    );
+                  } else if (i == 3) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ServicesScreen()),
+                    );
+                  } else if (i == 4) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  }
+                }
+              },
             ),
           ),
         ),
@@ -329,27 +1187,77 @@ class GuideCategoryScreen extends ConsumerWidget {
 
 class _Header extends StatelessWidget {
   final String lang;
-  const _Header({required this.lang});
+  final VoidCallback? onBack;
+  const _Header({required this.lang, this.onBack});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: _C.navyDeep,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_C.navy, _C.navyDeep],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x330A2A66),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
       child: SafeArea(
         bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Text(
-                AppStrings.get('guide_screen_title', lang),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+              padding: const EdgeInsets.fromLTRB(8, 10, 16, 6),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed:
+                        onBack ??
+                        () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      AppStrings.get('guide_screen_title', lang),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(25),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.explore_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                ],
               ),
             ),
             TabBar(
@@ -359,14 +1267,20 @@ class _Header extends StatelessWidget {
               dividerColor: Colors.transparent,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white60,
-              labelStyle: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
-              unselectedLabelStyle:
-                  const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
+              labelStyle: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+              ),
               tabs: [
                 Tab(text: AppStrings.get('tab_institutions', lang)),
                 Tab(text: AppStrings.get('tab_discover', lang)),
               ],
             ),
+            const SizedBox(height: 6),
           ],
         ),
       ),
@@ -388,22 +1302,37 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: _C.field,
+        color: isDark ? const Color(0xFF1E293B) : _C.field,
         borderRadius: BorderRadius.circular(24),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
       ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
         textInputAction: TextInputAction.search,
-        style: const TextStyle(fontSize: 14, color: _C.textDark),
+        style: TextStyle(
+          fontSize: 14,
+          color: isDark ? Colors.white : _C.textDark,
+        ),
         decoration: InputDecoration(
+          filled: false,
+          fillColor: Colors.transparent,
           hintText: hint,
-          hintStyle: const TextStyle(color: _C.textMuted, fontSize: 14),
-          prefixIcon: const Icon(Icons.search_rounded, color: _C.textMuted),
+          hintStyle: TextStyle(
+            color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+          ),
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
       ),
@@ -460,14 +1389,16 @@ class _InstitutionsTabState extends State<_InstitutionsTab>
                   child: Text(
                     AppStrings.get('no_institution_found', widget.lang),
                     style: const TextStyle(
-                        color: _C.textMuted, fontWeight: FontWeight.w600),
+                      color: _C.textMuted,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 )
               : ListView.separated(
                   physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, i) => _CategoryTile(
                     category: items[i],
                     onTap: () => Navigator.of(context).push(
@@ -493,11 +1424,12 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: _C.line),
+        side: BorderSide(color: isDark ? const Color(0xFF334155) : _C.line),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -513,21 +1445,28 @@ class _CategoryTile extends StatelessWidget {
                   color: category.color.withAlpha(32),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(category.icon, color: category.color, size: 22),
+                child: Center(
+                  child: category.iconBuilder != null
+                      ? category.iconBuilder!(category.color, 24)
+                      : Icon(category.icon, color: category.color, size: 22),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   category.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: _C.textDark,
+                    color: isDark ? Colors.white : _C.textDark,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded,
-                  color: _C.textMuted, size: 26),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                size: 26,
+              ),
             ],
           ),
         ),
@@ -549,6 +1488,23 @@ class _InstitutionListScreen extends StatefulWidget {
 class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   final _ctrl = TextEditingController();
   String _query = '';
+  String _selectedTimeFilter =
+      'upcoming'; // 'upcoming', 'this_month', 'all', 'past'
+  String _selectedEventCategory = 'all'; // 'all', 'tiyatro', 'sinema', 'konser', 'soylesi', 'cocuk', 'diger'
+
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _dataStream =
+      widget.category.id == 'etkinlikler'
+          ? FirebaseFirestore.instance
+              .collection('events')
+              .where('date', isGreaterThanOrEqualTo: '2026-10-01')
+              .orderBy('date')
+              .limit(50)
+              .snapshots()
+          : FirebaseFirestore.instance
+              .collection('guide_institutions')
+              .where('category', isEqualTo: widget.category.id)
+              .limit(50)
+              .snapshots();
 
   @override
   void dispose() {
@@ -556,15 +1512,132 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
     super.dispose();
   }
 
-  bool _matches(Map<String, dynamic> d, String q) {
-    if (q.isEmpty) return true;
-    final text = [
-      d['name'],
-      d['description'],
-      d['address'],
-      d['phone'],
-    ].map((e) => (e ?? '').toString().toLowerCase()).join(' ');
-    return text.contains(q);
+  bool _matches(
+    Map<String, dynamic> d,
+    String q, {
+    String? todayStr,
+    DateTime? now,
+  }) {
+    if (q.isNotEmpty) {
+      final text = [
+        d['name'],
+        d['description'],
+        d['address'],
+        d['phone'],
+        d['category'],
+        d['formattedDate'],
+        d['date'],
+      ].map((e) => (e ?? '').toString().toLowerCase()).join(' ');
+      if (!text.contains(q)) return false;
+    }
+
+    if (widget.category.id != 'etkinlikler') return true;
+
+    final dateStr = (d['date'] ?? '').toString();
+    final cat = (d['category'] ?? '').toString().toLowerCase();
+
+    // 1. Zaman Filtresi
+    if (todayStr != null && dateStr.isNotEmpty) {
+      if (_selectedTimeFilter == 'upcoming') {
+        if (dateStr.compareTo(todayStr) < 0) return false;
+      } else if (_selectedTimeFilter == 'this_month') {
+        if (now != null) {
+          final prefix = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+          if (!dateStr.startsWith(prefix)) return false;
+        }
+      } else if (_selectedTimeFilter == 'past') {
+        if (dateStr.compareTo(todayStr) >= 0) return false;
+      }
+    }
+
+    // 2. Kategori Filtresi
+    if (_selectedEventCategory != 'all') {
+      if (_selectedEventCategory == 'tiyatro') {
+        if (!cat.contains('tiyatro')) return false;
+      } else if (_selectedEventCategory == 'sinema') {
+        if (!cat.contains('sinema')) return false;
+      } else if (_selectedEventCategory == 'konser') {
+        if (!cat.contains('konser') && !cat.contains('müzik')) return false;
+      } else if (_selectedEventCategory == 'soylesi') {
+        if (!cat.contains('söyleşi') && !cat.contains('konferans')) {
+          return false;
+        }
+      } else if (_selectedEventCategory == 'cocuk') {
+        if (!cat.contains('çocuk') && !cat.contains('sirk')) return false;
+      } else if (_selectedEventCategory == 'diger') {
+        if (cat.contains('tiyatro') ||
+            cat.contains('sinema') ||
+            cat.contains('konser') ||
+            cat.contains('söyleşi') ||
+            cat.contains('konferans') ||
+            cat.contains('çocuk')) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+    IconData? icon,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF1E5BC6)
+              : (isDark ? const Color(0xFF1E293B) : Colors.white),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF1E5BC6)
+                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1E5BC6).withAlpha(60),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 13.5,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : _C.textDark),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -575,74 +1648,342 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
     return _withFont(
       context,
       Scaffold(
-        backgroundColor: _C.bg,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0F172A)
+            : _C.bg,
         appBar: AppBar(
-          backgroundColor: _C.navyDeep,
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
           scrolledUnderElevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_C.navy, _C.navyDeep],
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+          ),
           title: Text(
             category.title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
           ),
         ),
         body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: FirebaseFirestore.instance
-              .collection('guide_institutions')
-              .where('category', isEqualTo: category.id)
-              .snapshots(),
+          stream: _dataStream,
           builder: (context, snap) {
             if (snap.connectionState == ConnectionState.waiting &&
                 !snap.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
             final docs = snap.data?.docs ?? [];
-            if (snap.hasError || docs.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    AppStrings.get('no_category_records', lang),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: _C.textMuted, fontWeight: FontWeight.w600),
+            List<Map<String, dynamic>> rawItems;
+            if (category.id == 'etkinlikler') {
+              if (docs.isEmpty) {
+                rawItems = [
+                  {
+                    'name': 'Gebze Kültür Sanat Buluşmaları',
+                    'description': 'Osman Hamdi Bey Kültür Merkezi\'nde tiyatro ve söyleşi programı.',
+                    'address': 'Osman Hamdi Bey Kültür Merkezi, Gebze',
+                    'phone': '0262 642 04 30',
+                    'date': '2026-10-24',
+                    'formattedDate': '24 Ekim 2026',
+                    'category': 'Söyleşi',
+                  },
+                  {
+                    'name': 'Gençlik & Spor Festivali',
+                    'description': 'Gebze genelindeki genç sporcuların katılımıyla turnuvalar ve konser.',
+                    'address': 'Gebze Kapalı Spor Salonu',
+                    'phone': '0262 641 10 10',
+                    'date': '2026-10-28',
+                    'formattedDate': '28 Ekim 2026',
+                    'category': 'Konser',
+                  },
+                  {
+                    'name': 'Doğa Yürüyüşü & Bisiklet Günü',
+                    'description': 'Gaziler Dağı Tabiat Parkı\'nda açık hava rekreasyon ve bisiklet parkuru.',
+                    'address': 'Gaziler Dağı Tabiat Parkı, Gebze',
+                    'phone': '0262 642 04 30',
+                    'date': '2026-11-02',
+                    'formattedDate': '2 Kasım 2026',
+                    'category': 'Özel Program',
+                  },
+                ];
+              } else {
+                final now = DateTime.now();
+                final today =
+                    '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                String dOf(QueryDocumentSnapshot<Map<String, dynamic>> d) =>
+                    (d.data()['date'] ?? '').toString();
+                final upcoming =
+                    docs.where((d) => dOf(d).compareTo(today) >= 0).toList()
+                      ..sort((a, b) => dOf(a).compareTo(dOf(b)));
+                final past =
+                    docs.where((d) => dOf(d).compareTo(today) < 0).toList()
+                      ..sort((a, b) => dOf(b).compareTo(dOf(a)));
+                final sortedDocs = [...upcoming, ...past];
+                rawItems = sortedDocs.map((d) {
+                  final m = d.data();
+                  final subtitle = (m['subtitle'] ?? m['description'] ?? '')
+                      .toString();
+                  // 'location/address' yoksa mekanı alt başlıktan al:
+                  // "Osman Hamdi Bey Kültür Merkezi • 19:30" → "Osman Hamdi Bey Kültür Merkezi"
+                  final venue = subtitle.split('•').first.trim();
+                  final loc = (m['location'] ?? m['address'] ?? '')
+                      .toString()
+                      .trim();
+                  final place = loc.isNotEmpty ? loc : venue;
+                  return {
+                    'name': m['title'] ?? m['name'] ?? '',
+                    'description': subtitle,
+                    'address': place.isNotEmpty ? place : 'Gebze',
+                    'mapQuery': place,
+                    'lat': m['lat'] ?? m['latitude'],
+                    'lng': m['lng'] ?? m['longitude'],
+                    'phone': m['phone'] ?? '',
+                    'image': m['image'] ?? m['imageUrl'] ?? '',
+                    'url': m['url'] ?? '',
+                    'category': m['category'] ?? 'Kültür & Sanat',
+                    'date': m['date'] ?? '',
+                    'formattedDate': m['formattedDate'] ?? m['date'] ?? '',
+                    'time': m['time'] ?? '',
+                  };
+                }).toList();
+              }
+            } else if (category.id == 'mezarliklar' ||
+                category.id == 'kresler') {
+              if (docs.isEmpty) {
+                rawItems = category.id == 'kresler'
+                    ? _getFallbackNurseries(lang)
+                    : _getFallbackCemeteries(lang);
+                if (category.id == 'mezarliklar') {
+                  _ensureCemeteriesSeeded();
+                } else if (category.id == 'kresler') {
+                  _ensureNurseriesSeeded();
+                }
+              } else {
+                rawItems = docs.map((d) => d.data()).toList();
+              }
+            } else {
+              if (snap.hasError || docs.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      AppStrings.get('no_category_records', lang),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: _C.textMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-              );
+                );
+              }
+              rawItems = docs.map((d) => d.data()).toList();
             }
-            final items =
-                docs.map((d) => d.data()).where((d) => _matches(d, q)).toList();
+            final now = DateTime.now();
+            final today =
+                '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+            final items = rawItems
+                .where((d) => _matches(d, q, todayStr: today, now: now))
+                .toList();
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                   child: _SearchField(
                     controller: _ctrl,
-                    hint: _t(lang, 'Ara...', 'Search...', 'بحث...'),
+                    hint: category.id == 'etkinlikler'
+                        ? _t(
+                            lang,
+                            'Etkinlik, mekan veya tür ara...',
+                            'Search event, venue, or category...',
+                            'ابحث عن فعالية أو مكان...',
+                          )
+                        : _t(lang, 'Ara...', 'Search...', 'بحث...'),
                     onChanged: (v) => setState(() => _query = v),
                   ),
                 ),
+                if (category.id == 'etkinlikler') ...[
+                  // 1. Zaman Filtresi (Zaman Chipleri)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 3,
+                    ),
+                    child: Row(
+                      children: [
+                        _buildFilterChip(
+                          label: _t(lang, 'Yaklaşanlar', 'Upcoming', 'القادمة'),
+                          icon: Icons.event_available_rounded,
+                          isSelected: _selectedTimeFilter == 'upcoming',
+                          onTap: () =>
+                              setState(() => _selectedTimeFilter = 'upcoming'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Bu Ay', 'This Month', 'هذا الشهر'),
+                          icon: Icons.calendar_month_rounded,
+                          isSelected: _selectedTimeFilter == 'this_month',
+                          onTap: () => setState(
+                            () => _selectedTimeFilter = 'this_month',
+                          ),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(
+                            lang,
+                            'Tüm Tarihler',
+                            'All Dates',
+                            'جميع التواريخ',
+                          ),
+                          icon: Icons.all_inclusive_rounded,
+                          isSelected: _selectedTimeFilter == 'all',
+                          onTap: () =>
+                              setState(() => _selectedTimeFilter = 'all'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Geçmiş', 'Past', 'السابقة'),
+                          icon: Icons.history_rounded,
+                          isSelected: _selectedTimeFilter == 'past',
+                          onTap: () =>
+                              setState(() => _selectedTimeFilter = 'past'),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 2. Kategori Filtresi (Kategori Chipleri)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.fromLTRB(16, 3, 16, 8),
+                    child: Row(
+                      children: [
+                        _buildFilterChip(
+                          label: _t(
+                            lang,
+                            'Tüm Türler',
+                            'All Categories',
+                            'جميع الفئات',
+                          ),
+                          icon: Icons.grid_view_rounded,
+                          isSelected: _selectedEventCategory == 'all',
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'all'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Tiyatro', 'Theater', 'مسرح'),
+                          icon: Icons.theater_comedy_rounded,
+                          isSelected: _selectedEventCategory == 'tiyatro',
+                          onTap: () => setState(
+                            () => _selectedEventCategory = 'tiyatro',
+                          ),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Sinema', 'Cinema', 'سينما'),
+                          icon: Icons.movie_creation_rounded,
+                          isSelected: _selectedEventCategory == 'sinema',
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'sinema'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Konser', 'Concert', 'حفلات'),
+                          icon: Icons.music_note_rounded,
+                          isSelected: _selectedEventCategory == 'konser',
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'konser'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(
+                            lang,
+                            'Söyleşi & Konferans',
+                            'Talks',
+                            'ندوات',
+                          ),
+                          icon: Icons.record_voice_over_rounded,
+                          isSelected: _selectedEventCategory == 'soylesi',
+                          onTap: () => setState(
+                            () => _selectedEventCategory = 'soylesi',
+                          ),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(lang, 'Çocuk', 'Kids', 'للأطفال'),
+                          icon: Icons.child_care_rounded,
+                          isSelected: _selectedEventCategory == 'cocuk',
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'cocuk'),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterChip(
+                          label: _t(
+                            lang,
+                            'Özel Programlar',
+                            'Special',
+                            'برامج خاصة',
+                          ),
+                          icon: Icons.star_rounded,
+                          isSelected: _selectedEventCategory == 'diger',
+                          onTap: () =>
+                              setState(() => _selectedEventCategory = 'diger'),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 Expanded(
                   child: items.isEmpty
                       ? Center(
                           child: Text(
-                            _t(lang, 'Sonuç bulunamadı', 'No results found',
-                                'لم يتم العثور على نتائج'),
+                            _t(
+                              lang,
+                              'Sonuç bulunamadı',
+                              'No results found',
+                              'لم يتم العثور على نتائج',
+                            ),
                             style: const TextStyle(
-                                color: _C.textMuted,
-                                fontWeight: FontWeight.w600),
+                              color: _C.textMuted,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: items.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                               const SizedBox(height: 12),
                           itemBuilder: (context, i) => _InstitutionCard(
                             data: items[i],
                             color: category.color,
                             lang: lang,
                             showMenuButton: category.id == 'lokantalar',
+                            showImage: category.id != 'mezarliklar',
+                            showPhone: category.id != 'mezarliklar',
                           ),
                         ),
                 ),
@@ -655,16 +1996,42 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   }
 }
 
+/// Google Maps yol tarifi linki. Koordinat (lat/lng) varsa onu kullanır,
+/// yoksa "ad adres Gebze" metniyle arar.
+String _directionsUrl(Map<String, dynamic> data, String name, String address) {
+  final lat = double.tryParse('${data['lat'] ?? data['latitude'] ?? ''}');
+  final lng = double.tryParse('${data['lng'] ?? data['longitude'] ?? ''}');
+  final String dest;
+  if (lat != null && lng != null) {
+    dest = '$lat,$lng';
+  } else {
+    // Etkinliklerde etkinlik adı yerine mekan adıyla ara (mapQuery).
+    final mapQuery = (data['mapQuery'] ?? '').toString().trim();
+    final text = [
+      mapQuery.isNotEmpty ? mapQuery : name,
+      if (mapQuery.isEmpty) address,
+      'Gebze Kocaeli',
+    ].where((s) => s.trim().isNotEmpty).join(' ');
+    dest = Uri.encodeComponent(text);
+  }
+  return 'https://www.google.com/maps/dir/?api=1&destination=$dest&travelmode=driving';
+}
+
 class _InstitutionCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final Color color;
   final String lang;
   final bool showMenuButton;
+  final bool showImage;
+  final bool showPhone;
+
   const _InstitutionCard({
     required this.data,
     required this.color,
     required this.lang,
     this.showMenuButton = false,
+    this.showImage = true,
+    this.showPhone = true,
   });
 
   @override
@@ -675,36 +2042,86 @@ class _InstitutionCard extends StatelessWidget {
     final desc = (data['description'] ?? '').toString();
     final image = (data['image'] ?? '').toString().trim();
     final menuUrl = (data['menuUrl'] ?? '').toString().trim();
+    final detailUrl = (data['url'] ?? data['detailUrl'] ?? '')
+        .toString()
+        .trim();
+    final showDirections = data['showDirections'] != false;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _C.line),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : _C.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (image.isNotEmpty)
+          if (showImage && image.isNotEmpty)
             _CardImage(image: image, height: 150, color: color),
           Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if ((data['category'] != null &&
+                        data['category'].toString().isNotEmpty) ||
+                    (data['formattedDate'] != null &&
+                        data['formattedDate'].toString().isNotEmpty)) ...[
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (data['formattedDate'] != null &&
+                          data['formattedDate'].toString().isNotEmpty)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 12,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : _C.textMuted,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              data['formattedDate'].toString(),
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : _C.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 Text(
                   name,
-                  style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: _C.textDark),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : _C.textDark,
+                  ),
                 ),
                 if (desc.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(desc,
-                      style: const TextStyle(
-                          fontSize: 12.5, height: 1.4, color: _C.textMuted)),
+                  Text(
+                    desc,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.4,
+                      color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                    ),
+                  ),
                 ],
                 if (address.isNotEmpty) ...[
                   const SizedBox(height: 10),
@@ -714,14 +2131,20 @@ class _InstitutionCard extends StatelessWidget {
                       Icon(Icons.location_on_rounded, size: 16, color: color),
                       const SizedBox(width: 6),
                       Expanded(
-                        child: Text(address,
-                            style: const TextStyle(
-                                fontSize: 12.5, color: _C.textDark)),
+                        child: Text(
+                          address,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: isDark
+                                ? const Color(0xFFCBD5E1)
+                                : _C.textDark,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ],
-                if (phone.isNotEmpty) ...[
+                if (showPhone && phone.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   InkWell(
                     onTap: () => _openUrl(context, 'tel:$phone', lang),
@@ -729,12 +2152,67 @@ class _InstitutionCard extends StatelessWidget {
                       children: [
                         Icon(Icons.phone_rounded, size: 16, color: color),
                         const SizedBox(width: 6),
-                        Text(phone,
-                            style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: color)),
+                        Text(
+                          phone,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                        ),
                       ],
+                    ),
+                  ),
+                ],
+                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
+                // Telefonda Google Maps / varsayılan harita uygulaması açılır.
+                // Kayıtta 'showDirections': false varsa düğme gizlenir.
+                if (showDirections) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _openUrl(
+                        context,
+                        _directionsUrl(data, name, address),
+                        lang,
+                      ),
+                      icon: const Icon(Icons.directions_rounded, size: 18),
+                      label: Text(
+                        _t(lang, 'Yol Tarifi', 'Directions', 'الاتجاهات'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _C.orange,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                if (detailUrl.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: () => _openUrl(context, detailUrl, lang),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                      label: Text(
+                        _t(
+                          lang,
+                          'Resmi Sayfada Gör',
+                          'View on Official Site',
+                          'عرض على الموقع الرسمي',
+                        ),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -749,12 +2227,14 @@ class _InstitutionCard extends StatelessWidget {
                             ..hideCurrentSnackBar()
                             ..showSnackBar(
                               SnackBar(
-                                content: Text(_t(
-                                  lang,
-                                  'Menü bağlantısı yakında eklenecek.',
-                                  'Menu link coming soon.',
-                                  'رابط القائمة قريباً.',
-                                )),
+                                content: Text(
+                                  _t(
+                                    lang,
+                                    'Menü bağlantısı yakında eklenecek.',
+                                    'Menu link coming soon.',
+                                    'رابط القائمة قريباً.',
+                                  ),
+                                ),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -800,11 +2280,11 @@ class _CardImage extends StatelessWidget {
   });
 
   Widget _placeholder() => Container(
-        height: height,
-        width: double.infinity,
-        color: color.withAlpha(30),
-        child: Icon(Icons.image_outlined, color: color.withAlpha(140), size: 40),
-      );
+    height: height,
+    width: double.infinity,
+    color: color.withAlpha(30),
+    child: Icon(Icons.image_outlined, color: color.withAlpha(140), size: 40),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -815,8 +2295,8 @@ class _CardImage extends StatelessWidget {
         height: height,
         width: double.infinity,
         fit: BoxFit.cover,
-        placeholder: (_, __) => _placeholder(),
-        errorWidget: (_, __, ___) => _placeholder(),
+        placeholder: (_, _) => _placeholder(),
+        errorWidget: (_, _, _) => _placeholder(),
       );
     }
     return Image.asset(
@@ -824,27 +2304,27 @@ class _CardImage extends StatelessWidget {
       height: height,
       width: double.infinity,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _placeholder(),
+      errorBuilder: (_, _, _) => _placeholder(),
     );
   }
 }
 
 // ───────────────────────── Sekme 2: Gebze'yi Keşfet ─────────────────────────
 
-class _DiscoverTab extends StatefulWidget {
+class _DiscoverTab extends ConsumerStatefulWidget {
   final String lang;
   const _DiscoverTab({required this.lang});
 
   @override
-  State<_DiscoverTab> createState() => _DiscoverTabState();
+  ConsumerState<_DiscoverTab> createState() => _DiscoverTabState();
 }
 
-class _DiscoverTabState extends State<_DiscoverTab>
+class _DiscoverTabState extends ConsumerState<_DiscoverTab>
     with AutomaticKeepAliveClientMixin {
   final _ctrl = TextEditingController();
   String _query = '';
   String _filter = '';
-  final Set<String> _favorites = {};
+  int _section = 0; // 0 = Tarihi Yerler, 1 = Lezzetler, 2 = Doğa & Piknik
 
   @override
   bool get wantKeepAlive => true;
@@ -869,11 +2349,19 @@ class _DiscoverTabState extends State<_DiscoverTab>
     super.dispose();
   }
 
-  List<HistoricPlace> _applyFilters(List<HistoricPlace> all, String filterAll) {
+  List<HistoricPlace> _applyFilters(
+    List<HistoricPlace> all,
+    String filterAll,
+    String favLabel,
+    Set<String> favIds,
+  ) {
     final q = _query.trim().toLowerCase();
     return all.where((p) {
-      final okCat = _filter == filterAll || p.category == _filter;
-      final okQuery = q.isEmpty ||
+      final okCat =
+          _filter == filterAll ||
+          (_filter == favLabel ? favIds.contains(p.id) : p.category == _filter);
+      final okQuery =
+          q.isEmpty ||
           p.name.toLowerCase().contains(q) ||
           p.summary.toLowerCase().contains(q);
       return okCat && okQuery;
@@ -883,12 +2371,36 @@ class _DiscoverTabState extends State<_DiscoverTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          child: _DiscoverToggle(
+            lang: widget.lang,
+            selected: _section,
+            onChanged: (v) => setState(() => _section = v),
+          ),
+        ),
+        Expanded(
+          child: switch (_section) {
+            1 => GuideFoodsView(lang: widget.lang),
+            2 => GuidePicnicView(lang: widget.lang),
+            _ => _buildPlaces(context),
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlaces(BuildContext context) {
     final filterAll = AppStrings.get('filter_all', widget.lang);
+    final favIds = ref.watch(favoriteIdsProvider);
+    final favLabel = _t(widget.lang, 'Favorilerim', 'Favorites', 'المفضلة');
     final filters = [
       filterAll,
+      favLabel,
       AppStrings.get('filter_historic', widget.lang),
       AppStrings.get('filter_museums', widget.lang),
-      AppStrings.get('filter_nature', widget.lang),
       AppStrings.get('filter_mosques', widget.lang),
     ];
 
@@ -934,24 +2446,31 @@ class _DiscoverTabState extends State<_DiscoverTab>
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: filters.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
               final cat = filters[i];
               final isSel = cat == _filter;
+              final isDark = Theme.of(context).brightness == Brightness.dark;
               return ChoiceChip(
                 label: Text(
                   cat,
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                    color: isSel ? Colors.white : _C.textDark,
+                    color: isSel
+                        ? Colors.white
+                        : (isDark ? Colors.white : _C.textDark),
                   ),
                 ),
                 selected: isSel,
-                selectedColor: _C.navy,
-                backgroundColor: Colors.white,
+                selectedColor: isDark ? const Color(0xFF2563EB) : _C.navy,
+                backgroundColor: isDark
+                    ? const Color(0xFF1E293B)
+                    : Colors.white,
                 side: BorderSide(
-                  color: isSel ? _C.navy : _C.line,
+                  color: isSel
+                      ? (isDark ? const Color(0xFF2563EB) : _C.navy)
+                      : (isDark ? const Color(0xFF334155) : _C.line),
                   width: 1,
                 ),
                 shape: RoundedRectangleBorder(
@@ -977,9 +2496,27 @@ class _DiscoverTabState extends State<_DiscoverTab>
                     .toList();
               } else {
                 basePlaces = fallbackPlaces;
+                _ensurePlacesSeeded();
               }
 
-              final filtered = _applyFilters(basePlaces, filterAll);
+              // Aynı isimli mekan birden fazla kayıtsa tek kart göster;
+              // favoriye eklenmiş olan kopya varsa onu tercih et.
+              final byName = <String, HistoricPlace>{};
+              for (final p in basePlaces) {
+                final k = p.name.trim().toLowerCase();
+                final cur = byName[k];
+                if (cur == null ||
+                    (!favIds.contains(cur.id) && favIds.contains(p.id))) {
+                  byName[k] = p;
+                }
+              }
+
+              final filtered = _applyFilters(
+                byName.values.toList(),
+                filterAll,
+                favLabel,
+                favIds,
+              );
 
               if (filtered.isEmpty) {
                 return Center(
@@ -1000,14 +2537,11 @@ class _DiscoverTabState extends State<_DiscoverTab>
                   final p = filtered[i];
                   return _PlaceCard(
                     place: p,
-                    isFavorite: _favorites.contains(p.id),
-                    onFavorite: () => setState(() {
-                      if (_favorites.contains(p.id)) {
-                        _favorites.remove(p.id);
-                      } else {
-                        _favorites.add(p.id);
-                      }
-                    }),
+                    isFavorite: favIds.contains(p.id),
+                    onFavorite: () async {
+                      if (!requireLogin(context, ref)) return;
+                      await ref.read(favoritesServiceProvider).toggle(p);
+                    },
                     // Doğrudan internete gitmek yerine önce uygulama içi önizleme açılır.
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -1026,25 +2560,108 @@ class _DiscoverTabState extends State<_DiscoverTab>
   }
 }
 
+/// "Tarihi Yerler | Lezzetler | Doğa & Piknik" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
+class _DiscoverToggle extends StatelessWidget {
+  final String lang;
+  final int selected;
+  final ValueChanged<int> onChanged;
+  const _DiscoverToggle({
+    required this.lang,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selColor = isDark ? const Color(0xFF2563EB) : _C.navy;
+    final off = isDark ? const Color(0xFF94A3B8) : _C.textMuted;
+
+    Widget pill(int index, IconData icon, String label) {
+      final sel = selected == index;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => onChanged(index),
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: 40,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: sel ? selColor : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 18, color: sel ? Colors.white : off),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                      color: sel ? Colors.white : off,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : _C.field,
+        borderRadius: BorderRadius.circular(24),
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+      ),
+      child: Row(
+        children: [
+          pill(
+            0,
+            Icons.account_balance_rounded,
+            _t(lang, 'Tarihi Yerler', 'Historic Places', 'الأماكن التاريخية'),
+          ),
+          pill(
+            1,
+            Icons.restaurant_rounded,
+            _t(lang, 'Lezzetler', 'Flavors', 'النكهات'),
+          ),
+          pill(
+            2,
+            Icons.forest_rounded,
+            _t(lang, 'Doğa & Piknik', 'Nature', 'الطبيعة'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PlaceImage extends StatelessWidget {
   final HistoricPlace place;
   final double height;
   const _PlaceImage({required this.place, required this.height});
 
   Widget _placeholder() => Container(
-        height: height,
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
-          ),
-        ),
-        child: Center(
-          child: Icon(place.icon, color: Colors.white54, size: 56),
-        ),
-      );
+    height: height,
+    width: double.infinity,
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF2F6FDB), Color(0xFF0A2A66)],
+      ),
+    ),
+    child: Center(child: Icon(place.icon, color: Colors.white54, size: 56)),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1058,8 +2675,8 @@ class _PlaceImage extends StatelessWidget {
         height: height,
         width: double.infinity,
         fit: BoxFit.cover,
-        placeholder: (_, __) => _placeholder(),
-        errorWidget: (_, __, ___) => _placeholder(),
+        placeholder: (_, _) => _placeholder(),
+        errorWidget: (_, _, _) => _placeholder(),
       );
     }
 
@@ -1068,7 +2685,7 @@ class _PlaceImage extends StatelessWidget {
       height: height,
       width: double.infinity,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _placeholder(),
+      errorBuilder: (_, _, _) => _placeholder(),
     );
   }
 }
@@ -1087,16 +2704,17 @@ class _PlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _C.line),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : _C.line),
       ),
       child: Material(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         child: InkWell(
           onTap: onTap,
           child: Column(
@@ -1110,7 +2728,9 @@ class _PlaceCard extends StatelessWidget {
                     top: 12,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: _C.navyDeep.withAlpha(220),
                         borderRadius: BorderRadius.circular(14),
@@ -1129,7 +2749,7 @@ class _PlaceCard extends StatelessWidget {
                     right: 10,
                     top: 10,
                     child: Material(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF334155) : Colors.white,
                       shape: const CircleBorder(),
                       child: InkWell(
                         customBorder: const CircleBorder(),
@@ -1161,10 +2781,10 @@ class _PlaceCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             place.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: _C.textDark,
+                              color: isDark ? Colors.white : _C.textDark,
                               height: 1.25,
                             ),
                           ),
@@ -1173,16 +2793,23 @@ class _PlaceCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE3F4FB),
+                              color: isDark
+                                  ? const Color(0xFF0F2D4A)
+                                  : const Color(0xFFE3F4FB),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.location_on_rounded,
-                                    size: 14, color: Color(0xFF0288D1)),
+                                const Icon(
+                                  Icons.location_on_rounded,
+                                  size: 14,
+                                  color: Color(0xFF0288D1),
+                                ),
                                 const SizedBox(width: 3),
                                 Text(
                                   '${place.distanceKm!.toStringAsFixed(1)} km',
@@ -1203,10 +2830,10 @@ class _PlaceCard extends StatelessWidget {
                       place.summary,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         height: 1.45,
-                        color: _C.textMuted,
+                        color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                       ),
                     ),
                   ],
@@ -1229,128 +2856,221 @@ class _PlaceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return _withFont(
       context,
       Scaffold(
-        backgroundColor: _C.bg,
-        appBar: AppBar(
-          backgroundColor: _C.bg,
-          foregroundColor: _C.textDark,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: Text(
-            _t(lang, 'Mekan Önizlemesi', 'Place Preview', 'معاينة المكان'),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          ),
-        ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _PlaceImage(place: place, height: 250),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: _C.navyDeep.withAlpha(20),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        place.category,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: _C.navyDeep,
+        backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
+        body: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [_C.navy, _C.navyDeep],
+                ),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(32),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x330A2A66),
+                    blurRadius: 18,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 10, 16, 22),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 22,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      place.name,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: _C.textDark,
-                        height: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      place.summary,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        height: 1.55,
-                        color: _C.textDark,
-                      ),
-                    ),
-                    if (place.detailUrl.isNotEmpty) ...[
-                      const SizedBox(height: 18),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3E0),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.info_outline_rounded,
-                                size: 18, color: _C.orange),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _t(
-                                  lang,
-                                  'Daha fazla bilgi için aşağıdaki butona dokunduğunuzda Gebze Belediyesi web sitesine (internet tarayıcısına) yönlendirileceksiniz.',
-                                  'Tapping the button below will take you to the Gebze Municipality website (your internet browser) for more information.',
-                                  'عند الضغط على الزر أدناه سيتم تحويلك إلى موقع بلدية جبزة (متصفح الإنترنت) لمزيد من المعلومات.',
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  height: 1.4,
-                                  color: _C.textDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              _openUrl(context, place.detailUrl, lang),
-                          icon: const Icon(Icons.open_in_browser_rounded,
-                              size: 20),
-                          label: Text(
-                            _t(lang, 'Devamını Tarayıcıda Aç',
-                                'Continue in Browser', 'متابعة في المتصفح'),
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w700),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _t(
+                            lang,
+                            'Mekan Önizlemesi',
+                            'Place Preview',
+                            'معاينة المكان',
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _C.navy,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: const StadiumBorder(),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: _PlaceImage(place: place, height: 230),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : _C.navyDeep.withAlpha(20),
+                              borderRadius: BorderRadius.circular(14),
+                              border: isDark
+                                  ? Border.all(color: const Color(0xFF334155))
+                                  : null,
+                            ),
+                            child: Text(
+                              place.category,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? const Color(0xFF93C5FD)
+                                    : _C.navyDeep,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            place.name,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : _C.textDark,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            place.summary,
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.55,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : _C.textDark,
+                            ),
+                          ),
+                          if (place.detailUrl.isNotEmpty) ...[
+                            const SizedBox(height: 18),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFFFF3E0),
+                                borderRadius: BorderRadius.circular(12),
+                                border: isDark
+                                    ? Border.all(color: const Color(0xFF334155))
+                                    : null,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 18,
+                                    color: _C.orange,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _t(
+                                        lang,
+                                        'Daha fazla bilgi için aşağıdaki butona dokunduğunuzda Gebze Belediyesi web sitesine (internet tarayıcısına) yönlendirileceksiniz.',
+                                        'Tapping the button below will take you to the Gebze Municipality website (your internet browser) for more information.',
+                                        'عند الضغط على الزر أدناه سيتم تحويلك إلى موقع بلدية جبزة (متصفح الإنترنت) لمزيد من المعلومات.',
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        height: 1.4,
+                                        color: isDark
+                                            ? const Color(0xFFE2E8F0)
+                                            : _C.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _openUrl(context, place.detailUrl, lang),
+                                icon: const Icon(
+                                  Icons.open_in_browser_rounded,
+                                  size: 20,
+                                ),
+                                label: Text(
+                                  _t(
+                                    lang,
+                                    'Devamını Tarayıcıda Aç',
+                                    'Continue in Browser',
+                                    'متابعة في المتصفح',
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? const Color(0xFF2563EB)
+                                      : _C.navy,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: const StadiumBorder(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1376,7 +3096,10 @@ class _BottomNav extends StatelessWidget {
       _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
       _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
       _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(AppStrings.get('nav_profile', lang), Icons.person_outline_rounded),
+      _NavItem(
+        AppStrings.get('nav_profile', lang),
+        Icons.person_outline_rounded,
+      ),
     ];
 
     return Material(
@@ -1408,8 +3131,9 @@ class _BottomNav extends StatelessWidget {
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 10.5,
-                            fontWeight:
-                                i == index ? FontWeight.w800 : FontWeight.w500,
+                            fontWeight: i == index
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: i == index ? _C.orange : Colors.white70,
                           ),
                         ),

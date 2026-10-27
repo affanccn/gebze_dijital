@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +20,38 @@ class _C {
   static const gas = Color(0xFFE53935);
 }
 
-const String _kBodyFont = 'system-ui';
+// ───────────────────────── Tarih yardımcıları ─────────────────────────
+
+/// Firestore'da tarih Timestamp ya da "09.10.2026 10:00" / "09.10.2026"
+/// metni olarak tutulmuş olabilir; ikisini de çözer.
+/// Sadece tarih verilmişse [endOfDay] true iken gün sonu (23:59) kabul edilir.
+DateTime? _parseOutageDate(dynamic v, {bool endOfDay = false}) {
+  if (v is Timestamp) return v.toDate();
+  if (v is DateTime) return v;
+  if (v is! String) return null;
+  final s = v.trim();
+  final m = RegExp(
+    r'^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:\s+(\d{1,2}):(\d{2}))?$',
+  ).firstMatch(s);
+  if (m != null) {
+    final hasTime = m.group(4) != null;
+    return DateTime(
+      int.parse(m.group(3)!),
+      int.parse(m.group(2)!),
+      int.parse(m.group(1)!),
+      hasTime ? int.parse(m.group(4)!) : (endOfDay ? 23 : 0),
+      hasTime ? int.parse(m.group(5)!) : (endOfDay ? 59 : 0),
+    );
+  }
+  return DateTime.tryParse(s);
+}
+
+String _fmtOutageDate(DateTime d) {
+  String p(int n) => n.toString().padLeft(2, '0');
+  return '${p(d.day)}.${p(d.month)}.${d.year} ${p(d.hour)}:${p(d.minute)}';
+}
+
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',
@@ -40,21 +73,46 @@ class OutagesScreen extends ConsumerStatefulWidget {
 class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   // 0: Tümü, 1: Su (İSU), 2: Elektrik (SEDAŞ), 3: Doğalgaz (PALGAZ)
   int _selectedFilter = 0;
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _outagesStream =
+      FirebaseFirestore.instance.collection('outages').limit(50).snapshots();
 
+  Timer? _ticker;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ekran açıkken süresi dolan kesintiler de listeden düşsün diye
+    // her dakika yeniden süzülür ("Mahallemde" ekranındaki mantık).
+    _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  /// Firestore boşsa gösterilen örnek veriler. Tarihler "şimdiye göre"
+  /// hesaplanır; böylece her zaman güncel görünür.
   List<Map<String, dynamic>> _getFallbackOutages(String lang) {
     final mahalleSuffix = AppStrings.get('mahalle_suffix', lang);
+    final n = DateTime.now();
+    DateTime at(int dayOffset, int hour) =>
+        DateTime(n.year, n.month, n.day + dayOffset, hour);
     return [
       {
         'type': 'su',
         'title': lang == 'en'
             ? 'Main Transmission Line Maintenance'
             : lang == 'ar'
-                ? 'صيانة خط النقل الرئيسي'
-                : 'Ana İsale Hattı Bakım Çalışması',
+            ? 'صيانة خط النقل الرئيسي'
+            : 'Ana İsale Hattı Bakım Çalışması',
         'neighborhood': 'Osman Yılmaz & Köşklü Çeşme $mahalleSuffix',
-        'startDate': '09.10.2026 10:00',
-        'endDate': '09.10.2026 18:00',
-        'status': AppStrings.get('status_ongoing', lang),
+        'startDate': n.subtract(const Duration(hours: 2)),
+        'endDate': n.add(const Duration(hours: 4)),
         'provider': 'İSU',
       },
       {
@@ -62,12 +120,11 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         'title': lang == 'en'
             ? 'Transformer Renewal & Grid Improvement'
             : lang == 'ar'
-                ? 'تجديد المحولات وتحسين الشبكة'
-                : 'Trafo Yenileme ve Şebeke İyileştirme',
+            ? 'تجديد المحولات وتحسين الشبكة'
+            : 'Trafo Yenileme ve Şebeke İyileştirme',
         'neighborhood': 'Arapçeşme $mahalleSuffix',
-        'startDate': '10.10.2026 09:00',
-        'endDate': '10.10.2026 14:00',
-        'status': AppStrings.get('status_planned', lang),
+        'startDate': at(1, 9),
+        'endDate': at(1, 14),
         'provider': 'SEDAŞ',
       },
       {
@@ -75,12 +132,11 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         'title': lang == 'en'
             ? 'Infrastructure Connection & Valve Replacement'
             : lang == 'ar'
-                ? 'ربط البنية التحتية واستبدال الصمامات'
-                : 'Altyapı Bağlantı ve Vana Değişimi',
+            ? 'ربط البنية التحتية واستبدال الصمامات'
+            : 'Altyapı Bağlantı ve Vana Değişimi',
         'neighborhood': 'Mustafapaşa $mahalleSuffix 712. Sokak',
-        'startDate': '11.10.2026 13:00',
-        'endDate': '11.10.2026 17:00',
-        'status': AppStrings.get('status_planned', lang),
+        'startDate': at(2, 13),
+        'endDate': at(2, 17),
         'provider': 'PALGAZ',
       },
     ];
@@ -90,6 +146,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final isDark = base.brightness == Brightness.dark;
     final fallbackOutages = _getFallbackOutages(lang);
 
     return Theme(
@@ -97,26 +154,26 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: Scaffold(
-          backgroundColor: _C.bg,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF0F172A)
+              : _C.bg,
           body: Column(
             children: [
               _Header(lang: lang),
               _buildFilterChips(lang),
               Expanded(
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance.collection('outages').snapshots(),
+                  stream: _outagesStream,
                   builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text('${AppStrings.get('error_occurred', lang)}: ${snapshot.error}'),
-                      );
-                    }
-
                     List<Map<String, dynamic>> items = [];
 
                     if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
@@ -125,11 +182,58 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                       items = fallbackOutages;
                     }
 
-                    final filtered = items.where((item) {
-                      final type = (item['type'] ?? '').toString().toLowerCase();
-                      if (_selectedFilter == 1) return type == 'su';
-                      if (_selectedFilter == 2) return type == 'elektrik';
-                      if (_selectedFilter == 3) return type == 'gaz' || type == 'dogalgaz';
+                    // Tarih filtresi: bitiş zamanı geçenler listeden düşer,
+                    // durum (planlı / devam ediyor) tarihten hesaplanır.
+                    final now = _now;
+                    final processed = <Map<String, dynamic>>[];
+                    for (final raw in items) {
+                      final start = _parseOutageDate(raw['startDate']);
+                      final end = _parseOutageDate(
+                        raw['endDate'],
+                        endOfDay: true,
+                      );
+                      if (end != null && end.isBefore(now)) continue;
+
+                      var status = (raw['status'] ?? '').toString();
+                      final low = status.toLowerCase();
+                      if (low.contains('tamam') || low.contains('complete')) {
+                        continue; // elle "tamamlandı" işaretlenmiş
+                      }
+                      if (start != null) {
+                        status = start.isAfter(now) ? 'planlı' : 'devam';
+                      }
+
+                      processed.add({
+                        ...raw,
+                        'status': status,
+                        'startDate': start != null
+                            ? _fmtOutageDate(start)
+                            : raw['startDate'],
+                        'endDate': end != null
+                            ? _fmtOutageDate(end)
+                            : raw['endDate'],
+                        '_sort': start ?? end ?? DateTime(2100),
+                      });
+                    }
+                    processed.sort(
+                      (a, b) => (a['_sort'] as DateTime).compareTo(
+                        b['_sort'] as DateTime,
+                      ),
+                    );
+
+                    final filtered = processed.where((item) {
+                      final type = (item['type'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                      if (_selectedFilter == 1) {
+                        return type == 'su';
+                      }
+                      if (_selectedFilter == 2) {
+                        return type == 'elektrik';
+                      }
+                      if (_selectedFilter == 3) {
+                        return type == 'gaz' || type == 'dogalgaz';
+                      }
                       return true;
                     }).toList();
 
@@ -140,8 +244,11 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.check_circle_outline_rounded,
-                                  size: 48, color: Color(0xFF2E7D32)),
+                              const Icon(
+                                Icons.check_circle_outline_rounded,
+                                size: 48,
+                                color: Color(0xFF2E7D32),
+                              ),
                               const SizedBox(height: 12),
                               Text(
                                 AppStrings.get('no_outages_found', lang),
@@ -183,6 +290,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
       AppStrings.get('filter_electric', lang),
       AppStrings.get('filter_gas', lang),
     ];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 52,
@@ -192,7 +300,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = _selectedFilter == i;
           return ChoiceChip(
@@ -201,17 +309,25 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? Colors.white : _C.textDark,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white : _C.textDark),
               ),
             ),
             selected: isSelected,
-            selectedColor: _C.navy,
-            backgroundColor: Colors.white,
+            selectedColor: isDark ? const Color(0xFF2563EB) : _C.navy,
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             side: BorderSide(
-              color: isSelected ? _C.navy : const Color(0xFFE4E9F2),
+              color: isSelected
+                  ? (isDark ? const Color(0xFF2563EB) : _C.navy)
+                  : (isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE4E9F2)),
               width: 1,
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             showCheckmark: false,
             onSelected: (_) => setState(() => _selectedFilter = i),
           );
@@ -250,7 +366,11 @@ class _Header extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -271,7 +391,11 @@ class _Header extends StatelessWidget {
                       color: Colors.white.withAlpha(25),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.power_off_rounded, color: Colors.white, size: 24),
+                    child: const Icon(
+                      Icons.power_off_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ],
               ),
@@ -345,14 +469,17 @@ class _OutageCard extends StatelessWidget {
     final color = _getTypeColor(type);
     final icon = _getTypeIcon(type);
     final statusText = _formatStatus((data['status'] ?? '').toString());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE4E9F2)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +490,7 @@ class _OutageCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: color.withAlpha(30),
+                  color: color.withAlpha(isDark ? 50 : 30),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -375,10 +502,10 @@ class _OutageCard extends StatelessWidget {
                   children: [
                     Text(
                       data['title'] ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
-                        color: _C.textDark,
+                        color: isDark ? Colors.white : _C.textDark,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -394,9 +521,14 @@ class _OutageCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0),
+                  color: isDark
+                      ? const Color(0xFF332010)
+                      : const Color(0xFFFFF3E0),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -411,17 +543,28 @@ class _OutageCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Divider(height: 1, color: Colors.grey.withAlpha(35)),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF334155) : Colors.grey.withAlpha(35),
+          ),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on_rounded, size: 16, color: _C.textMuted),
+              Icon(
+                Icons.location_on_rounded,
+                size: 16,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   data['neighborhood'] ?? '',
-                  style: const TextStyle(fontSize: 12.5, color: _C.textDark, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: isDark ? const Color(0xFFCBD5E1) : _C.textDark,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -429,11 +572,19 @@ class _OutageCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.schedule_rounded, size: 16, color: _C.textMuted),
+              Icon(
+                Icons.schedule_rounded,
+                size: 16,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+              ),
               const SizedBox(width: 6),
               Text(
                 '${data['startDate'] ?? '-'}  ➔  ${data['endDate'] ?? '-'}',
-                style: const TextStyle(fontSize: 11.5, color: _C.textMuted, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

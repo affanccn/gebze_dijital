@@ -13,21 +13,20 @@ class NeighborhoodSeeder {
   static const collection = 'neighborhood_works';
 
   static Future<int> seed() async {
-        // Saatler cihazın saat dilimine bakmadan Türkiye saatine (UTC+3) göre yazılır.
+    // Saatler cihazın saat dilimine bakmadan Türkiye saatine (UTC+3) göre yazılır.
     final trNow = DateTime.now().toUtc().add(const Duration(hours: 3));
 
     Timestamp at(int dayOffset, [int hour = 9]) => Timestamp.fromDate(
-          // Türkiye saati = UTC + 3, bu yüzden UTC'ye çevirmek için 3 çıkarılır.
-          DateTime.utc(trNow.year, trNow.month, trNow.day + dayOffset, hour - 3),
-        );
+      // Türkiye saati = UTC + 3, bu yüzden UTC'ye çevirmek için 3 çıkarılır.
+      DateTime.utc(trNow.year, trNow.month, trNow.day + dayOffset, hour - 3),
+    );
 
     // category: kazi | altyapi | cevre | yol_bakim
     final items = <Map<String, dynamic>>[
       // ── Devam edenler ──
       {
         'title': 'Doğalgaz Hattı Kazı Çalışması',
-        'description':
-            'Yeni doğalgaz bağlantı hattı için cadde boyunca kazı yapılacaktır. Geçici trafik düzenlemesi uygulanır.',
+        'description': 'Yeni doğalgaz bağlantı hattı için cadde boyunca kazı yapılacaktır. Geçici trafik düzenlemesi uygulanır.',
         'category': 'kazi',
         'neighborhood': 'Güzeller',
         'address': 'Bahar Cd.',
@@ -37,8 +36,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Yağmur Suyu Hattı Yenileme',
-        'description':
-            'Sık su baskını yaşanan bölgede eski yağmur suyu hattı değiştirilmektedir.',
+        'description': 'Sık su baskını yaşanan bölgede eski yağmur suyu hattı değiştirilmektedir.',
         'category': 'altyapi',
         'neighborhood': 'Mustafapaşa',
         'address': '712. Sokak',
@@ -48,8 +46,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Asfalt Yenileme ve Yol Bakımı',
-        'description':
-            'Bozulan asfalt tabakası sıyrılıp yeniden serilecektir. Çalışma süresince yol tek şeritten kullanılabilir.',
+        'description': 'Bozulan asfalt tabakası sıyrılıp yeniden serilecektir. Çalışma süresince yol tek şeritten kullanılabilir.',
         'category': 'yol_bakim',
         'neighborhood': 'Osman Yılmaz',
         'address': 'Atatürk Cd.',
@@ -59,8 +56,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Park Peyzaj ve Ağaç Budama',
-        'description':
-            'Mahalle parkında peyzaj düzenlemesi ve tehlike oluşturan dalların budanması yapılacaktır.',
+        'description': 'Mahalle parkında peyzaj düzenlemesi ve tehlike oluşturan dalların budanması yapılacaktır.',
         'category': 'cevre',
         'neighborhood': 'Arapçeşme',
         'address': 'Çınar Parkı',
@@ -70,8 +66,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Elektrik Kablo Kanalı Kazısı',
-        'description':
-            'Yeraltı elektrik kablo kanalı için kaldırım ve yol kenarında kazı yapılacaktır.',
+        'description': 'Yeraltı elektrik kablo kanalı için kaldırım ve yol kenarında kazı yapılacaktır.',
         'category': 'kazi',
         'neighborhood': 'Hacıhalil',
         'address': 'Fatih Cd.',
@@ -81,8 +76,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'İçme Suyu Ana Hat Bakımı',
-        'description':
-            'Ana isale hattında bakım yapılacaktır. Kısa süreli su kesintisi yaşanabilir.',
+        'description': 'Ana isale hattında bakım yapılacaktır. Kısa süreli su kesintisi yaşanabilir.',
         'category': 'altyapi',
         'neighborhood': 'Güzeller',
         'address': 'Gül Sk.',
@@ -94,8 +88,7 @@ class NeighborhoodSeeder {
       // ── Yaklaşan (planlı) ──
       {
         'title': 'Kanalizasyon Hattı Genişletme',
-        'description':
-            'Artan nüfus nedeniyle mevcut kanalizasyon hattı daha büyük çapta yenilenecektir.',
+        'description': 'Artan nüfus nedeniyle mevcut kanalizasyon hattı daha büyük çapta yenilenecektir.',
         'category': 'altyapi',
         'neighborhood': 'Mevlana',
         'address': 'Sanayi Cd.',
@@ -105,8 +98,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Kaldırım Düzenleme ve Bordür Yenileme',
-        'description':
-            'Yaya güvenliği için bozulan kaldırımlar ve bordürler yenilenecektir.',
+        'description': 'Yaya güvenliği için bozulan kaldırımlar ve bordürler yenilenecektir.',
         'category': 'yol_bakim',
         'neighborhood': 'Mustafapaşa',
         'address': 'İstasyon Cd.',
@@ -127,8 +119,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Çöp Konteyneri Yenileme ve Yer Altı Sistemi',
-        'description':
-            'Eski konteynerler kaldırılarak yer altı çöp toplama sistemi kurulacaktır.',
+        'description': 'Eski konteynerler kaldırılarak yer altı çöp toplama sistemi kurulacaktır.',
         'category': 'cevre',
         'neighborhood': 'Osman Yılmaz',
         'address': 'Meydan Sk.',
@@ -138,8 +129,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Fiber Altyapı Kazısı',
-        'description':
-            'Mahallede fiber internet altyapısı için kaldırım kenarında kazı yapılacaktır.',
+        'description': 'Mahallede fiber internet altyapısı için kaldırım kenarında kazı yapılacaktır.',
         'category': 'kazi',
         'neighborhood': 'Köşklü Çeşme',
         'address': 'Dere Sk.',
@@ -149,8 +139,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Dere Yatağı Temizliği',
-        'description':
-            'Taşkın riskine karşı dere yatağındaki tortu ve atıklar temizlenecektir.',
+        'description': 'Taşkın riskine karşı dere yatağındaki tortu ve atıklar temizlenecektir.',
         'category': 'cevre',
         'neighborhood': 'Eskihisar',
         'address': 'Sahil Yolu',
@@ -160,8 +149,7 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Sokak Aydınlatma Kablo Değişimi',
-        'description':
-            'Arızalı sokak aydınlatma kabloları değiştirilecek, lambalar LED ile yenilenecektir.',
+        'description': 'Arızalı sokak aydınlatma kabloları değiştirilecek, lambalar LED ile yenilenecektir.',
         'category': 'altyapi',
         'neighborhood': 'Arapçeşme',
         'address': 'Lale Sk.',
@@ -182,7 +170,8 @@ class NeighborhoodSeeder {
       },
       {
         'title': 'Mahalle Parkı Fidan Dikimi',
-        'description': 'Mahalle sakinlerinin katılımıyla fidan dikim etkinliği.',
+        'description':
+            'Mahalle sakinlerinin katılımıyla fidan dikim etkinliği.',
         'category': 'cevre',
         'neighborhood': 'Mevlana',
         'address': 'Yeşil Park',

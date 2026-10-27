@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../core/localization/app_strings.dart';
+import '../../../../core/utils/phone_launcher.dart';
 
 class CenterAmbulanceTab extends ConsumerStatefulWidget {
   const CenterAmbulanceTab({super.key});
@@ -13,7 +15,8 @@ class CenterAmbulanceTab extends ConsumerStatefulWidget {
 class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   static const String _centerPhone = '(0262) 642 04 30';
   static const String _centerPhoneClean = '02626420430';
-  static const String _centerAddress = 'Pelitli, Yeni Mezarlık Yolu no:49, 41400 Gebze/Kocaeli';
+  static const String _centerAddress =
+      'Pelitli, Yeni Mezarlık Yolu no:49, 41400 Gebze/Kocaeli';
   static const double _centerLat = 40.8715;
   static const double _centerLng = 29.4988;
   static const String _centerWebsite = 'http://www.gebze.bel.tr/';
@@ -51,10 +54,8 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Future<void> _makeCall(String phone) async {
-    final uri = Uri.parse('tel:$phone');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
+    final lang = ref.read(appLanguageProvider);
+    await PhoneLauncher.makeCall(context, phone, lang: lang);
   }
 
   Future<void> _openMaps(double lat, double lng, String label) async {
@@ -89,6 +90,7 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
 
         // 4. BÖLÜM AYIRICI BAŞLIK: REHABİLİTASYON VE EĞİTİM MERKEZİ
         _buildSectionHeader(
+          context: context,
           title: AppStrings.get('rehab_center_section_title', lang),
           subtitle: AppStrings.get('rehab_center_section_sub', lang),
           icon: Icons.local_hospital_rounded,
@@ -111,14 +113,14 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFE5231B), Color(0xFFFF5A4F)],
+          colors: [Color(0xFF1E5BC6), Color(0xFF0A2A66)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFE5231B).withAlpha(80),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF0A2A66).withAlpha(45),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -131,11 +133,11 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(50),
+                  color: Colors.white.withAlpha(40),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.medical_services_rounded,
+                  Icons.airport_shuttle_rounded,
                   color: Colors.white,
                   size: 28,
                 ),
@@ -184,11 +186,14 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                   icon: const Icon(Icons.call_rounded, size: 20),
                   label: Text(
                     AppStrings.get('call_ambulance_btn', lang),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFFE5231B),
+                    foregroundColor: const Color(0xFF0A2A66),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
@@ -205,17 +210,21 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Widget _buildAmbulanceInfoCard(BuildContext context, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(18),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(18),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -229,16 +238,20 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                   color: const Color(0xFFFF7A00).withAlpha(30),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.emergency_share_rounded, color: Color(0xFFFF7A00), size: 22),
+                child: const Icon(
+                  Icons.emergency_share_rounded,
+                  color: Color(0xFFFF7A00),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   AppStrings.get('ambulance_what_is', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
               ),
@@ -247,9 +260,9 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
           const SizedBox(height: 12),
           Text(
             AppStrings.get('ambulance_what_is_desc_full', lang),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13.5,
-              color: Color(0xFF334A6E),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF334A6E),
               height: 1.5,
             ),
           ),
@@ -259,6 +272,7 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Widget _buildInterventionsCard(BuildContext context, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final conditions = [
       {
         'icon': Icons.car_crash_rounded,
@@ -291,15 +305,18 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(18),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(18),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -307,15 +324,19 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2E7D32), size: 22),
+              const Icon(
+                Icons.check_circle_outline_rounded,
+                color: Color(0xFF2E7D32),
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   AppStrings.get('conditions_title', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15.5,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
               ),
@@ -337,9 +358,15 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
               return Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5FD),
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF1F5FD),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF0A2A66).withAlpha(20)),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFF0A2A66).withAlpha(20),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,12 +374,22 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                   children: [
                     Row(
                       children: [
-                        Icon(item['icon'] as IconData, size: 20, color: const Color(0xFFE5231B)),
+                        Icon(
+                          item['icon'] as IconData,
+                          size: 20,
+                          color: const Color(0xFFE5231B),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             item['title'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF0A1F44)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.5,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0A1F44),
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -362,7 +399,13 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                     const SizedBox(height: 4),
                     Text(
                       item['desc'] as String,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF5F6F8A), height: 1.25),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF5F6F8A),
+                        height: 1.25,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -372,14 +415,14 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
             },
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? const Color(0xFF334155) : null),
           const SizedBox(height: 14),
           Text(
             AppStrings.get('ambulance_interventions_label', lang),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0A1F44),
+              color: isDark ? Colors.white : const Color(0xFF0A1F44),
             ),
           ),
           const SizedBox(height: 8),
@@ -391,13 +434,23 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(top: 4),
-                    child: Icon(Icons.shield_outlined, size: 14, color: Color(0xFF1E5BC6)),
+                    child: Icon(
+                      Icons.shield_outlined,
+                      size: 14,
+                      color: Color(0xFF1E5BC6),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       p,
-                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF4A5568), height: 1.35),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF4A5568),
+                        height: 1.35,
+                      ),
                     ),
                   ),
                 ],
@@ -410,19 +463,27 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Widget _buildSectionHeader({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required IconData icon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF0A2A66).withAlpha(20),
+            color: isDark
+                ? const Color(0xFF334155)
+                : const Color(0xFF0A2A66).withAlpha(20),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF0A2A66), size: 24),
+          child: Icon(
+            icon,
+            color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF0A2A66),
+            size: 24,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -431,15 +492,20 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF0A1F44),
+                  color: isDark ? Colors.white : const Color(0xFF0A1F44),
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 11.5, color: Color(0xFF5F6F8A)),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF5F6F8A),
+                ),
               ),
             ],
           ),
@@ -449,17 +515,21 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Widget _buildCenterCard(BuildContext context, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(18),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(18),
+                  blurRadius: 16,
+                  offset: const Offset(0, 5),
+                ),
+              ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -488,7 +558,11 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                             return Container(
                               color: const Color(0xFF0A2A66),
                               child: const Center(
-                                child: Icon(Icons.pets_rounded, size: 64, color: Colors.white54),
+                                child: Icon(
+                                  Icons.pets_rounded,
+                                  size: 64,
+                                  color: Colors.white54,
+                                ),
                               ),
                             );
                           },
@@ -502,26 +576,41 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                   left: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withAlpha(170),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.photo_library_rounded, color: Colors.white, size: 14),
+                        const Icon(
+                          Icons.photo_library_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             _photos[_activeImageIndex]['title']!,
-                            style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
                           '${_activeImageIndex + 1}/${_photos.length}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -537,48 +626,73 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 20),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFFFFB300),
+                      size: 20,
+                    ),
                     const SizedBox(width: 4),
-                    const Text(
+                    Text(
                       '4.2',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0A1F44)),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       AppStrings.get('google_reviews_count', lang),
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF5F6F8A)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF5F6F8A),
+                      ),
                     ),
                     const Spacer(),
                     Text(
                       AppStrings.get('pelitli_hospital', lang),
-                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF1E5BC6), fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF1E5BC6),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   AppStrings.get('center_role_title', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   AppStrings.get('center_role_desc', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF334A6E),
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF334A6E),
                     height: 1.48,
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Divider(height: 1),
+                Divider(
+                  height: 1,
+                  color: isDark ? const Color(0xFF334155) : null,
+                ),
                 const SizedBox(height: 14),
 
                 // Konum & İletişim Bilgileri
                 _buildInfoRow(
+                  context: context,
                   icon: Icons.location_on_rounded,
                   iconColor: const Color(0xFFE5231B),
                   title: AppStrings.get('center_open_address', lang),
@@ -586,8 +700,11 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                 ),
                 const SizedBox(height: 10),
                 _buildInfoRow(
+                  context: context,
                   icon: Icons.phone_rounded,
-                  iconColor: const Color(0xFF0A2A66),
+                  iconColor: isDark
+                      ? const Color(0xFF60A5FA)
+                      : const Color(0xFF0A2A66),
                   title: AppStrings.get('center_phone_label', lang),
                   value: _centerPhone,
                 ),
@@ -602,25 +719,41 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                         icon: const Icon(Icons.call_rounded, size: 18),
                         label: Text(AppStrings.get('btn_call', lang)),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0A2A66),
-                          side: BorderSide(color: const Color(0xFF0A2A66).withAlpha(60)),
+                          foregroundColor: isDark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF0A2A66),
+                          side: BorderSide(
+                            color: isDark
+                                ? const Color(0xFF60A5FA).withAlpha(120)
+                                : const Color(0xFF0A2A66).withAlpha(60),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 11),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => _openMaps(_centerLat, _centerLng, 'Gebze Belediyesi Sokak Hayvanları Merkezi'),
+                        onPressed: () => _openMaps(
+                          _centerLat,
+                          _centerLng,
+                          'Gebze Belediyesi Sokak Hayvanları Merkezi',
+                        ),
                         icon: const Icon(Icons.directions_rounded, size: 18),
                         label: Text(AppStrings.get('btn_directions', lang)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0A2A66),
+                          backgroundColor: isDark
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF0A2A66),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 11),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
@@ -634,7 +767,9 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                     icon: const Icon(Icons.language_rounded, size: 17),
                     label: Text(AppStrings.get('btn_visit_website', lang)),
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF1E5BC6),
+                      foregroundColor: isDark
+                          ? const Color(0xFF60A5FA)
+                          : const Color(0xFF1E5BC6),
                     ),
                   ),
                 ),
@@ -647,27 +782,59 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Widget _buildWorkingHoursCard(BuildContext context, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final days = [
-      {'day': AppStrings.get('day_mon', lang), 'hours': '09:00 – 16:00', 'open': true},
-      {'day': AppStrings.get('day_tue', lang), 'hours': '09:00 – 16:00', 'open': true},
-      {'day': AppStrings.get('day_wed', lang), 'hours': '09:00 – 16:00', 'open': true},
-      {'day': AppStrings.get('day_thu', lang), 'hours': '09:00 – 16:00', 'open': true},
-      {'day': AppStrings.get('day_fri', lang), 'hours': '09:00 – 16:00', 'open': true},
-      {'day': AppStrings.get('day_sat', lang), 'hours': AppStrings.get('closed_emergency_except', lang), 'open': false},
-      {'day': AppStrings.get('day_sun', lang), 'hours': AppStrings.get('closed_emergency_except', lang), 'open': false},
+      {
+        'day': AppStrings.get('day_mon', lang),
+        'hours': '09:00 – 16:00',
+        'open': true,
+      },
+      {
+        'day': AppStrings.get('day_tue', lang),
+        'hours': '09:00 – 16:00',
+        'open': true,
+      },
+      {
+        'day': AppStrings.get('day_wed', lang),
+        'hours': '09:00 – 16:00',
+        'open': true,
+      },
+      {
+        'day': AppStrings.get('day_thu', lang),
+        'hours': '09:00 – 16:00',
+        'open': true,
+      },
+      {
+        'day': AppStrings.get('day_fri', lang),
+        'hours': '09:00 – 16:00',
+        'open': true,
+      },
+      {
+        'day': AppStrings.get('day_sat', lang),
+        'hours': AppStrings.get('closed_emergency_except', lang),
+        'open': false,
+      },
+      {
+        'day': AppStrings.get('day_sun', lang),
+        'hours': AppStrings.get('closed_emergency_except', lang),
+        'open': false,
+      },
     ];
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(16),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0A2A66).withAlpha(16),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -675,15 +842,21 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
         children: [
           Row(
             children: [
-              const Icon(Icons.access_time_rounded, color: Color(0xFF0A2A66), size: 22),
+              Icon(
+                Icons.access_time_rounded,
+                color: isDark
+                    ? const Color(0xFF60A5FA)
+                    : const Color(0xFF0A2A66),
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   AppStrings.get('visiting_hours_title', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15.5,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
               ),
@@ -700,16 +873,25 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                     d['day'] as String,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: d['open'] as bool ? FontWeight.w600 : FontWeight.normal,
-                      color: const Color(0xFF0A1F44),
+                      fontWeight: d['open'] as bool
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: isDark ? Colors.white : const Color(0xFF0A1F44),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: d['open'] as bool
-                          ? const Color(0xFFE8F5E9)
-                          : const Color(0xFFFFEBEE),
+                          ? (isDark
+                                ? const Color(0xFF1E3A2B)
+                                : const Color(0xFFE8F5E9))
+                          : (isDark
+                                ? const Color(0xFF3A1E24)
+                                : const Color(0xFFFFEBEE)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -718,8 +900,8 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: d['open'] as bool
-                            ? const Color(0xFF2E7D32)
-                            : const Color(0xFFC62828),
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFFF87171),
                       ),
                     ),
                   ),
@@ -730,7 +912,11 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
           const SizedBox(height: 10),
           Text(
             AppStrings.get('ambulance_shift_note', lang),
-            style: const TextStyle(fontSize: 11, color: Color(0xFF5F6F8A), fontStyle: FontStyle.italic),
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5F6F8A),
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),
@@ -738,11 +924,13 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
   }
 
   Widget _buildInfoRow({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
     required String value,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -754,12 +942,22 @@ class _CenterAmbulanceTabState extends ConsumerState<CenterAmbulanceTab> {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 11.5, color: Color(0xFF5F6F8A), fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF5F6F8A),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF0A1F44), fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),

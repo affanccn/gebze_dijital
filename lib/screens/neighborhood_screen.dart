@@ -29,7 +29,7 @@ class _C {
   static const border = Color(0xFFE4E9F2);
 }
 
-const String _kBodyFont = 'system-ui';
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',
@@ -248,6 +248,7 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
   }
 
   void _openPicker(String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final active = _activeHood;
     final suffix = AppStrings.get('mahalle_suffix', lang);
     final mine = _profileHood();
@@ -255,15 +256,16 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) {
         final options = <String>[_kAllHoods, ...kReportNeighborhoods];
         return Container(
-          constraints:
-              BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.7),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.7,
+          ),
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,51 +275,67 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
                 children: [
                   Text(
                     _t(lang, 'pick_title'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: _C.textDark,
+                      color: isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                     onPressed: () => Navigator.of(ctx).pop(),
                   ),
                 ],
               ),
               Text(
                 _t(lang, 'pick_sub'),
-                style: const TextStyle(fontSize: 12.5, color: _C.textMuted),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                ),
               ),
               const SizedBox(height: 14),
               Expanded(
                 child: ListView.separated(
                   itemCount: options.length,
-                  separatorBuilder: (_, __) =>
-                      const Divider(height: 1, color: Color(0xFFF1F5FD)),
-                  itemBuilder: (_, i) {
+                  separatorBuilder: (context, index) => Divider(
+                    height: 1,
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFF1F5FD),
+                  ),
+                  itemBuilder: (context, i) {
                     final n = options[i];
                     final isAll = n == _kAllHoods;
                     final selected = n == active;
-                    final label =
-                        isAll ? _t(lang, 'all_gebze') : '$n $suffix';
+                    final label = isAll ? _t(lang, 'all_gebze') : '$n $suffix';
                     return ListTile(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       leading: Icon(
                         isAll
                             ? Icons.public_rounded
                             : Icons.location_city_rounded,
-                        color: selected ? _C.navy : _C.textMuted,
+                        color: selected
+                            ? (isDark ? const Color(0xFF60A5FA) : _C.navy)
+                            : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
                         size: 22,
                       ),
                       title: Text(
                         label,
                         style: TextStyle(
                           fontSize: 14.5,
-                          fontWeight:
-                              selected ? FontWeight.w800 : FontWeight.w600,
-                          color: selected ? _C.navy : _C.textDark,
+                          fontWeight: selected
+                              ? FontWeight.w800
+                              : FontWeight.w600,
+                          color: selected
+                              ? (isDark ? const Color(0xFF60A5FA) : _C.navy)
+                              : (isDark ? Colors.white : _C.textDark),
                         ),
                       ),
                       subtitle: (!isAll && n == mine)
@@ -331,8 +349,10 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
                             )
                           : null,
                       trailing: selected
-                          ? const Icon(Icons.check_circle_rounded,
-                              color: _C.navy)
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+                            )
                           : null,
                       onTap: () {
                         setState(() => _manualHood = n);
@@ -365,6 +385,7 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final base = Theme.of(context);
+    final isDark = base.brightness == Brightness.dark;
     final active = _activeHood;
 
     return Theme(
@@ -372,19 +393,19 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
         textTheme: base.textTheme.apply(
           fontFamily: _kBodyFont,
           fontFamilyFallback: _kBodyFontFallback,
+          bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
+          displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light
-            .copyWith(statusBarColor: Colors.transparent),
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
         child: Scaffold(
-          backgroundColor: _C.bg,
+          backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
           body: Column(
             children: [
-              _Header(
-                lang: lang,
-                onSeed: kDebugMode ? _seed : null,
-              ),
+              _Header(lang: lang, onSeed: kDebugMode ? _seed : null),
               _HoodSelector(
                 lang: lang,
                 label: active == _kAllHoods
@@ -403,10 +424,8 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
   }
 
   Widget _buildCategoryChips(String lang) {
-    final labels = [
-      _t(lang, 'all'),
-      for (final c in _cats) _t(lang, c.key),
-    ];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labels = [_t(lang, 'all'), for (final c in _cats) _t(lang, c.key)];
     return SizedBox(
       height: 48,
       child: ListView.separated(
@@ -414,8 +433,8 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         itemCount: labels.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
           final sel = _catFilter == i;
           return ChoiceChip(
             label: Text(
@@ -423,15 +442,22 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
-                color: sel ? Colors.white : _C.textDark,
+                color: sel
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : _C.textDark),
               ),
             ),
             selected: sel,
-            selectedColor: _C.navy,
-            backgroundColor: Colors.white,
-            side: BorderSide(color: sel ? _C.navy : _C.border),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            selectedColor: isDark ? const Color(0xFF2563EB) : _C.navy,
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            side: BorderSide(
+              color: sel
+                  ? (isDark ? const Color(0xFF2563EB) : _C.navy)
+                  : (isDark ? const Color(0xFF334155) : _C.border),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
             showCheckmark: false,
             onSelected: (_) => setState(() => _catFilter = i),
           );
@@ -456,8 +482,7 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
             ),
           );
         }
-        if (snap.connectionState == ConnectionState.waiting &&
-            !snap.hasData) {
+        if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -466,11 +491,14 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
             .whereType<_Work>()
             // İstemci tarafı: süresi dolanları anında düşür.
             .where((w) => !w.isExpired(_now))
-            .where((w) =>
-                activeHood == _kAllHoods ||
-                foldTr(w.neighborhood) == foldTr(activeHood))
-            .where((w) =>
-                _catFilter == 0 || w.category == _cats[_catFilter - 1].key)
+            .where(
+              (w) =>
+                  activeHood == _kAllHoods ||
+                  foldTr(w.neighborhood) == foldTr(activeHood),
+            )
+            .where(
+              (w) => _catFilter == 0 || w.category == _cats[_catFilter - 1].key,
+            )
             .toList();
 
         // Devam edenler önce, sonra başlangıç tarihine göre.
@@ -487,8 +515,7 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           itemCount: all.length,
-          itemBuilder: (_, i) =>
-              _WorkCard(work: all[i], lang: lang, now: _now),
+          itemBuilder: (_, i) => _WorkCard(work: all[i], lang: lang, now: _now),
         );
       },
     );
@@ -525,8 +552,11 @@ class _Header extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -545,8 +575,11 @@ class _Header extends StatelessWidget {
                     IconButton(
                       tooltip: 'Demo verileri yükle',
                       onPressed: onSeed,
-                      icon: const Icon(Icons.cloud_upload_rounded,
-                          color: Colors.white70, size: 22),
+                      icon: const Icon(
+                        Icons.cloud_upload_rounded,
+                        color: Colors.white70,
+                        size: 22,
+                      ),
                     ),
                   Container(
                     width: 40,
@@ -555,8 +588,11 @@ class _Header extends StatelessWidget {
                       color: Colors.white.withAlpha(25),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.location_city_rounded,
-                        color: Colors.white, size: 24),
+                    child: const Icon(
+                      Icons.location_city_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ],
               ),
@@ -591,10 +627,12 @@ class _HoodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
       child: Material(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -603,32 +641,41 @@ class _HoodSelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _C.border),
+              border: Border.all(
+                color: isDark ? const Color(0xFF334155) : _C.border,
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.location_on_rounded,
-                    color: _C.orange, size: 22),
+                const Icon(
+                  Icons.location_on_rounded,
+                  color: _C.orange,
+                  size: 22,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w800,
-                      color: _C.textDark,
+                      color: isDark ? Colors.white : _C.textDark,
                     ),
                   ),
                 ),
                 if (isMine)
                   Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3E0),
+                      color: isDark
+                          ? const Color(0xFF451A03)
+                          : const Color(0xFFFFF3E0),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -640,8 +687,10 @@ class _HoodSelector extends StatelessWidget {
                       ),
                     ),
                   ),
-                const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: _C.textMuted),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                ),
               ],
             ),
           ),
@@ -660,7 +709,7 @@ class _WorkCard extends StatelessWidget {
   const _WorkCard({required this.work, required this.lang, required this.now});
 
   String _fmt(DateTime d) {
-   String two(int n) => n.toString().padLeft(2, '0');
+    String two(int n) => n.toString().padLeft(2, '0');
     // Cihaz saat diliminden bağımsız olarak Türkiye saati (UTC+3) göster.
     final t = d.toUtc().add(const Duration(hours: 3));
     return '${two(t.day)}.${two(t.month)}.${t.year} ${two(t.hour)}:${two(t.minute)}';
@@ -669,7 +718,9 @@ class _WorkCard extends StatelessWidget {
   String _remaining() {
     if (work.isOngoing(now)) {
       final days = work.end.difference(now).inDays;
-      return days <= 0 ? _t(lang, 'ends_today') : '$days ${_t(lang, 'days_left')}';
+      return days <= 0
+          ? _t(lang, 'ends_today')
+          : '$days ${_t(lang, 'days_left')}';
     }
     final days = work.start.difference(now).inDays + 1;
     return '$days ${_t(lang, 'starts_in')}';
@@ -677,19 +728,23 @@ class _WorkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cat = _catOf(work.category);
     final ongoing = work.isOngoing(now);
-    final statusColor = ongoing ? _C.orange : _C.navy;
-    final statusBg =
-        ongoing ? const Color(0xFFFFF3E0) : const Color(0xFFE8EEFA);
+    final statusColor = ongoing
+        ? _C.orange
+        : (isDark ? const Color(0xFF93C5FD) : _C.navy);
+    final statusBg = ongoing
+        ? (isDark ? const Color(0xFF451A03) : const Color(0xFFFFF3E0))
+        : (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE8EEFA));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _C.border),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : _C.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -700,7 +755,7 @@ class _WorkCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: cat.color.withAlpha(30),
+                  color: cat.color.withAlpha(isDark ? 50 : 30),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(cat.icon, color: cat.color, size: 22),
@@ -712,10 +767,10 @@ class _WorkCard extends StatelessWidget {
                   children: [
                     Text(
                       work.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
-                        color: _C.textDark,
+                        color: isDark ? Colors.white : _C.textDark,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -732,8 +787,10 @@ class _WorkCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: statusBg,
                   borderRadius: BorderRadius.circular(8),
@@ -753,10 +810,10 @@ class _WorkCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               work.description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 height: 1.35,
-                color: _C.textMuted,
+                color: isDark ? const Color(0xFFCBD5E1) : _C.textMuted,
               ),
             ),
           ],
@@ -808,17 +865,24 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: _C.textMuted),
+        Icon(
+          icon,
+          size: 16,
+          color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+        ),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
               fontSize: bold ? 12.5 : 11.5,
-              color: bold ? _C.textDark : _C.textMuted,
+              color: bold
+                  ? (isDark ? Colors.white : _C.textDark)
+                  : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
               fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
@@ -836,29 +900,36 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_outline_rounded,
-                size: 48, color: _C.green),
+            const Icon(
+              Icons.check_circle_outline_rounded,
+              size: 48,
+              color: _C.green,
+            ),
             const SizedBox(height: 12),
             Text(
               _t(lang, 'empty'),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: _C.textMuted,
+                color: isDark ? Colors.white : _C.textDark,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               _t(lang, 'empty_sub'),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12, color: _C.textMuted),
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+              ),
             ),
           ],
         ),

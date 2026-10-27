@@ -1,4 +1,3 @@
-
 name: Gebze Dijital - Unsigned iOS IPA
 
 on:
@@ -43,7 +42,7 @@ jobs:
         run: flutter pub get
 
       - name: Build iOS without signing
-        run: flutter build ios --${{ inputs.build_mode }} --no-codesign
+        run: flutter build ios --${{ inputs.build_mode || 'release' }} --no-codesign
 
       - name: Package unsigned IPA
         shell: bash
@@ -53,7 +52,7 @@ jobs:
           APP_PATH="build/ios/iphoneos/Runner.app"
 
           if [ ! -d "$APP_PATH" ]; then
-            echo "Runner.app bulunamadi."
+            echo "Runner.app bulunamadi: $APP_PATH"
             exit 1
           fi
 

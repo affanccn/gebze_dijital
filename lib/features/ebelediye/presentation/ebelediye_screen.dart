@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../data/ebelediye_provider.dart';
 import '../models/ebelediye_model.dart';
 import '../../../core/localization/app_strings.dart';
@@ -28,7 +29,10 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
   Future<void> _launchExternalUrl(String url) async {
     final uri = Uri.parse(url);
     try {
-      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
       if (!launched && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -59,16 +63,18 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
 
   /// Doğrudan yönlendirme öncesi resmi portal ve e-Devlet giriş bilgilendirmesi
   void _showRedirectConfirmationDialog(EBelediyeService service, String lang) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          boxShadow: [
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: const [
             BoxShadow(
               color: Color(0x33000000),
               blurRadius: 20,
@@ -86,7 +92,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 width: 44,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: isDark
+                      ? const Color(0xFF475569)
+                      : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -100,11 +108,20 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E5BC6).withAlpha(20),
+                    color: const Color(0xFF1E5BC6).withAlpha(isDark ? 50 : 20),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF1E5BC6).withAlpha(50)),
+                    border: Border.all(
+                      color: const Color(0xFF1E5BC6)
+                          .withAlpha(isDark ? 90 : 50),
+                    ),
                   ),
-                  child: const Icon(Icons.account_balance_rounded, color: Color(0xFF0A2A66), size: 28),
+                  child: Icon(
+                    Icons.account_balance_rounded,
+                    color: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF0A2A66),
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -113,19 +130,23 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                     children: [
                       Text(
                         service.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF0A1F44),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0A1F44),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         AppStrings.get('official_portal_sub', lang),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E5BC6),
+                          color: isDark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF1E5BC6),
                         ),
                       ),
                     ],
@@ -139,23 +160,37 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5FD),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5FD),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF1E5BC6).withAlpha(30)),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFF1E5BC6).withAlpha(30),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.lock_outline_rounded, size: 18, color: Color(0xFF0A2A66)),
+                      Icon(
+                        Icons.lock_outline_rounded,
+                        size: 18,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF0A2A66),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         AppStrings.get('id_verify_info', lang),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF0A2A66),
+                          color: isDark
+                              ? const Color(0xFF60A5FA)
+                              : const Color(0xFF0A2A66),
                         ),
                       ),
                     ],
@@ -165,20 +200,24 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                     service.description.isNotEmpty
                         ? service.description
                         : AppStrings.get('ebelediye_redirect_fallback', lang),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       height: 1.4,
-                      color: Color(0xFF5F6F8A),
+                      color: isDark
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFF5F6F8A),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     AppStrings.get('security_note', lang),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       height: 1.35,
-                      color: Color(0xFF0A2A66),
+                      color: isDark
+                          ? const Color(0xFF93C5FD)
+                          : const Color(0xFF0A2A66),
                     ),
                   ),
                 ],
@@ -194,12 +233,23 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                     onPressed: () => Navigator.of(ctx).pop(),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      side: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : Colors.grey.shade300,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     child: Text(
                       AppStrings.get('dismiss', lang),
-                      style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF5F6F8A)),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF5F6F8A),
+                      ),
                     ),
                   ),
                 ),
@@ -211,16 +261,26 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                       Navigator.of(ctx).pop();
                       _launchExternalUrl(service.url);
                     },
-                    icon: const Icon(Icons.open_in_new_rounded, size: 18, color: Colors.white),
+                    icon: const Icon(
+                      Icons.open_in_new_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     label: Text(
                       AppStrings.get('btn_start_service', lang),
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E5BC6),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ),
@@ -253,21 +313,31 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final categoriesAsync = ref.watch(eBelediyeCategoriesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(statusBarColor: Colors.transparent),
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F5FD),
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF1F5FD),
         body: Column(
           children: [
-            _buildHeader(context, lang),
+            _buildHeader(context, lang, isDark),
             Expanded(
               child: categoriesAsync.when(
-                data: (categories) => _buildContent(categories, lang),
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF1E5BC6)),
+                data: (categories) => _buildContent(categories, lang, isDark),
+                loading: () => Center(
+                  child: CircularProgressIndicator(
+                    color: isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF1E5BC6),
+                  ),
                 ),
-                error: (err, _) => _buildContent(kFallbackEBelediyeCategories, lang),
+                error: (err, _) =>
+                    _buildContent(kFallbackEBelediyeCategories, lang, isDark),
               ),
             ),
           ],
@@ -276,7 +346,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String lang) {
+  Widget _buildHeader(BuildContext context, String lang, bool isDark) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -306,7 +376,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -339,7 +413,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                       color: Colors.white.withAlpha(40),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.account_balance_rounded, color: Colors.white, size: 22),
+                    child: const Icon(
+                      Icons.account_balance_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),
@@ -351,11 +429,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
               child: Container(
                 height: 46,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  border: isDark
+                      ? Border.all(color: const Color(0xFF334155))
+                      : null,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(20),
+                      color: Colors.black.withAlpha(isDark ? 40 : 20),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -363,18 +444,40 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 ),
                 child: TextField(
                   controller: _searchCtrl,
-                  onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 13.5,
+                  ),
+                  onChanged: (val) =>
+                      setState(() => _searchQuery = val.trim().toLowerCase()),
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: AppStrings.get('ebelediye_search_hint_full', lang),
+                    filled: false,
+                    fillColor: Colors.transparent,
+                    hintText: AppStrings.get(
+                      'ebelediye_search_hint_full',
+                      lang,
+                    ),
                     hintStyle: TextStyle(
-                      color: Colors.grey.shade500,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : Colors.grey.shade500,
                       fontSize: 13,
                     ),
-                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF1E5BC6), size: 22),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: isDark
+                          ? const Color(0xFF60A5FA)
+                          : const Color(0xFF1E5BC6),
+                      size: 22,
+                    ),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 18, color: Colors.grey),
+                            icon: Icon(
+                              Icons.clear_rounded,
+                              size: 18,
+                              color: isDark ? Colors.white70 : Colors.grey,
+                            ),
                             onPressed: () {
                               _searchCtrl.clear();
                               setState(() => _searchQuery = '');
@@ -382,6 +485,8 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                           )
                         : null,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -393,7 +498,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildContent(List<EBelediyeCategory> allCategories, String lang) {
+  Widget _buildContent(
+    List<EBelediyeCategory> allCategories,
+    String lang,
+    bool isDark,
+  ) {
     // Arama ve kategori filtreleme
     final filteredCategories = <EBelediyeCategory>[];
 
@@ -410,13 +519,16 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
               s.description.toLowerCase().contains(_searchQuery);
         }).toList();
 
-        if (matchedServices.isNotEmpty || cat.name.toLowerCase().contains(_searchQuery)) {
+        if (matchedServices.isNotEmpty ||
+            cat.name.toLowerCase().contains(_searchQuery)) {
           filteredCategories.add(
             EBelediyeCategory(
               id: cat.id,
               name: cat.name,
               icon: cat.icon,
-              services: matchedServices.isNotEmpty ? matchedServices : cat.services,
+              services: matchedServices.isNotEmpty
+                  ? matchedServices
+                  : cat.services,
             ),
           );
         }
@@ -428,11 +540,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
       children: [
         // Bilgilendirme Banner Kartı
-        _buildInfoBanner(lang),
+        _buildInfoBanner(lang, isDark),
         const SizedBox(height: 16),
 
         // Kategori Filtreleme Çipleri
-        _buildCategoryChips(allCategories, lang),
+        _buildCategoryChips(allCategories, lang, isDark),
         const SizedBox(height: 18),
 
         // Hizmet Bölümleri
@@ -442,13 +554,21 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             alignment: Alignment.center,
             child: Column(
               children: [
-                Icon(Icons.search_off_rounded, size: 54, color: Colors.grey.shade400),
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 54,
+                  color: isDark
+                      ? const Color(0xFF64748B)
+                      : Colors.grey.shade400,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   AppStrings.get('ebelediye_empty_search', lang),
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey.shade600,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : Colors.grey.shade600,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -457,27 +577,33 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
           )
         else
           for (final cat in filteredCategories) ...[
-            _buildCategorySection(cat, lang),
+            _buildCategorySection(cat, lang, isDark),
             const SizedBox(height: 24),
           ],
       ],
     );
   }
 
-  Widget _buildInfoBanner(String lang) {
+  Widget _buildInfoBanner(String lang, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(15),
+            color: isDark
+                ? Colors.black.withAlpha(40)
+                : const Color(0xFF0A2A66).withAlpha(15),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFF1E5BC6).withAlpha(30)),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF334155)
+              : const Color(0xFF1E5BC6).withAlpha(30),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,10 +612,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF1E5BC6).withAlpha(25),
+              color: const Color(0xFF1E5BC6).withAlpha(isDark ? 50 : 25),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.info_outline_rounded, color: Color(0xFF1E5BC6), size: 24),
+            child: Icon(
+              Icons.info_outline_rounded,
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E5BC6),
+              size: 24,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -498,19 +628,21 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
               children: [
                 Text(
                   AppStrings.get('ebelediye_guide_title', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   AppStrings.get('ebelediye_guide_desc', lang),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     height: 1.4,
-                    color: Color(0xFF5F6F8A),
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF5F6F8A),
                   ),
                 ),
               ],
@@ -521,7 +653,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildCategoryChips(List<EBelediyeCategory> allCategories, String lang) {
+  Widget _buildCategoryChips(
+    List<EBelediyeCategory> allCategories,
+    String lang,
+    bool isDark,
+  ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const ClampingScrollPhysics(),
@@ -530,6 +666,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
           _buildFilterChip(
             label: AppStrings.get('filter_all', lang),
             isSelected: _selectedCategoryId == null,
+            isDark: isDark,
             onTap: () => setState(() => _selectedCategoryId = null),
           ),
           for (final cat in allCategories) ...[
@@ -537,8 +674,11 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             _buildFilterChip(
               label: cat.name,
               isSelected: _selectedCategoryId == cat.id,
+              isDark: isDark,
               onTap: () => setState(() {
-                _selectedCategoryId = _selectedCategoryId == cat.id ? null : cat.id;
+                _selectedCategoryId = _selectedCategoryId == cat.id
+                    ? null
+                    : cat.id;
               }),
             ),
           ],
@@ -550,6 +690,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
   Widget _buildFilterChip({
     required String label,
     required bool isSelected,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -558,10 +699,14 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0A2A66) : Colors.white,
+          color: isSelected
+              ? (isDark ? const Color(0xFF2563EB) : const Color(0xFF0A2A66))
+              : (isDark ? const Color(0xFF1E293B) : Colors.white),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFF0A2A66) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? (isDark ? const Color(0xFF2563EB) : const Color(0xFF0A2A66))
+                : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           boxShadow: isSelected
               ? [
@@ -578,14 +723,20 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF0A1F44),
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.white70 : const Color(0xFF0A1F44)),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCategorySection(EBelediyeCategory cat, String lang) {
+  Widget _buildCategorySection(
+    EBelediyeCategory cat,
+    String lang,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -594,10 +745,10 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
           children: [
             Text(
               cat.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF0A1F44),
+                color: isDark ? Colors.white : const Color(0xFF0A1F44),
               ),
             ),
             const SizedBox(height: 5),
@@ -616,7 +767,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth > 500 ? 3 : 2;
-            final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * 12)) / crossAxisCount;
+            final itemWidth =
+                (constraints.maxWidth - ((crossAxisCount - 1) * 12)) /
+                crossAxisCount;
 
             return Wrap(
               spacing: 12,
@@ -625,7 +778,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                 for (final service in cat.services)
                   SizedBox(
                     width: itemWidth,
-                    child: _buildServiceCard(service, lang),
+                    child: _buildServiceCard(service, lang, isDark),
                   ),
               ],
             );
@@ -635,19 +788,23 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
     );
   }
 
-  Widget _buildServiceCard(EBelediyeService service, String lang) {
+  Widget _buildServiceCard(EBelediyeService service, String lang, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0A2A66).withAlpha(14),
+            color: isDark
+                ? Colors.black.withAlpha(40)
+                : const Color(0xFF0A2A66).withAlpha(14),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -665,7 +822,7 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                       color: const Color(0xFF0288D1).withAlpha(160),
                       width: 1.6,
                     ),
-                    color: const Color(0xFF0288D1).withAlpha(18),
+                    color: const Color(0xFF0288D1).withAlpha(isDark ? 40 : 18),
                   ),
                   child: const Center(
                     child: Icon(
@@ -682,10 +839,10 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                     height: 1.25,
                   ),
                 ),
@@ -698,7 +855,9 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.grey.shade600,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : Colors.grey.shade600,
                       height: 1.3,
                     ),
                   ),
@@ -707,13 +866,18 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
             ),
           ),
 
-          Divider(height: 1, color: Colors.grey.shade200),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF334155) : Colors.grey.shade200,
+          ),
 
           Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () => _onStartService(service, lang),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(16),
+              ),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 alignment: Alignment.center,
@@ -722,17 +886,21 @@ class _EBelediyeScreenState extends ConsumerState<EBelediyeScreen> {
                   children: [
                     Text(
                       AppStrings.get('btn_start_service', lang),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0288D1),
+                        color: isDark
+                            ? const Color(0xFF38BDF8)
+                            : const Color(0xFF0288D1),
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 11,
-                      color: Color(0xFF0288D1),
+                      color: isDark
+                          ? const Color(0xFF38BDF8)
+                          : const Color(0xFF0288D1),
                     ),
                   ],
                 ),
@@ -777,19 +945,22 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
     for (final step in widget.service.modalSteps) {
       if (step.id == _currentStepId) return step;
     }
-    return widget.service.modalSteps.isNotEmpty ? widget.service.modalSteps.first : null;
+    return widget.service.modalSteps.isNotEmpty
+        ? widget.service.modalSteps.first
+        : null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final step = _currentStep;
     if (step == null) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -801,7 +972,7 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: isDark ? const Color(0xFF475569) : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -813,7 +984,11 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
             children: [
               if (_history.isNotEmpty)
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                   onPressed: () {
                     setState(() {
                       _currentStepId = _history.removeLast();
@@ -823,15 +998,18 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
               Expanded(
                 child: Text(
                   step.title.isNotEmpty ? step.title : widget.service.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded),
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -839,7 +1017,10 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
           const SizedBox(height: 8),
           Text(
             AppStrings.get('select_action_type_sub', widget.lang),
-            style: const TextStyle(fontSize: 13, color: Color(0xFF5F6F8A)),
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF5F6F8A),
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -848,21 +1029,34 @@ class _ModalStepWizardState extends State<_ModalStepWizard> {
             Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5FD),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5FD),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF1E5BC6).withAlpha(30)),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFF1E5BC6).withAlpha(30),
+                ),
               ),
               child: ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 title: Text(
                   opt.text,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0A1F44),
+                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
                   ),
                 ),
-                trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF1E5BC6)),
+                trailing: Icon(
+                  Icons.chevron_right_rounded,
+                  color: isDark
+                      ? const Color(0xFF60A5FA)
+                      : const Color(0xFF1E5BC6),
+                ),
                 onTap: () {
                   if (opt.nextStep.isNotEmpty) {
                     setState(() {

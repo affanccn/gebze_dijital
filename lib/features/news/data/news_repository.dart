@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../domain/news_item.dart';
 
 abstract class NewsRepository {
