@@ -1669,15 +1669,32 @@
 
         showToast(`${newsData.length} resmi belediye haberi senkronize ediliyor...`);
 
+        const trMonthsMap = {
+          "ocak": 0, "şubat": 1, "mart": 2, "nisan": 3, "mayıs": 4, "haziran": 5,
+          "temmuz": 6, "ağustos": 7, "eylül": 8, "ekim": 9, "kasım": 10, "aralık": 11
+        };
+        const parseTrDate = (str) => {
+          if (!str) return null;
+          const m = str.match(/(\d{1,2})\s+([A-Za-zÇĞİÖŞÜçğıöşü]+)\s+(\d{4})/i);
+          if (!m) return null;
+          const day = parseInt(m[1], 10);
+          const month = trMonthsMap[m[2].toLowerCase()];
+          const year = parseInt(m[3], 10);
+          if (month === undefined) return null;
+          return new Date(Date.UTC(year, month, day, 12, 0, 0));
+        };
+
         let count = 0;
         for (const item of newsData) {
           const docId = item.id || ('news_' + (item.newsId || (count + 1)));
+          const dateObj = parseTrDate(item.publishedAtText) || new Date(2026, 9, 26);
           await setDoc(doc(db, "municipal_news", docId), {
             id: docId,
             title: item.title,
             url: item.url || '',
             image: item.image || '',
-            publishedAtText: item.publishedAtText || 'Güncel',
+            publishedAtText: item.publishedAtText || '26 Ekim 2026',
+            publishedAt: Timestamp.fromDate(dateObj),
             newsId: item.newsId || (7400 + count),
             pageIndex: item.pageIndex || 1,
             itemIndex: item.itemIndex || count,
@@ -1748,9 +1765,11 @@
 
       const q = (document.getElementById("eventsSearchInput")?.value || '').trim().toLowerCase();
       const catFilter = document.getElementById("eventsFilterCategory")?.value || '';
+      const monthFilter = document.getElementById("eventsFilterMonth")?.value || '';
 
       const filtered = (window.eventsListCache || []).filter(d => {
         if (catFilter && d.category !== catFilter) return false;
+        if (monthFilter && !(d.date || '').startsWith(monthFilter)) return false;
         if (q) {
           const title = (d.title || d.name || '').toLowerCase();
           const loc = (d.location || d.subtitle || '').toLowerCase();
@@ -1793,6 +1812,9 @@
 
     window.syncEventsFromWeb = async () => {
       const btn = document.getElementById("btnSyncEventsWeb");
+      const monthSelect = document.getElementById("syncEventMonth");
+      const selectedMonth = monthSelect ? monthSelect.value : "2026-11";
+
       if (btn) {
         btn.disabled = true;
         btn.innerText = "⏳ Etkinlikler Çekiliyor...";
@@ -1801,7 +1823,7 @@
         const targetUrl = "https://www.gebze.bel.tr/json/etkinlik.json";
         let data = null;
 
-        // 1. Direct fetch (eğer aynı domain veya CORS izni varsa)
+        // 1. Doğrudan belediye JSON'ı
         try {
           const res = await fetch(targetUrl);
           if (res.ok) data = await res.json();
@@ -1815,15 +1837,7 @@
           } catch (_) { }
         }
 
-        // 3. CORS Proxy: api.codetabs.com
-        if (!data || !Array.isArray(data)) {
-          try {
-            const res = await fetch("https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(targetUrl));
-            if (res.ok) data = await res.json();
-          } catch (_) { }
-        }
-
-        // 4. CORS Proxy: allorigins
+        // 3. CORS Proxy: allorigins
         if (!data || !Array.isArray(data)) {
           try {
             const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl));
@@ -1831,11 +1845,16 @@
           } catch (_) { }
         }
 
-        // 5. Yerel resmi etkinlik veri paketi (CORS ve internet kesintilerine karşı %100 garantili yedek)
+        // 4. Yerel resmi etkinlik veri paketi (Kasım 2026 dahil zenginleştirilmiş yedek)
+        const localEvents = window.GEBZE_OFFICIAL_EVENTS || [];
         if (!data || !Array.isArray(data)) {
-          if (window.GEBZE_OFFICIAL_EVENTS && Array.isArray(window.GEBZE_OFFICIAL_EVENTS)) {
-            data = window.GEBZE_OFFICIAL_EVENTS;
-            console.log("Resmi etkinlikler yerel veri paketinden senkronize ediliyor:", data.length);
+          data = localEvents;
+        } else if (localEvents.length > 0) {
+          const existingIds = new Set(data.map(x => String(x.id)));
+          for (const ev of localEvents) {
+            if (!existingIds.has(String(ev.id))) {
+              data.push(ev);
+            }
           }
         }
 
@@ -1853,8 +1872,17 @@
           return `${day} ${trMonths[m] || ''} ${p[0]}`.trim();
         };
 
-        // 2026 yılı veya güncel etkinlikler
-        const targetEvents = data.filter(x => (x.tarih || '').startsWith('2026') || !x.tarih);
+        // Seçilen aya göre filtreleme (örn. '2026-11', '2026-10' veya 'all')
+        let targetEvents;
+        if (selectedMonth && selectedMonth !== 'all') {
+          targetEvents = data.filter(x => (x.tarih || '').startsWith(selectedMonth));
+          if (targetEvents.length === 0 && localEvents.length > 0) {
+            targetEvents = localEvents.filter(x => (x.tarih || '').startsWith(selectedMonth));
+          }
+        } else {
+          targetEvents = data.filter(x => (x.tarih || '').startsWith('2026') || !x.tarih);
+        }
+
         const finalEvents = targetEvents.length > 0 ? targetEvents : data.slice(0, 50);
 
         let count = 0;
@@ -1894,7 +1922,14 @@
           count++;
         }
 
-        showToast(`✅ ${count} adet resmi etkinlik belediyeden başarıyla senkronize edildi!`);
+        const monthName = selectedMonth === '2026-11' ? 'Kasım 2026' : (selectedMonth === '2026-10' ? 'Ekim 2026' : (selectedMonth === 'all' ? 'Tüm Program' : selectedMonth));
+        showToast(`✅ ${count} adet ${monthName} etkinliği başarıyla Firestore'a aktarıldı!`);
+
+        const filterMonthSelect = document.getElementById("eventsFilterMonth");
+        if (filterMonthSelect && selectedMonth !== 'all') {
+          filterMonthSelect.value = selectedMonth;
+        }
+
         loadEvents();
         loadDashboard();
       } catch (err) {
@@ -1902,7 +1937,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = "🌐 Belediyeden Etkinlikleri Çek / Güncelle";
+          btn.innerText = "🌐 Seçili Ayın Etkinliklerini Çek / Güncelle";
         }
       }
     };
@@ -1960,56 +1995,163 @@
     };
 
     // ───────────────── 6. VATANDAŞ ÖNERİLERİ ─────────────────
+    window.allSuggestionsCache = [];
+    window.currentSuggFilter = 'all'; // 'all' | 'pending' | 'approved'
+
+    window.setSuggFilter = (filter) => {
+      window.currentSuggFilter = filter;
+      document.getElementById('btnSuggFilterAll')?.classList.toggle('btn-primary', filter === 'all');
+      document.getElementById('btnSuggFilterAll')?.classList.toggle('btn-outline', filter !== 'all');
+      document.getElementById('btnSuggFilterPending')?.classList.toggle('btn-primary', filter === 'pending');
+      document.getElementById('btnSuggFilterPending')?.classList.toggle('btn-outline', filter !== 'pending');
+      document.getElementById('btnSuggFilterApproved')?.classList.toggle('btn-primary', filter === 'approved');
+      document.getElementById('btnSuggFilterApproved')?.classList.toggle('btn-outline', filter !== 'approved');
+      renderSuggestionsList();
+    };
+
     async function loadSuggestions() {
       const container = document.getElementById("suggestionsGrid");
-      container.innerHTML = '<div class="empty-state">Öneriler yükleniyor...</div>';
+      if (container) container.innerHTML = '<div class="empty-state">Öneriler yükleniyor...</div>';
       try {
         const snap = await getDocs(collection(db, "suggestions"));
-        if (snap.empty) {
-          container.innerHTML = '<div class="empty-state">Henüz iletilen vatandaş önerisi yok.</div>';
-          return;
-        }
-        container.innerHTML = '';
+        const list = [];
         snap.forEach(docSnap => {
-          const d = docSnap.data();
-          const isApproved = d.approved === true;
-          const card = document.createElement("div");
-          card.className = "item-card";
-          card.innerHTML = `
-            <div class="item-card-body">
-              <div class="item-card-meta">
-                💡 ${d.category || 'Genel'} • 📍 ${d.neighborhood || 'Gebze'}
-                <span class="badge ${isApproved ? 'badge-success' : 'badge-warning'}" style="margin-left:auto;">
-                  ${isApproved ? 'Yayında' : 'Onay Bekliyor'}
-                </span>
-              </div>
-              <div class="item-card-title">${d.title}</div>
-              <div class="item-card-desc">${d.description || ''}</div>
-              <div style="font-size:12px; color:var(--text-muted); font-weight:600;">
-                Geliştirici: ${d.author || 'Vatandaş'} • ❤️ ${d.likes || 0} Destek
-              </div>
-            </div>
-            <div class="item-card-footer">
-              ${!isApproved ? `
-                <button class="btn btn-success btn-sm" onclick="approveSuggestion('${docSnap.id}')">✅ Onayla ve Yayınla</button>
-              ` : `
-                <button class="btn btn-outline btn-sm" onclick="unapproveSuggestion('${docSnap.id}')">Yayından Kaldır</button>
-              `}
-              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('suggestions', '${docSnap.id}', loadSuggestions)">Sil</button>
-            </div>
-          `;
-          container.appendChild(card);
+          list.push({ id: docSnap.id, ...docSnap.data() });
         });
+
+        // Sıralama: Onay bekleyenler (approved !== true) EN ÜSTE, ardından en yeni tarih
+        list.sort((a, b) => {
+          const aPending = a.approved !== true ? 1 : 0;
+          const bPending = b.approved !== true ? 1 : 0;
+          if (aPending !== bPending) return bPending - aPending;
+          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return tb - ta;
+        });
+
+        window.allSuggestionsCache = list;
+        renderSuggestionsList();
       } catch (e) {
-        container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
+        if (container) container.innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
       }
     }
     window.loadSuggestions = loadSuggestions;
 
+    function renderSuggestionsList() {
+      const container = document.getElementById("suggestionsGrid");
+      if (!container) return;
+
+      const list = window.allSuggestionsCache || [];
+      const filter = window.currentSuggFilter || 'all';
+      const q = (document.getElementById("suggSearchInput")?.value || '').trim().toLowerCase();
+      const hoodFilter = document.getElementById("suggFilterNeighborhood")?.value || '';
+
+      // Sayaçları güncelle
+      let pendingCount = 0;
+      let approvedCount = 0;
+      list.forEach(d => {
+        if (d.approved === true) approvedCount++;
+        else pendingCount++;
+      });
+
+      const elCntAll = document.getElementById('cntSuggAll');
+      const elCntPending = document.getElementById('cntSuggPending');
+      const elCntApproved = document.getElementById('cntSuggApproved');
+      if (elCntAll) elCntAll.innerText = list.length;
+      if (elCntPending) elCntPending.innerText = pendingCount;
+      if (elCntApproved) elCntApproved.innerText = approvedCount;
+
+      const badgeTab = document.getElementById('suggPendingCountBadge');
+      if (badgeTab) {
+        badgeTab.innerText = `${pendingCount} Onay Bekliyor`;
+        badgeTab.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+      }
+      const bNav = document.getElementById('badgePendingSugg');
+      if (bNav) {
+        bNav.innerText = pendingCount;
+        bNav.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+      }
+      const kpi = document.getElementById('kpiSuggestions');
+      if (kpi) kpi.innerText = pendingCount;
+
+      // Filtreleme
+      const filtered = list.filter(d => {
+        const isApproved = d.approved === true;
+        if (filter === 'pending' && isApproved) return false;
+        if (filter === 'approved' && !isApproved) return false;
+        if (hoodFilter && (d.neighborhood || '') !== hoodFilter) return false;
+        if (!q) return true;
+        const searchStr = `${d.title || ''} ${d.description || ''} ${d.author || ''} ${d.authorEmail || ''} ${d.neighborhood || ''} ${d.category || ''}`.toLowerCase();
+        return searchStr.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1; padding: 36px 20px; text-align: center; background: white; border-radius: var(--radius); border: 2px dashed var(--border);">Kriterlere uygun öneri kaydı bulunamadı.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(d => {
+        const isApproved = d.approved === true;
+        const card = document.createElement("div");
+        card.className = "item-card";
+        if (!isApproved) {
+          card.style.border = "1.5px solid #f59e0b";
+          card.style.background = "rgba(245, 158, 11, 0.02)";
+        }
+
+        const dateStr = d.createdAt?.toMillis
+          ? new Date(d.createdAt.toMillis()).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+          : (d.date || 'Tarih belirtilmedi');
+
+        card.innerHTML = `
+          <div class="item-card-body">
+            <div class="item-card-meta">
+              <span>💡 ${d.category || 'Genel'} • 📍 ${d.neighborhood || 'Gebze'}</span>
+              <span class="badge ${isApproved ? 'badge-success' : 'badge-warning'}" style="margin-left:auto;">
+                ${isApproved ? '✅ Yayında' : '⏳ Onay Bekliyor (İncelemede)'}
+              </span>
+            </div>
+            <div class="item-card-title">${d.title || 'Başlıksız Öneri'}</div>
+            <div class="item-card-desc">${d.description || ''}</div>
+            
+            <div style="font-size:12px; color:var(--text-muted); font-weight:600; margin-top:8px; line-height:1.4;">
+              <div>👤 <strong>Vatandaş:</strong> ${d.author || 'Vatandaş'} ${d.authorEmail ? `(${d.authorEmail})` : ''}</div>
+              <div style="color:var(--text-muted); font-weight:500; font-size:11.5px; margin-top:2px;">🕒 <strong>Tarih:</strong> ${dateStr} • ❤️ <strong>${d.likes || 0} Destek</strong></div>
+            </div>
+
+            ${!isApproved ? `
+              <div style="font-size:11.5px; color:#b45309; margin-top:10px; background:rgba(245, 158, 11, 0.1); padding:6px 10px; border-radius:6px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                <span>⚠️</span> <span>Şu anda yalnızca öneriyi yapan vatandaşın cihazında görünüyor. Tüm kullanıcılara açmak için onaylayın.</span>
+              </div>
+            ` : `
+              <div style="font-size:11.5px; color:#15803d; margin-top:10px; background:rgba(34, 197, 94, 0.08); padding:6px 10px; border-radius:6px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                <span>🌐</span> <span>Tüm cihazlarda ve kullanıcılarda yayında. Vatandaşlar oylayabilir ve destekleyebilir.</span>
+              </div>
+            `}
+          </div>
+          <div class="item-card-footer">
+            ${!isApproved ? `
+              <button class="btn btn-success btn-sm" onclick="approveSuggestion('${d.id}')">✅ Onayla ve Yayınla</button>
+            ` : `
+              <button class="btn btn-outline btn-sm" onclick="unapproveSuggestion('${d.id}')">⏸️ Yayından Kaldır (İncelemeye Al)</button>
+            `}
+            <button class="btn btn-danger btn-sm" onclick="deleteDocItem('suggestions', '${d.id}', loadSuggestions)">Sil</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+    window.renderSuggestionsList = renderSuggestionsList;
+
     window.approveSuggestion = async (id) => {
       try {
-        await updateDoc(doc(db, "suggestions", id), { approved: true });
-        showToast("Öneri onaylandı ve mobil uygulamada yayına alındı!");
+        await updateDoc(doc(db, "suggestions", id), { 
+          approved: true,
+          status: "Onaylandı",
+          reviewedAt: serverTimestamp()
+        });
+        showToast("✅ Öneri onaylandı ve tüm cihazlarda yayına alındı!");
         loadSuggestions();
         loadDashboard();
       } catch (e) { alert("Hata: " + e.message); }
@@ -2017,8 +2159,12 @@
 
     window.unapproveSuggestion = async (id) => {
       try {
-        await updateDoc(doc(db, "suggestions", id), { approved: false });
-        showToast("Öneri yayından kaldırıldı.");
+        await updateDoc(doc(db, "suggestions", id), { 
+          approved: false,
+          status: "İncelemede",
+          reviewedAt: serverTimestamp()
+        });
+        showToast("Öneri yayından kaldırıldı ve inceleme aşamasına alındı.");
         loadSuggestions();
         loadDashboard();
       } catch (e) { alert("Hata: " + e.message); }
@@ -6221,17 +6367,23 @@
                 <div class="panel-title">Kayıtlı Kültür & Sanat Etkinlikleri</div>
                 <span class="badge badge-primary" id="eventsCountBadge" style="font-size:12px;">163 Etkinlik</span>
               </div>
-              <div style="display:flex; gap:8px;">
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <select id="syncEventMonth" style="padding:6px 12px; font-size:13px; font-weight:600; border-radius:8px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); cursor:pointer;">
+                  <option value="2026-11" selected>🍂 Kasım 2026 (Yeni Program)</option>
+                  <option value="2026-10">🍁 Ekim 2026</option>
+                  <option value="2026-12">❄️ Aralık 2026</option>
+                  <option value="all">📅 Tüm Aylar (Tüm Program)</option>
+                </select>
                 <button type="button" class="btn btn-outline btn-sm" onclick="loadEvents()">🔄 Yenile</button>
                 <button type="button" class="btn btn-primary btn-sm" id="btnSyncEventsWeb"
                   onclick="syncEventsFromWeb()">
-                  🌐 Belediyeden Etkinlikleri Çek / Güncelle
+                  🌐 Seçili Ayın Etkinliklerini Çek / Güncelle
                 </button>
               </div>
             </div>
 
             <!-- Etkinlik Arama & Filtreleme -->
-            <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-bottom:14px;">
+            <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px; margin-bottom:14px;">
               <div class="form-group" style="margin-bottom:0;">
                 <input type="text" id="eventsSearchInput" oninput="renderEventsList()"
                   placeholder="🔍 Etkinlik adı, salon veya mekan ara...">
@@ -6247,6 +6399,15 @@
                   <option value="Özel Program">🌟 Özel Program</option>
                 </select>
               </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <select id="eventsFilterMonth" onchange="renderEventsList()">
+                  <option value="">📅 Tüm Aylar</option>
+                  <option value="2026-11">🍂 Kasım 2026</option>
+                  <option value="2026-10">🍁 Ekim 2026</option>
+                  <option value="2026-12">❄️ Aralık 2026</option>
+                </select>
+              </div>
+            </div>
             </div>
 
             <div class="items-grid" id="eventsGrid"></div>
@@ -6390,14 +6551,54 @@
       <!-- ════════ 6. ÖNERİLER TAB ════════ -->
       <section class="tab-view" id="view-suggestions">
         <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">💡 Vatandaş Önerileri & Moderasyon</div>
-            <button class="btn btn-outline btn-sm" onclick="loadSuggestions()">🔄 Yenile</button>
+          <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="panel-title">💡 Vatandaş Önerileri & Moderasyon (Söz Sende)</div>
+              <span class="badge badge-warning" id="suggPendingCountBadge" style="display:none; font-size:12px;">0 Onay Bekliyor</span>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:8px;">
+              <button class="btn btn-outline btn-sm" onclick="loadSuggestions()">🔄 Yenile</button>
+            </div>
           </div>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
-            Vatandaşların mobil uygulamadan ilettiği fikirler ilk olarak "Onay Bekliyor" statüsünde sisteme gelir. "✅
-            Onayla ve Yayınla" butonuna bastığınızda tüm Gebze halkının beğenisine açılır.
-          </p>
+
+          <div style="background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); border-radius:12px; padding:12px 16px; margin-bottom:18px; font-size:13px; line-height:1.55; color:var(--text-dark);">
+            <div style="font-weight:700; color:#b45309; margin-bottom:3px; display:flex; align-items:center; gap:6px;">
+              <span>ℹ️</span> <span>Söz Sende Moderasyon & Onay Mekanizması:</span>
+            </div>
+            Vatandaşların mobil uygulamadan (Söz Sende) paylaştığı öneriler doğrudan bu panele <strong>"İnceleme Aşamasında (Onay Bekliyor)"</strong> statüsüyle düşer. Bu aşamada öneriyi mobil uygulamada <strong>yalnızca öneriyi gönderen vatandaşın kendisi</strong> görebilir. Siz buradan <strong>"✅ Onayla ve Yayınla"</strong> butonuna bastığınızda anında onaylanır ve tüm vatandaşların ve cihazların ekranında yayına açılır.
+          </div>
+
+          <!-- Filtre ve Arama Çubuğu -->
+          <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:10px; margin-bottom:18px; align-items:center;">
+            <input type="text" id="suggSearchInput" placeholder="🔍 Öneri başlığı, vatandaş adı, e-posta veya mahalle ara..." oninput="renderSuggestionsList()" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+            <select id="suggFilterNeighborhood" onchange="renderSuggestionsList()" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px;">
+              <option value="">Tüm Mahalleler</option>
+              <option value="Mustafapaşa">Mustafapaşa</option>
+              <option value="Osman Yılmaz">Osman Yılmaz</option>
+              <option value="Arapçeşme">Arapçeşme</option>
+              <option value="Hacıhalil">Hacıhalil</option>
+              <option value="Mevlana">Mevlana</option>
+              <option value="Gaziler">Gaziler</option>
+              <option value="Eskihisar">Eskihisar</option>
+              <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+              <option value="Güzeller">Güzeller</option>
+              <option value="Yenikent">Yenikent</option>
+              <option value="İnönü">İnönü</option>
+              <option value="İstasyon">İstasyon</option>
+              <option value="Tatlıkuyu">Tatlıkuyu</option>
+              <option value="Barış">Barış</option>
+              <option value="Kirazpınar">Kirazpınar</option>
+              <option value="Sultan Orhan">Sultan Orhan</option>
+              <option value="Beylikbağı">Beylikbağı</option>
+              <option value="Cumhuriyet">Cumhuriyet</option>
+            </select>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn btn-sm btn-primary" id="btnSuggFilterAll" onclick="setSuggFilter('all')">Tümü (<span id="cntSuggAll">0</span>)</button>
+              <button type="button" class="btn btn-sm btn-outline" id="btnSuggFilterPending" onclick="setSuggFilter('pending')">⏳ Onay Bekleyenler (<span id="cntSuggPending">0</span>)</button>
+              <button type="button" class="btn btn-sm btn-outline" id="btnSuggFilterApproved" onclick="setSuggFilter('approved')">✅ Yayındakiler (<span id="cntSuggApproved">0</span>)</button>
+            </div>
+          </div>
+
           <div class="items-grid" id="suggestionsGrid"></div>
         </div>
       </section>

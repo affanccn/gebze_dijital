@@ -334,13 +334,15 @@ class ProfileService {
     QueryDocumentSnapshot<Map<String, dynamic>> d,
   ) {
     final m = d.data();
+    final isApproved = m['approved'] == true;
+    final statusText = isApproved ? 'Onaylandı' : (m['status'] ?? 'İncelemede').toString();
     return UserActivityItem(
       id: 'sug_${d.id}',
       type: 'oneri',
       title: (m['title'] ?? '').toString(),
       description: (m['description'] ?? '').toString(),
       date: _fmtDate(m['createdAt']),
-      status: (m['status'] ?? 'Beklemede').toString(),
+      status: statusText,
       category: (m['category'] ?? 'Genel').toString(),
     );
   }

@@ -207,7 +207,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             : 'Sabah saatlerinde durak çok kalabalık oluyor, ek durak ve sefer talep ediyorum.',
         'neighborhood': 'Hacıhalil',
         'category': AppStrings.get('cat_transport', lang),
-        'status': AppStrings.get('status_reviewing', lang),
+        'status': AppStrings.get('status_approved', lang),
+        'approved': true,
         'likes': 34,
       },
       {
@@ -223,7 +224,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             : 'Parkta yeterli çöp kutusu yok, çevre kirliliği artıyor.',
         'neighborhood': 'Mevlana',
         'category': AppStrings.get('cat_environment', lang),
-        'status': AppStrings.get('status_pending', lang),
+        'status': AppStrings.get('status_approved', lang),
+        'approved': true,
         'likes': 19,
       },
     ];
@@ -329,8 +331,20 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(AppStrings.get('suggestion_sent_toast', lang)),
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.greenAccent),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      AppStrings.get('suggestion_sent_toast', lang),
+                      style: const TextStyle(fontSize: 12.5),
+                    ),
+                  ),
+                ],
+              ),
               backgroundColor: _C.navyDeep,
+              duration: const Duration(seconds: 4),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -502,6 +516,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     final fallbackSuggestions = _getFallbackSuggestions(lang);
 
     final supported = ref.watch(mySupportedProvider).value ?? const <String>{};
+    final currentUid = ref.watch(sozUidProvider);
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('suggestions').snapshots(),
@@ -543,11 +558,20 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
           return seenSuggestions.add(t);
         }).toList();
 
-        final filtered = uniqueSuggestions.where(_matchesNeighborhood).toList();
+        // Onay & Moderasyon Filtresi:
+        // - Admin tarafından onaylananlar (approved == true) TÜM cihazlara ve vatandaşlara gösterilir.
+        // - Henüz onaylanmamış olanlar (inceleme aşamasında) YALNIZCA öneriyi yazan kullanıcının kendisine (authorUid == currentUid) gösterilir.
+        final visibleSuggestions = uniqueSuggestions.where((s) {
+          final isApproved = s['approved'] == true;
+          final isMine = currentUid != null && s['authorUid'] == currentUid;
+          return isApproved || isMine;
+        }).toList();
+
+        final filtered = visibleSuggestions.where(_matchesNeighborhood).toList();
         if (filtered.isEmpty) {
           return _EmptyState(
             icon: Icons.lightbulb_outline_rounded,
-            text: AppStrings.get('no_places_found', lang),
+            text: AppStrings.get('no_suggestions_found', lang),
           );
         }
 
@@ -559,9 +583,13 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             final s = filtered[i];
             final id = s['_id']?.toString();
             final key = id ?? (s['title'] ?? '').toString();
+            final isApproved = s['approved'] == true;
+            final isMine = currentUid != null && s['authorUid'] == currentUid;
             return _SuggestionCard(
               data: s,
               lang: lang,
+              isApproved: isApproved,
+              isMine: isMine,
               liked: id != null
                   ? supported.contains(id)
                   : _demoLiked.contains(key),
@@ -900,39 +928,40 @@ class _SuggestionCard extends StatelessWidget {
   final String lang;
   final bool liked;
   final VoidCallback onLike;
+  final bool isApproved;
+  final bool isMine;
 
   const _SuggestionCard({
     required this.data,
     required this.lang,
     required this.liked,
     required this.onLike,
+    this.isApproved = false,
+    this.isMine = false,
   });
 
   Color _statusColor(String status) {
     final s = status.toLowerCase();
-    if (s.contains('onay') || s.contains('approv')) return _C.green;
-    if (s.contains('ince') || s.contains('review')) return _C.orange;
+    if (s.contains('onay') || s.contains('approv') || s.contains('yayın')) return _C.green;
+    if (s.contains('ince') || s.contains('review') || s.contains('bekle')) return _C.orange;
     return _C.textMuted;
   }
 
-  String _formatStatus(String raw) {
+  String _formatStatus(String raw, bool approved) {
+    if (approved) {
+      return AppStrings.get('status_approved', lang);
+    }
     final s = raw.toLowerCase();
     if (s.contains('onay') || s.contains('approv')) {
       return AppStrings.get('status_approved', lang);
     }
-    if (s.contains('ince') || s.contains('review')) {
-      return AppStrings.get('status_reviewing', lang);
-    }
-    if (s.contains('bekle') || s.contains('pend')) {
-      return AppStrings.get('status_pending', lang);
-    }
-    return raw;
+    return AppStrings.get('status_under_review', lang);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final status = _formatStatus((data['status'] ?? 'Beklemede').toString());
+    final status = _formatStatus((data['status'] ?? 'İncelemede').toString(), isApproved);
     final sc = _statusColor(status);
     final likes = ((data['likes'] ?? 0) as num).toInt();
 
@@ -943,40 +972,95 @@ class _SuggestionCard extends StatelessWidget {
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2),
+          color: !isApproved
+              ? (isDark ? const Color(0xFFB45309) : const Color(0xFFFDBA74))
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE4E9F2)),
+          width: !isApproved ? 1.5 : 1.0,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          if (!isApproved) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF3B2508) : const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? const Color(0xFFB45309) : const Color(0xFFFED7AA),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.hourglass_top_rounded,
+                    size: 15,
+                    color: Color(0xFFEA580C),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      AppStrings.get('status_under_review_desc', lang),
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.3,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFFFED7AA) : const Color(0xFF9A3412),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _Badge(
                 icon: Icons.location_on_rounded,
                 text: (data['neighborhood'] ?? 'Gebze').toString(),
                 color: isDark ? const Color(0xFF60A5FA) : _C.navy,
               ),
-              const SizedBox(width: 6),
               if (data['category'] != null)
                 _Badge(
                   icon: Icons.category_rounded,
                   text: data['category'].toString(),
                   color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                 ),
-              const Spacer(),
+              if (isMine && !isApproved)
+                _Badge(
+                  icon: Icons.person_rounded,
+                  text: AppStrings.get('status_only_you_see', lang),
+                  color: const Color(0xFFEA580C),
+                ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: sc.withAlpha(24),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    color: sc,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isApproved ? Icons.check_circle_rounded : Icons.schedule_rounded,
+                      size: 12,
+                      color: sc,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      status,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: sc,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1002,42 +1086,76 @@ class _SuggestionCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              InkWell(
-                onTap: onLike,
-                borderRadius: BorderRadius.circular(10),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        liked
-                            ? Icons.thumb_up_alt_rounded
-                            : Icons.thumb_up_alt_outlined,
-                        size: 16,
-                        color: liked
-                            ? _C.orange
-                            : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '$likes ${liked ? AppStrings.get('btn_supported', lang) : AppStrings.get('btn_support', lang)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: liked
-                              ? _C.orange
-                              : (isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : _C.textMuted),
+              if (!isApproved) ...[
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5FD),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock_clock_outlined,
+                          size: 14,
+                          color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            AppStrings.get('status_voting_disabled_pending', lang),
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ] else ...[
+                InkWell(
+                  onTap: onLike,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          liked
+                              ? Icons.thumb_up_alt_rounded
+                              : Icons.thumb_up_alt_outlined,
+                          size: 16,
+                          color: liked
+                              ? _C.orange
+                              : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$likes ${liked ? AppStrings.get('btn_supported', lang) : AppStrings.get('btn_support', lang)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: liked
+                                ? _C.orange
+                                : (isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : _C.textMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ],
@@ -1161,21 +1279,31 @@ class _NewSuggestionSheetState extends State<_NewSuggestionSheet> {
       _error = null;
     });
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
         setState(() {
           _sending = false;
           _error = AppStrings.get('error_occurred', widget.lang);
         });
         return;
       }
+      final uid = user.uid;
+      final displayName = user.displayName?.trim() ?? '';
+      final email = user.email?.trim() ?? '';
+      final authorName = displayName.isNotEmpty
+          ? displayName
+          : (email.contains('@') ? email.split('@').first : 'Vatandaş');
+
       await FirebaseFirestore.instance.collection('suggestions').add({
         'authorUid': uid,
+        'author': authorName,
+        'authorEmail': email,
         'title': title,
         'description': desc,
         'neighborhood': _neighborhood,
         'category': _category,
-        'status': 'Beklemede',
+        'status': 'İncelemede',
+        'approved': false,
         'likes': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });

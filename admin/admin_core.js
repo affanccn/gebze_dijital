@@ -1241,15 +1241,32 @@ async function seedOfficialNews() {
 
     showToast(`${newsData.length} resmi belediye haberi senkronize ediliyor...`);
 
+    const trMonthsMap = {
+      "ocak": 0, "şubat": 1, "mart": 2, "nisan": 3, "mayıs": 4, "haziran": 5,
+      "temmuz": 6, "ağustos": 7, "eylül": 8, "ekim": 9, "kasım": 10, "aralık": 11
+    };
+    const parseTrDate = (str) => {
+      if (!str) return null;
+      const m = str.match(/(\d{1,2})\s+([A-Za-zÇĞİÖŞÜçğıöşü]+)\s+(\d{4})/i);
+      if (!m) return null;
+      const day = parseInt(m[1], 10);
+      const month = trMonthsMap[m[2].toLowerCase()];
+      const year = parseInt(m[3], 10);
+      if (month === undefined) return null;
+      return new Date(Date.UTC(year, month, day, 12, 0, 0));
+    };
+
     let count = 0;
     for (const item of newsData) {
       const docId = item.id || ('news_' + (item.newsId || (count + 1)));
+      const dateObj = parseTrDate(item.publishedAtText) || new Date(2026, 9, 26);
       await setDoc(doc(db, "municipal_news", docId), {
         id: docId,
         title: item.title,
         url: item.url || '',
         image: item.image || '',
-        publishedAtText: item.publishedAtText || 'Güncel',
+        publishedAtText: item.publishedAtText || '26 Ekim 2026',
+        publishedAt: Timestamp.fromDate(dateObj),
         newsId: item.newsId || (7400 + count),
         pageIndex: item.pageIndex || 1,
         itemIndex: item.itemIndex || count,
@@ -1314,9 +1331,11 @@ function renderEventsList() {
 
   const q = (document.getElementById("eventsSearchInput")?.value || '').trim().toLowerCase();
   const catFilter = document.getElementById("eventsFilterCategory")?.value || '';
+  const monthFilter = document.getElementById("eventsFilterMonth")?.value || '';
 
   const filtered = (window.eventsListCache || []).filter(d => {
     if (catFilter && d.category !== catFilter) return false;
+    if (monthFilter && !(d.date || '').startsWith(monthFilter)) return false;
     if (q) {
       const title = (d.title || d.name || '').toLowerCase();
       const loc = (d.location || d.subtitle || '').toLowerCase();
@@ -1359,6 +1378,9 @@ window.renderEventsList = renderEventsList;
 
 window.syncEventsFromWeb = async () => {
   const btn = document.getElementById("btnSyncEventsWeb");
+  const monthSelect = document.getElementById("syncEventMonth");
+  const selectedMonth = monthSelect ? monthSelect.value : "2026-11";
+
   if (btn) {
     btn.disabled = true;
     btn.innerText = "⏳ Etkinlikler Çekiliyor...";
@@ -1380,8 +1402,21 @@ window.syncEventsFromWeb = async () => {
     }
 
     if (!data || !Array.isArray(data)) {
-      if (window.GEBZE_OFFICIAL_EVENTS && Array.isArray(window.GEBZE_OFFICIAL_EVENTS)) {
-        data = window.GEBZE_OFFICIAL_EVENTS;
+      try {
+        const res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl));
+        if (res.ok) data = await res.json();
+      } catch (_) { }
+    }
+
+    const localEvents = window.GEBZE_OFFICIAL_EVENTS || [];
+    if (!data || !Array.isArray(data)) {
+      data = localEvents;
+    } else if (localEvents.length > 0) {
+      const existingIds = new Set(data.map(x => String(x.id)));
+      for (const ev of localEvents) {
+        if (!existingIds.has(String(ev.id))) {
+          data.push(ev);
+        }
       }
     }
 
@@ -1397,7 +1432,16 @@ window.syncEventsFromWeb = async () => {
       return `${parseInt(p[2], 10)} ${trMonths[parseInt(p[1], 10)] || ''} ${p[0]}`.trim();
     };
 
-    const targetEvents = data.filter(x => (x.tarih || '').startsWith('2026') || !x.tarih);
+    let targetEvents;
+    if (selectedMonth && selectedMonth !== 'all') {
+      targetEvents = data.filter(x => (x.tarih || '').startsWith(selectedMonth));
+      if (targetEvents.length === 0 && localEvents.length > 0) {
+        targetEvents = localEvents.filter(x => (x.tarih || '').startsWith(selectedMonth));
+      }
+    } else {
+      targetEvents = data.filter(x => (x.tarih || '').startsWith('2026') || !x.tarih);
+    }
+
     const finalEvents = targetEvents.length > 0 ? targetEvents : data.slice(0, 50);
 
     let count = 0;
@@ -1437,7 +1481,14 @@ window.syncEventsFromWeb = async () => {
       count++;
     }
 
-    showToast(`✅ ${count} adet resmi etkinlik başarıyla eşitlendi!`);
+    const monthName = selectedMonth === '2026-11' ? 'Kasım 2026' : (selectedMonth === '2026-10' ? 'Ekim 2026' : (selectedMonth === 'all' ? 'Tüm Program' : selectedMonth));
+    showToast(`✅ ${count} adet ${monthName} etkinliği başarıyla eşitlendi!`);
+
+    const filterMonthSelect = document.getElementById("eventsFilterMonth");
+    if (filterMonthSelect && selectedMonth !== 'all') {
+      filterMonthSelect.value = selectedMonth;
+    }
+
     loadEvents();
     loadDashboard();
   } catch (err) {
@@ -1445,7 +1496,7 @@ window.syncEventsFromWeb = async () => {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerText = "🌐 Belediyeden Etkinlikleri Çek / Güncelle";
+      btn.innerText = "🌐 Seçili Ayın Etkinliklerini Çek / Güncelle";
     }
   }
 };
