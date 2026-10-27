@@ -20,32 +20,39 @@ String get kCurrentUserId {
 }
 
 
-StreamProvider<int> _subCountProvider(String sub) =>
-    StreamProvider.autoDispose<int>((ref) {
+FutureProvider<int> _subCountProvider(String sub) =>
+    FutureProvider<int>((ref) async {
       final user = ref.watch(authStateProvider).value;
-      if (user == null) return Stream.value(0);
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection(sub)
-          .snapshots()
-          .map((s) => s.size)
-          .handleError((_) {});
+      if (user == null) return 0;
+      try {
+        final snap = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection(sub)
+            .count()
+            .get(source: AggregateSource.server);
+        return snap.count ?? 0;
+      } catch (_) {
+        return 0;
+      }
     });
 
 final _votesCountProvider = _subCountProvider('votes');
 final _supportedCountProvider = _subCountProvider('supported');
 
-
-final _mySuggestionsCountProvider = StreamProvider.autoDispose<int>((ref) {
+final _mySuggestionsCountProvider = FutureProvider<int>((ref) async {
   final user = ref.watch(authStateProvider).value;
-  if (user == null) return Stream.value(0);
-  return FirebaseFirestore.instance
-      .collection('suggestions')
-      .where('authorUid', isEqualTo: user.uid)
-      .snapshots()
-      .map((s) => s.size)
-      .handleError((_) {});
+  if (user == null) return 0;
+  try {
+    final snap = await FirebaseFirestore.instance
+        .collection('suggestions')
+        .where('authorUid', isEqualTo: user.uid)
+        .count()
+        .get(source: AggregateSource.server);
+    return snap.count ?? 0;
+  } catch (_) {
+    return 0;
+  }
 });
 
 final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {

@@ -1326,7 +1326,8 @@
       orderBy,
       onSnapshot,
       where,
-      arrayUnion
+      arrayUnion,
+      getCountFromServer
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import {
       getAuth,
@@ -1354,9 +1355,9 @@
 
     window.usersMap = window.usersMap || {};
 
-    // Sayfa açılır açılmaz Firestore verilerini doğrudan yükle ve canlı dinle
+    // Sayfa açılır açılmaz yalnızca optimize edilmiş dashboard verilerini yükle.
+    // (loadUsers() kaldırıldı: Kullanıcı tablosu binlerce döküman çekip kotayı tüketmesin diye sadece "Kullanıcılar" sekmesine tıklandığında yüklenir)
     loadDashboard();
-    loadUsers();
 
     // ───────────────── YÖNETİCİ GİRİŞİ & OTURUM ─────────────────
     onAuthStateChanged(auth, (user) => {
@@ -1496,124 +1497,156 @@
       document.getElementById('sidebar').classList.toggle('open');
     };
 
-    // ───────────────── 1. DASHBOARD (GENEL BAKIŞ) ─────────────────
-    async function loadDashboard() {
-      try {
-        const safeFetch = async (colName) => {
-          try {
-            return await getDocs(collection(db, colName));
-          } catch (err) {
-            console.warn(`[${colName}] okuma uyarısı:`, err.message);
-            return { size: 0, docs: [], forEach: () => { }, empty: true };
-          }
-        };
+    // ───────────────── 1. DASHBOARD (GENEL BAKIŞ - AGGREGATION & CACHE OPTİMİZE) ─────────────────
+    let _dashboardCache = null;
+    let _dashboardCacheTime = 0;
+    const DASHBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 dakika TTL bellek içi önbellek
 
-        const [
-          newsSnap,
-          suggSnap,
-          pollsSnap,
-          outSnap,
-          petsSnap,
-          pharmSnap,
-          worksSnap,
-          assemblySnap,
-          usersSnap,
-          eventsSnap,
-          guideSnap,
-          placesSnap,
-          foodsSnap,
-          picnicSnap,
-          parkingSnap,
-          reportsSnap,
-          nurseriesSnap
-        ] = await Promise.all([
-          safeFetch("municipal_news"),
-          safeFetch("suggestions"),
-          safeFetch("polls"),
-          safeFetch("outages"),
-          safeFetch("pet_adoptions"),
-          safeFetch("pharmacies_on_duty"),
-          safeFetch("neighborhood_works"),
-          safeFetch("assembly_areas"),
-          safeFetch("users"),
-          safeFetch("events"),
-          safeFetch("guide_institutions"),
-          safeFetch("guide_places"),
-          safeFetch("guide_foods"),
-          safeFetch("guide_picnic"),
-          safeFetch("parking_lots"),
-          safeFetch("reports"),
-          safeFetch("nurseries")
-        ]);
+    function applyDashboardData(data) {
+      const setKpi = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== null && val !== undefined) el.innerText = val;
+      };
 
-        // Öneriler
-        let pendingSugg = 0;
-        suggSnap.forEach(d => { if (d.data().approved !== true) pendingSugg++; });
-        const elKpiSugg = document.getElementById('kpiSuggestions');
-        if (elKpiSugg) elKpiSugg.innerText = pendingSugg;
-
-        const bSugg = document.getElementById('badgePendingSugg');
-        if (bSugg) {
-          bSugg.innerText = pendingSugg;
-          bSugg.style.display = pendingSugg > 0 ? 'inline-block' : 'none';
-        }
-
-        // Vatandaş Talepleri (Çek & Gönder)
-        let pendingReports = 0;
-        reportsSnap.forEach(d => {
-          const s = (d.data().status || '').trim();
-          if (s === 'Beklemede' || s === 'İnceleniyor' || s === 'İşleme Alındı' || s === 'pending') pendingReports++;
-        });
-        const elKpiReports = document.getElementById('kpiReports');
-        if (elKpiReports) elKpiReports.innerText = pendingReports;
+      if (data.pendingReports !== null) {
+        setKpi('kpiReports', data.pendingReports);
         const bRep = document.getElementById('badgePendingReports');
         if (bRep) {
-          bRep.innerText = pendingReports;
-          bRep.style.display = pendingReports > 0 ? 'inline-block' : 'none';
+          bRep.innerText = data.pendingReports;
+          bRep.style.display = data.pendingReports > 0 ? 'inline-block' : 'none';
         }
+      }
 
-        // Otopark İstatistikleri
+      if (data.pendingSugg !== null) {
+        setKpi('kpiSuggestions', data.pendingSugg);
+        const bSugg = document.getElementById('badgePendingSugg');
+        if (bSugg) {
+          bSugg.innerText = data.pendingSugg;
+          bSugg.style.display = data.pendingSugg > 0 ? 'inline-block' : 'none';
+        }
+      }
+
+      setKpi('kpiParkingLots', data.parkingLots);
+      setKpi('kpiParkingSpots', `${data.parkingFree} Boş (${data.parkingTotalCap})`);
+
+      setKpi('kpiNews', data.news);
+      setKpi('kpiPolls', data.polls);
+      setKpi('kpiOutages', data.outages);
+      setKpi('kpiPets', data.pets);
+      setKpi('kpiPharmacies', data.pharmacies);
+      setKpi('kpiAssembly', data.assembly);
+      setKpi('kpiUsers', data.users);
+      setKpi('kpiEvents', data.events);
+      setKpi('kpiGuide', data.guide);
+      setKpi('kpiPlaces', data.places);
+      setKpi('kpiFoods', data.foods);
+      setKpi('kpiPicnic', data.picnic);
+      setKpi('kpiNurseries', data.nurseries);
+      setKpi('kpiWorks', data.works);
+    }
+
+    async function loadDashboard(forceRefresh = false) {
+      const now = Date.now();
+      // Önbellek geçerliyse Firestore'a hiç sorgu atma (0 read maliyeti)
+      if (!forceRefresh && _dashboardCache && (now - _dashboardCacheTime < DASHBOARD_CACHE_TTL)) {
+        console.log(`[Dashboard] Önbellekten gösterildi (TTL: ${Math.round((DASHBOARD_CACHE_TTL - (now - _dashboardCacheTime))/1000)}s kaldı)`);
+        applyDashboardData(_dashboardCache);
+        return;
+      }
+
+      console.log('[Dashboard] Sayaçlar Firestore getCountFromServer aggregation API ile çekiliyor...');
+
+      const safeCount = async (target) => {
+        try {
+          const q = typeof target === 'string' ? collection(db, target) : target;
+          const snap = await getCountFromServer(q);
+          return snap.data().count;
+        } catch (err) {
+          console.warn(`[safeCount] sayım uyarısı:`, err.message);
+          return null;
+        }
+      };
+
+      try {
+        const [
+          newsCount,
+          pollsCount,
+          outagesCount,
+          petsCount,
+          pharmaciesCount,
+          assemblyCount,
+          usersCount,
+          eventsCount,
+          guideCount,
+          placesCount,
+          foodsCount,
+          picnicCount,
+          nurseriesCount,
+          worksCount,
+          pendingReportsCount,
+          pendingSuggCount,
+          parkingSnap
+        ] = await Promise.all([
+          safeCount("municipal_news"),
+          safeCount("polls"),
+          safeCount("outages"),
+          safeCount("pet_adoptions"),
+          safeCount("pharmacies_on_duty"),
+          safeCount("assembly_areas"),
+          safeCount("users"),
+          safeCount("events"),
+          safeCount("guide_institutions"),
+          safeCount("guide_places"),
+          safeCount("guide_foods"),
+          safeCount("guide_picnic"),
+          safeCount("nurseries"),
+          safeCount("neighborhood_works"),
+          // Bekleyen raporlar: Sadece durumu beklemede olanları say
+          safeCount(query(collection(db, "reports"), where("status", "in", ["Beklemede", "İnceleniyor", "İşleme Alındı", "pending"])))
+            .catch(() => safeCount("reports")),
+          // Bekleyen öneriler: Sadece onaylanmamış olanları say
+          safeCount(query(collection(db, "suggestions"), where("approved", "==", false)))
+            .catch(() => safeCount("suggestions")),
+          // Otopark: Sadece 9 otopark kaydı var, kapasite ve doluluk hesabı için tek hafif sorgu
+          getDocs(collection(db, "parking_lots")).catch(() => ({ size: 0, docs: [] }))
+        ]);
+
         let parkTotalCap = 0;
         let parkTotalOcc = 0;
-        parkingSnap.forEach(d => {
-          const data = d.data();
-          parkTotalCap += (Number(data.capacity) || 0);
-          parkTotalOcc += (Number(data.occupied) || 0);
-        });
+        if (parkingSnap && parkingSnap.docs) {
+          parkingSnap.docs.forEach(d => {
+            const data = d.data();
+            parkTotalCap += (Number(data.capacity) || 0);
+            parkTotalOcc += (Number(data.occupied) || 0);
+          });
+        }
         const parkFree = Math.max(0, parkTotalCap - parkTotalOcc);
-        const elKpiParkingLots = document.getElementById('kpiParkingLots');
-        if (elKpiParkingLots) elKpiParkingLots.innerText = parkingSnap.size;
-        const elKpiParkingSpots = document.getElementById('kpiParkingSpots');
-        if (elKpiParkingSpots) elKpiParkingSpots.innerText = `${parkFree} Boş (${parkTotalCap})`;
 
-        const setKpi = (id, val) => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = val;
+        _dashboardCache = {
+          news: newsCount ?? (_dashboardCache?.news ?? '-'),
+          polls: pollsCount ?? (_dashboardCache?.polls ?? '-'),
+          outages: outagesCount ?? (_dashboardCache?.outages ?? '-'),
+          pets: petsCount ?? (_dashboardCache?.pets ?? '-'),
+          pharmacies: pharmaciesCount ?? (_dashboardCache?.pharmacies ?? '-'),
+          assembly: assemblyCount ?? (_dashboardCache?.assembly ?? '-'),
+          users: usersCount ?? (_dashboardCache?.users ?? '-'),
+          events: eventsCount ?? (_dashboardCache?.events ?? '-'),
+          guide: guideCount ?? (_dashboardCache?.guide ?? '-'),
+          places: placesCount ?? (_dashboardCache?.places ?? '-'),
+          foods: foodsCount ?? (_dashboardCache?.foods ?? '-'),
+          picnic: picnicCount ?? (_dashboardCache?.picnic ?? '-'),
+          nurseries: nurseriesCount ?? (_dashboardCache?.nurseries ?? '-'),
+          works: worksCount ?? (_dashboardCache?.works ?? '-'),
+          pendingReports: pendingReportsCount ?? (_dashboardCache?.pendingReports ?? 0),
+          pendingSugg: pendingSuggCount ?? (_dashboardCache?.pendingSugg ?? 0),
+          parkingLots: parkingSnap.size || (_dashboardCache?.parkingLots ?? 0),
+          parkingTotalCap,
+          parkingFree
         };
+        _dashboardCacheTime = Date.now();
 
-        setKpi('kpiNews', newsSnap.size);
-        setKpi('kpiPolls', pollsSnap.size);
-        setKpi('kpiOutages', outSnap.size);
-        setKpi('kpiPets', petsSnap.size);
-        setKpi('kpiPharmacies', pharmSnap.size);
-        setKpi('kpiAssembly', assemblySnap.size);
-        setKpi('kpiUsers', usersSnap.size);
-        setKpi('kpiEvents', eventsSnap.size);
-        setKpi('kpiGuide', guideSnap.size);
-        setKpi('kpiPlaces', placesSnap.size);
-        setKpi('kpiFoods', foodsSnap.size);
-        setKpi('kpiPicnic', picnicSnap.size);
-        setKpi('kpiNurseries', nurseriesSnap.size);
-
-        // Mahallemde aktif çalışmalar
-        let activeWorks = 0;
-        const nowMs = Date.now();
-        worksSnap.forEach(d => {
-          const e = d.data().endDate;
-          if (e && e.toMillis && e.toMillis() >= nowMs) activeWorks++;
-        });
-        setKpi('kpiWorks', activeWorks);
-
+        applyDashboardData(_dashboardCache);
+        console.log('[Dashboard] Sayaçlar başarıyla güncellendi ve 5dk önbelleğe alındı.');
       } catch (err) {
         console.error("Dashboard yüklenirken hata:", err);
       }
@@ -4132,12 +4165,18 @@
     // ───────────────── 13. KAYITLI VATANDAŞLAR (USERS) ─────────────────
     window.usersListCache = [];
 
-    async function loadUsers() {
+    async function loadUsers(force = false) {
       const container = document.getElementById("usersTableBody");
+      if (!force && window.usersListCache && window.usersListCache.length > 0) {
+        console.log('[Users] Önbellekten listelendi.');
+        renderUsersView();
+        return;
+      }
       if (container) {
         container.innerHTML = '<tr><td colspan="8" class="empty-state">Kullanıcı profilleri yükleniyor...</td></tr>';
       }
       try {
+        console.log('[Users] Kullanıcılar Firestore\'dan çekiliyor...');
         const snap = await getDocs(collection(db, "users"));
         const list = [];
         window.usersMap = window.usersMap || {};
@@ -5490,10 +5529,13 @@
       async function initRealtimeReports() {
         if (window.reportsUnsub) window.reportsUnsub();
 
-        try {
-          const uSnap = await getDocs(collection(db, "users"));
-          uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
-        } catch (_) { }
+        if (!window.usersMap || Object.keys(window.usersMap).length === 0) {
+          try {
+            const uSnap = await getDocs(collection(db, "users"));
+            window.usersMap = window.usersMap || {};
+            uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
+          } catch (_) { }
+        }
 
         try {
           const q = query(collection(db, "reports"));

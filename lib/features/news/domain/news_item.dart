@@ -63,9 +63,8 @@ class NewsItem {
         dt = _parseTrDate(pText);
       }
     }
-    if (dt == null) {
-      dt = (d['syncedAt'] as Timestamp?)?.toDate() ?? (d['createdAt'] as Timestamp?)?.toDate();
-    }
+    dt ??= (d['syncedAt'] as Timestamp?)?.toDate() ??
+        (d['createdAt'] as Timestamp?)?.toDate();
     dt ??= DateTime(2026, 10, 26);
 
     return NewsItem(

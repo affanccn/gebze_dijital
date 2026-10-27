@@ -67,6 +67,8 @@ class GuideFoodsView extends StatefulWidget {
 class _GuideFoodsViewState extends State<GuideFoodsView> {
   final _ctrl = TextEditingController();
   String _query = '';
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _foodsStream =
+      FirebaseFirestore.instance.collection('guide_foods').limit(50).snapshots();
 
   @override
   void dispose() {
@@ -115,7 +117,7 @@ class _GuideFoodsViewState extends State<GuideFoodsView> {
         ),
         Expanded(
           child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: FirebaseFirestore.instance.collection('guide_foods').snapshots(),
+            stream: _foodsStream,
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
                 return const Center(child: CircularProgressIndicator());

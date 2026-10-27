@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/municipal_news.dart';
 import '../services/news_service.dart';
 import '../news_preview_screen.dart';
 import '../../../../core/localization/app_strings.dart';
@@ -23,47 +22,39 @@ class MunicipalNewsList extends ConsumerStatefulWidget {
 }
 
 class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
-  // Stream bir kez oluşturulur: ekran yeniden çizilince tekrar okuma yapılmaz,
-  // liste de yanıp sönmez. Sadece son 10 haber gösterilir.
-  late final Stream<List<MunicipalNews>> _stream = NewsService().watchNews(
-    limit: widget.itemLimit ?? 10,
-  );
-
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(appLanguageProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final newsAsync = ref.watch(newsListProvider);
 
-    return StreamBuilder<List<MunicipalNews>>(
-      stream: _stream,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          debugPrint('Haber akışı hatası: ${snapshot.error}');
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                AppStrings.get('news_load_failed', lang),
-                style: TextStyle(
-                  color: isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF5F6F8A),
-                ),
+    return newsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (err, stack) {
+        debugPrint('Haber yükleme hatası: $err');
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              AppStrings.get('news_load_failed', lang),
+              style: TextStyle(
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF5F6F8A),
               ),
             ),
-          );
-        }
-
-        if (!snapshot.hasData) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        final news = snapshot.data!;
+          ),
+        );
+      },
+      data: (allNews) {
+        final news = widget.itemLimit != null
+            ? allNews.take(widget.itemLimit!).toList()
+            : allNews;
 
         if (news.isEmpty) {
           return Center(

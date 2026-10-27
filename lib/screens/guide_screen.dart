@@ -1470,6 +1470,19 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
       'upcoming'; // 'upcoming', 'this_month', 'all', 'past'
   String _selectedEventCategory = 'all'; // 'all', 'tiyatro', 'sinema', 'konser', 'soylesi', 'cocuk', 'diger'
 
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _dataStream =
+      widget.category.id == 'etkinlikler'
+          ? FirebaseFirestore.instance
+              .collection('events')
+              .orderBy('date')
+              .limit(50)
+              .snapshots()
+          : FirebaseFirestore.instance
+              .collection('guide_institutions')
+              .where('category', isEqualTo: widget.category.id)
+              .limit(50)
+              .snapshots();
+
   @override
   void dispose() {
     _ctrl.dispose();
@@ -1523,8 +1536,9 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
       } else if (_selectedEventCategory == 'konser') {
         if (!cat.contains('konser') && !cat.contains('müzik')) return false;
       } else if (_selectedEventCategory == 'soylesi') {
-        if (!cat.contains('söyleşi') && !cat.contains('konferans'))
+        if (!cat.contains('söyleşi') && !cat.contains('konferans')) {
           return false;
+        }
       } else if (_selectedEventCategory == 'cocuk') {
         if (!cat.contains('çocuk') && !cat.contains('sirk')) return false;
       } else if (_selectedEventCategory == 'diger') {
@@ -1639,12 +1653,7 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
           ),
         ),
         body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: category.id == 'etkinlikler'
-              ? FirebaseFirestore.instance.collection('events').snapshots()
-              : FirebaseFirestore.instance
-                    .collection('guide_institutions')
-                    .where('category', isEqualTo: category.id)
-                    .snapshots(),
+          stream: _dataStream,
           builder: (context, snap) {
             if (snap.connectionState == ConnectionState.waiting &&
                 !snap.hasData) {

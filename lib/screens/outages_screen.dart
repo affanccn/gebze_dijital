@@ -73,6 +73,8 @@ class OutagesScreen extends ConsumerStatefulWidget {
 class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   // 0: Tümü, 1: Su (İSU), 2: Elektrik (SEDAŞ), 3: Doğalgaz (PALGAZ)
   int _selectedFilter = 0;
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _outagesStream =
+      FirebaseFirestore.instance.collection('outages').limit(50).snapshots();
 
   Timer? _ticker;
   DateTime _now = DateTime.now();
@@ -170,9 +172,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
               _buildFilterChips(lang),
               Expanded(
                 child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance
-                      .collection('outages')
-                      .snapshots(),
+                  stream: _outagesStream,
                   builder: (context, snapshot) {
                     List<Map<String, dynamic>> items = [];
 

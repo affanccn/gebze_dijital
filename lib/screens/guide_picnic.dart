@@ -387,6 +387,8 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
   final _ctrl = TextEditingController();
   String _query = '';
   String _type = 'all';
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _picnicStream =
+      FirebaseFirestore.instance.collection('guide_picnic').limit(50).snapshots();
 
   @override
   void dispose() {
@@ -512,9 +514,7 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
         const SizedBox(height: 8),
         Expanded(
           child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: FirebaseFirestore.instance
-                .collection('guide_picnic')
-                .snapshots(),
+            stream: _picnicStream,
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting &&
                   !snap.hasData) {

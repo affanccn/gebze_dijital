@@ -231,6 +231,12 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     ];
   }
 
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _pollsStream =
+      FirebaseFirestore.instance.collection('polls').limit(50).snapshots();
+
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _suggestionsStream =
+      FirebaseFirestore.instance.collection('suggestions').limit(50).snapshots();
+
   @override
   void initState() {
     super.initState();
@@ -455,7 +461,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     final myVotes = ref.watch(myVotesProvider).value ?? const <String, int>{};
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('polls').snapshots(),
+      stream: _pollsStream,
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(
@@ -525,7 +531,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     final currentUid = ref.watch(sozUidProvider);
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('suggestions').snapshots(),
+      stream: _suggestionsStream,
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(

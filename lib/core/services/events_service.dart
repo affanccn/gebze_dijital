@@ -1,13 +1,31 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+
+/// Etkinlikler aylık/günlük periyotlarla güncellenir.
+/// keepAlive ile 1 saat boyunca bellekte tutulur, her ekran geçişinde Firestore okunmaz.
+final eventsListProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(hours: 1), () {
+    link.close();
+  });
+  ref.onDispose(() => timer.cancel());
+
+  return EventsService().fetchEvents(limit: 50);
+});
 
 class EventsService {
   EventsService({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
+
+  static List<Map<String, dynamic>>? _cachedEvents;
+  static DateTime? _eventsLastFetch;
+  static const _eventsTtl = Duration(hours: 1);
 
   static const String _eventsJsonUrl =
       'https://www.gebze.bel.tr/json/etkinlik.json';
@@ -38,6 +56,37 @@ class EventsService {
     final year = parts[0];
     final monthName = (month >= 1 && month <= 12) ? _trMonths[month] : '';
     return '$day $monthName $year'.trim();
+  }
+
+  /// Önbellekli ve sınırlandırılmış etkinlik çekme fonksiyonu.
+  Future<List<Map<String, dynamic>>> fetchEvents({int limit = 50, bool force = false}) async {
+    final now = DateTime.now();
+    if (!force &&
+        _cachedEvents != null &&
+        _eventsLastFetch != null &&
+        now.difference(_eventsLastFetch!) < _eventsTtl) {
+      return _cachedEvents!.take(limit).toList();
+    }
+
+    try {
+      final snap = await _firestore
+          .collection('events')
+          .orderBy('date')
+          .limit(limit)
+          .get(force
+              ? const GetOptions(source: Source.server)
+              : const GetOptions(source: Source.serverAndCache));
+
+      _cachedEvents = snap.docs
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .toList();
+      _eventsLastFetch = now;
+      return _cachedEvents!.take(limit).toList();
+    } catch (e) {
+      debugPrint('fetchEvents hatası: $e');
+      if (_cachedEvents != null) return _cachedEvents!.take(limit).toList();
+      return [];
+    }
   }
 
   /// Firestore `events` koleksiyonunu dinler

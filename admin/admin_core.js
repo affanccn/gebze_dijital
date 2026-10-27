@@ -17,7 +17,8 @@ import {
   query,
   orderBy,
   onSnapshot,
-  where
+  where,
+  getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
   getAuth,
@@ -147,7 +148,7 @@ window.adminSignOut = async () => {
 function refreshAllData() {
   loadDashboard();
   initRealtimeReports();
-  loadUsers();
+  // loadUsers() kaldırıldı; sadece kullanıcılar sekmesine girildiğinde yüklenir.
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -198,102 +199,117 @@ window.toggleSidebar = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. GENEL BAKIŞ (DASHBOARD)
+// 3. GENEL BAKIŞ (DASHBOARD - AGGREGATION & CACHE OPTİMİZE)
 // ─────────────────────────────────────────────────────────────────────────────
-async function loadDashboard() {
-  try {
-    const safeFetch = async (colName) => {
-      try {
-        return await getDocs(collection(db, colName));
-      } catch (err) {
-        console.warn(`[${colName}] okuma uyarısı:`, err.message);
-        return { size: 0, docs: [], forEach: () => { }, empty: true };
-      }
-    };
+let _adminDashboardCache = null;
+let _adminDashboardCacheTime = 0;
+const ADMIN_DASHBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 dakika TTL
 
+function applyAdminDashboardData(data) {
+  setKpi('kpiReports', data.pendingReports);
+  const bRep = document.getElementById('badgePendingReports');
+  if (bRep && data.pendingReports !== null) {
+    bRep.innerText = data.pendingReports;
+    bRep.style.display = data.pendingReports > 0 ? 'inline-block' : 'none';
+  }
+
+  setKpi('kpiSuggestions', data.pendingSugg);
+  const bSugg = document.getElementById('badgePendingSugg');
+  if (bSugg && data.pendingSugg !== null) {
+    bSugg.innerText = data.pendingSugg;
+    bSugg.style.display = data.pendingSugg > 0 ? 'inline-block' : 'none';
+  }
+
+  setKpi('kpiNews', data.news);
+  setKpi('kpiPolls', data.polls);
+  setKpi('kpiOutages', data.outages);
+  setKpi('kpiPets', data.pets);
+  setKpi('kpiPharmacies', data.pharmacies);
+  setKpi('kpiAssembly', data.assembly);
+  setKpi('kpiUsers', data.users);
+  setKpi('kpiEvents', data.events);
+  setKpi('kpiGuide', data.places);
+  setKpi('kpiNurseries', data.nurseries);
+  setKpi('kpiFoods', data.foods);
+  setKpi('kpiPicnic', data.picnic);
+  setKpi('kpiWorks', data.works);
+}
+
+async function loadDashboard(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && _adminDashboardCache && (now - _adminDashboardCacheTime < ADMIN_DASHBOARD_CACHE_TTL)) {
+    applyAdminDashboardData(_adminDashboardCache);
+    return;
+  }
+
+  const safeCount = async (target) => {
+    try {
+      const q = typeof target === 'string' ? collection(db, target) : target;
+      const snap = await getCountFromServer(q);
+      return snap.data().count;
+    } catch (err) {
+      console.warn(`[safeCount] sayım uyarısı:`, err.message);
+      return null;
+    }
+  };
+
+  try {
     const [
-      reportsSnap,
-      newsSnap,
-      suggSnap,
-      pollsSnap,
-      outSnap,
-      petsSnap,
-      pharmSnap,
-      worksSnap,
-      assemblySnap,
-      usersSnap,
-      eventsSnap,
-      placesSnap,
-      nurseriesSnap,
-      foodsSnap,
-      picnicSnap
+      newsCount,
+      pollsCount,
+      outagesCount,
+      petsCount,
+      pharmaciesCount,
+      assemblyCount,
+      usersCount,
+      eventsCount,
+      placesCount,
+      nurseriesCount,
+      foodsCount,
+      picnicCount,
+      worksCount,
+      pendingReportsCount,
+      pendingSuggCount
     ] = await Promise.all([
-      safeFetch("reports"),
-      safeFetch("municipal_news"),
-      safeFetch("suggestions"),
-      safeFetch("polls"),
-      safeFetch("outages"),
-      safeFetch("pet_adoptions"),
-      safeFetch("pharmacies_on_duty"),
-      safeFetch("neighborhood_works"),
-      safeFetch("assembly_areas"),
-      safeFetch("users"),
-      safeFetch("events"),
-      safeFetch("guide_places"),
-      safeFetch("nurseries"),
-      safeFetch("guide_foods"),
-      safeFetch("guide_picnic")
+      safeCount("municipal_news"),
+      safeCount("polls"),
+      safeCount("outages"),
+      safeCount("pet_adoptions"),
+      safeCount("pharmacies_on_duty"),
+      safeCount("assembly_areas"),
+      safeCount("users"),
+      safeCount("events"),
+      safeCount("guide_places"),
+      safeCount("nurseries"),
+      safeCount("guide_foods"),
+      safeCount("guide_picnic"),
+      safeCount("neighborhood_works"),
+      safeCount(query(collection(db, "reports"), where("status", "in", ["Beklemede", "İnceleniyor", "İşleme Alındı", "pending"])))
+        .catch(() => safeCount("reports")),
+      safeCount(query(collection(db, "suggestions"), where("approved", "==", false)))
+        .catch(() => safeCount("suggestions"))
     ]);
 
-    // Bekleyen Başvurular
-    let pendingReports = 0;
-    reportsSnap.forEach(d => {
-      const s = (d.data().status || '').trim();
-      if (s === 'Beklemede' || s === 'İnceleniyor' || s === 'İşleme Alındı' || s === 'pending') {
-        pendingReports++;
-      }
-    });
-    setKpi('kpiReports', pendingReports);
-    const bRep = document.getElementById('badgePendingReports');
-    if (bRep) {
-      bRep.innerText = pendingReports;
-      bRep.style.display = pendingReports > 0 ? 'inline-block' : 'none';
-    }
+    _adminDashboardCache = {
+      news: newsCount ?? (_adminDashboardCache?.news ?? '-'),
+      polls: pollsCount ?? (_adminDashboardCache?.polls ?? '-'),
+      outages: outagesCount ?? (_adminDashboardCache?.outages ?? '-'),
+      pets: petsCount ?? (_adminDashboardCache?.pets ?? '-'),
+      pharmacies: pharmaciesCount ?? (_adminDashboardCache?.pharmacies ?? '-'),
+      assembly: assemblyCount ?? (_adminDashboardCache?.assembly ?? '-'),
+      users: usersCount ?? (_adminDashboardCache?.users ?? '-'),
+      events: eventsCount ?? (_adminDashboardCache?.events ?? '-'),
+      places: placesCount ?? (_adminDashboardCache?.places ?? '-'),
+      nurseries: nurseriesCount ?? (_adminDashboardCache?.nurseries ?? '-'),
+      foods: foodsCount ?? (_adminDashboardCache?.foods ?? '-'),
+      picnic: picnicCount ?? (_adminDashboardCache?.picnic ?? '-'),
+      works: worksCount ?? (_adminDashboardCache?.works ?? '-'),
+      pendingReports: pendingReportsCount ?? (_adminDashboardCache?.pendingReports ?? 0),
+      pendingSugg: pendingSuggCount ?? (_adminDashboardCache?.pendingSugg ?? 0)
+    };
+    _adminDashboardCacheTime = Date.now();
 
-    // Bekleyen Öneriler
-    let pendingSugg = 0;
-    suggSnap.forEach(d => {
-      if (d.data().approved !== true && d.data().status !== 'Reddedildi') pendingSugg++;
-    });
-    setKpi('kpiSuggestions', pendingSugg);
-    const bSugg = document.getElementById('badgePendingSugg');
-    if (bSugg) {
-      bSugg.innerText = pendingSugg;
-      bSugg.style.display = pendingSugg > 0 ? 'inline-block' : 'none';
-    }
-
-    setKpi('kpiNews', newsSnap.size);
-    setKpi('kpiPolls', pollsSnap.size);
-    setKpi('kpiOutages', outSnap.size);
-    setKpi('kpiPets', petsSnap.size);
-    setKpi('kpiPharmacies', pharmSnap.size);
-    setKpi('kpiAssembly', assemblySnap.size);
-    setKpi('kpiUsers', usersSnap.size);
-    setKpi('kpiEvents', eventsSnap.size);
-    setKpi('kpiGuide', placesSnap.size);
-    setKpi('kpiNurseries', nurseriesSnap.size);
-    setKpi('kpiFoods', foodsSnap.size);
-    setKpi('kpiPicnic', picnicSnap.size);
-
-    // Aktif Mahalle Çalışmaları
-    let activeWorks = 0;
-    const nowMs = Date.now();
-    worksSnap.forEach(d => {
-      const e = d.data().endDate;
-      if (e && e.toMillis && e.toMillis() >= nowMs) activeWorks++;
-    });
-    setKpi('kpiWorks', activeWorks);
-
+    applyAdminDashboardData(_adminDashboardCache);
   } catch (err) {
     console.error("Dashboard yüklenirken hata:", err);
   }
@@ -311,11 +327,14 @@ function setKpi(id, val) {
 async function initRealtimeReports() {
   if (window.reportsUnsub) window.reportsUnsub();
 
-  // Kullanıcı önbelleğini arka planda güncelle
-  try {
-    const uSnap = await getDocs(collection(db, "users"));
-    uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
-  } catch (_) { }
+  // Kullanıcı önbelleğini gerekirse arka planda güncelle
+  if (!window.usersMap || Object.keys(window.usersMap).length === 0) {
+    try {
+      const uSnap = await getDocs(collection(db, "users"));
+      window.usersMap = window.usersMap || {};
+      uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
+    } catch (_) { }
+  }
 
   try {
     const q = query(collection(db, "reports"));
@@ -2019,8 +2038,12 @@ window.loadEBelediye = loadEBelediye;
 // ─────────────────────────────────────────────────────────────────────────────
 // 18. KAYITLI VATANDAŞLAR (USERS)
 // ─────────────────────────────────────────────────────────────────────────────
-async function loadUsers() {
+async function loadUsers(force = false) {
   const container = document.getElementById("usersTableBody");
+  if (!force && window.usersListCache && window.usersListCache.length > 0) {
+    renderUsersView();
+    return;
+  }
   if (container) container.innerHTML = '<tr><td colspan="8" class="empty-state">Kullanıcı profilleri yükleniyor...</td></tr>';
   try {
     const snap = await getDocs(collection(db, "users"));

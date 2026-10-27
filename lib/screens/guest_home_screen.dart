@@ -1,7 +1,6 @@
 import 'auth_guard.dart';
 import 'auth_service.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +19,7 @@ import 'services_screen.dart';
 import 'neighborhood_screen.dart';
 import 'notifications_screen.dart';
 import '../core/theme/theme_provider.dart';
+import '../core/services/events_service.dart';
 
 /// Gebze Belediyesi - Ana Ekran
 /// Dosya yolu: lib/screens/guest_home_screen.dart
@@ -1173,49 +1173,44 @@ class _NavItem {
 
 // ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
 
-class _EventsSection extends StatelessWidget {
+class _EventsSection extends ConsumerWidget {
   final String lang;
   const _EventsSection({required this.lang});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final today =
         '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('events')
-          .where('date', isGreaterThanOrEqualTo: today)
-          .orderBy('date')
-          .limit(3)
-          .snapshots(),
-      builder: (context, snap) {
-        if (snap.hasError) {
-          return Center(
-            child: Text(
-              '${AppStrings.get('error_occurred', lang)}: ${snap.error}',
-            ),
-          );
-        }
-        if (!snap.hasData) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          );
-        }
-        final docs = snap.data?.docs ?? [];
+    final eventsAsync = ref.watch(eventsListProvider);
+
+    void navigateToEvents() {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              const GuideCategoryScreen(categoryId: 'etkinlikler'),
+        ),
+      );
+    }
+
+    return eventsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          '${AppStrings.get('error_occurred', lang)}: $e',
+        ),
+      ),
+      data: (allEvents) {
+        final upcoming = allEvents.where((e) {
+          final d = (e['date'] ?? '').toString();
+          return d.compareTo(today) >= 0;
+        }).take(3).toList();
+
         final List<_RowData> rows;
-
-        void navigateToEvents() {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  const GuideCategoryScreen(categoryId: 'etkinlikler'),
-            ),
-          );
-        }
-
-        if (docs.isEmpty) {
+        if (upcoming.isEmpty) {
           rows = [
             _RowData(
               'Gebze Kültür Sanat Buluşmaları',
@@ -1237,8 +1232,7 @@ class _EventsSection extends StatelessWidget {
             ),
           ];
         } else {
-          rows = docs.map((d) {
-            final m = d.data();
+          rows = upcoming.map((m) {
             final title = (m['title'] ?? m['name'] ?? '').toString();
             var subtitle = (m['subtitle'] ?? '').toString();
             if (subtitle.isEmpty) {

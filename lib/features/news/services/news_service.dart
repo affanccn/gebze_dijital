@@ -1,10 +1,25 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
 
 import '../models/municipal_news.dart';
+
+/// Haberler günde 1 kez (öğlen 12:00) GitHub Actions ile güncellenir.
+/// keepAlive ile 1 saat boyunca bellekte tutulur, her ekran açılışında Firestore okunmaz.
+/// Kullanıcı sayfayı aşağı çekerek yenilediğinde ref.refresh() ile anında güncellenir.
+final newsListProvider = FutureProvider<List<MunicipalNews>>((ref) async {
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(minutes: 60), () {
+    link.close();
+  });
+  ref.onDispose(() => timer.cancel());
+
+  return NewsService().fetchNews(limit: 20);
+});
 
 class NewsService {
   NewsService({FirebaseFirestore? firestore})
@@ -13,6 +28,58 @@ class NewsService {
   final FirebaseFirestore _firestore;
 
   static final Map<String, String> _summaryCache = {};
+  static List<MunicipalNews>? _cachedNews;
+  static DateTime? _newsLastFetch;
+  static const _newsTtl = Duration(minutes: 60);
+
+  /// Önbellekli ve sınırlandırılmış haber çekme fonksiyonu.
+  /// 60 dakika geçerli bellek içi önbellek kullanır (0 read maliyeti).
+  Future<List<MunicipalNews>> fetchNews({int limit = 10, bool force = false}) async {
+    final now = DateTime.now();
+    if (!force &&
+        _cachedNews != null &&
+        _newsLastFetch != null &&
+        now.difference(_newsLastFetch!) < _newsTtl) {
+      return _cachedNews!.take(limit).toList();
+    }
+
+    try {
+      final snapshot = await _firestore
+          .collection('municipal_news')
+          .orderBy('newsId', descending: true)
+          .limit(limit)
+          .get(force
+              ? const GetOptions(source: Source.server)
+              : const GetOptions(source: Source.serverAndCache));
+
+      final map = <String, MunicipalNews>{};
+      for (final doc in snapshot.docs) {
+        final item = MunicipalNews.fromMap(doc.id, doc.data());
+        final key = item.newsId != null
+            ? 'id_${item.newsId}'
+            : 'title_${item.title.trim().toLowerCase()}';
+
+        if (!map.containsKey(key)) {
+          map[key] = item;
+        } else {
+          final existing = map[key]!;
+          if (existing.publishedAtText.isEmpty && item.publishedAtText.isNotEmpty) {
+            map[key] = item;
+          } else if (existing.summary.isEmpty && item.summary.isNotEmpty) {
+            map[key] = item;
+          }
+        }
+      }
+
+      _cachedNews = map.values.toList();
+      _newsLastFetch = now;
+      return _cachedNews!.take(limit).toList();
+    } catch (e) {
+      debugPrint('fetchNews hatası: $e');
+      if (_cachedNews != null) return _cachedNews!.take(limit).toList();
+      return [];
+    }
+  }
 
   /// Metni hedef dile ('en', 'ar') anlık olarak çevirir (ücretsiz Google Translate servisi).
   Future<String?> translateText(String text, String targetLang) async {
