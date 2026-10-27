@@ -1015,29 +1015,28 @@ class _SuggestionCard extends StatelessWidget {
               ),
             ),
           ],
-          Row(
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _Badge(
                 icon: Icons.location_on_rounded,
                 text: (data['neighborhood'] ?? 'Gebze').toString(),
                 color: isDark ? const Color(0xFF60A5FA) : _C.navy,
               ),
-              const SizedBox(width: 6),
               if (data['category'] != null)
                 _Badge(
                   icon: Icons.category_rounded,
                   text: data['category'].toString(),
                   color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                 ),
-              if (isMine && !isApproved) ...[
-                const SizedBox(width: 6),
+              if (isMine && !isApproved)
                 _Badge(
                   icon: Icons.person_rounded,
                   text: AppStrings.get('status_only_you_see', lang),
                   color: const Color(0xFFEA580C),
                 ),
-              ],
-              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -1088,30 +1087,35 @@ class _SuggestionCard extends StatelessWidget {
           Row(
             children: [
               if (!isApproved) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5FD),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.lock_clock_outlined,
-                        size: 14,
-                        color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        AppStrings.get('status_voting_disabled_pending', lang),
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5FD),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock_clock_outlined,
+                          size: 14,
                           color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            AppStrings.get('status_voting_disabled_pending', lang),
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ] else ...[
