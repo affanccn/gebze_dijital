@@ -333,7 +333,10 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: Colors.greenAccent),
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.greenAccent,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -479,7 +482,10 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         // Mükerrer anket koruması: Aynı soruya sahip anketleri tekilleştir
         final seenPolls = <String>{};
         final uniquePolls = items.where((p) {
-          final q = (p['question'] ?? p['title'] ?? p['_id'] ?? '').toString().trim().toLowerCase();
+          final q = (p['question'] ?? p['title'] ?? p['_id'] ?? '')
+              .toString()
+              .trim()
+              .toLowerCase();
           return seenPolls.add(q);
         }).toList();
 
@@ -554,7 +560,10 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         // Mükerrer öneri koruması: Aynı başlığa sahip önerileri tekilleştir
         final seenSuggestions = <String>{};
         final uniqueSuggestions = items.where((s) {
-          final t = (s['title'] ?? s['_id'] ?? '').toString().trim().toLowerCase();
+          final t = (s['title'] ?? s['_id'] ?? '')
+              .toString()
+              .trim()
+              .toLowerCase();
           return seenSuggestions.add(t);
         }).toList();
 
@@ -567,7 +576,9 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
           return isApproved || isMine;
         }).toList();
 
-        final filtered = visibleSuggestions.where(_matchesNeighborhood).toList();
+        final filtered = visibleSuggestions
+            .where(_matchesNeighborhood)
+            .toList();
         if (filtered.isEmpty) {
           return _EmptyState(
             icon: Icons.lightbulb_outline_rounded,
@@ -942,8 +953,10 @@ class _SuggestionCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     final s = status.toLowerCase();
-    if (s.contains('onay') || s.contains('approv') || s.contains('yayın')) return _C.green;
-    if (s.contains('ince') || s.contains('review') || s.contains('bekle')) return _C.orange;
+    if (s.contains('onay') || s.contains('approv') || s.contains('yayın'))
+      return _C.green;
+    if (s.contains('ince') || s.contains('review') || s.contains('bekle'))
+      return _C.orange;
     return _C.textMuted;
   }
 
@@ -961,7 +974,10 @@ class _SuggestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final status = _formatStatus((data['status'] ?? 'İncelemede').toString(), isApproved);
+    final status = _formatStatus(
+      (data['status'] ?? 'İncelemede').toString(),
+      isApproved,
+    );
     final sc = _statusColor(status);
     final likes = ((data['likes'] ?? 0) as num).toInt();
 
@@ -986,10 +1002,14 @@ class _SuggestionCard extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF3B2508) : const Color(0xFFFFF7ED),
+                color: isDark
+                    ? const Color(0xFF3B2508)
+                    : const Color(0xFFFFF7ED),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark ? const Color(0xFFB45309) : const Color(0xFFFED7AA),
+                  color: isDark
+                      ? const Color(0xFFB45309)
+                      : const Color(0xFFFED7AA),
                 ),
               ),
               child: Row(
@@ -1007,7 +1027,9 @@ class _SuggestionCard extends StatelessWidget {
                         fontSize: 11,
                         height: 1.3,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFFFED7AA) : const Color(0xFF9A3412),
+                        color: isDark
+                            ? const Color(0xFFFED7AA)
+                            : const Color(0xFF9A3412),
                       ),
                     ),
                   ),
@@ -1047,7 +1069,9 @@ class _SuggestionCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isApproved ? Icons.check_circle_rounded : Icons.schedule_rounded,
+                      isApproved
+                          ? Icons.check_circle_rounded
+                          : Icons.schedule_rounded,
                       size: 12,
                       color: sc,
                     ),
@@ -1089,9 +1113,14 @@ class _SuggestionCard extends StatelessWidget {
               if (!isApproved) ...[
                 Flexible(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5FD),
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF1F5FD),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -1100,16 +1129,23 @@ class _SuggestionCard extends StatelessWidget {
                         Icon(
                           Icons.lock_clock_outlined,
                           size: 14,
-                          color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : _C.textMuted,
                         ),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            AppStrings.get('status_voting_disabled_pending', lang),
+                            AppStrings.get(
+                              'status_voting_disabled_pending',
+                              lang,
+                            ),
                             style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : _C.textMuted,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1136,7 +1172,9 @@ class _SuggestionCard extends StatelessWidget {
                           size: 16,
                           color: liked
                               ? _C.orange
-                              : (isDark ? const Color(0xFF94A3B8) : _C.textMuted),
+                              : (isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : _C.textMuted),
                         ),
                         const SizedBox(width: 6),
                         Text(
