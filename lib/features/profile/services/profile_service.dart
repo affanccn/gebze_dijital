@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/push_service.dart';
@@ -174,7 +175,11 @@ class ProfileService {
         'language': languageCode,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-    } catch (_) {}
+    } catch (e) {
+      // Hata artık yutulmuyor: ekran kullanıcıya gösterebilsin.
+      debugPrint('updateLanguage hatası: $e');
+      rethrow;
+    }
   }
 
   /// Büyük yazı tipi tercihini güncelle
@@ -182,10 +187,17 @@ class ProfileService {
     if (!_isAuthAvailable) return;
     try {
       await _userRef?.set({
+        // Kayıt sırasında (auth_service) alan adı 'largeFont', burada ise
+        // 'isLargeFont' yazılıyordu. Okuyan taraf hangisini bekliyorsa
+        // bulsun diye ikisini de yazıyoruz.
+        'largeFont': isLarge,
         'isLargeFont': isLarge,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('updateLargeFont hatası: $e');
+      rethrow;
+    }
   }
 
   /// Tema modunu güncelle ('light', 'dark', 'system')

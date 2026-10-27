@@ -1,12 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppLanguageNotifier extends Notifier<String> {
+  static const _kPrefKey = 'app_language';
+  static const _supported = {'tr', 'en', 'ar'};
+  bool _userChanged = false;
+
   @override
-  String build() => 'tr';
+  String build() {
+    _loadFromPrefs();
+    return 'tr';
+  }
+
+  /// Kayıtlı dili cihazdan okur (uygulama açılışında bir kez).
+  Future<void> _loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_kPrefKey);
+      if (!_userChanged &&
+          saved != null &&
+          _supported.contains(saved) &&
+          saved != state) {
+        state = saved;
+      }
+    } catch (_) {}
+  }
 
   void setLanguage(String lang) {
+    _userChanged = true;
     state = lang;
+    _saveToPrefs(lang);
+  }
+
+  Future<void> _saveToPrefs(String lang) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kPrefKey, lang);
+    } catch (_) {}
   }
 
   @override

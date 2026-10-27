@@ -1,20 +1,49 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Global accessibility state for large font / high readability mode.
 /// When enabled, all texts, buttons, and content scale up across the entire application
 /// for senior citizens and users with visual impairments.
+///
+/// Tercih cihazda (SharedPreferences) saklanır; uygulama yeniden açılınca
+/// ve ekranlar arasında gezerken kaybolmaz.
 class AppLargeFontNotifier extends Notifier<bool> {
+  static const _kPrefKey = 'app_large_font';
+  bool _userChanged = false;
+
   @override
-  bool build() => false;
+  bool build() {
+    _loadFromPrefs();
+    return false;
+  }
+
+  Future<void> _loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getBool(_kPrefKey);
+      if (!_userChanged && saved != null && saved != state) {
+        state = saved;
+      }
+    } catch (_) {}
+  }
 
   void setLargeFont(bool isLarge) {
+    _userChanged = true;
     if (state != isLarge) {
       state = isLarge;
     }
+    _saveToPrefs(isLarge);
   }
 
   void toggle() {
-    state = !state;
+    setLargeFont(!state);
+  }
+
+  Future<void> _saveToPrefs(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_kPrefKey, value);
+    } catch (_) {}
   }
 }
 

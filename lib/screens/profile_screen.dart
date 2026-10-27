@@ -774,10 +774,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               value: ref.watch(appLargeFontProvider),
               activeThumbColor: _C.navy,
               activeTrackColor: const Color(0xFF90CAF9),
-              onChanged: (val) {
-                ref.read(appLargeFontProvider.notifier).setLargeFont(val);
-                ref.read(profileServiceProvider).updateLargeFont(val);
-              },
+              onChanged: _changeLargeFont,
             ),
           ],
         ),
@@ -1003,14 +1000,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     UserProfile profile, [
     String lang = 'tr',
   ]) {
-    final nameCtrl = TextEditingController(text: profile.fullName);
-    final emailCtrl = TextEditingController(text: profile.email);
-    final phoneCtrl = TextEditingController(text: profile.phoneNumber);
-    final addrCtrl = TextEditingController(text: profile.address);
-    final tcCtrl = TextEditingController(text: profile.tcNo);
-
     final isDark = context.isDark;
 
+    // Controller'lar artık sheet'in kendi State'inde yaşıyor ve sheet'in
+    // kapanış animasyonu bittikten sonra dispose ediliyor.
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1018,165 +1011,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 20,
-            left: 20,
-            right: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppStrings.get('dialog_edit_profile', lang),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : _C.textDark,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close_rounded,
-                        color: isDark ? Colors.white70 : Colors.black87,
-                      ),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                _buildTextField(
-                  AppStrings.get('field_full_name', lang),
-                  nameCtrl,
-                  Icons.person_outline_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  AppStrings.get('field_email', lang),
-                  emailCtrl,
-                  Icons.email_outlined,
-                ),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  AppStrings.get('field_phone', lang),
-                  phoneCtrl,
-                  Icons.phone_outlined,
-                ),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  AppStrings.get('field_tc', lang),
-                  tcCtrl,
-                  Icons.badge_outlined,
-                ),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  AppStrings.get('field_address', lang),
-                  addrCtrl,
-                  Icons.location_on_outlined,
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await ref
-                          .read(profileServiceProvider)
-                          .updateProfile(
-                            fullName: nameCtrl.text.trim(),
-                            email: emailCtrl.text.trim(),
-                            phoneNumber: phoneCtrl.text.trim(),
-                            address: addrCtrl.text.trim(),
-                            neighborhood: profile.neighborhood,
-                            tcNo: tcCtrl.text.trim(),
-                          );
-                      if (ctx.mounted) Navigator.of(ctx).pop();
-                      _showSnackBar(
-                        AppStrings.get('profile_updated_toast', lang),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _C.navy,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      AppStrings.get('btn_save', lang),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    ).then((_) {
-      nameCtrl.dispose();
-      emailCtrl.dispose();
-      phoneCtrl.dispose();
-      addrCtrl.dispose();
-      tcCtrl.dispose();
-    });
-  }
-
-  Widget _buildTextField(
-    String label,
-    TextEditingController ctrl,
-    IconData icon, {
-    int maxLines = 1,
-  }) {
-    final isDark = context.isDark;
-    return TextField(
-      controller: ctrl,
-      maxLines: maxLines,
-      style: TextStyle(color: isDark ? Colors.white : null),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : null),
-        prefixIcon: Icon(
-          icon,
-          size: 20,
-          color: isDark ? const Color(0xFF60A5FA) : _C.navy,
-        ),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF60A5FA) : _C.navy,
-            width: 1.5,
-          ),
-        ),
+      builder: (ctx) => _EditProfileSheet(
+        profile: profile,
+        lang: lang,
+        onSaved: () =>
+            _showSnackBar(AppStrings.get('profile_updated_toast', lang)),
       ),
     );
   }
@@ -1734,22 +1573,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(height: 14),
               _buildLanguageItem('Türkçe', 'tr', '🇹🇷', lang, (code) {
-                ref.read(appLanguageProvider.notifier).setLanguage(code);
-                ref.read(profileServiceProvider).updateLanguage(code);
                 Navigator.of(ctx).pop();
-                _showSnackBar(AppStrings.get('lang_tr_selected', code));
+                _changeLanguage(code, 'lang_tr_selected');
               }),
               _buildLanguageItem('English', 'en', '🇬🇧', lang, (code) {
-                ref.read(appLanguageProvider.notifier).setLanguage(code);
-                ref.read(profileServiceProvider).updateLanguage(code);
                 Navigator.of(ctx).pop();
-                _showSnackBar(AppStrings.get('lang_en_selected', code));
+                _changeLanguage(code, 'lang_en_selected');
               }),
               _buildLanguageItem('العربية', 'ar', '🇸🇦', lang, (code) {
-                ref.read(appLanguageProvider.notifier).setLanguage(code);
-                ref.read(profileServiceProvider).updateLanguage(code);
                 Navigator.of(ctx).pop();
-                _showSnackBar(AppStrings.get('lang_ar_selected', code));
+                _changeLanguage(code, 'lang_ar_selected');
               }),
             ],
           ),
@@ -2065,6 +1898,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Future<void> _changeLanguage(String code, String toastKey) async {
+    ref.read(appLanguageProvider.notifier).setLanguage(code);
+    try {
+      await ref.read(profileServiceProvider).updateLanguage(code);
+      _showSnackBar(AppStrings.get(toastKey, code));
+    } catch (e) {
+      debugPrint('Dil kaydedilemedi: $e');
+      _showSnackBar('Dil kaydedilemedi: $e');
+    }
+  }
+
+  Future<void> _changeLargeFont(bool val) async {
+    ref.read(appLargeFontProvider.notifier).setLargeFont(val);
+    try {
+      await ref.read(profileServiceProvider).updateLargeFont(val);
+    } catch (e) {
+      debugPrint('Yazı tipi kaydedilemedi: $e');
+      _showSnackBar('Yazı tipi kaydedilemedi: $e');
+    }
+  }
+
   void _showSnackBar(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -2240,6 +2094,233 @@ class _FavoritesList extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+
+// ───────────────────────── Profil Düzenleme Sheet'i ─────────────────────────
+
+class _EditProfileSheet extends ConsumerStatefulWidget {
+  final UserProfile profile;
+  final String lang;
+  final VoidCallback onSaved;
+
+  const _EditProfileSheet({
+    required this.profile,
+    required this.lang,
+    required this.onSaved,
+  });
+
+  @override
+  ConsumerState<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _emailCtrl;
+  late final TextEditingController _phoneCtrl;
+  late final TextEditingController _addrCtrl;
+  late final TextEditingController _tcCtrl;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final p = widget.profile;
+    _nameCtrl = TextEditingController(text: p.fullName);
+    _emailCtrl = TextEditingController(text: p.email);
+    _phoneCtrl = TextEditingController(text: p.phoneNumber);
+    _addrCtrl = TextEditingController(text: p.address);
+    _tcCtrl = TextEditingController(text: p.tcNo);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    _addrCtrl.dispose();
+    _tcCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await ref
+          .read(profileServiceProvider)
+          .updateProfile(
+            fullName: _nameCtrl.text.trim(),
+            email: _emailCtrl.text.trim(),
+            phoneNumber: _phoneCtrl.text.trim(),
+            address: _addrCtrl.text.trim(),
+            neighborhood: widget.profile.neighborhood,
+            tcNo: _tcCtrl.text.trim(),
+          );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      widget.onSaved();
+    } catch (e) {
+      debugPrint('Profil güncellenemedi: $e');
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profil güncellenemedi: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDark;
+    final lang = widget.lang;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        top: 20,
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppStrings.get('dialog_edit_profile', lang),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : _C.textDark,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _field(
+              AppStrings.get('field_full_name', lang),
+              _nameCtrl,
+              Icons.person_outline_rounded,
+            ),
+            const SizedBox(height: 12),
+            _field(
+              AppStrings.get('field_email', lang),
+              _emailCtrl,
+              Icons.email_outlined,
+            ),
+            const SizedBox(height: 12),
+            _field(
+              AppStrings.get('field_phone', lang),
+              _phoneCtrl,
+              Icons.phone_outlined,
+            ),
+            const SizedBox(height: 12),
+            _field(
+              AppStrings.get('field_tc', lang),
+              _tcCtrl,
+              Icons.badge_outlined,
+            ),
+            const SizedBox(height: 12),
+            _field(
+              AppStrings.get('field_address', lang),
+              _addrCtrl,
+              Icons.location_on_outlined,
+              maxLines: 2,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _saving ? null : _save,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _C.navy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _saving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        AppStrings.get('btn_save', lang),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _field(
+    String label,
+    TextEditingController ctrl,
+    IconData icon, {
+    int maxLines = 1,
+  }) {
+    final isDark = context.isDark;
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
+    return TextField(
+      controller: ctrl,
+      maxLines: maxLines,
+      style: TextStyle(color: isDark ? Colors.white : null),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: isDark ? const Color(0xFF94A3B8) : null),
+        prefixIcon: Icon(
+          icon,
+          size: 20,
+          color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF60A5FA) : _C.navy,
+            width: 1.5,
+          ),
+        ),
+      ),
     );
   }
 }
