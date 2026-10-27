@@ -18,7 +18,8 @@ class _C {
   static const line = Color(0xFFE4E9F2);
   static const textDark = Color(0xFF0A1F44);
   static const textMuted = Color(0xFF5F6F8A);
-  static const danger = Color(0xFFE5231B);
+  static const danger = Color(0xFF7F1D1D);
+  static const dangerDark = Color(0xFF450A0A);
   static const green = Color(0xFF2E7D32);
 }
 
@@ -751,14 +752,14 @@ class _Header extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFE5231B), Color(0xFFB71C1C)],
+          colors: [_C.danger, _C.dangerDark],
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x33E5231B),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+            color: Color(0x22000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
           ),
         ],
       ),

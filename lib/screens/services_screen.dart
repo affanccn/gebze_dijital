@@ -27,8 +27,8 @@ class _C {
   static const bg = Color(0xFFF1F5FD);
   static const textDark = Color(0xFF0A1F44);
   static const textMuted = Color(0xFF5F6F8A);
-  static const danger = Color(0xFFDC2626);
-  static const dangerDark = Color(0xFFB91C1C);
+  static const danger = Color(0xFF7F1D1D);
+  static const dangerDark = Color(0xFF450A0A);
 
   static const orangeGradient = [Color(0xFFFFA11F), Color(0xFFFF6A00)];
   static const navyGradient = [Color(0xFF1E5BC6), Color(0xFF0A2A66)];
