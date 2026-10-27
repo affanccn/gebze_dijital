@@ -11,6 +11,9 @@ import 'guide_foods.dart';
 import 'guide_picnic.dart';
 import '../core/localization/app_strings.dart';
 import '../core/utils/phone_launcher.dart';
+import 'report_screen.dart';
+import 'services_screen.dart';
+import 'profile_screen.dart';
 
 /// Gebze Belediyesi - Şehir Rehberi
 /// Dosya yolu: lib/screens/guide_screen.dart
@@ -1137,7 +1140,26 @@ class GuideScreen extends ConsumerWidget {
             bottomNavigationBar: _BottomNav(
               index: 1,
               lang: lang,
-              onTap: (i) => onNavTap?.call(i),
+              onTap: (i) {
+                if (onNavTap != null) {
+                  onNavTap!(i);
+                } else if (i != 1) {
+                  Navigator.of(context).pop();
+                  if (i == 2) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ReportScreen()),
+                    );
+                  } else if (i == 3) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ServicesScreen()),
+                    );
+                  } else if (i == 4) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  }
+                }
+              },
             ),
           ),
         ),

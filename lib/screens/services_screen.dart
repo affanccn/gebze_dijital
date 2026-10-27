@@ -16,6 +16,9 @@ import 'soz_sende_screen.dart';
 import 'neighborhood_screen.dart';
 import '../features/parking/presentation/parking_screen.dart';
 import '../features/chatbot/chatbot.dart';
+import 'guide_screen.dart';
+import 'report_screen.dart';
+import 'profile_screen.dart';
 
 /// Gebze Belediyesi - Hizmetler Ekranı
 /// Dosya yolu: lib/screens/services_screen.dart
@@ -344,7 +347,26 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
         bottomNavigationBar: _BottomNav(
           index: 3,
           lang: lang,
-          onTap: (i) => widget.onNavTap?.call(i),
+          onTap: (i) {
+            if (widget.onNavTap != null) {
+              widget.onNavTap!(i);
+            } else if (i != 3) {
+              Navigator.of(context).pop();
+              if (i == 1) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const GuideScreen()),
+                );
+              } else if (i == 2) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ReportScreen()),
+                );
+              } else if (i == 4) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              }
+            }
+          },
         ),
       ),
     );

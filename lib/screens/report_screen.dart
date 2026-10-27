@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/localization/app_strings.dart';
+import 'guide_screen.dart';
+import 'services_screen.dart';
+import 'profile_screen.dart';
 
 /// Gebze Belediyesi - Talep / Şikayet / Öneri (Bildir)
 /// Dosya yolu: lib/screens/report_screen.dart
@@ -299,6 +302,19 @@ class ReportScreen extends ConsumerWidget {
             onNavTap!(i);
           } else if (i != 2) {
             Navigator.of(context).pop();
+            if (i == 1) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const GuideScreen()),
+              );
+            } else if (i == 3) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ServicesScreen()),
+              );
+            } else if (i == 4) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+            }
           }
         },
       ),

@@ -371,10 +371,18 @@ class ProfileService {
   /// - Giriş yapmış kullanıcı: gerçek kayıtlar. Demo veri gösterilmez.
   ///   activities + yazdığı öneriler + anket oyları + öneri destekleri + favoriler.
   Stream<List<UserActivityItem>> getActivitiesStream() {
+    if (!_isAuthAvailable) {
+      return Stream.value(_fallbackActivities);
+    }
     final userRef = _userRef;
     final db = _firestore;
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (!_isAuthAvailable || userRef == null || db == null || uid == null) {
+    String? uid;
+    try {
+      uid = FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      return Stream.value(_fallbackActivities);
+    }
+    if (userRef == null || db == null || uid == null) {
       return Stream.value(_fallbackActivities);
     }
 

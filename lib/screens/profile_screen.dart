@@ -15,6 +15,8 @@ import '../core/utils/phone_launcher.dart';
 import '../core/accessibility/font_scale_provider.dart';
 import '../core/theme/theme_provider.dart';
 import 'services_screen.dart';
+import 'guide_screen.dart';
+import 'report_screen.dart';
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -137,7 +139,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 widget.onNavTap!(i);
               } else if (i != 4) {
                 Navigator.of(context).pop();
-                if (i == 3) {
+                if (i == 1) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const GuideScreen()),
+                  );
+                } else if (i == 2) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ReportScreen()),
+                  );
+                } else if (i == 3) {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const ServicesScreen()),
                   );
