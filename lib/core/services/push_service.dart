@@ -28,6 +28,7 @@ class PushService {
   /// Test amaçlı topic abonelikten çıkma handler'ı enjeksiyonu
   @visibleForTesting
   static TopicHandler? topicUnsubscriber;
+  static final Set<String> _subscribedTopics = {};
 
   /// FCM topic abone olma fonksiyonu (test edilebilir ve platform korumalı)
   static Future<void> subscribeToTopic(String topic) async {
@@ -35,11 +36,14 @@ class PushService {
       await topicSubscriber!(topic);
       return;
     }
+    if (_subscribedTopics.contains(topic)) return;
+    _subscribedTopics.add(topic);
     if (!isSupportedPlatform) return;
     try {
       await FirebaseMessaging.instance.subscribeToTopic(topic);
       debugPrint('[PushService] Abone olundu: topic=$topic');
     } catch (e) {
+      _subscribedTopics.remove(topic);
       debugPrint('[PushService] Abone olma hatası ($topic): $e');
     }
   }
@@ -50,6 +54,7 @@ class PushService {
       await topicUnsubscriber!(topic);
       return;
     }
+    _subscribedTopics.remove(topic);
     if (!isSupportedPlatform) return;
     try {
       await FirebaseMessaging.instance.unsubscribeFromTopic(topic);

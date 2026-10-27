@@ -6,6 +6,7 @@ import '../core/localization/app_strings.dart';
 import '../core/theme/theme_provider.dart';
 import '../features/profile/models/user_profile.dart';
 import '../features/profile/services/profile_service.dart';
+import '../core/services/push_service.dart';
 import 'auth_screen.dart';
 import 'auth_service.dart';
 import 'guest_home_screen.dart';
@@ -55,6 +56,7 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       ref.read(appLanguageProvider.notifier).setLanguage(p.language);
       ref.read(appLargeFontProvider.notifier).setLargeFont(p.isLargeFont);
       ref.read(appThemeModeProvider.notifier).setThemeMode(p.themeMode);
+      PushService.syncAllPreferences(p.notificationPreferences);
 
       // Bir kez uygulayınca dinlemeyi bırak.
       Future.microtask(() {

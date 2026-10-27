@@ -79,18 +79,16 @@ final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
 
   final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
-  return docRef.snapshots().asyncMap((doc) async {
+  return docRef.snapshots().map((doc) {
     if (!doc.exists) {
       // Döküman henüz yoksa (kayıt yazımı gecikti/başarısız) oluştur.
       final defaultProfile = UserProfile.defaultProfile();
       try {
-        await docRef.set(defaultProfile.toFirestore());
+        docRef.set(defaultProfile.toFirestore());
       } catch (_) {}
-      await PushService.syncAllPreferences(defaultProfile.notificationPreferences);
       return withCounts(defaultProfile);
     }
     final profile = UserProfile.fromFirestore(doc);
-    await PushService.syncAllPreferences(profile.notificationPreferences);
     return withCounts(profile);
   });
 });
