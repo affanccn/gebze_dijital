@@ -14,7 +14,7 @@ class Bot82Overlay extends ConsumerStatefulWidget {
     super.key,
     required this.child,
     this.navigatorKey,
-    this.defaultBottomOffset = 76,
+    this.defaultBottomOffset = 150,
     this.defaultRightOffset = 14,
   });
 
