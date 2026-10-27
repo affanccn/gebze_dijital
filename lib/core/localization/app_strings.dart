@@ -660,6 +660,36 @@ class AppStrings {
       'en': 'Approved',
       'ar': 'تمت الموافقة',
     },
+    'status_under_review': {
+      'tr': 'İnceleme Aşamasında',
+      'en': 'Under Review',
+      'ar': 'قيد المراجعة',
+    },
+    'status_under_review_desc': {
+      'tr': 'Bu öneriniz inceleme aşamasındadır. Yönetici onayından sonra tüm vatandaşların oylamasına açılacaktır.',
+      'en': 'This proposal is under review. It will open for voting after admin approval.',
+      'ar': 'هذا المقترح قيد المراجعة. سيتم فتح التصويت بعد موافقة الإدارة.',
+    },
+    'status_only_you_see': {
+      'tr': 'Yalnızca Siz Görüyorsunuz',
+      'en': 'Only Visible to You',
+      'ar': 'مرئي لك فقط',
+    },
+    'status_voting_disabled_pending': {
+      'tr': 'Onaylandıktan sonra oylamaya açılacaktır',
+      'en': 'Voting opens after approval',
+      'ar': 'سيتم فتح التصويت بعد الموافقة',
+    },
+    'status_published': {
+      'tr': 'Yayında',
+      'en': 'Published',
+      'ar': 'منشور',
+    },
+    'no_suggestions_found': {
+      'tr': 'Henüz onaylanmış bir öneri bulunmuyor.',
+      'en': 'No approved suggestions found.',
+      'ar': 'لا توجد مقترحات معتمدة بعد.',
+    },
     'btn_new_suggestion': {
       'tr': 'Yeni Öneri Paylaş',
       'en': 'Share New Idea',
