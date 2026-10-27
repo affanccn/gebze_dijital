@@ -953,10 +953,12 @@ class _SuggestionCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     final s = status.toLowerCase();
-    if (s.contains('onay') || s.contains('approv') || s.contains('yayın'))
+    if (s.contains('onay') || s.contains('approv') || s.contains('yayın')) {
       return _C.green;
-    if (s.contains('ince') || s.contains('review') || s.contains('bekle'))
+    }
+    if (s.contains('ince') || s.contains('review') || s.contains('bekle')) {
       return _C.orange;
+    }
     return _C.textMuted;
   }
 
