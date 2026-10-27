@@ -1206,33 +1206,46 @@ class _EventsSection extends ConsumerWidget {
       data: (allEvents) {
         final upcoming = allEvents.where((e) {
           final d = (e['date'] ?? '').toString();
-          return d.compareTo(today) >= 0;
-        }).take(3).toList();
+          return d.isNotEmpty && d.compareTo(today) >= 0;
+        }).toList()
+          ..sort((a, b) => (a['date'] ?? '').toString().compareTo((b['date'] ?? '').toString()));
+        final displayUpcoming = upcoming.take(3).toList();
+
+        final List<Map<String, dynamic>> targetList;
+        if (displayUpcoming.isNotEmpty) {
+          targetList = displayUpcoming;
+        } else if (allEvents.isNotEmpty) {
+          final latest = allEvents.toList()
+            ..sort((a, b) => (b['date'] ?? '').toString().compareTo((a['date'] ?? '').toString()));
+          targetList = latest.take(3).toList();
+        } else {
+          targetList = [];
+        }
 
         final List<_RowData> rows;
-        if (upcoming.isEmpty) {
+        if (targetList.isEmpty) {
           rows = [
             _RowData(
-              'Gebze Kültür Sanat Buluşmaları',
-              'Osman Hamdi Bey Kültür Merkezi - 24 Ekim',
+              'Tafiti Çölde Macera',
+              'Gebze Kültür Merkezi • 31 Ekim • 13:00',
               Icons.event_rounded,
               onTap: navigateToEvents,
             ),
             _RowData(
-              'Gençlik & Spor Festivali',
-              'Gebze Kapalı Spor Salonu - 28 Ekim',
+              'Neşeli Orman Dostları',
+              'Gebze Kültür Merkezi • 1 Kasım • 13:00',
               Icons.event_rounded,
               onTap: navigateToEvents,
             ),
             _RowData(
-              'Doğa Yürüyüşü & Bisiklet Günü',
-              'Gaziler Dağı Tabiat Parkı - 2 Kasım',
+              'Prof. Dr. Nurullah Genç - Başarı ve Karakter',
+              'Gebze Kültür Merkezi • 1 Kasım • 19:30',
               Icons.event_rounded,
               onTap: navigateToEvents,
             ),
           ];
         } else {
-          rows = upcoming.map((m) {
+          rows = targetList.map((m) {
             final title = (m['title'] ?? m['name'] ?? '').toString();
             var subtitle = (m['subtitle'] ?? '').toString();
             if (subtitle.isEmpty) {

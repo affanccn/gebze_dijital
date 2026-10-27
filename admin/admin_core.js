@@ -1458,7 +1458,8 @@ window.syncEventsFromWeb = async () => {
         targetEvents = localEvents.filter(x => (x.tarih || '').startsWith(selectedMonth));
       }
     } else {
-      targetEvents = data.filter(x => (x.tarih || '').startsWith('2026') || !x.tarih);
+      // Ekim 2026 öncesi eski etkinlikleri dahil etme; yalnızca Ekim ve sonrasını al
+      targetEvents = data.filter(x => (x.tarih || '') >= '2026-10-01');
     }
 
     const finalEvents = targetEvents.length > 0 ? targetEvents : data.slice(0, 50);
@@ -1500,7 +1501,7 @@ window.syncEventsFromWeb = async () => {
       count++;
     }
 
-    const monthName = selectedMonth === '2026-11' ? 'Kasım 2026' : (selectedMonth === '2026-10' ? 'Ekim 2026' : (selectedMonth === 'all' ? 'Tüm Program' : selectedMonth));
+    const monthName = selectedMonth === '2026-11' ? 'Kasım 2026' : (selectedMonth === '2026-10' ? 'Ekim 2026' : (selectedMonth === '2026-12' ? 'Aralık 2026' : (selectedMonth === 'all' ? 'Tüm Program' : selectedMonth)));
     showToast(`✅ ${count} adet ${monthName} etkinliği başarıyla eşitlendi!`);
 
     const filterMonthSelect = document.getElementById("eventsFilterMonth");
@@ -1516,6 +1517,39 @@ window.syncEventsFromWeb = async () => {
     if (btn) {
       btn.disabled = false;
       btn.innerText = "🌐 Seçili Ayın Etkinliklerini Çek / Güncelle";
+    }
+  }
+};
+
+window.cleanOldEvents = async () => {
+  if (!confirm("Ekim 2026 öncesine ait eski etkinlikler veritabanından kalıcı olarak silinecek. Onaylıyor musunuz?")) {
+    return;
+  }
+  const btn = document.getElementById("btnCleanOldEvents");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "⏳ Siliniyor...";
+  }
+  try {
+    const snap = await getDocs(collection(db, "events"));
+    let deleted = 0;
+    for (const d of snap.docs) {
+      const data = d.data();
+      const dateStr = data.date || data.tarih || '';
+      if (!dateStr || dateStr < '2026-10-01') {
+        await deleteDoc(doc(db, "events", d.id));
+        deleted++;
+      }
+    }
+    showToast(`🧹 ${deleted} adet eski etkinlik silindi.`);
+    loadEvents();
+    loadDashboard();
+  } catch (err) {
+    alert("Temizleme hatası: " + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = "🧹 Eski Verileri Sil";
     }
   }
 };

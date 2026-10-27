@@ -223,7 +223,10 @@ async function main() {
     return;
   }
 
-  const events = rawEvents.map(normalizeEvent);
+  // Sadece Ekim 2026 ve sonrası (Kasım, Aralık vb.) etkinlikleri senkronize et
+  const events = rawEvents
+    .filter((item) => item && item.tarih && item.tarih >= "2026-10-01")
+    .map(normalizeEvent);
 
   // Firestore batch limit 500, 400'lük parçalarla yaz
   for (let start = 0; start < events.length; start += 400) {

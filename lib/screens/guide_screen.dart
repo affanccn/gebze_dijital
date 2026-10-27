@@ -1474,6 +1474,7 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
       widget.category.id == 'etkinlikler'
           ? FirebaseFirestore.instance
               .collection('events')
+              .where('date', isGreaterThanOrEqualTo: '2026-10-01')
               .orderBy('date')
               .limit(50)
               .snapshots()

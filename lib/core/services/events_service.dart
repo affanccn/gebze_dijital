@@ -71,6 +71,7 @@ class EventsService {
     try {
       final snap = await _firestore
           .collection('events')
+          .where('date', isGreaterThanOrEqualTo: '2026-10-01')
           .orderBy('date')
           .limit(limit)
           .get(force
@@ -93,6 +94,7 @@ class EventsService {
   Stream<List<Map<String, dynamic>>> watchEvents({int limit = 50}) {
     return _firestore
         .collection('events')
+        .where('date', isGreaterThanOrEqualTo: '2026-10-01')
         .orderBy('date')
         .limit(limit)
         .snapshots()
@@ -128,11 +130,14 @@ class EventsService {
 
       for (final item in decoded) {
         if (item is! Map<String, dynamic>) continue;
+        final date = (item['tarih'] ?? '').toString().trim();
+        // Sadece Ekim 2026 ve sonrası (Ekim, Kasım, Aralık vb.) etkinlikleri kabul et
+        if (date.isNotEmpty && date.compareTo('2026-10-01') < 0) continue;
+
         final rawId = (item['id'] ?? count + 1).toString();
         final title = (item['baslik'] ?? '').toString().trim();
         final category = (item['kategori'] ?? 'Kültür & Sanat').toString().trim();
         final location = (item['konum'] ?? 'Gebze').toString().trim();
-        final date = (item['tarih'] ?? '').toString().trim();
         final time = (item['saat'] ?? '').toString().trim();
         final formattedDate = formatTrDate(date);
 
