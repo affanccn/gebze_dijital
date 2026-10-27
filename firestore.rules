@@ -3,125 +3,230 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --------------------------------------------------
-    // GEBZE BELEDİYESİ DİJİTAL YÖNETİM & MOBİL UYGULAMA KURALLARI
-    // --------------------------------------------------
+    // ─────────────────────────────────────────────────────────────────────────
+    // GEBZE BELEDİYESİ DİJİTAL YÖNETİM & MOBİL UYGULAMA GÜVENLİK KURALLARI
+    // ─────────────────────────────────────────────────────────────────────────
 
-    // 1. Vatandaş Çek & Gönder Talepleri (reports)
+    // 1. Kimlik ve Yetki Yardımcı Fonksiyonları
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Gerçek Yönetici (Admin) Kontrolü
+    // - Token custom claim'inde admin yetkisi olanlar
+    // - Resmi belediye yönetici e-posta hesabı (admin@gebze.bel.tr)
+    // - @gebze.bel.tr kurumsal alan adına sahip hesaplar
+    // - users/{uid} dokümanında 'role' alanı 'admin' olarak atanmış yetkililer
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.token.email == 'admin@gebze.bel.tr' ||
+        (request.auth.token.email != null && request.auth.token.email.matches('^[a-zA-Z0-9._%+-]+@gebze\\.bel\\.tr$')) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2. Özel ve Hassas Kullanıcı Verileri
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Kullanıcı Profilleri:
+    // - Kullanıcı yalnızca kendi profilini okuyabilir ve düzenleyebilir.
+    // - Kullanıcı kendi kendine 'admin' rolü veremez veya rolünü yükseltemez.
+    // - Yöneticiler tüm profilleri listeleyebilir ve gerektiğinde rol atayabilir.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) &&
+                       (!('role' in request.resource.data) || request.resource.data.role == 'citizen') ||
+                       isAdmin();
+      allow update: if (isOwner(uid) &&
+                       (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)) ||
+                       isAdmin();
+      allow delete: if isAdmin();
+
+      // Kullanıcının alt koleksiyonları (votes, supported, saved, favorites vb.)
+      match /{subcollection}/{docId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    // Kullanıcı Hareket Kayıtları (user_activities)
+    match /user_activities/{id} {
+      allow read: if (resource != null && isOwner(resource.data.userId)) || isAdmin();
+      allow create: if isOwner(request.resource.data.userId) || isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // Vatandaş Çek & Gönder Talepleri (reports):
+    // - Vatandaş yalnızca kendi oluşturduğu şikayet ve talepleri görebilir.
+    // - Yeni talep oluştururken userId giriş yapan kullanıcının uid'si olmalıdır.
+    // - Durum değiştirme ve silme yalnızca yöneticilere aittir.
     match /reports/{id} {
-      allow read, write: if true;
+      allow read: if (resource != null && isOwner(resource.data.userId)) || isAdmin();
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid) || isAdmin();
+      allow update, delete: if isAdmin();
     }
 
-    // 2. Afet ve Acil Durum Toplanma Alanları
-    match /assembly_areas/{id} {
-      allow read, write: if true;
+    // ─────────────────────────────────────────────────────────────────────────
+    // 3. Söz Sende: Anketler ve Öneriler
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Vatandaş Önerileri (suggestions):
+    // - Onaylanmış (Yayında) öneriler kamuya açıktır; onay bekleyen önerileri yalnızca sahibi ve admin görebilir.
+    // - Vatandaş öneri gönderirken durumu 'İncelemede' ve approved: false olmalıdır.
+    // - Vatandaşlar yalnızca beğeni (likes) sayacını artırıp azaltabilir.
+    match /suggestions/{id} {
+      allow read: if (resource != null && (resource.data.approved == true || resource.data.status == 'Yayında')) ||
+                     (isSignedIn() && resource != null && resource.data.authorUid == request.auth.uid) ||
+                     isAdmin();
+      allow create: if isSignedIn() &&
+                       request.resource.data.authorUid == request.auth.uid &&
+                       (request.resource.data.approved == false || !('approved' in request.resource.data)) &&
+                       (request.resource.data.status == 'İncelemede' || !('status' in request.resource.data)) ||
+                       isAdmin();
+      allow update: if isAdmin() ||
+                       (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']));
+      allow delete: if isAdmin();
     }
 
-    // 3. Canlı Bildirim ve Duyuru Yayını
-    match /broadcast_notifications/{id} {
-      allow read, write: if true;
+    // Anketler (polls):
+    // - Herkes anketleri ve sonuçları okuyabilir.
+    // - Yalnızca yöneticiler anket oluşturabilir veya silebilir.
+    // - Giriş yapan vatandaşlar oy verirken yalnızca 'voteCounts' alanını artırabilir.
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() ||
+                       (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voteCounts']));
     }
 
-    match /notifications/{id} {
-      allow read, write: if true;
-    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // 4. Kamuya Açık Belediye Hizmetleri (Anonim Okuma İzni, Yönetici Yazma İzni)
+    // ─────────────────────────────────────────────────────────────────────────
 
-    // 4. Belediye Haberleri ve Duyurular
+    // Belediye Haberleri ve Duyurular
     match /municipal_news/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 5. Etkinlikler ve Kültür
+    // Kültür ve Etkinlikler
     match /events/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 6. Planlı Kesintiler (İSU, SEDAŞ, PALGAZ)
+    // Planlı Kesintiler (İSU, SEDAŞ, PALGAZ)
     match /outages/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 7. Mahallemde (Saha ve Altyapı Çalışmaları)
+    // Mahallemde (Saha ve Altyapı Çalışmaları)
     match /neighborhood_works/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 8. Nöbetçi Eczaneler
+    // Nöbetçi Eczaneler
     match /pharmacies_on_duty/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 9. Gebze Pati (Sahiplendirme, Odaklar, Klinikler)
-    match /pet_adoptions/{id} {
-      allow read, write: if true;
+    // Hava Durumu
+    match /weather_info/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /feeding_points/{id} {
-      allow read, write: if true;
+    // Afet ve Acil Durum Toplanma Alanları
+    match /assembly_areas/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /vet_clinics/{id} {
-      allow read, write: if true;
+    // Otopark ve Doluluk Bilgileri
+    match /parking_lots/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 10. E-Belediye Kategorileri
+    // Kreşler ve Çocuk Bakımevleri
+    match /nurseries/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // E-Belediye Kategorileri
     match /ebelediye_categories/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 11. Şehir Rehberi ve Mekanlar
+    // Şehir Rehberi ve Mekanlar
     match /places/{id} {
-      allow read, write: if true;
-    }
-
-    match /guide_institutions/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /guide_places/{id} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /weather_info/{id} {
-      allow read, write: if true;
+    match /guide_institutions/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 12. Söz Sende: Anketler ve Oylar
-    match /polls/{pollId} {
-      allow read, write: if true;
+    match /guide_foods/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 13. Söz Sende: Öneriler
-    match /suggestions/{id} {
-      allow read, write: if true;
+    match /guide_picnic/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 14. Kullanıcı Profilleri ve Alt Koleksiyonları
-    match /users/{uid} {
-      allow read, write: if true;
+    // Gebze Pati (Sahiplendirme, Besleme Odakları, Klinikler)
+    match /pet_adoptions/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /users/{uid}/{document=**} {
-      allow read, write: if true;
+    match /feeding_points/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /user_activities/{id} {
-      allow read, write: if true;
+    match /vet_clinics/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 15. Otopark & Doluluk Yönetimi
-    match /parking_lots/{id} {
-      allow read, write: if true;
+    // Canlı Bildirim ve Duyurular
+    match /notifications/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 16. Kreşler ve Çocuk Bakımevleri
-    match /nurseries/{id} {
-      allow read, write: if true;
+    match /broadcast_notifications/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // 17. Genel Güvenlik Kuralı
+    // ─────────────────────────────────────────────────────────────────────────
+    // 5. Varsayılan Kapatma (Default Deny)
+    // ─────────────────────────────────────────────────────────────────────────
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

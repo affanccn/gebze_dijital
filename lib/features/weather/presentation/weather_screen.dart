@@ -194,16 +194,28 @@ class WeatherScreen extends ConsumerWidget {
                 ],
               ),
               if (syncedAt != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 48, top: 4),
-                  child: Text(
-                    '${AppStrings.get('last_updated', lang)}: ${GebzeTime.formatHour(GebzeTime.toGebzeTime(syncedAt))}',
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                Builder(
+                  builder: (_) {
+                    final gebzeSync = GebzeTime.toGebzeTime(syncedAt);
+                    final now = GebzeTime.now();
+                    final isToday = gebzeSync.year == now.year &&
+                        gebzeSync.month == now.month &&
+                        gebzeSync.day == now.day;
+                    final timeFormatted = isToday
+                        ? GebzeTime.formatHour(gebzeSync)
+                        : '${GebzeTime.formatDate(gebzeSync)} ${GebzeTime.formatHour(gebzeSync)}';
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 48, top: 4),
+                      child: Text(
+                        '${AppStrings.get('last_updated', lang)}: $timeFormatted',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.white60,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  },
                 ),
             ],
           ),
