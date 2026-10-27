@@ -2292,7 +2292,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   final _ctrl = TextEditingController();
   String _query = '';
   String _filter = '';
-  int _section = 0; // 0 = Mekanlar, 1 = Lezzetler, 2 = Doğa & Piknik
+  int _section = 0; // 0 = Tarihi Yerler, 1 = Lezzetler, 2 = Doğa & Piknik
 
   @override
   bool get wantKeepAlive => true;
@@ -2369,7 +2369,6 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
       favLabel,
       AppStrings.get('filter_historic', widget.lang),
       AppStrings.get('filter_museums', widget.lang),
-      AppStrings.get('filter_nature', widget.lang),
       AppStrings.get('filter_mosques', widget.lang),
     ];
 
@@ -2468,8 +2467,20 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
                 _ensurePlacesSeeded();
               }
 
+              // Aynı isimli mekan birden fazla kayıtsa tek kart göster;
+              // favoriye eklenmiş olan kopya varsa onu tercih et.
+              final byName = <String, HistoricPlace>{};
+              for (final p in basePlaces) {
+                final k = p.name.trim().toLowerCase();
+                final cur = byName[k];
+                if (cur == null ||
+                    (!favIds.contains(cur.id) && favIds.contains(p.id))) {
+                  byName[k] = p;
+                }
+              }
+
               final filtered = _applyFilters(
-                basePlaces,
+                byName.values.toList(),
                 filterAll,
                 favLabel,
                 favIds,
@@ -2517,7 +2528,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   }
 }
 
-/// "Mekanlar | Lezzetler | Doğa & Piknik" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
+/// "Tarihi Yerler | Lezzetler | Doğa & Piknik" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
 class _DiscoverToggle extends StatelessWidget {
   final String lang;
   final int selected;
@@ -2584,7 +2595,7 @@ class _DiscoverToggle extends StatelessWidget {
           pill(
             0,
             Icons.account_balance_rounded,
-            _t(lang, 'Mekanlar', 'Places', 'الأماكن'),
+            _t(lang, 'Tarihi Yerler', 'Historic Places', 'الأماكن التاريخية'),
           ),
           pill(
             1,

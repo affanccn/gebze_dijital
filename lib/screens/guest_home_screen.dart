@@ -299,7 +299,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                           icon: Icons.account_balance_rounded,
                           iconColor: _C.navy,
                           rows: historicPlaces,
-                          onSeeAll: () => _handleNav(1),
+                          onSeeAll: () => _openGuide(initialTab: 1),
                         ),
                         const SizedBox(height: 16),
                         _NewsSection(lang: lang),

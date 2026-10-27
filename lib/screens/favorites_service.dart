@@ -45,7 +45,18 @@ final favoritesProvider = StreamProvider<List<FavoritePlace>>((ref) {
       .collection('favorites')
       .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((s) => s.docs.map(FavoritePlace.fromDoc).toList());
+      .map((s) {
+        // Aynı mekan farklı id'lerle kaydedilmişse listede bir kez göster
+        // (liste en yeniden eskiye sıralı, ilk gelen en yenisidir).
+        final seen = <String>{};
+        final out = <FavoritePlace>[];
+        for (final d in s.docs) {
+          final f = FavoritePlace.fromDoc(d);
+          final key = f.name.trim().toLowerCase();
+          if (key.isEmpty || seen.add(key)) out.add(f);
+        }
+        return out;
+      });
 });
 
 /// Kalp ikonunun dolu/boş olmasına karar vermek için id kümesi.
@@ -69,12 +80,39 @@ class FavoritesService {
         .doc(placeId);
   }
 
+  /// Aynı isimle kayıtlı tüm favori dökümanları (farklı id'li kopyalar dahil).
+  Future<List<DocumentReference<Map<String, dynamic>>>> _sameName(
+    String name,
+  ) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || name.trim().isEmpty) return const [];
+    final q = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favorites')
+        .where('name', isEqualTo: name)
+        .get();
+    return q.docs.map((d) => d.reference).toList();
+  }
+
+  Future<void> _deleteAll(
+    Iterable<DocumentReference<Map<String, dynamic>>> refs,
+  ) async {
+    final batch = FirebaseFirestore.instance.batch();
+    for (final r in refs) {
+      batch.delete(r);
+    }
+    await batch.commit();
+  }
+
   Future<void> toggle(HistoricPlace p) async {
     final doc = _doc(p.id);
     if (doc == null) return;
     final snap = await doc.get();
-    if (snap.exists) {
-      await doc.delete();
+    final copies = await _sameName(p.name);
+    if (snap.exists || copies.isNotEmpty) {
+      // Favoriden çıkarırken aynı mekanın tüm kopyalarını sil.
+      await _deleteAll({doc, ...copies});
     } else {
       await doc.set({
         'name': p.name,
@@ -87,5 +125,12 @@ class FavoritesService {
     }
   }
 
-  Future<void> remove(String placeId) => _doc(placeId)?.delete() ?? Future.value();
+  Future<void> remove(String placeId) async {
+    final doc = _doc(placeId);
+    if (doc == null) return;
+    final snap = await doc.get();
+    final name = (snap.data()?['name'] ?? '').toString();
+    final copies = await _sameName(name);
+    await _deleteAll({doc, ...copies});
+  }
 }
