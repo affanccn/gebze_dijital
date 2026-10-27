@@ -117,7 +117,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                 );
               },
             ),
-            duration: const Duration(seconds: 5),
+            duration: const Duration(seconds: 10),
             persist: false,
           ),
         );
