@@ -90,10 +90,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   }
 
   List<_QuickActionData> _getQuickActions(String lang) {
-    final complaintTitle = lang == 'en'
-        ? 'Report'
-        : (lang == 'ar' ? 'إبلاغ' : 'Bildir');
-
     return [
       _QuickActionData(
         AppStrings.get('qa_places', lang),
@@ -119,7 +115,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
             .push(MaterialPageRoute(builder: (_) => const EBelediyeScreen())),
       ),
       _QuickActionData(
-        complaintTitle,
+        AppStrings.get('qa_report', lang),
         Icons.report_problem_rounded,
         _C.navyGradient,
         onTap: () => _handleNav(2),
@@ -133,7 +129,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                 .push(MaterialPageRoute(builder: (_) => const ParkingScreen())),
       ),
       _QuickActionData(
-        AppStrings.get('service_neighborhood', lang),
+        AppStrings.get('qa_neighborhood', lang),
         Icons.location_city_rounded,
         _C.navyGradient,
         onTap: () => Navigator.of(
@@ -846,8 +842,9 @@ class _QuickActionsCard extends StatelessWidget {
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 9.5,
-                          height: 1.2,
+                          fontSize: 9.0,
+                          letterSpacing: -0.2,
+                          height: 1.15,
                           fontWeight: FontWeight.w800,
                           color: isDark ? Colors.white : _C.textDark,
                         ),

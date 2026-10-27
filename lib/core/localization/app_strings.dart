@@ -140,12 +140,18 @@ class AppStrings {
     },
     'qa_food': {'tr': 'YEME İÇME', 'en': 'FOOD & DRINK', 'ar': 'طعام وشراب'},
     'qa_ebel': {'tr': 'E-BEL', 'en': 'E-MUN', 'ar': 'البلدية'},
+    'qa_report': {'tr': 'BİLDİR', 'en': 'REPORT', 'ar': 'إبلاغ'},
     'qa_complaint': {
       'tr': 'MİSAFİR ŞİKAYET',
       'en': 'GUEST REPORT',
       'ar': 'شكاوى الزوار',
     },
     'qa_parking': {'tr': 'OTOPARK', 'en': 'PARKING', 'ar': 'مواقف السيارات'},
+    'qa_neighborhood': {
+      'tr': 'MAHALLEMDE',
+      'en': 'NEIGHBORHOOD',
+      'ar': 'في حيي',
+    },
     'events_title': {
       'tr': 'YAKLAŞAN ETKİNLİKLER',
       'en': 'UPCOMING EVENTS',
