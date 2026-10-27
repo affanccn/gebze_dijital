@@ -152,11 +152,25 @@ class _MyAppState extends ConsumerState<MyApp> {
     final baseTextTheme =
         (isDark ? ThemeData.dark() : ThemeData.light()).textTheme;
 
+    const defaultFont = 'Poppins';
+    const defaultFontFallback = [
+      '-apple-system',
+      'Segoe UI',
+      'Roboto',
+      'Noto Sans',
+      'Arial',
+      'sans-serif',
+    ];
+
     return ThemeData(
       useMaterial3: true,
+      fontFamily: defaultFont,
+      fontFamilyFallback: defaultFontFallback,
       brightness: isDark ? Brightness.dark : Brightness.light,
       colorScheme: colorScheme,
       textTheme: baseTextTheme.apply(
+        fontFamily: defaultFont,
+        fontFamilyFallback: defaultFontFallback,
         bodyColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
       ),

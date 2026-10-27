@@ -19,7 +19,7 @@ class _C {
   static const danger = Color(0xFFE5231B);
 }
 
-const String _kBodyFont = 'system-ui';
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',

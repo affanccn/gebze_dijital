@@ -38,7 +38,7 @@ class _C {
   static const dangerGradient = [danger, dangerDark];
 }
 
-const String _kBodyFont = 'system-ui';
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',

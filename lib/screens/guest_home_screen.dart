@@ -38,7 +38,7 @@ class _C {
   static const navyGradient = [Color(0xFF1E5BC6), Color(0xFF0A2A66)];
 }
 
-const String _kBodyFont = 'system-ui';
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',

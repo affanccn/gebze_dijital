@@ -6,18 +6,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gebze Belediyesi • Dijital Yönetim Portalı</title>
 
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+  <!-- Local Poppins Fonts (Çevrimdışı / Bağımsız Tipografi) -->
+  <link rel="preload" href="fonts/Poppins-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/Poppins-SemiBold.ttf" as="font" type="font/ttf" crossorigin>
 
   <!-- Gebze Belediyesi Resmi Etkinlikler & Haberler Önbelleği (CORS Korumalı Doğrudan Paket) -->
   <script src="gebze_etkinlik_cache.js"></script>
   <script src="gebze_haber_cache.js"></script>
 
   <style>
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('fonts/Poppins-Regular.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('fonts/Poppins-Medium.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/Poppins-SemiBold.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'Poppins';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('fonts/Poppins-Bold.ttf') format('truetype');
+    }
+
     :root {
+      --font-family-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --navy: #0A2A66;
       --navy-deep: #061B45;
       --navy-light: #1E5BC6;
@@ -52,7 +80,14 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--font-family-primary);
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
     }
 
     body {
@@ -979,7 +1014,7 @@
     }
 
     * {
-      font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+      font-family: var(--font-family-primary);
     }
 
     body {

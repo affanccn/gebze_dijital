@@ -23,7 +23,7 @@ class _C {
   static const green = Color(0xFF2E7D32);
 }
 
-const String _kBodyFont = 'system-ui';
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',

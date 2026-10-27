@@ -27,7 +27,7 @@ class _C {
   static const orangeGradient = [Color(0xFFFFA11F), Color(0xFFFF6A00)];
 }
 
-const String _kBodyFont = 'system-ui';
+const String _kBodyFont = 'Poppins';
 const List<String> _kBodyFontFallback = [
   '-apple-system',
   'Segoe UI',
