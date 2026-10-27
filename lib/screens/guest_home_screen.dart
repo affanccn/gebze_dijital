@@ -122,9 +122,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
         complaintTitle,
         Icons.report_problem_rounded,
         _C.navyGradient,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ReportScreen()),
-        ),
+        onTap: () => _handleNav(2),
       ),
       _QuickActionData(
         AppStrings.get('qa_parking', lang),
@@ -192,7 +190,15 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     } else if (i == 2) {
       final isLoggedIn = ref.read(isLoggedInProvider);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ReportScreen(isGuest: !isLoggedIn)),
+        MaterialPageRoute(
+          builder: (_) => ReportScreen(
+            isGuest: !isLoggedIn,
+            onNavTap: (j) {
+              Navigator.of(context).pop();
+              if (j != 0 && j != 2) _handleNav(j);
+            },
+          ),
+        ),
       );
     } else if (i == 3) {
       Navigator.of(context).push(
