@@ -586,7 +586,7 @@ class _WeatherContent extends StatelessWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -605,25 +605,32 @@ class _WeatherContent extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // ── Gün adı + rozet + tarih ──
           Expanded(
-            flex: 5,
+            flex: 6,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Text(
-                      dateInfo.dayName,
-                      style: TextStyle(
-                        fontWeight: dateInfo.isToday
-                            ? FontWeight.w800
-                            : FontWeight.w700,
-                        fontSize: 14,
-                        color: dateInfo.isToday
-                            ? (isDark
-                                  ? const Color(0xFF38BDF8)
-                                  : const Color(0xFF1E5BC6))
-                            : (isDark ? Colors.white : const Color(0xFF0A1F44)),
+                    Flexible(
+                      child: Text(
+                        dateInfo.dayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: dateInfo.isToday
+                              ? FontWeight.w800
+                              : FontWeight.w700,
+                          fontSize: 14,
+                          color: dateInfo.isToday
+                              ? (isDark
+                                    ? const Color(0xFF38BDF8)
+                                    : const Color(0xFF1E5BC6))
+                              : (isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0A1F44)),
+                        ),
                       ),
                     ),
                     if (dateInfo.isToday) ...[
@@ -641,6 +648,7 @@ class _WeatherContent extends StatelessWidget {
                         ),
                         child: Text(
                           AppStrings.get('today', lang),
+                          maxLines: 1,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -658,6 +666,8 @@ class _WeatherContent extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       dateInfo.dateText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,
                         color: isDark
@@ -669,6 +679,9 @@ class _WeatherContent extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+
+          // ── İkon + hava durumu metni ──
           Expanded(
             flex: 5,
             child: Row(
@@ -676,8 +689,8 @@ class _WeatherContent extends StatelessWidget {
                 if (iconUrl.isNotEmpty)
                   Image.network(
                     iconUrl,
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     errorBuilder: (_, _, _) => const Icon(
                       Icons.cloud_rounded,
                       size: 22,
@@ -690,10 +703,12 @@ class _WeatherContent extends StatelessWidget {
                     size: 22,
                     color: Color(0xFF1E5BC6),
                   ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     condition,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark
@@ -701,39 +716,37 @@ class _WeatherContent extends StatelessWidget {
                           : const Color(0xFF4A5568),
                       fontWeight: FontWeight.w600,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
           ),
-          Expanded(
-            flex: 4,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  '${forecast.maxtempC.round()}°',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF0A1F44),
-                  ),
+          const SizedBox(width: 8),
+
+          // ── Sıcaklıklar (sadece gereken kadar yer) ──
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${forecast.maxtempC.round()}°',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : const Color(0xFF0A1F44),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '${forecast.mintempC.round()}°',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF5F6F8A),
-                  ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${forecast.mintempC.round()}°',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF5F6F8A),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
