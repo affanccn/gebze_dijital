@@ -114,9 +114,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
       AppStrings.get('qa_complaint', lang),
       Icons.report_problem_rounded,
       _C.navyGradient,
-      onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const ReportScreen())),
+      onTap: () => _handleNav(2),
     ),
     _QuickActionData(
       AppStrings.get('qa_parking', lang),
@@ -167,8 +165,16 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     if (i == 1) {
       _openGuide();
     } else if (i == 2) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const ReportScreen()));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ReportScreen(
+            onNavTap: (j) {
+              Navigator.of(context).pop();
+              if (j != 0 && j != 2) _handleNav(j);
+            },
+          ),
+        ),
+      );
     } else if (i == 3) {
       Navigator.of(context).push(
         MaterialPageRoute(
