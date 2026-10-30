@@ -234,8 +234,80 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _pollsStream =
       FirebaseFirestore.instance.collection('polls').limit(50).snapshots();
 
-  late final Stream<QuerySnapshot<Map<String, dynamic>>> _suggestionsStream =
-      FirebaseFirestore.instance.collection('suggestions').limit(50).snapshots();
+  // ───────────── Öneriler akışı (Firestore kurallarıyla uyumlu) ─────────────
+  // Kurallar yalnızca "approved == true" olan veya "authorUid == uid" olan
+  // dokümanların okunmasına izin verir. Firestore kuralları filtre gibi
+  // çalışmadığı için filtresiz `collection('suggestions')` sorgusu
+  // permission-denied hatası verir. Bu yüzden iki ayrı sorgu birleştirilir:
+  //   1) Onaylı öneriler (herkes)
+  //   2) Kullanıcının kendi önerileri (giriş yapmışsa)
+  String? _suggestionsUid;
+  StreamController<List<Map<String, dynamic>>>? _suggestionsCtrl;
+
+  Stream<List<Map<String, dynamic>>> _suggestionsFor(String? uid) {
+    if (_suggestionsCtrl != null && _suggestionsUid == uid) {
+      return _suggestionsCtrl!.stream;
+    }
+    // Kullanıcı değiştiyse eski akışı kapat.
+    _suggestionsCtrl?.close();
+    _suggestionsUid = uid;
+
+    final col = FirebaseFirestore.instance.collection('suggestions');
+    final approvedQ = col.where('approved', isEqualTo: true).limit(50);
+    final Query<Map<String, dynamic>>? mineQ = uid == null
+        ? null
+        : col.where('authorUid', isEqualTo: uid).limit(50);
+
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? s1;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? s2;
+    var approvedDocs = <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+    var mineDocs = <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+    var gotApproved = false;
+    var gotMine = mineQ == null;
+
+    late final StreamController<List<Map<String, dynamic>>> ctrl;
+
+    void emit() {
+      if (!gotApproved || !gotMine || ctrl.isClosed) return;
+      final byId = <String, Map<String, dynamic>>{};
+      for (final d in [...approvedDocs, ...mineDocs]) {
+        byId[d.id] = {...d.data(), '_id': d.id};
+      }
+      ctrl.add(byId.values.toList());
+    }
+
+    ctrl = StreamController<List<Map<String, dynamic>>>.broadcast(
+      onListen: () {
+        gotApproved = false;
+        gotMine = mineQ == null;
+        s1 = approvedQ.snapshots().listen((s) {
+          approvedDocs = s.docs;
+          gotApproved = true;
+          emit();
+        }, onError: (Object e, StackTrace st) {
+          if (!ctrl.isClosed) ctrl.addError(e, st);
+        });
+        if (mineQ != null) {
+          s2 = mineQ.snapshots().listen((s) {
+            mineDocs = s.docs;
+            gotMine = true;
+            emit();
+          }, onError: (Object e, StackTrace st) {
+            if (!ctrl.isClosed) ctrl.addError(e, st);
+          });
+        }
+      },
+      onCancel: () async {
+        await s1?.cancel();
+        await s2?.cancel();
+        s1 = null;
+        s2 = null;
+      },
+    );
+
+    _suggestionsCtrl = ctrl;
+    return ctrl.stream;
+  }
 
   @override
   void initState() {
@@ -246,6 +318,7 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
 
   @override
   void dispose() {
+    _suggestionsCtrl?.close();
     _tab.dispose();
     super.dispose();
   }
@@ -530,8 +603,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
     final supported = ref.watch(mySupportedProvider).value ?? const <String>{};
     final currentUid = ref.watch(sozUidProvider);
 
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _suggestionsStream,
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _suggestionsFor(currentUid),
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(
@@ -545,10 +618,8 @@ class _SozSendeScreenState extends ConsumerState<SozSendeScreen>
         }
 
         List<Map<String, dynamic>> items;
-        if (snap.hasData && snap.data!.docs.isNotEmpty) {
-          items = snap.data!.docs
-              .map((d) => {...d.data(), '_id': d.id})
-              .toList();
+        if (snap.hasData && snap.data!.isNotEmpty) {
+          items = List<Map<String, dynamic>>.of(snap.data!);
           items.sort((a, b) {
             final ta = a['createdAt'];
             final tb = b['createdAt'];

@@ -101,25 +101,25 @@ const List<GebzeAvatarItem> kGebzeAvatars = [
     titleTr: '',
     category: 'Genel',
   ),
-  // 13: Darwin (Zehra Şef)
+  
   GebzeAvatarItem(
     id: 'avatar_13',
     assetPath: 'assets/images/avatars/avatar_13.png',
-    titleTr: 'Darwin (Zehra Şef)',
+    titleTr: '',
     category: 'Özel',
   ),
-  // 14: Burun Bantlı Genç (Affan)
+  
   GebzeAvatarItem(
     id: 'avatar_14',
     assetPath: 'assets/images/avatars/avatar_14.png',
-    titleTr: 'Burun Bantlı Genç (Affan)',
+    titleTr: '',
     category: 'Özel',
   ),
-  // 15: Çiçek Perisi Flora (Havva)
+  
   GebzeAvatarItem(
     id: 'avatar_15',
     assetPath: 'assets/images/avatars/avatar_15.png',
-    titleTr: 'Çiçek Perisi Flora (Havva)',
+    titleTr: '',
     category: 'Özel',
   ),
 ];
