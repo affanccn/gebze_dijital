@@ -97,7 +97,8 @@ class ChatbotNavigator {
     if (cleanRoute.contains('/places/spor') || cleanRoute.contains('spor')) {
       return const GuideCategoryScreen(categoryId: 'spor');
     }
-    if (cleanRoute.contains('/places/kultur') || cleanRoute.contains('kultur')) {
+    if (cleanRoute.contains('/places/kultur') ||
+        cleanRoute.contains('kultur')) {
       return const GuideCategoryScreen(categoryId: 'kultur');
     }
     if (cleanRoute.contains('mezarlik') || cleanRoute.contains('vefat')) {
