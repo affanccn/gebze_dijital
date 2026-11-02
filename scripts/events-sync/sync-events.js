@@ -116,6 +116,7 @@ async function fetchEvents(maxRetries = 3) {
         console.log(`⏳ ${delayMs / 1000} saniye sonra tekrar deneniyor...`);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
+    }
   }
 
   // Doğrudan bağlantı zaman aşımına uğradıysa proxy üzerinden dene

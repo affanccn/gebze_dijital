@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gebze Belediyesi • Dijital Yönetim Portalı</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
 
   <!-- Local Poppins Fonts (Çevrimdışı / Bağımsız Tipografi) -->
   <link rel="preload" href="fonts/Poppins-Regular.ttf" as="font" type="font/ttf" crossorigin>
@@ -507,7 +508,7 @@
     /* Form & Panel Containers */
     .panel-grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 410px 1fr;
       gap: 24px;
       align-items: start;
     }
@@ -525,6 +526,8 @@
       box-shadow: var(--shadow-sm);
       padding: 24px;
       margin-bottom: 24px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .panel-header {
@@ -599,6 +602,21 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+      min-width: 0;
+    }
+
+    .form-row > * {
+      min-width: 0;
+    }
+
+    .form-group {
+      min-width: 0;
+      margin-bottom: 14px;
+    }
+
+    input, select, textarea {
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     /* Kart Izgaraları (Listeler) */
@@ -1390,10 +1408,12 @@
 
     window.usersMap = window.usersMap || {};
 
-    // Sayfa açılır açılmaz yalnızca optimize edilmiş dashboard verilerini yükle.
-    // (loadUsers() kaldırıldı: Kullanıcı tablosu binlerce döküman çekip kotayı tüketmesin diye sadece "Kullanıcılar" sekmesine tıklandığında yüklenir)
-    loadDashboard();
+    // Dashboard optimizasyon önbelleği
+    let _dashboardCache = null;
+    let _dashboardCacheTime = 0;
+    const DASHBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 dakika TTL bellek içi önbellek
 
+    // Sayfa açılır açılmaz yalnızca optimize edilmiş dashboard verilerini yükle.
     // ───────────────── YÖNETİCİ GİRİŞİ & OTURUM ─────────────────
     onAuthStateChanged(auth, (user) => {
       const overlay = document.getElementById('loginOverlay');
@@ -1403,6 +1423,7 @@
         if (overlay) overlay.style.display = 'none';
         if (who) who.innerText = user.email || 'Yetkili Yönetici (Aktif)';
         if (out) out.style.display = 'inline-flex';
+        loadDashboard(true);
       }
     });
 
@@ -1416,13 +1437,11 @@
           if (who) who.innerText = 'admin@gebze.bel.tr (Aktif)';
           const out = document.getElementById('btnSignOut');
           if (out) out.style.display = 'inline-flex';
-          loadDashboard();
-          loadUsers();
+          loadDashboard(true);
         })
         .catch(err => {
           console.warn("Otomatik oturum:", err.message);
-          loadDashboard();
-          loadUsers();
+          loadDashboard(true);
         });
     }
 
@@ -1533,9 +1552,6 @@
     };
 
     // ───────────────── 1. DASHBOARD (GENEL BAKIŞ - AGGREGATION & CACHE OPTİMİZE) ─────────────────
-    let _dashboardCache = null;
-    let _dashboardCacheTime = 0;
-    const DASHBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 dakika TTL bellek içi önbellek
 
     function applyDashboardData(data) {
       const setKpi = (id, val) => {
@@ -1646,16 +1662,16 @@
           getDocs(collection(db, "parking_lots")).catch(() => ({ size: 0, docs: [] }))
         ]);
 
-        let parkTotalCap = 0;
+        let parkingTotalCap = 0;
         let parkTotalOcc = 0;
         if (parkingSnap && parkingSnap.docs) {
           parkingSnap.docs.forEach(d => {
             const data = d.data();
-            parkTotalCap += (Number(data.capacity) || 0);
+            parkingTotalCap += (Number(data.capacity) || 0);
             parkTotalOcc += (Number(data.occupied) || 0);
           });
         }
-        const parkFree = Math.max(0, parkTotalCap - parkTotalOcc);
+        const parkingFree = Math.max(0, parkingTotalCap - parkTotalOcc);
 
         _dashboardCache = {
           news: newsCount ?? (_dashboardCache?.news ?? '-'),
@@ -1683,7 +1699,7 @@
         applyDashboardData(_dashboardCache);
         console.log('[Dashboard] Sayaçlar başarıyla güncellendi ve 5dk önbelleğe alındı.');
       } catch (err) {
-        console.error("Dashboard yüklenirken hata:", err);
+        console.error("Dashboard yüklenirken hata:", err?.stack || err?.message || err);
       }
     }
     window.loadDashboard = loadDashboard;
@@ -2048,6 +2064,13 @@
     async function loadPolls() {
       const container = document.getElementById("pollsGrid");
       container.innerHTML = '<div class="empty-state">Anketler yükleniyor...</div>';
+
+      const endInp = document.getElementById("pollEndDate");
+      if (endInp && !endInp.value) {
+        const d = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+        endInp.value = d.toISOString().slice(0, 10);
+      }
+
       try {
         const snap = await getDocs(collection(db, "polls"));
         if (snap.empty) {
@@ -2273,9 +2296,69 @@
     };
 
     // ───────────────── 7. PLANLI KESİNTİLER (İSU, SEDAŞ, PALGAZ) ─────────────────
+    window._cachedOutages = {};
+    window.outageEditId = null;
+
+    window.onOutageTypeChange = function() {
+      const type = document.getElementById("outageType")?.value;
+      const provider = document.getElementById("outageProvider");
+      if (!provider) return;
+      if (type === 'su') provider.value = 'İSU';
+      else if (type === 'elektrik') provider.value = 'SEDAŞ';
+      else if (type === 'gaz') provider.value = 'PALGAZ';
+      else if (type === 'internet') provider.value = 'Türk Telekom';
+      else if (type === 'altyapi') provider.value = 'Gebze Belediyesi Fen İşleri';
+    };
+
+    function formatOutageDateForDisplay(val) {
+      if (!val) return '';
+      if (/^\d{2}\.\d{2}\.\d{4}/.test(val)) return val;
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return val;
+      const p = n => String(n).padStart(2, '0');
+      return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    function parseOutageDateToInput(val) {
+      if (!val) return '';
+      if (typeof val === 'object' && val.toMillis) {
+        val = new Date(val.toMillis());
+      }
+      if (val instanceof Date && !isNaN(val.getTime())) {
+        const p = n => String(n).padStart(2, '0');
+        return `${val.getFullYear()}-${p(val.getMonth()+1)}-${p(val.getDate())}T${p(val.getHours())}:${p(val.getMinutes())}`;
+      }
+      const s = String(val).trim();
+      const m = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+      if (m) {
+        const p = n => String(n).padStart(2, '0');
+        const hh = m[4] ? p(m[4]) : '00';
+        const mm = m[5] ? p(m[5]) : '00';
+        return `${m[3]}-${p(m[2])}-${p(m[1])}T${hh}:${mm}`;
+      }
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+      }
+      return '';
+    }
+
     async function loadOutages() {
       const container = document.getElementById("outagesGrid");
       container.innerHTML = '<div class="empty-state">Kesintiler yükleniyor...</div>';
+
+      // Varsayılan başlangıç ve bitiş zamanlarını ayarla
+      const startInp = document.getElementById("outageStart");
+      const endInp = document.getElementById("outageEnd");
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const nowVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const endT = new Date(now.getTime() + 4 * 3600 * 1000);
+      const endVal = `${endT.getFullYear()}-${pad(endT.getMonth()+1)}-${pad(endT.getDate())}T${pad(endT.getHours())}:${pad(endT.getMinutes())}`;
+      if (startInp && !startInp.value) startInp.value = nowVal;
+      if (endInp && !endInp.value) endInp.value = endVal;
+
       try {
         const snap = await getDocs(collection(db, "outages"));
         if (snap.empty) {
@@ -2283,15 +2366,18 @@
           return;
         }
         container.innerHTML = '';
+        window._cachedOutages = {};
         snap.forEach(docSnap => {
           const d = docSnap.data();
+          window._cachedOutages[docSnap.id] = { id: docSnap.id, ...d };
           const card = document.createElement("div");
           card.className = "item-card";
+          const providerIcon = d.type === 'su' ? '💧' : (d.type === 'elektrik' ? '⚡' : (d.type === 'gaz' ? '🔥' : (d.type === 'internet' ? '🌐' : '🔧')));
           card.innerHTML = `
             <div class="item-card-body">
-              <div class="item-card-meta">⚡ ${d.provider || 'Altyapı'} • ${(d.type || 'KESİNTİ').toUpperCase()}</div>
-              <div class="item-card-title">${d.title}</div>
-              <div class="item-card-desc">📍 ${d.neighborhood || 'Gebze Geneli'}</div>
+              <div class="item-card-meta">${providerIcon} ${d.provider || 'Altyapı'} • ${(d.type || 'KESİNTİ').toUpperCase()}</div>
+              <div class="item-card-title">${d.title || 'Başlıksız Kesinti'}</div>
+              <div class="item-card-desc">📍 ${d.neighborhood || 'Gebze Geneli'}${d.street ? ' – ' + d.street : ''}</div>
               <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">
                 🕒 Başlangıç: ${d.startDate || 'Belirtilmedi'}<br>
                 🏁 Bitiş: ${d.endDate || 'Belirtilmedi'}
@@ -2299,7 +2385,10 @@
             </div>
             <div class="item-card-footer">
               <span class="badge ${d.status === 'Tamamlandı' ? 'badge-success' : 'badge-warning'}">${d.status || 'Devam Ediyor'}</span>
-              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('outages', '${docSnap.id}', loadOutages)">Sil</button>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="editOutage('${docSnap.id}')">✏️ Düzenle</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteDocItem('outages', '${docSnap.id}', loadOutages)">Sil</button>
+              </div>
             </div>
           `;
           container.appendChild(card);
@@ -2310,7 +2399,64 @@
     }
     window.loadOutages = loadOutages;
 
+    window.editOutage = function(id) {
+      const d = window._cachedOutages[id];
+      if (!d) return;
+      window.outageEditId = id;
+
+      const typeEl = document.getElementById("outageType");
+      const providerEl = document.getElementById("outageProvider");
+      const titleEl = document.getElementById("outageTitle");
+      const hoodEl = document.getElementById("outageNeighborhood");
+      const streetEl = document.getElementById("outageStreet");
+      const startEl = document.getElementById("outageStart");
+      const endEl = document.getElementById("outageEnd");
+      const statusEl = document.getElementById("outageStatus");
+      const titleCard = document.getElementById("outageFormTitle");
+      const btnSubmit = document.getElementById("btnOutageSubmit");
+      const btnCancel = document.getElementById("btnCancelOutageEdit");
+
+      if (typeEl) typeEl.value = d.type || 'su';
+      if (providerEl) providerEl.value = d.provider || 'İSU';
+      if (titleEl) titleEl.value = d.title || '';
+      if (hoodEl) hoodEl.value = d.neighborhood || 'Tüm Gebze Geneli';
+      if (streetEl) streetEl.value = d.street || '';
+      if (startEl) startEl.value = parseOutageDateToInput(d.startDate || d.startIso);
+      if (endEl) endEl.value = parseOutageDateToInput(d.endDate || d.endIso);
+      if (statusEl) statusEl.value = d.status || 'Devam Ediyor';
+
+      if (titleCard) titleCard.innerText = '⚡ Planlı Kesintiyi Düzenle';
+      if (btnSubmit) btnSubmit.innerText = '💾 Değişiklikleri Kaydet';
+      if (btnCancel) btnCancel.style.display = 'inline-block';
+
+      document.getElementById("formAddOutage")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    window.cancelOutageEdit = function() {
+      window.outageEditId = null;
+      document.getElementById("formAddOutage")?.reset();
+      const titleCard = document.getElementById("outageFormTitle");
+      const btnSubmit = document.getElementById("btnOutageSubmit");
+      const btnCancel = document.getElementById("btnCancelOutageEdit");
+      if (titleCard) titleCard.innerText = '⚡ Yeni Planlı Kesinti Bildirimi';
+      if (btnSubmit) btnSubmit.innerText = 'Kesintiyi Bildir';
+      if (btnCancel) btnCancel.style.display = 'none';
+
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const startVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const endT = new Date(now.getTime() + 4 * 3600 * 1000);
+      const endVal = `${endT.getFullYear()}-${pad(endT.getMonth()+1)}-${pad(endT.getDate())}T${pad(endT.getHours())}:${pad(endT.getMinutes())}`;
+      const s = document.getElementById("outageStart");
+      const e = document.getElementById("outageEnd");
+      if (s) s.value = startVal;
+      if (e) e.value = endVal;
+    };
+
     // ───────────────── 8. MAHALLEMDE (neighborhood_works) ─────────────────
+    window._cachedWorks = {};
+    window.workEditId = null;
+
     const WORK_CATS = {
       kazi: { label: 'Kazı', icon: '🚧' },
       altyapi: { label: 'Altyapı', icon: '🔧' },
@@ -2337,8 +2483,10 @@
         const now = Date.now();
 
         const rows = [];
+        window._cachedWorks = {};
         snap.forEach(docSnap => {
           const d = docSnap.data();
+          window._cachedWorks[docSnap.id] = { id: docSnap.id, ...d };
           if (!d.startDate?.toMillis || !d.endDate?.toMillis) return;
           if (catFilter && d.category !== catFilter) return;
           if (hoodFilter && d.neighborhood !== hoodFilter) return;
@@ -2381,6 +2529,7 @@
             <div class="item-card-footer">
               ${badge}
               <div style="display:flex; gap:6px;">
+                <button class="btn btn-outline btn-sm" onclick="window.editWork('${id}')">✏️ Düzenle</button>
                 ${state !== 'expired' ? `<button class="btn btn-primary btn-sm" onclick="window.finishWork('${id}')">Bitir</button>` : ''}
                 <button class="btn btn-danger btn-sm" onclick="window.deleteDocItem('neighborhood_works', '${id}', window.loadWorks)">Sil</button>
               </div>
@@ -2393,6 +2542,51 @@
       }
     }
     window.loadWorks = loadWorks;
+
+    window.editWork = function(id) {
+      const d = window._cachedWorks[id];
+      if (!d) return;
+      window.workEditId = id;
+
+      const catEl = document.getElementById("workCategory");
+      const titleEl = document.getElementById("workTitle");
+      const descEl = document.getElementById("workDesc");
+      const hoodEl = document.getElementById("workNeighborhood");
+      const addrEl = document.getElementById("workAddress");
+      const unitEl = document.getElementById("workUnit");
+      const startEl = document.getElementById("workStart");
+      const endEl = document.getElementById("workEnd");
+      const btnSubmit = document.getElementById("btnWorkSubmit");
+      const btnCancel = document.getElementById("btnCancelWorkEdit");
+
+      if (catEl) catEl.value = d.category || 'kazi';
+      if (titleEl) titleEl.value = d.title || '';
+      if (descEl) descEl.value = d.description || '';
+      if (hoodEl) hoodEl.value = d.neighborhood || '';
+      if (addrEl) addrEl.value = d.address || '';
+      if (unitEl) unitEl.value = d.unit || '';
+      if (startEl && d.startDate?.toMillis) {
+        startEl.value = new Date(d.startDate.toMillis() + 3 * 3600 * 1000).toISOString().slice(0, 16);
+      }
+      if (endEl && d.endDate?.toMillis) {
+        endEl.value = new Date(d.endDate.toMillis() + 3 * 3600 * 1000).toISOString().slice(0, 16);
+      }
+
+      if (btnSubmit) btnSubmit.innerText = '💾 Değişiklikleri Kaydet';
+      if (btnCancel) btnCancel.style.display = 'inline-block';
+      document.getElementById("formAddWork")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    window.cancelWorkEdit = function() {
+      window.workEditId = null;
+      document.getElementById("formAddWork")?.reset();
+      const btnSubmit = document.getElementById("btnWorkSubmit");
+      const btnCancel = document.getElementById("btnCancelWorkEdit");
+      if (btnSubmit) btnSubmit.innerText = 'Çalışmayı Kaydet';
+      if (btnCancel) btnCancel.style.display = 'none';
+      const s = document.getElementById("workStart");
+      if (s) s.value = trNowInputValue();
+    };
 
     window.finishWork = async (id) => {
       if (!confirm("Çalışma tamamlandı olarak işaretlensin mi?")) return;
@@ -2550,7 +2744,7 @@
         mapQuery: "Pelitli Mezarlığı Gebze",
         lat: 40.865500,
         lng: 29.449000,
-        image: "https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80",
+        image: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80",
         category: "mezarliklar"
       },
       {
@@ -4806,24 +5000,47 @@
         finally { btn.disabled = false; }
       });
 
-      // 3. Kesinti Ekle
+      // 3. Kesinti Ekle / Güncelle
       document.getElementById("formAddOutage")?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector("button[type=submit]");
         btn.disabled = true;
         try {
-          await addDoc(collection(db, "outages"), {
-            title: document.getElementById("outageTitle").value.trim(),
-            type: document.getElementById("outageType").value,
-            provider: document.getElementById("outageProvider").value.trim(),
-            neighborhood: document.getElementById("outageNeighborhood").value.trim(),
-            startDate: document.getElementById("outageStart").value.trim(),
-            endDate: document.getElementById("outageEnd").value.trim(),
-            status: document.getElementById("outageStatus").value,
-            createdAt: serverTimestamp()
-          });
-          e.target.reset();
-          showToast("Planlı kesinti sisteme kaydedildi!");
+          const type = document.getElementById("outageType").value;
+          const provider = document.getElementById("outageProvider").value.trim();
+          const title = document.getElementById("outageTitle").value.trim();
+          const neighborhood = document.getElementById("outageNeighborhood").value.trim();
+          const street = document.getElementById("outageStreet") ? document.getElementById("outageStreet").value.trim() : '';
+          const startVal = document.getElementById("outageStart").value;
+          const endVal = document.getElementById("outageEnd").value;
+          const status = document.getElementById("outageStatus").value;
+
+          const data = {
+            title,
+            type,
+            provider,
+            neighborhood,
+            street,
+            startDate: formatOutageDateForDisplay(startVal),
+            endDate: formatOutageDateForDisplay(endVal),
+            startIso: startVal ? new Date(startVal).toISOString() : '',
+            endIso: endVal ? new Date(endVal).toISOString() : '',
+            status,
+            updatedAt: serverTimestamp()
+          };
+
+          if (window.outageEditId) {
+            await updateDoc(doc(db, "outages", window.outageEditId), data);
+            showToast("Planlı kesinti güncellendi!");
+            window.cancelOutageEdit();
+          } else {
+            data.createdAt = serverTimestamp();
+            await addDoc(collection(db, "outages"), data);
+            e.target.reset();
+            window.cancelOutageEdit();
+            showToast("Planlı kesinti sisteme kaydedildi!");
+          }
+
           loadOutages();
           loadDashboard();
         } catch (err) { alert(err.message); }
@@ -4851,17 +5068,31 @@
           const votesMap = {};
           rawOpts.forEach((_, i) => votesMap[i] = 0);
 
+          const rawEnd = document.getElementById("pollEndDate").value.trim();
+          let formattedEnd = "Süresiz";
+          if (rawEnd) {
+            const parts = rawEnd.split("-");
+            if (parts.length === 3) formattedEnd = `${parts[2]}.${parts[1]}.${parts[0]}`;
+            else formattedEnd = rawEnd;
+          }
+
           await addDoc(collection(db, "polls"), {
             question: questionText,
             description: document.getElementById("pollDesc").value.trim(),
-            neighborhood: document.getElementById("pollNeighborhood").value.trim() || "Tüm Gebze",
-            endDate: document.getElementById("pollEndDate").value.trim() || "Süresiz",
+            neighborhood: document.getElementById("pollNeighborhood").value.trim() || "Tüm Gebze (Genel)",
+            endDate: formattedEnd,
+            endDateIso: rawEnd || null,
             options: rawOpts,
             votes: votesMap,
             isActive: true,
             createdAt: serverTimestamp()
           });
           e.target.reset();
+          const pollEndEl = document.getElementById("pollEndDate");
+          if (pollEndEl) {
+            const d = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+            pollEndEl.value = d.toISOString().slice(0, 10);
+          }
           showToast("Yeni anket oylamaya açıldı!");
           loadPolls();
           loadDashboard();
@@ -4948,7 +5179,7 @@
         finally { btn.disabled = false; }
       });
 
-      // 8. Mahalle Çalışması Ekle
+      // 8. Mahalle Çalışması Ekle / Güncelle
       document.getElementById("formAddWork")?.addEventListener("submit", async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector("button[type=submit]");
@@ -4958,7 +5189,7 @@
         if (end <= start) { alert("Bitiş zamanı başlangıçtan sonra olmalıdır."); return; }
         btn.disabled = true;
         try {
-          await addDoc(collection(db, "neighborhood_works"), {
+          const workData = {
             category: document.getElementById("workCategory").value,
             title: document.getElementById("workTitle").value.trim(),
             description: document.getElementById("workDesc").value.trim(),
@@ -4967,11 +5198,20 @@
             unit: document.getElementById("workUnit").value.trim(),
             startDate: Timestamp.fromDate(start),
             endDate: Timestamp.fromDate(end),
-            createdAt: serverTimestamp()
-          });
-          e.target.reset();
-          document.getElementById("workStart").value = trNowInputValue();
-          showToast("Mahalle çalışması kaydedildi!");
+            updatedAt: serverTimestamp()
+          };
+
+          if (window.workEditId) {
+            await updateDoc(doc(db, "neighborhood_works", window.workEditId), workData);
+            window.cancelWorkEdit();
+            showToast("Mahalle çalışması güncellendi!");
+          } else {
+            workData.createdAt = serverTimestamp();
+            await addDoc(collection(db, "neighborhood_works"), workData);
+            e.target.reset();
+            document.getElementById("workStart").value = trNowInputValue();
+            showToast("Mahalle çalışması kaydedildi!");
+          }
           loadWorks();
           loadDashboard();
         } catch (err) { alert(err.message); }
@@ -6545,11 +6785,53 @@
               </div>
               <div class="form-group">
                 <label>Hedef Mahalle</label>
-                <input type="text" id="pollNeighborhood" placeholder="Örn: Tüm Gebze veya Hacıhalil">
+                <select id="pollNeighborhood">
+                  <option value="Tüm Gebze (Genel)">Tüm Gebze (İlçe Geneli)</option>
+                  <option value="Adem Yavuz">Adem Yavuz</option>
+                  <option value="Ahatlı">Ahatlı</option>
+                  <option value="Arapçeşme">Arapçeşme</option>
+                  <option value="Balçık">Balçık</option>
+                  <option value="Barış">Barış</option>
+                  <option value="Beylikbağı">Beylikbağı</option>
+                  <option value="Cumaköy">Cumaköy</option>
+                  <option value="Cumhuriyet">Cumhuriyet</option>
+                  <option value="Denizli">Denizli</option>
+                  <option value="Dicle">Dicle</option>
+                  <option value="Duraklı">Duraklı</option>
+                  <option value="Elbizli">Elbizli</option>
+                  <option value="Eskihisar">Eskihisar</option>
+                  <option value="Gaziler">Gaziler</option>
+                  <option value="Güzeller">Güzeller</option>
+                  <option value="Hacıhalil">Hacıhalil</option>
+                  <option value="Hürriyet">Hürriyet</option>
+                  <option value="İnönü">İnönü</option>
+                  <option value="İstasyon">İstasyon</option>
+                  <option value="Kadıllı">Kadıllı</option>
+                  <option value="Kargalı">Kargalı</option>
+                  <option value="Kirazpınar">Kirazpınar</option>
+                  <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+                  <option value="Mevlana">Mevlana</option>
+                  <option value="Mimar Sinan">Mimar Sinan</option>
+                  <option value="Mollafenari">Mollafenari</option>
+                  <option value="Muallimköy">Muallimköy</option>
+                  <option value="Mudarlı">Mudarlı</option>
+                  <option value="Mustafapaşa">Mustafapaşa</option>
+                  <option value="Osman Yılmaz">Osman Yılmaz</option>
+                  <option value="Ovacık">Ovacık</option>
+                  <option value="Pelitli">Pelitli</option>
+                  <option value="Sultan Orhan">Sultan Orhan</option>
+                  <option value="Tatlıkuyu">Tatlıkuyu</option>
+                  <option value="Tavşanlı">Tavşanlı</option>
+                  <option value="Tepemanayır">Tepemanayır</option>
+                  <option value="Ulus">Ulus</option>
+                  <option value="Yağcılar">Yağcılar</option>
+                  <option value="Yavuz Selim">Yavuz Selim</option>
+                  <option value="Yenikent">Yenikent</option>
+                </select>
               </div>
               <div class="form-group">
                 <label>Son Oylama Tarihi</label>
-                <input type="text" id="pollEndDate" placeholder="Örn: 31 Ekim 2026">
+                <input type="date" id="pollEndDate" required>
               </div>
               <div class="form-group">
                 <label>Seçenekler (Her satıra 1 seçenek) *</label>
@@ -6768,38 +7050,92 @@
         <div class="panel-grid">
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">⚡ Yeni Planlı Kesinti Bildirimi</div>
+              <div class="panel-title" id="outageFormTitle">⚡ Yeni Planlı Kesinti Bildirimi</div>
             </div>
             <form id="formAddOutage">
               <div class="form-group">
                 <label>Kesinti Türü *</label>
-                <select id="outageType" required>
-                  <option value="su">Su Kesintisi (İSU)</option>
-                  <option value="elektrik">Elektrik Kesintisi (SEDAŞ)</option>
-                  <option value="gaz">Doğalgaz Kesintisi (PALGAZ)</option>
+                <select id="outageType" required onchange="onOutageTypeChange()">
+                  <option value="su">💧 Su Kesintisi (İSU)</option>
+                  <option value="elektrik">⚡ Elektrik Kesintisi (SEDAŞ)</option>
+                  <option value="gaz">🔥 Doğalgaz Kesintisi (PALGAZ)</option>
+                  <option value="internet">🌐 İnternet / Fiber Altyapı (Türk Telekom)</option>
+                  <option value="altyapi">🚧 Altyapı / Fen İşleri Çalışması</option>
                 </select>
               </div>
               <div class="form-group">
                 <label>Kurum / Sağlayıcı Adı *</label>
-                <input type="text" id="outageProvider" placeholder="Örn: İSU, SEDAŞ, PALGAZ" required>
+                <select id="outageProvider" required>
+                  <option value="İSU">İSU (Kocaeli Su ve Kanalizasyon İdaresi)</option>
+                  <option value="SEDAŞ">SEDAŞ (Sakarya Elektrik Dağıtım A.Ş.)</option>
+                  <option value="PALGAZ">PALGAZ (Doğalgaz Dağıtım A.Ş.)</option>
+                  <option value="Türk Telekom">Türk Telekom (İnternet & Fiber Altyapı)</option>
+                  <option value="Gebze Belediyesi Fen İşleri">Gebze Belediyesi Fen İşleri Müdürlüğü</option>
+                  <option value="Karayolları Genel Müdürlüğü">Karayolları Genel Müdürlüğü (KGM)</option>
+                  <option value="Diğer">Diğer Yetkili Kurum / Altyapı Yüklenicisi</option>
+                </select>
               </div>
               <div class="form-group">
                 <label>Kesinti Başlığı *</label>
                 <input type="text" id="outageTitle" placeholder="Örn: Ana İsale Hattı Bakım Çalışması" required>
               </div>
               <div class="form-group">
-                <label>Etkilenen Mahalle / Cadde *</label>
-                <input type="text" id="outageNeighborhood" placeholder="Örn: Osman Yılmaz, Köşklü Çeşme" required>
+                <label>Etkilenen Mahalle *</label>
+                <select id="outageNeighborhood" required>
+                  <option value="Tüm Gebze Geneli">Tüm Gebze (İlçe Geneli)</option>
+                  <option value="Adem Yavuz">Adem Yavuz</option>
+                  <option value="Ahatlı">Ahatlı</option>
+                  <option value="Arapçeşme">Arapçeşme</option>
+                  <option value="Balçık">Balçık</option>
+                  <option value="Barış">Barış</option>
+                  <option value="Beylikbağı">Beylikbağı</option>
+                  <option value="Cumaköy">Cumaköy</option>
+                  <option value="Cumhuriyet">Cumhuriyet</option>
+                  <option value="Denizli">Denizli</option>
+                  <option value="Dicle">Dicle</option>
+                  <option value="Duraklı">Duraklı</option>
+                  <option value="Elbizli">Elbizli</option>
+                  <option value="Eskihisar">Eskihisar</option>
+                  <option value="Gaziler">Gaziler</option>
+                  <option value="Güzeller">Güzeller</option>
+                  <option value="Hacıhalil">Hacıhalil</option>
+                  <option value="Hürriyet">Hürriyet</option>
+                  <option value="İnönü">İnönü</option>
+                  <option value="İstasyon">İstasyon</option>
+                  <option value="Kadıllı">Kadıllı</option>
+                  <option value="Kargalı">Kargalı</option>
+                  <option value="Kirazpınar">Kirazpınar</option>
+                  <option value="Köşklü Çeşme">Köşklü Çeşme</option>
+                  <option value="Mevlana">Mevlana</option>
+                  <option value="Mimar Sinan">Mimar Sinan</option>
+                  <option value="Mollafenari">Mollafenari</option>
+                  <option value="Muallimköy">Muallimköy</option>
+                  <option value="Mudarlı">Mudarlı</option>
+                  <option value="Mustafapaşa">Mustafapaşa</option>
+                  <option value="Osman Yılmaz">Osman Yılmaz</option>
+                  <option value="Ovacık">Ovacık</option>
+                  <option value="Pelitli">Pelitli</option>
+                  <option value="Sultan Orhan">Sultan Orhan</option>
+                  <option value="Tatlıkuyu">Tatlıkuyu</option>
+                  <option value="Tavşanlı">Tavşanlı</option>
+                  <option value="Tepemanayır">Tepemanayır</option>
+                  <option value="Ulus">Ulus</option>
+                  <option value="Yağcılar">Yağcılar</option>
+                  <option value="Yavuz Selim">Yavuz Selim</option>
+                  <option value="Yenikent">Yenikent</option>
+                </select>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Başlangıç</label>
-                  <input type="text" id="outageStart" placeholder="Örn: 20.10.2026 10:00">
-                </div>
-                <div class="form-group">
-                  <label>Tahmini Bitiş</label>
-                  <input type="text" id="outageEnd" placeholder="Örn: 20.10.2026 18:00">
-                </div>
+              <div class="form-group">
+                <label>Cadde / Sokak Detayı (Opsiyonel)</label>
+                <input type="text" id="outageStreet" placeholder="Örn: Bahar Cad., 1204. Sokak, Kent Meydanı çevresi">
+              </div>
+              <div class="form-group">
+                <label>Başlangıç Tarihi ve Saati *</label>
+                <input type="datetime-local" id="outageStart" required>
+              </div>
+              <div class="form-group">
+                <label>Tahmini Bitiş Tarihi ve Saati *</label>
+                <input type="datetime-local" id="outageEnd" required>
               </div>
               <div class="form-group">
                 <label>Durum</label>
@@ -6809,7 +7145,10 @@
                   <option value="Tamamlandı">Tamamlandı</option>
                 </select>
               </div>
-              <button type="submit" class="btn btn-primary" style="width:100%;">Kesintiyi Bildir</button>
+              <div style="display:flex; gap:8px;">
+                <button type="submit" id="btnOutageSubmit" class="btn btn-primary" style="flex:1;">Kesintiyi Bildir</button>
+                <button type="button" id="btnCancelOutageEdit" class="btn btn-outline" style="display:none;" onclick="cancelOutageEdit()">İptal</button>
+              </div>
             </form>
           </div>
           <div>
@@ -7076,17 +7415,18 @@
                 <label>Sorumlu Birim</label>
                 <input type="text" id="workUnit" placeholder="Örn: Fen İşleri Müdürlüğü, İSU">
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Başlangıç (TR Saati) *</label>
-                  <input type="datetime-local" id="workStart" required>
-                </div>
-                <div class="form-group">
-                  <label>Bitiş (TR Saati) *</label>
-                  <input type="datetime-local" id="workEnd" required>
-                </div>
+              <div class="form-group">
+                <label>Başlangıç (TR Saati) *</label>
+                <input type="datetime-local" id="workStart" required>
               </div>
-              <button type="submit" class="btn btn-primary" style="width:100%;">Çalışmayı Kaydet</button>
+              <div class="form-group">
+                <label>Bitiş (TR Saati) *</label>
+                <input type="datetime-local" id="workEnd" required>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button type="submit" id="btnWorkSubmit" class="btn btn-primary" style="flex:1;">Çalışmayı Kaydet</button>
+                <button type="button" id="btnCancelWorkEdit" class="btn btn-outline" style="display:none;" onclick="cancelWorkEdit()">İptal</button>
+              </div>
             </form>
           </div>
           <div>

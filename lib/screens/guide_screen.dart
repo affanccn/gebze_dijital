@@ -668,7 +668,7 @@ List<Map<String, dynamic>> _getFallbackCemeteries(String lang) {
       'mapQuery': 'Pelitli Mezarlığı Gebze',
       'lat': 40.865500,
       'lng': 29.449000,
-      'image': 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?auto=format&fit=crop&w=800&q=80',
+      'image': 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80',
       'category': 'mezarliklar',
     },
     {
