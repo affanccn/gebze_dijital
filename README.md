@@ -78,7 +78,7 @@ Proje iki ana bacaktan oluşmaktadır:
 
 ## 🌟 Öne Çıkan Temel Özellikler
 
-- **🤖 Gebze Asistanı (Bot82 Chatbot)**: Vatandaşların belediye hizmetleri hakkında 7/24 doğal dilde bilgi alabildiği, aradığı hizmet sayfasına tek dokunuşla yönlendirildiği kural ve niyet (intent) tabanlı yapay zekâ asistanı.
+- **🤖 Gebze Asistanı (Chatbot)**: Vatandaşların belediye hizmetleri hakkında 7/24 doğal dilde bilgi alabildiği, aradığı hizmet sayfasına tek dokunuşla yönlendirildiği kural ve niyet (intent) tabanlı yapay zekâ asistanı.
 - **🌍 3 Dilde Yerelleştirme**: Türkçe (TR), İngilizce (EN) ve tam sağdan-sola düzeniyle (RTL) Arapça (AR) dil desteği.
 - **♿ Erişilebilirlik Odaklı Arayüz**: Yaşlı veya az gören vatandaşlarımız için geliştirilen tek tuşla **Büyük Yazı Tipi Modu** ve göz yormayan **Koyu Tema (Dark Mode)**.
 - **🗳️ Söz Sende (Katılımcı Demokrasi)**: Belediyenin kentsel projeleri için açtığı anketlere katılma ve vatandaşların kendi mahalleleri için fikir paylaşıp destek toplayabildiği öneri mekanizması.
