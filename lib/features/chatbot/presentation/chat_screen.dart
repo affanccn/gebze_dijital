@@ -233,11 +233,25 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.grey.shade100,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : Colors.grey.shade300,
+                              ),
                             ),
-                            child: const Text('...'),
+                            child: Text(
+                              '...',
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0A1F44),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ),
                       );
@@ -278,7 +292,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
               // Sıkça Sorulan Sorular / Hızlı Soru-Cevap Çipleri
               Container(
                 height: 44,
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: ListView(
                   scrollDirection: Axis.horizontal,
@@ -397,17 +411,22 @@ class _QuickFaqChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ActionChip(
       label: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF0A2A66),
+          color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF0A2A66),
         ),
       ),
-      backgroundColor: const Color(0xFFF1F5FD),
-      side: const BorderSide(color: Color(0xFFD6E4FF)),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5FD),
+      side: BorderSide(
+        color: isDark ? const Color(0xFF334155) : const Color(0xFFD6E4FF),
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       onPressed: onTap,

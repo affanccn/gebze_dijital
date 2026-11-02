@@ -170,6 +170,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
         builder: (_) => GuideScreen(
           initialTab: initialTab,
           onNavTap: (j) {
+            if (j == 4 && !requireLogin(context, ref)) return;
             Navigator.of(context).pop();
             if (j != 0 && j != 1) _handleNav(j);
           },
@@ -190,6 +191,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
           builder: (_) => ReportScreen(
             isGuest: !isLoggedIn,
             onNavTap: (j) {
+              if (j == 4 && !requireLogin(context, ref)) return;
               Navigator.of(context).pop();
               if (j != 0 && j != 2) _handleNav(j);
             },
@@ -201,6 +203,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
         MaterialPageRoute(
           builder: (_) => ServicesScreen(
             onNavTap: (j) {
+              if (j == 4 && !requireLogin(context, ref)) return;
               Navigator.of(context).pop();
               if (j != 0 && j != 3) _handleNav(j);
             },

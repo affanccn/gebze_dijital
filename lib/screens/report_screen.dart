@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/localization/app_strings.dart';
+import 'auth_guard.dart';
 import 'guide_screen.dart';
 import 'services_screen.dart';
 import 'profile_screen.dart';
@@ -301,6 +302,7 @@ class ReportScreen extends ConsumerWidget {
           if (onNavTap != null) {
             onNavTap!(i);
           } else if (i != 2) {
+            if (i == 4 && !requireLogin(context, ref)) return;
             Navigator.of(context).pop();
             if (i == 1) {
               Navigator.of(context).push(

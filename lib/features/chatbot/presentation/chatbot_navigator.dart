@@ -78,6 +78,11 @@ class ChatbotNavigator {
       return const GuideCategoryScreen(categoryId: 'etkinlikler');
     }
 
+    // Otoparklar ('park' kontrolünden önce gelmeli çünkü 'parking'/'otopark' içinde 'park' geçiyor)
+    if (cleanRoute.contains('parking') || cleanRoute.contains('otopark')) {
+      return const ParkingScreen();
+    }
+
     // Rehber alt kategorileri
     if (cleanRoute.contains('/places/lokantalar') ||
         cleanRoute.contains('lokanta')) {
@@ -105,11 +110,19 @@ class ChatbotNavigator {
       return const GuideCategoryScreen(categoryId: 'belediye');
     }
 
-    // Genel Rehber / Keşfet (Doğa, Piknik, Tarihi Yerler)
-    if (cleanRoute.contains('doga') ||
-        cleanRoute.contains('piknik') ||
-        cleanRoute.contains('tarihi') ||
-        cleanRoute.contains('places') ||
+    // Keşfet alt bölümleri (Tarihi Yerler: 0, Yöresel Lezzetler: 1, Doğa & Piknik: 2)
+    if (cleanRoute.contains('doga') || cleanRoute.contains('piknik')) {
+      return const GuideScreen(initialTab: 1, initialDiscoverSection: 2);
+    }
+    if (cleanRoute.contains('lezzet') || cleanRoute.contains('yoresel')) {
+      return const GuideScreen(initialTab: 1, initialDiscoverSection: 1);
+    }
+    if (cleanRoute.contains('tarihi')) {
+      return const GuideScreen(initialTab: 1, initialDiscoverSection: 0);
+    }
+
+    // Genel Rehber / Keşfet
+    if (cleanRoute.contains('places') ||
         cleanRoute.contains('guide') ||
         cleanRoute.contains('rehber')) {
       return const GuideScreen(initialTab: 1);
@@ -123,11 +136,6 @@ class ChatbotNavigator {
     // Mahallemde (Çalışmalar, Kazı, Altyapı, Asfalt)
     if (cleanRoute.contains('neighborhood') || cleanRoute.contains('mahalle')) {
       return const NeighborhoodScreen();
-    }
-
-    // Otoparklar
-    if (cleanRoute.contains('parking') || cleanRoute.contains('otopark')) {
-      return const ParkingScreen();
     }
 
     // Gebze Pati (Sokak Hayvanları, Ambulans, Sahiplendirme)

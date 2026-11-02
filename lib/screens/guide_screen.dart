@@ -1145,6 +1145,7 @@ class GuideScreen extends ConsumerWidget {
                 if (onNavTap != null) {
                   onNavTap!(i);
                 } else if (i != 1) {
+                  if (i == 4 && !requireLogin(context, ref)) return;
                   Navigator.of(context).pop();
                   if (i == 2) {
                     Navigator.of(context).push(
@@ -1177,6 +1178,16 @@ class GuideCategoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cleanId = categoryId.toLowerCase();
+    if (cleanId == 'tarihi') {
+      return const GuideScreen(initialTab: 1, initialDiscoverSection: 0);
+    }
+    if (cleanId == 'lezzetler' || cleanId == 'yoresel') {
+      return const GuideScreen(initialTab: 1, initialDiscoverSection: 1);
+    }
+    if (cleanId == 'doga' || cleanId == 'piknik') {
+      return const GuideScreen(initialTab: 1, initialDiscoverSection: 2);
+    }
     final lang = ref.watch(appLanguageProvider);
     final category = _getCategories(lang).firstWhere(
       (c) => c.id == categoryId,

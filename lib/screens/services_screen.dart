@@ -351,6 +351,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
             if (widget.onNavTap != null) {
               widget.onNavTap!(i);
             } else if (i != 3) {
+              if (i == 4 && !requireLogin(context, ref)) return;
               Navigator.of(context).pop();
               if (i == 1) {
                 Navigator.of(context).push(

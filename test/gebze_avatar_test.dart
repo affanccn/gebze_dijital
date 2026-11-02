@@ -11,7 +11,7 @@ import 'package:gebze_dijital/features/profile/widgets/gebze_avatar_picker_dialo
 
 void main() {
   group('Gebze Avatar Models & Providers', () {
-    test('kGebzeAvatars contains 15 avatars, text only on the 3 special ones', () {
+    test('kGebzeAvatars contains 15 visual-only avatars with Genel and Özel categories', () {
       expect(kGebzeAvatars.length, equals(15));
 
       final ids = <String>{};
@@ -23,20 +23,14 @@ void main() {
 
         expect(a.assetPath, startsWith('assets/images/avatars/avatar_'));
         expect(a.assetPath, endsWith('.png'));
+        expect(a.titleTr, isEmpty);
 
         if (i < 12) {
-          // First 12 are visual-only, no title text
-          expect(a.titleTr, isEmpty);
+          expect(a.category, equals('Genel'));
         } else {
-          // Last 3 are special avatars with custom names
-          expect(a.titleTr, isNotEmpty);
           expect(a.category, equals('Özel'));
         }
       }
-
-      expect(kGebzeAvatars[12].titleTr, equals('Darwin (Zehra Şef)'));
-      expect(kGebzeAvatars[13].titleTr, equals('Burun Bantlı Genç (Affan)'));
-      expect(kGebzeAvatars[14].titleTr, equals('Çiçek Perisi Flora (Havva)'));
     });
 
     test('getAvatarImageProvider resolves asset, memory and network URLs', () {
@@ -138,16 +132,6 @@ void main() {
       expect(find.text('Galeriden Seç'), findsOneWidget);
       expect(find.text('Kamera'), findsOneWidget);
       expect(find.text('Fotoğrafı Kaydet'), findsOneWidget);
-
-      // Special avatars are labeled at the end of the grid
-      await tester.scrollUntilVisible(
-        find.text('Darwin (Zehra Şef)'),
-        150,
-        scrollable: find.byType(Scrollable).last,
-      );
-      expect(find.text('Darwin (Zehra Şef)'), findsOneWidget);
-      expect(find.text('Burun Bantlı Genç (Affan)'), findsOneWidget);
-      expect(find.text('Çiçek Perisi Flora (Havva)'), findsOneWidget);
 
       // Tap Save button
       await tester.tap(find.text('Fotoğrafı Kaydet'));
