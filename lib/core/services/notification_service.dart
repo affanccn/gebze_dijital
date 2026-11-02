@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'push_service.dart';
 
 enum NotificationCategory { all, outages, announcements, services }
@@ -382,8 +384,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '1',
       title: 'Planlı Su Kesintisi Bildirimi',
-      message:
-          'Yenikent ve Gaziler Mahallelerinde 14:00 - 18:00 saatleri arasında şebeke iyileştirme çalışması yapılacaktır.',
+      message: 'Yenikent ve Gaziler Mahallelerinde 14:00 - 18:00 saatleri arasında şebeke iyileştirme çalışması yapılacaktır.',
       time: '15 dk önce',
       icon: Icons.water_drop_rounded,
       color: Color(0xFF0288D1),
@@ -395,8 +396,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '2',
       title: 'Gebze Afet & Acil Toplanma Alanları',
-      message:
-          'Mahallenizdeki en yakın güvenli toplanma alanları ve acil durum irtibat numaraları güncellendi.',
+      message: 'Mahallenizdeki en yakın güvenli toplanma alanları ve acil durum irtibat numaraları güncellendi.',
       time: '1 saat önce',
       icon: Icons.emergency_rounded,
       color: Color(0xFFD32F2F),
@@ -408,8 +408,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '3',
       title: 'Bu Gece Nöbetçi Eczaneler',
-      message:
-          'Gebze merkez ve istasyon bölgelerinde açık olan nöbetçi eczaneleri inceleyebilirsiniz.',
+      message: 'Gebze merkez ve istasyon bölgelerinde açık olan nöbetçi eczaneleri inceleyebilirsiniz.',
       time: '3 saat önce',
       icon: Icons.local_pharmacy_rounded,
       color: Color(0xFF2E7D32),
@@ -420,8 +419,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '4',
       title: 'Kent Lokantası Sıcak Menü Servisi',
-      message:
-          'Bugünün 4 çeşit sağlıklı menüsü Gebze Kent Lokantalarında servis edilmeye başlandı.',
+      message: 'Bugünün 4 çeşit sağlıklı menüsü Gebze Kent Lokantalarında servis edilmeye başlandı.',
       time: '5 saat önce',
       icon: Icons.restaurant_rounded,
       color: Color(0xFFFF6B00),
@@ -432,8 +430,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '5',
       title: 'Gebze Pati Sahiplendirme Günü',
-      message:
-          'Sokak hayvanları bakım merkezimizdeki can dostlarımız bu Pazar Cumhuriyet Meydanı\'nda yuva arıyor.',
+      message: 'Sokak hayvanları bakım merkezimizdeki can dostlarımız bu Pazar Cumhuriyet Meydanı\'nda yuva arıyor.',
       time: 'Dün',
       icon: Icons.pets_rounded,
       color: Color(0xFF7B1FA2),
@@ -444,8 +441,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '6',
       title: 'Çek / Bildir Talebiniz İncelendi',
-      message:
-          'Belediyemize ilettiğiniz talep ilgili saha müdürlüğüne yönlendirilmiş olup işlem sırasına alınmıştır.',
+      message: 'Belediyemize ilettiğiniz talep ilgili saha müdürlüğüne yönlendirilmiş olup işlem sırasına alınmıştır.',
       time: '2 gün önce',
       icon: Icons.assignment_turned_in_rounded,
       color: Color(0xFF1E5BC6),
@@ -457,8 +453,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     const AppNotification(
       id: '7',
       title: 'Hava Durumu Bilgilendirmesi',
-      message:
-          'Gebze genelinde yarın kuvvetli yağış beklenmektedir. Tedbirli olunması rica olunur.',
+      message: 'Gebze genelinde yarın kuvvetli yağış beklenmektedir. Tedbirli olunması rica olunur.',
       time: '3 gün önce',
       icon: Icons.cloud_outlined,
       color: Color(0xFF455A64),
@@ -520,7 +515,11 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     }
   }
 
-  String _resolveActionType(Map<String, dynamic> d, String title, String message) {
+  String _resolveActionType(
+    Map<String, dynamic> d,
+    String title,
+    String message,
+  ) {
     final targetPage = (d['targetPage'] as String?)?.trim();
     final actionType = (d['actionType'] as String?)?.trim();
     final topic = (d['topic'] as String?)?.trim();
@@ -538,7 +537,10 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     }
 
     // 2. Eğer topic/targetPage 'news' olarak kalmışsa ancak başlık/mesaj spesifik bir hizmete aitse (örn. Kent Lokantası) metinden algıla
-    final inferred = NotificationService.inferActionTypeFromText(title, message);
+    final inferred = NotificationService.inferActionTypeFromText(
+      title,
+      message,
+    );
     if (inferred != null) {
       return inferred;
     }
@@ -565,16 +567,16 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     final rawTargetLabel = (d['targetLabel'] as String?)?.trim();
     final actionButtonLabel = (d['actionButtonLabel'] as String?)?.trim();
     final externalUrl = (d['externalUrl'] as String?)?.trim();
-    final imageUrl =
-        (d['imageUrl'] as String? ?? d['image'] as String?)?.trim();
+    final imageUrl = (d['imageUrl'] as String? ?? d['image'] as String?)
+        ?.trim();
     final neighborhood = (d['neighborhood'] as String?)?.trim();
     final createdAt = d['createdAt'];
     final createdAtText = d['createdAtText'] as String?;
 
-    final effectiveLabel = (rawTargetLabel != null &&
+    final effectiveLabel =
+        (rawTargetLabel != null &&
             rawTargetLabel.isNotEmpty &&
-            !(actionType != 'news' &&
-                rawTargetLabel.contains('Haberler')))
+            !(actionType != 'news' && rawTargetLabel.contains('Haberler')))
         ? rawTargetLabel
         : NotificationService.labelForActionType(actionType);
 
@@ -590,18 +592,19 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
       targetLabel: effectiveLabel,
       actionButtonLabel:
           (actionButtonLabel != null && actionButtonLabel.isNotEmpty)
-              ? actionButtonLabel
-              : null,
-      externalUrl:
-          (externalUrl != null && externalUrl.isNotEmpty) ? externalUrl : null,
+          ? actionButtonLabel
+          : null,
+      externalUrl: (externalUrl != null && externalUrl.isNotEmpty)
+          ? externalUrl
+          : null,
       imageUrl: (imageUrl != null && imageUrl.isNotEmpty) ? imageUrl : null,
       priority: priority,
       neighborhood:
           (neighborhood != null &&
-                  neighborhood.isNotEmpty &&
-                  neighborhood != 'all')
-              ? neighborhood
-              : null,
+              neighborhood.isNotEmpty &&
+              neighborhood != 'all')
+          ? neighborhood
+          : null,
       isRead: isRead,
     );
   }
