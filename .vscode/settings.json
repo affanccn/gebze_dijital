@@ -1,0 +1,12 @@
+{
+  "java.import.gradle.enabled": false,
+  "java.project.resourceFilters": [
+    "node_modules",
+    ".git",
+    "**/gebze_dijital-main/**"
+  ],
+  "files.exclude": {
+    "**/gebze_dijital-main": true
+  }
+}
+
