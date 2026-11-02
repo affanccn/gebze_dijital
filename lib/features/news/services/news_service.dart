@@ -8,17 +8,10 @@ import 'package:http/http.dart' as http;
 
 import '../models/municipal_news.dart';
 
-/// Haberler günde 1 kez (öğlen 12:00) GitHub Actions ile güncellenir.
-/// keepAlive ile 1 saat boyunca bellekte tutulur, her ekran açılışında Firestore okunmaz.
-/// Kullanıcı sayfayı aşağı çekerek yenilediğinde ref.refresh() ile anında güncellenir.
-final newsListProvider = FutureProvider<List<MunicipalNews>>((ref) async {
-  final link = ref.keepAlive();
-  final timer = Timer(const Duration(minutes: 60), () {
-    link.close();
-  });
-  ref.onDispose(() => timer.cancel());
-
-  return NewsService().fetchNews(limit: 20);
+/// Haberler Firestore `municipal_news` koleksiyonundan gerçek zamanlı (canlı) olarak dinlenir.
+/// Admin panelinden eklenen, düzenlenen veya silinen haberler anında uygulama ekranına yansır.
+final newsListProvider = StreamProvider<List<MunicipalNews>>((ref) {
+  return NewsService().watchNews(limit: 25);
 });
 
 class NewsService {
@@ -29,51 +22,66 @@ class NewsService {
 
   static final Map<String, String> _summaryCache = {};
   static List<MunicipalNews>? _cachedNews;
-  static DateTime? _newsLastFetch;
-  static const _newsTtl = Duration(minutes: 60);
 
-  /// Önbellekli ve sınırlandırılmış haber çekme fonksiyonu.
-  /// 60 dakika geçerli bellek içi önbellek kullanır (0 read maliyeti).
-  Future<List<MunicipalNews>> fetchNews({int limit = 10, bool force = false}) async {
-    final now = DateTime.now();
-    if (!force &&
-        _cachedNews != null &&
-        _newsLastFetch != null &&
-        now.difference(_newsLastFetch!) < _newsTtl) {
-      return _cachedNews!.take(limit).toList();
+  /// Belgeleri tekilleştirir ve en yeni (admin panelinden eklenen veya newsId'si en büyük olan)
+  /// haber en üstte olacak şekilde sıralar.
+  static List<MunicipalNews> _dedupeAndSort(
+    Iterable<QueryDocumentSnapshot<Map<String, dynamic>>> docs, {
+    int? limit,
+  }) {
+    final items = docs
+        .map((doc) => MunicipalNews.fromMap(doc.id, doc.data()))
+        .where((item) => item.title.trim().isNotEmpty)
+        .toList();
+
+    // En yeni / en yüksek sortKey en üstte
+    items.sort((a, b) => b.sortKey.compareTo(a.sortKey));
+
+    final map = <String, MunicipalNews>{};
+    for (final item in items) {
+      final key = item.newsId != null
+          ? 'id_${item.newsId}'
+          : 'title_${item.title.trim().toLowerCase()}';
+
+      if (!map.containsKey(key)) {
+        map[key] = item;
+      } else {
+        final existing = map[key]!;
+        if (existing.publishedAtText.isEmpty &&
+            item.publishedAtText.isNotEmpty) {
+          map[key] = item;
+        } else if (existing.summary.isEmpty && item.summary.isNotEmpty) {
+          map[key] = item;
+        }
+      }
     }
 
+    final result = map.values.toList()
+      ..sort((a, b) => b.sortKey.compareTo(a.sortKey));
+    if (limit != null && result.length > limit) {
+      return result.take(limit).toList();
+    }
+    return result;
+  }
+
+  /// Haberleri tek seferlik çeker (newsId alanı olmayan admin haberlerini de kapsar).
+  Future<List<MunicipalNews>> fetchNews({
+    int limit = 20,
+    bool force = false,
+  }) async {
     try {
       final snapshot = await _firestore
           .collection('municipal_news')
-          .orderBy('newsId', descending: true)
-          .limit(limit)
-          .get(force
-              ? const GetOptions(source: Source.server)
-              : const GetOptions(source: Source.serverAndCache));
+          .limit(100)
+          .get(
+            force
+                ? const GetOptions(source: Source.server)
+                : const GetOptions(source: Source.serverAndCache),
+          );
 
-      final map = <String, MunicipalNews>{};
-      for (final doc in snapshot.docs) {
-        final item = MunicipalNews.fromMap(doc.id, doc.data());
-        final key = item.newsId != null
-            ? 'id_${item.newsId}'
-            : 'title_${item.title.trim().toLowerCase()}';
-
-        if (!map.containsKey(key)) {
-          map[key] = item;
-        } else {
-          final existing = map[key]!;
-          if (existing.publishedAtText.isEmpty && item.publishedAtText.isNotEmpty) {
-            map[key] = item;
-          } else if (existing.summary.isEmpty && item.summary.isNotEmpty) {
-            map[key] = item;
-          }
-        }
-      }
-
-      _cachedNews = map.values.toList();
-      _newsLastFetch = now;
-      return _cachedNews!.take(limit).toList();
+      final sorted = _dedupeAndSort(snapshot.docs, limit: limit);
+      _cachedNews = sorted;
+      return sorted;
     } catch (e) {
       debugPrint('fetchNews hatası: $e');
       if (_cachedNews != null) return _cachedNews!.take(limit).toList();
@@ -93,17 +101,18 @@ class NewsService {
       final uri = Uri.parse(
         'https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=$targetLang&dt=t&q=${Uri.encodeComponent(clean)}',
       );
-      final res = await http.get(uri, headers: {
-        'User-Agent': 'Mozilla/5.0',
-      }).timeout(const Duration(seconds: 6));
+      final res = await http
+          .get(uri, headers: {'User-Agent': 'Mozilla/5.0'})
+          .timeout(const Duration(seconds: 6));
       if (res.statusCode == 200) {
         final dynamic data = jsonDecode(res.body);
         if (data is List && data.isNotEmpty && data[0] is List) {
           final translated = (data[0] as List)
-              .map((seg) =>
-                  (seg != null && seg is List && seg.isNotEmpty)
-                      ? seg[0].toString()
-                      : '')
+              .map(
+                (seg) => (seg != null && seg is List && seg.isNotEmpty)
+                    ? seg[0].toString()
+                    : '',
+              )
               .join('')
               .trim();
           if (translated.isNotEmpty) {
@@ -118,41 +127,18 @@ class NewsService {
     return null;
   }
 
-
-  /// En yeni haber en üstte (sitedeki haber numarası büyük = daha yeni).
-  /// Mükerrer / çift kayıt oluşmasını engellemek için newsId ve başlığa göre tekilleştirilir.
-  /// Varsayılan olarak sadece en güncel 10 haber alınır.
-  Stream<List<MunicipalNews>> watchNews({int limit = 10}) {
+  /// Firestore `municipal_news` koleksiyonunu canlı (real-time) dinler.
+  /// `.orderBy('newsId')` kullanılmaz çünkü admin panelinden `newsId` olmadan eklenmiş
+  /// haberlerin Firestore tarafından filtrelenip gizlenmesini önler; sıralama bellekte yapılır.
+  Stream<List<MunicipalNews>> watchNews({int limit = 25}) {
     return _firestore
         .collection('municipal_news')
-        .orderBy('newsId', descending: true)
-        .limit(limit)
+        .limit(100)
         .snapshots()
         .map((snapshot) {
-          final map = <String, MunicipalNews>{};
-
-          for (final doc in snapshot.docs) {
-            final item = MunicipalNews.fromMap(doc.id, doc.data());
-            // Tekilleştirme anahtarı: Varsa newsId (örn. 7435), yoksa temizlenmiş başlık
-            final key = item.newsId != null
-                ? 'id_${item.newsId}'
-                : 'title_${item.title.trim().toLowerCase()}';
-
-            if (!map.containsKey(key)) {
-              map[key] = item;
-            } else {
-              // Eğer mevcut kopyanın tarihi boş ama bu kopyada doluysa, dolu olanı seç
-              final existing = map[key]!;
-              if (existing.publishedAtText.isEmpty &&
-                  item.publishedAtText.isNotEmpty) {
-                map[key] = item;
-              } else if (existing.summary.isEmpty && item.summary.isNotEmpty) {
-                map[key] = item;
-              }
-            }
-          }
-
-          return map.values.toList();
+          final sorted = _dedupeAndSort(snapshot.docs, limit: limit);
+          _cachedNews = sorted;
+          return sorted;
         });
   }
 
@@ -163,7 +149,9 @@ class NewsService {
       return _summaryCache[url];
     }
     try {
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
+      final res = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 5));
       if (res.statusCode == 200) {
         final document = html_parser.parse(res.body);
         final pElements = document.querySelectorAll('p');
@@ -188,4 +176,3 @@ class NewsService {
     return null;
   }
 }
-

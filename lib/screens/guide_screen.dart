@@ -1095,8 +1095,9 @@ class GuideScreen extends ConsumerWidget {
 
   /// 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet (ana sayfadaki kısayollar için)
   final int initialTab;
+  final int initialDiscoverSection;
 
-  const GuideScreen({super.key, this.onNavTap, this.initialTab = 0});
+  const GuideScreen({super.key, this.onNavTap, this.initialTab = 0, this.initialDiscoverSection = 0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1131,7 +1132,7 @@ class GuideScreen extends ConsumerWidget {
                   child: TabBarView(
                     children: [
                       _InstitutionsTab(lang: lang),
-                      _DiscoverTab(lang: lang),
+                      _DiscoverTab(lang: lang, initialSection: initialDiscoverSection),
                     ],
                   ),
                 ),
@@ -2313,7 +2314,8 @@ class _CardImage extends StatelessWidget {
 
 class _DiscoverTab extends ConsumerStatefulWidget {
   final String lang;
-  const _DiscoverTab({required this.lang});
+  final int initialSection;
+  const _DiscoverTab({required this.lang, this.initialSection = 0});
 
   @override
   ConsumerState<_DiscoverTab> createState() => _DiscoverTabState();
@@ -2327,11 +2329,17 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   int _section = 0; // 0 = Tarihi Yerler, 1 = Lezzetler, 2 = Doğa & Piknik
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
+    _section = widget.initialSection.clamp(0, 2);
     _filter = AppStrings.get('filter_all', widget.lang);
   }
 
@@ -2339,7 +2347,8 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   void didUpdateWidget(covariant _DiscoverTab oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.lang != widget.lang) {
-      _filter = AppStrings.get('filter_all', widget.lang);
+      _section = widget.initialSection.clamp(0, 2);
+    _filter = AppStrings.get('filter_all', widget.lang);
     }
   }
 

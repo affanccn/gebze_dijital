@@ -12,6 +12,8 @@ class MunicipalNews {
   final String? titleAr;
   final String? summaryEn;
   final String? summaryAr;
+  final String? category;
+  final DateTime? createdAt;
 
   const MunicipalNews({
     required this.id,
@@ -27,7 +29,27 @@ class MunicipalNews {
     this.titleAr,
     this.summaryEn,
     this.summaryAr,
+    this.category,
+    this.createdAt,
   });
+
+  /// Sıralama anahtarı: Admin panelinden eklenen haberler (createdAt içeren veya
+  /// newsId değeri yüksek/eksik olan kayıtlar) her zaman en üstte görünür.
+  int get sortKey {
+    if (createdAt != null && (newsId == null || newsId! > 100000)) {
+      return createdAt!.millisecondsSinceEpoch ~/ 1000;
+    }
+    if (newsId != null && newsId! > 100000) {
+      return newsId!;
+    }
+    if (newsId != null) {
+      return newsId!;
+    }
+    if (createdAt != null) {
+      return createdAt!.millisecondsSinceEpoch ~/ 1000;
+    }
+    return 2000000000;
+  }
 
   factory MunicipalNews.fromMap(String id, Map<String, dynamic> data) {
     return MunicipalNews(
@@ -47,18 +69,45 @@ class MunicipalNews {
       titleAr: data['title_ar'] as String?,
       summaryEn: data['summary_en'] as String?,
       summaryAr: data['summary_ar'] as String?,
+      category: data['category'] as String?,
+      createdAt: _parseDateTime(data['createdAt'] ?? data['publishedAt']),
     );
+  }
+
+  static DateTime? _parseDateTime(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is DateTime) return raw;
+    try {
+      return (raw as dynamic).toDate() as DateTime;
+    } catch (_) {}
+    if (raw is String && raw.isNotEmpty) {
+      return DateTime.tryParse(raw);
+    }
+    return null;
   }
 
   static String _resolveDateText(Map<String, dynamic> data) {
     final raw = (data['publishedAtText'] as String? ?? '').trim();
-    if (raw.isNotEmpty && raw.toLowerCase() != 'güncel' && RegExp(r'\d').hasMatch(raw)) {
+    if (raw.isNotEmpty &&
+        raw.toLowerCase() != 'güncel' &&
+        RegExp(r'\d').hasMatch(raw)) {
       return raw;
     }
 
     const trMonths = [
-      '', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+      '',
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık',
     ];
 
     final ts = data['publishedAt'] ?? data['syncedAt'] ?? data['createdAt'];
@@ -139,7 +188,9 @@ class MunicipalNews {
 
   /// Haber tarihini aktif dile göre formatlar ('21 Ekim 2026' -> '21 أكتوبر 2026' veya 'October 21, 2026')
   String localizedDate(String lang) {
-    final effectiveText = (publishedAtText.trim().toLowerCase() == 'güncel' || publishedAtText.trim().isEmpty)
+    final effectiveText =
+        (publishedAtText.trim().toLowerCase() == 'güncel' ||
+            publishedAtText.trim().isEmpty)
         ? '26 Ekim 2026'
         : publishedAtText.trim();
 
@@ -179,5 +230,3 @@ class MunicipalNews {
     return publishedAtText;
   }
 }
-
-

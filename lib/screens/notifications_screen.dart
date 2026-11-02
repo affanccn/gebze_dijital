@@ -1,12 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'emergency_screen.dart';
 import 'guide_screen.dart';
 import 'outages_screen.dart';
 import 'my_requests_screen.dart';
+import 'neighborhood_screen.dart';
+import 'profile_screen.dart';
+import 'report_screen.dart';
+import 'services_screen.dart';
 import 'soz_sende_screen.dart';
+import '../features/ebelediye/presentation/ebelediye_screen.dart';
 import '../features/news/municipal_news_screen.dart';
+import '../features/parking/presentation/parking_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
 import '../features/pati/presentation/gebze_pati_screen.dart';
@@ -33,6 +41,157 @@ class _C {
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
+  /// Bildirimdeki `actionType` (hedef sayfa / kategori) bilgisine göre ilgili ekranı açar.
+  /// Doğrudan bir sayfaya yönlendirme yapıldıysa `true`, sadece detay gösterilecekse `false` döner.
+  static Future<bool> navigateToTarget(
+    NavigatorState nav,
+    AppNotification item,
+  ) async {
+    Widget? targetWidget;
+
+    switch (item.actionType) {
+      case 'home':
+        nav.popUntil((route) => route.isFirst);
+        return true;
+      case 'outages':
+        targetWidget = const OutagesScreen();
+        break;
+      case 'emergency':
+        targetWidget = const EmergencyScreen();
+        break;
+      case 'neighborhood':
+        targetWidget = const NeighborhoodScreen();
+        break;
+      case 'pharmacy':
+        targetWidget = const PharmaciesScreen();
+        break;
+      case 'parking':
+        targetWidget = const ParkingScreen();
+        break;
+      case 'sozSende':
+        targetWidget = const SozSendeScreen();
+        break;
+      case 'report':
+        targetWidget = const ReportScreen();
+        break;
+      case 'requests':
+        targetWidget = const MyRequestsScreen();
+        break;
+      case 'ebelediye':
+        targetWidget = const EBelediyeScreen();
+        break;
+      case 'services':
+        targetWidget = const ServicesScreen();
+        break;
+      case 'weather':
+        targetWidget = const WeatherScreen();
+        break;
+      case 'news':
+        targetWidget = const MunicipalNewsScreen();
+        break;
+      case 'profile':
+        targetWidget = const ProfileScreen();
+        break;
+      // Şehir Rehberi & Kurumsal Tesis Kategorileri
+      case 'guide_institutions':
+        targetWidget = const GuideScreen(initialTab: 0);
+        break;
+      case 'guide_etkinlikler':
+      case 'events':
+        targetWidget = const GuideCategoryScreen(categoryId: 'etkinlikler');
+        break;
+      case 'guide_lokantalar':
+      case 'food':
+        targetWidget = const GuideCategoryScreen(categoryId: 'lokantalar');
+        break;
+      case 'guide_parklar':
+        targetWidget = const GuideCategoryScreen(categoryId: 'parklar');
+        break;
+      case 'guide_pazar':
+        targetWidget = const GuideCategoryScreen(categoryId: 'pazar');
+        break;
+      case 'guide_spor':
+        targetWidget = const GuideCategoryScreen(categoryId: 'spor');
+        break;
+      case 'guide_kultur':
+        targetWidget = const GuideCategoryScreen(categoryId: 'kultur');
+        break;
+      case 'guide_kresler':
+        targetWidget = const GuideCategoryScreen(categoryId: 'kresler');
+        break;
+      case 'guide_mezarliklar':
+        targetWidget = const GuideCategoryScreen(categoryId: 'mezarliklar');
+        break;
+      case 'guide_belediye':
+        targetWidget = const GuideCategoryScreen(categoryId: 'belediye');
+        break;
+      // Gebze'yi Keşfet Alt Bölümleri
+      case 'discover_places':
+        targetWidget = const GuideScreen(
+          initialTab: 1,
+          initialDiscoverSection: 0,
+        );
+        break;
+      case 'discover_foods':
+        targetWidget = const GuideScreen(
+          initialTab: 1,
+          initialDiscoverSection: 1,
+        );
+        break;
+      case 'discover_picnic':
+        targetWidget = const GuideScreen(
+          initialTab: 1,
+          initialDiscoverSection: 2,
+        );
+        break;
+      // Gebze Pati Alt Sekmeleri
+      case 'pati_center':
+        targetWidget = const GebzePatiScreen(initialIndex: 0);
+        break;
+      case 'pati_adoption':
+      case 'pati':
+        targetWidget = const GebzePatiScreen(initialIndex: 1);
+        break;
+      case 'pati_feeding':
+        targetWidget = const GebzePatiScreen(initialIndex: 2);
+        break;
+      // Harici Web Bağlantısı
+      case 'external_url':
+        final urlStr = item.externalUrl?.trim() ?? '';
+        if (urlStr.isNotEmpty) {
+          final uri = Uri.tryParse(urlStr);
+          if (uri != null) {
+            await launchUrl(
+              uri,
+              mode: LaunchMode.externalApplication,
+            ).catchError((_) => false);
+            return true;
+          }
+        }
+        return false;
+      case 'detail_only':
+      case 'announcements':
+      default:
+        return false;
+    }
+
+    nav.push(MaterialPageRoute(builder: (_) => targetWidget!));
+    return true;
+  }
+
+  /// Canlı In-App Banner (SnackBar) üzerinden tıklandığında hedef sayfaya veya bildirim ekranına yönlendirir.
+  static Future<void> navigateFromBanner(
+    GlobalKey<NavigatorState> navigatorKey,
+    AppNotification item,
+  ) async {
+    final nav = navigatorKey.currentState;
+    if (nav == null) return;
+    final routed = await navigateToTarget(nav, item);
+    if (!routed) {
+      nav.push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+    }
+  }
+
   @override
   ConsumerState<NotificationsScreen> createState() =>
       _NotificationsScreenState();
@@ -51,66 +210,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  void _handleNotificationTap(AppNotification item) {
+  Future<void> _handleNotificationTap(AppNotification item) async {
     ref.read(notificationsProvider.notifier).markAsRead(item.id);
 
-    switch (item.actionType) {
-      case 'outages':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const OutagesScreen()),
-        );
-        break;
-      case 'emergency':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const EmergencyScreen()),
-        );
-        break;
-      case 'pharmacy':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PharmaciesScreen()),
-        );
-        break;
-      case 'food':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const GuideCategoryScreen(categoryId: 'lokantalar'),
-          ),
-        );
-        break;
-      case 'pati':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const GebzePatiScreen(initialIndex: 1),
-          ),
-        );
-        break;
-      case 'requests':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MyRequestsScreen()),
-        );
-        break;
-      case 'weather':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const WeatherScreen()),
-        );
-        break;
-      case 'news':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MunicipalNewsScreen()),
-        );
-        break;
-      case 'sozSende':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SozSendeScreen()),
-        );
-        break;
-      default:
-        _showNotificationDetail(item);
-        break;
+    final nav = Navigator.of(context);
+    final navigated = await NotificationsScreen.navigateToTarget(nav, item);
+    if (!navigated && mounted) {
+      _showNotificationDetail(item);
     }
   }
 
   void _showNotificationDetail(AppNotification item) {
+    ref.read(notificationsProvider.notifier).markAsRead(item.id);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -123,94 +234,184 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: item.color.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: item.color.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(item.icon, color: item.color, size: 26),
                     ),
-                    child: Icon(item.icon, color: item.color, size: 26),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF0A2A66),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0A2A66),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.time,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                item.time,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600],
+                                ),
+                              ),
+                              if (item.neighborhood != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _C.blueLight.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '📍 ${item.neighborhood}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: _C.blueLight,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (item.imageUrl != null &&
+                    item.imageUrl!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: CachedNetworkImage(
+                      imageUrl: item.imageUrl!,
+                      height: 170,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => const SizedBox.shrink(),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 18),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  ),
-                ),
-                child: Text(
-                  item.message,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    height: 1.5,
-                    color: isDark ? Colors.grey[200] : const Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0A2A66),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Anladım', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  child: Text(
+                    item.message,
+                    style: TextStyle(
+                      fontSize: 14.5,
+                      height: 1.5,
+                      color: isDark
+                          ? Colors.grey[200]
+                          : const Color(0xFF1E293B),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                if (item.hasDirectNavigation) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _C.orange,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        NotificationsScreen.navigateToTarget(
+                          Navigator.of(context),
+                          item,
+                        );
+                      },
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: Text(
+                        item.actionButtonLabel ??
+                            '${item.effectiveTargetLabel} Sayfasına Git',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0A2A66),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text(
+                      'Anladım',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -379,6 +580,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                         notification: item,
                         isDark: isDark,
                         onTap: () => _handleNotificationTap(item),
+                        onDetailTap: () => _showNotificationDetail(item),
                       );
                     },
                   ),
@@ -435,15 +637,20 @@ class _NotificationCard extends StatelessWidget {
   final AppNotification notification;
   final bool isDark;
   final VoidCallback onTap;
+  final VoidCallback onDetailTap;
 
   const _NotificationCard({
     required this.notification,
     this.isDark = false,
     required this.onTap,
+    required this.onDetailTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isUrgent = notification.priority == 'urgent';
+    final isImportant = notification.priority == 'important';
+
     return Material(
       color: isDark ? const Color(0xFF1E293B) : Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -457,7 +664,9 @@ class _NotificationCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: notification.isRead
+              color: isUrgent && !notification.isRead
+                  ? const Color(0xFFD32F2F).withValues(alpha: 0.5)
+                  : notification.isRead
                   ? (isDark
                         ? const Color(0xFF334155)
                         : _C.border.withValues(alpha: 0.6))
@@ -490,6 +699,76 @@ class _NotificationCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (isUrgent ||
+                        isImportant ||
+                        notification.neighborhood != null) ...[
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          if (isUrgent)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD32F2F),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                '🚨 ACİL DUYURU',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            )
+                          else if (isImportant)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _C.orange,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                '⚡ ÖNEMLİ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          if (notification.neighborhood != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _C.blueLight.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '📍 ${notification.neighborhood}',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : _C.blueLight,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                    ],
                     Row(
                       children: [
                         Expanded(
@@ -550,14 +829,43 @@ class _NotificationCard extends StatelessWidget {
                           ),
                         ),
                         const Spacer(),
-                        Text(
-                          'Detaylar',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? const Color(0xFF60A5FA)
-                                : _C.blueLight,
-                            fontWeight: FontWeight.w700,
+                        if (notification.hasDirectNavigation)
+                          InkWell(
+                            onTap: onDetailTap,
+                            borderRadius: BorderRadius.circular(6),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              child: Text(
+                                'Metni Oku',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : _C.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            notification.actionButtonLabel ??
+                                (notification.hasDirectNavigation
+                                    ? notification.effectiveTargetLabel
+                                    : 'Detaylar'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? const Color(0xFF60A5FA)
+                                  : _C.blueLight,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         Icon(

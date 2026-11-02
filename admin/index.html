@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gebze Belediyesi • Dijital Yönetim Portalı</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+  <link rel="icon" type="image/png" href="app_icon.png">
 
   <!-- Local Poppins Fonts (Çevrimdışı / Bağımsız Tipografi) -->
   <link rel="preload" href="fonts/Poppins-Regular.ttf" as="font" type="font/ttf" crossorigin>
@@ -125,16 +125,25 @@
     }
 
     .brand-logo {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+      width: 46px;
+      height: 46px;
+      background: #FFFFFF;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.4);
+      overflow: hidden;
+      padding: 0;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
       flex-shrink: 0;
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .brand-info h2 {
@@ -1714,9 +1723,28 @@
           container.innerHTML = '<div class="empty-state">Kayıtlı belediye haberi bulunmamaktadır.</div>';
           return;
         }
-        container.innerHTML = '';
-        snap.forEach(docSnap => {
+        const items = [];
+        let fallbackSeq = Math.floor(Date.now() / 1000);
+        for (const docSnap of snap.docs) {
           const d = docSnap.data();
+          let sortKey = Number(d.newsId) || 0;
+          const createdMillis = d.createdAt?.toMillis ? d.createdAt.toMillis() : (d.publishedAt?.toMillis ? d.publishedAt.toMillis() : 0);
+          if (createdMillis && (!d.newsId || Number(d.newsId) > 100000)) {
+            sortKey = Math.floor(createdMillis / 1000);
+          } else if (!d.newsId) {
+            sortKey = fallbackSeq--;
+          }
+          // Eğer önceden newsId alanı olmadan eklenmiş haber varsa arka planda newsId ata
+          if (d.newsId === undefined || d.newsId === null) {
+            updateDoc(doc(db, "municipal_news", docSnap.id), { newsId: sortKey }).catch(() => {});
+          }
+          items.push({ id: docSnap.id, data: d, sortKey });
+        }
+        items.sort((a, b) => b.sortKey - a.sortKey);
+
+        container.innerHTML = '';
+        items.forEach(({ id, data: d, sortKey }) => {
+          const isAdminAdded = sortKey > 100000;
           const card = document.createElement("div");
           card.className = "item-card";
           card.innerHTML = `
@@ -1724,14 +1752,15 @@
             <div class="item-card-body">
               <div class="item-card-meta">
                 <span>📅 ${d.publishedAtText || 'Bugün'}</span>
+                ${isAdminAdded ? `<span class="badge badge-success" style="margin-left:6px;">⚡ Canlı Yayında</span>` : ''}
                 ${d.category ? `<span class="badge badge-primary" style="margin-left:auto;">${d.category}</span>` : ''}
               </div>
               <div class="item-card-title">${d.title}</div>
               <div class="item-card-desc">${d.summary || d.description || (d.url ? '🔗 ' + d.url : 'Belediye Güncel Haberi')}</div>
             </div>
             <div class="item-card-footer">
-              <span class="badge badge-primary">ID: ${docSnap.id.substring(0, 8)}</span>
-              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('municipal_news', '${docSnap.id}', loadNews)">Sil</button>
+              <span class="badge badge-primary">No: ${d.newsId || sortKey}</span>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('municipal_news', '${id}', loadNews)">Sil</button>
             </div>
           `;
           container.appendChild(card);
@@ -4902,6 +4931,196 @@
     };
 
     // ───────────────── 14. CANLI BİLDİRİM / DUYURU YAYINI ─────────────────
+    const BROADCAST_TARGET_LABELS = {
+      detail_only: "📄 Sadece Duyuru Detayı (Yönlendirme Yok)",
+      home: "🏠 Ana Sayfa (Vitrin)",
+      news: "📰 Haberler & Belediye Duyuruları",
+      outages: "⚡ Planlı Su & Elektrik Kesintileri",
+      emergency: "🚨 Afet & Acil Toplanma Alanları",
+      neighborhood: "🚧 Mahallemde (Saha & Altyapı Çalışmaları)",
+      pharmacy: "💊 Nöbetçi Eczaneler",
+      parking: "🅿️ Otoparklar & Canlı Doluluk",
+      sozSende: "🗳️ Söz Sende (Anketler & Öneriler)",
+      report: "📸 Çek & Gönder (Yeni Talep Oluştur)",
+      requests: "📋 Başvurularım & Talep Takip",
+      ebelediye: "🏛️ E-Belediye Hizmetleri (Vergi/Borç/İmar)",
+      services: "🧭 Tüm Belediye Hizmetleri Ekranı",
+      weather: "🌤️ Hava Durumu & Meteoroloji",
+      profile: "👤 Profil & Hesap Ayarları",
+      guide_institutions: "🏢 Şehir Rehberi: Kurumsal Hizmetler (Tümü)",
+      guide_etkinlikler: "🎭 Kültür & Sanat Etkinlikleri",
+      guide_lokantalar: "🍽️ Kent Lokantaları",
+      guide_parklar: "🌳 Parklar & Yeşil Alanlar",
+      guide_pazar: "🛒 Semt Pazar Yerleri",
+      guide_spor: "⚽ Spor Tesisleri & Salonlar",
+      guide_kultur: "🏛️ Kültür Merkezleri & Kütüphaneler",
+      guide_kresler: "🧸 Kreşler & Çocuk Atölyeleri (AKÇEM)",
+      guide_mezarliklar: "🪦 Mezarlıklar & Defin Hizmetleri",
+      guide_belediye: "🏢 Belediye Hizmet Birimleri & Müdürlükler",
+      discover_places: "🏰 Gebze'yi Keşfet: Tarihi & Gezilecek Yerler",
+      discover_foods: "🍲 Gebze'yi Keşfet: Yöresel Lezzetler (Ne Yenir?)",
+      discover_picnic: "🌲 Gebze'yi Keşfet: Doğa, Mesire & Piknik Alanları",
+      pati_center: "🐾 Gebze Pati: Bakım Merkezi & Hayvan Ambulansı",
+      pati_adoption: "🐶 Gebze Pati: Yuva Arayanlar (Sahiplendirme)",
+      pati_feeding: "🥣 Gebze Pati: Mama Odakları & Nöbetçi Veteriner",
+      external_url: "🌐 Harici Web Bağlantısı (Link)"
+    };
+
+    const BROADCAST_PRESETS = {
+      su_kesinti: {
+        title: "Planlı Su Kesintisi Duyurusu",
+        message: "İSU tarafından yapılacak şebeke iyileştirme çalışması nedeniyle belirtilen saatler arasında su kesintisi uygulanacaktır.",
+        targetPage: "outages",
+        topic: "outages",
+        category: "outages",
+        priority: "important",
+        actionButtonLabel: "Kesintileri İncele"
+      },
+      elektrik_kesinti: {
+        title: "Planlı Elektrik Kesintisi Bilgilendirmesi",
+        message: "SEDAŞ bakım ve trafo yenileme çalışmaları kapsamında mahallelerimizde planlı kesinti yapılacaktır.",
+        targetPage: "outages",
+        topic: "outages",
+        category: "outages",
+        priority: "important",
+        actionButtonLabel: "Kesinti Listesini Gör"
+      },
+      acil_durum: {
+        title: "Önemli Afet & Acil Durum Bilgilendirmesi",
+        message: "Mahallenizdeki en yakın güvenli afet toplanma alanlarını ve acil durum iletişim hatlarını kontrol edebilirsiniz.",
+        targetPage: "emergency",
+        topic: "emergency",
+        category: "announcements",
+        priority: "urgent",
+        actionButtonLabel: "Toplanma Alanlarını Gör"
+      },
+      etkinlik: {
+        title: "Kültür & Sanat Etkinliğimize Davetlisiniz",
+        message: "Gebze Kültür Merkezi'nde düzenlenecek ücretsiz etkinlik ve gösteri takvimimiz güncellendi.",
+        targetPage: "guide_etkinlikler",
+        topic: "news",
+        category: "announcements",
+        priority: "normal",
+        actionButtonLabel: "Etkinlik Takvimini Aç"
+      },
+      kent_lokanta: {
+        title: "Kent Lokantası Günün Menüsü Hazır",
+        message: "Gebze Belediyesi Kent Lokantalarımızda 4 çeşit sağlıklı ve ekonomik sıcak yemek servisimiz başlamıştır.",
+        targetPage: "guide_lokantalar",
+        topic: "news",
+        category: "services",
+        priority: "normal",
+        actionButtonLabel: "Kent Lokantalarını Gör"
+      },
+      pati: {
+        title: "Can Dostlarımız Yuva Arıyor",
+        message: "Gebze Pati Bakım Merkezimizdeki sevimli dostlarımızı inceleyerek ücretsiz sahiplenme başvurusu yapabilirsiniz.",
+        targetPage: "pati_adoption",
+        topic: "news",
+        category: "announcements",
+        priority: "normal",
+        actionButtonLabel: "Yuva Arayanları Gör"
+      },
+      mahalle_calisma: {
+        title: "Mahallenizde Saha & Asfalt Çalışması",
+        message: "Fen İşleri Müdürlüğü ekiplerimiz tarafından yürütülen yol bakım ve altyapı çalışmalarını canlı takip edebilirsiniz.",
+        targetPage: "neighborhood",
+        topic: "news",
+        category: "services",
+        priority: "normal",
+        actionButtonLabel: "Saha Çalışmalarını Gör"
+      },
+      anket: {
+        title: "Söz Sende: Yeni Belediye Anketi Yayında!",
+        message: "Gebze'mizin geleceği için görüşünüz önemli. Yeni mahalle ve proje anketimize katılarak oyunuzu kullanın.",
+        targetPage: "sozSende",
+        topic: "sozSende",
+        category: "announcements",
+        priority: "important",
+        actionButtonLabel: "Ankete Katıl"
+      }
+    };
+
+    window.applyBroadcastPreset = (key) => {
+      const p = BROADCAST_PRESETS[key];
+      if (!p) return;
+      document.getElementById("broadcastTitle").value = p.title;
+      document.getElementById("broadcastMessage").value = p.message;
+      document.getElementById("broadcastTargetPage").value = p.targetPage;
+      document.getElementById("broadcastTopic").value = p.topic;
+      document.getElementById("broadcastCategory").value = p.category;
+      document.getElementById("broadcastPriority").value = p.priority;
+      document.getElementById("broadcastActionLabel").value = p.actionButtonLabel || "";
+      window.onBroadcastTargetChange();
+      window.updateBroadcastPreview();
+      showToast("Hazır duyuru şablonu yüklendi.");
+    };
+
+    window.onBroadcastTargetChange = () => {
+      const target = document.getElementById("broadcastTargetPage")?.value || "news";
+      const urlWrap = document.getElementById("broadcastExternalUrlGroup");
+      if (urlWrap) {
+        urlWrap.style.display = target === "external_url" ? "block" : "none";
+      }
+      // Hedef sayfaya göre kategori/konu otomatik önerisi
+      const topicEl = document.getElementById("broadcastTopic");
+      const catEl = document.getElementById("broadcastCategory");
+      if (target === "outages" && topicEl && catEl) {
+        topicEl.value = "outages";
+        catEl.value = "outages";
+      } else if (target === "emergency" && topicEl) {
+        topicEl.value = "emergency";
+      } else if (target === "sozSende" && topicEl) {
+        topicEl.value = "sozSende";
+      } else if ((target.startsWith("guide_") || target === "pharmacy" || target === "parking" || target === "ebelediye" || target === "services") && catEl && target !== "guide_etkinlikler") {
+        catEl.value = "services";
+      }
+      window.updateBroadcastPreview();
+    };
+
+    window.updateBroadcastPreview = () => {
+      const title = document.getElementById("broadcastTitle")?.value.trim() || "Örnek Duyuru Başlığı";
+      const msg = document.getElementById("broadcastMessage")?.value.trim() || "Duyuru metniniz vatandaşların ekranında ve bildirim merkezinde bu şekilde görünecektir.";
+      const target = document.getElementById("broadcastTargetPage")?.value || "news";
+      const priority = document.getElementById("broadcastPriority")?.value || "normal";
+      const neighborhood = document.getElementById("broadcastNeighborhood")?.value || "all";
+      const btnLabel = document.getElementById("broadcastActionLabel")?.value.trim();
+
+      const prevTitle = document.getElementById("previewBroadcastTitle");
+      const prevMsg = document.getElementById("previewBroadcastMsg");
+      const prevTarget = document.getElementById("previewBroadcastTarget");
+      const prevBadge = document.getElementById("previewBroadcastPriority");
+      const prevNeigh = document.getElementById("previewBroadcastNeighborhood");
+
+      if (prevTitle) prevTitle.innerText = title;
+      if (prevMsg) prevMsg.innerText = msg;
+      if (prevTarget) {
+        const cleanTarget = (BROADCAST_TARGET_LABELS[target] || target).replace(/^[^\s]+\s/, '');
+        prevTarget.innerText = btnLabel ? `${btnLabel} (${cleanTarget}) ›` : `${cleanTarget} ›`;
+      }
+      if (prevBadge) {
+        if (priority === "urgent") {
+          prevBadge.style.display = "inline-block";
+          prevBadge.style.background = "#D32F2F";
+          prevBadge.innerText = "🚨 ACİL DUYURU";
+        } else if (priority === "important") {
+          prevBadge.style.display = "inline-block";
+          prevBadge.style.background = "#FF6B00";
+          prevBadge.innerText = "⚡ ÖNEMLİ";
+        } else {
+          prevBadge.style.display = "none";
+        }
+      }
+      if (prevNeigh) {
+        if (neighborhood && neighborhood !== "all") {
+          prevNeigh.style.display = "inline-block";
+          prevNeigh.innerText = `📍 ${neighborhood}`;
+        } else {
+          prevNeigh.style.display = "none";
+        }
+      }
+    };
+
     async function loadBroadcastHistory() {
       const container = document.getElementById("broadcastHistoryGrid");
       container.innerHTML = '<div class="empty-state">Yayın geçmişi yükleniyor...</div>';
@@ -4911,26 +5130,49 @@
           container.innerHTML = '<div class="empty-state">Henüz yayınlanmış acil duyuru veya toplu bildirim bulunmuyor.</div>';
           return;
         }
-        container.innerHTML = '';
+        const docs = [];
         snap.forEach(docSnap => {
           const d = docSnap.data();
+          const ts = d.createdAt?.toMillis ? d.createdAt.toMillis() : 0;
+          docs.push({ id: docSnap.id, data: d, ts });
+        });
+        docs.sort((a, b) => b.ts - a.ts);
+
+        container.innerHTML = '';
+        docs.forEach(({ id, data: d }) => {
+          const targetKey = d.targetPage || d.actionType || d.topic || 'news';
+          const targetText = BROADCAST_TARGET_LABELS[targetKey] || d.targetLabel || targetKey;
+          const prio = d.priority || 'normal';
+          const prioBadge = prio === 'urgent'
+            ? `<span class="badge badge-danger">🚨 Acil</span>`
+            : (prio === 'important' ? `<span class="badge badge-warning">⚡ Önemli</span>` : `<span class="badge badge-success">Yayınlandı</span>`);
+          const neighBadge = (d.neighborhood && d.neighborhood !== 'all')
+            ? `<span class="badge badge-primary">📍 ${esc(d.neighborhood)}</span>`
+            : '';
+
           const card = document.createElement("div");
           card.className = "item-card";
           card.innerHTML = `
+            ${d.imageUrl ? `<img src="${esc(d.imageUrl)}" class="item-card-image" onclick="openLightbox('${esc(d.imageUrl)}')" alt="duyuru">` : ''}
             <div class="item-card-body">
-              <div class="item-card-meta">
-                <span>📡 Konu: ${d.topic || 'all'}</span>
-                <span class="badge badge-success" style="margin-left:auto;">Yayınlandı</span>
+              <div class="item-card-meta" style="flex-wrap:wrap; gap:6px;">
+                <span>📡 Kanal: ${esc(d.topic || 'news')}</span>
+                ${neighBadge}
+                <span style="margin-left:auto;">${prioBadge}</span>
               </div>
-              <div class="item-card-title">${d.title}</div>
-              <div class="item-card-desc">${d.message}</div>
-              <div style="font-size:11.5px; color:var(--text-muted);">
-                Tarih: ${d.createdAtText || 'Yeni'} • Kategori: ${d.category || 'announcements'}
+              <div class="item-card-title">${esc(d.title)}</div>
+              <div class="item-card-desc">${esc(d.message)}</div>
+              <div style="margin-top:8px; padding:7px 10px; background:var(--navy-soft); border-radius:8px; font-size:11.5px; font-weight:700; color:var(--navy);">
+                🎯 Yönlendirme: ${esc(targetText)}
+                ${d.actionButtonLabel ? ` <span style="color:var(--orange);">• [${esc(d.actionButtonLabel)}]</span>` : ''}
+              </div>
+              <div style="font-size:11.5px; color:var(--text-muted); margin-top:6px;">
+                🕒 ${esc(d.createdAtText || 'Yeni')} • Sekme: ${esc(d.category || 'announcements')}
               </div>
             </div>
             <div class="item-card-footer">
               <span class="badge badge-primary">Tüm Cihazlara Ulaştı</span>
-              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('broadcast_notifications', '${docSnap.id}', loadBroadcastHistory)">Sil</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteDocItem('broadcast_notifications', '${id}', loadBroadcastHistory)">Sil</button>
             </div>
           `;
           container.appendChild(card);
@@ -4962,7 +5204,9 @@
         const btn = e.target.querySelector("button[type=submit]");
         btn.disabled = true;
         try {
+          const generatedNewsId = Math.floor(Date.now() / 1000);
           await addDoc(collection(db, "municipal_news"), {
+            newsId: generatedNewsId,
             title: document.getElementById("newsTitle").value.trim(),
             summary: document.getElementById("newsSummary").value.trim(),
             category: document.getElementById("newsCategory").value,
@@ -4971,10 +5215,11 @@
             url: document.getElementById("newsUrl").value.trim() || "https://www.gebze.bel.tr/",
             pageIndex: 1,
             itemIndex: 1,
+            publishedAt: serverTimestamp(),
             createdAt: serverTimestamp()
           });
           e.target.reset();
-          showToast("Haber ve mobil ön izleme metni başarıyla yayınlandı!");
+          showToast("Haber canlı olarak mobil uygulamada yayınlandı!");
           loadNews();
           loadDashboard();
         } catch (err) { alert(err.message); }
@@ -5161,19 +5406,38 @@
         try {
           const title = document.getElementById("broadcastTitle").value.trim();
           const message = document.getElementById("broadcastMessage").value.trim();
+          const targetPage = document.getElementById("broadcastTargetPage")?.value || "news";
+          const targetSelect = document.getElementById("broadcastTargetPage");
+          const selectedOptText = targetSelect?.options[targetSelect.selectedIndex]?.text || "";
+          const targetLabel = selectedOptText.replace(/^[^\s]+\s/, '').trim();
           const topic = document.getElementById("broadcastTopic").value;
           const category = document.getElementById("broadcastCategory").value;
+          const priority = document.getElementById("broadcastPriority")?.value || "normal";
+          const neighborhood = document.getElementById("broadcastNeighborhood")?.value || "all";
+          const actionButtonLabel = document.getElementById("broadcastActionLabel")?.value.trim() || "";
+          const externalUrl = document.getElementById("broadcastExternalUrl")?.value.trim() || "";
+          const imageUrl = document.getElementById("broadcastImageUrl")?.value.trim() || "";
 
           await addDoc(collection(db, "broadcast_notifications"), {
             title,
             message,
+            targetPage,
+            actionType: targetPage,
+            targetLabel,
             topic,
             category,
+            priority,
+            neighborhood,
+            actionButtonLabel,
+            externalUrl,
+            imageUrl,
             createdAtText: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('tr-TR'),
             createdAt: serverTimestamp()
           });
           e.target.reset();
-          showToast("Acil duyuru ve bildirim başarıyla yayınlandı!");
+          window.onBroadcastTargetChange();
+          window.updateBroadcastPreview();
+          showToast("Duyuru ve sayfa yönlendirmesi canlı olarak tüm cihazlara yayınlandı!");
           loadBroadcastHistory();
         } catch (err) { alert(err.message); }
         finally { btn.disabled = false; }
@@ -6320,7 +6584,9 @@
   <!-- ─── SIDEBAR ─── -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="brand-logo">🏛️</div>
+      <div class="brand-logo">
+        <img src="app_icon.png" onerror="this.onerror=null;this.src='../gorsel/app_icon.png';" alt="Gebze Dijital Logo">
+      </div>
       <div class="brand-info">
         <h2>GEBZE DİJİTAL</h2>
         <p>Yönetim Portalı</p>
@@ -7001,22 +7267,137 @@
         <div class="panel-grid">
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">📡 Canlı Duyuru & Bildirim Gönder</div>
+              <div class="panel-title">📡 Canlı Duyuru & Sayfa Yönlendirmeli Bildirim Gönder</div>
             </div>
+
+            <div style="margin-bottom:14px;">
+              <div style="font-size:11.5px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">
+                ⚡ HIZLI DUYURU ŞABLONLARI (Tek Tıkla Doldur):
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('su_kesinti')">💧 Su Kesintisi</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('elektrik_kesinti')">⚡ Elektrik Kesintisi</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('acil_durum')">🚨 Acil / Toplanma Alanı</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('etkinlik')">🎭 Kültür Etkinliği</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('kent_lokanta')">🍽️ Kent Lokantası</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('pati')">🐾 Gebze Pati</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('mahalle_calisma')">🚧 Mahalle Çalışması</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="applyBroadcastPreset('anket')">🗳️ Yeni Anket</button>
+              </div>
+            </div>
+
             <form id="formBroadcast">
               <div class="form-group">
                 <label>Bildirim Başlığı *</label>
-                <input type="text" id="broadcastTitle" placeholder="Örn: Önemli Su Kesintisi Duyurusu" required>
+                <input type="text" id="broadcastTitle" placeholder="Örn: Önemli Su Kesintisi Duyurusu" required oninput="updateBroadcastPreview()">
               </div>
               <div class="form-group">
                 <label>Bildirim / Duyuru Metni *</label>
-                <textarea id="broadcastMessage" rows="4"
+                <textarea id="broadcastMessage" rows="3"
                   placeholder="Vatandaşların bildirim çubuğunda ve uygulama içinde göreceği detaylı mesaj..."
-                  required></textarea>
+                  required oninput="updateBroadcastPreview()"></textarea>
               </div>
+
+              <div class="form-group">
+                <label>🎯 Tıklandığında Yönlendirilecek Uygulama Sayfası veya Kategori *</label>
+                <select id="broadcastTargetPage" onchange="onBroadcastTargetChange()">
+                  <optgroup label="📌 Ana Ekranlar & Genel Modüller">
+                    <option value="news">📰 Haberler & Belediye Duyuruları</option>
+                    <option value="detail_only">📄 Sadece Duyuru Detay Penceresi (Yönlendirme Yok)</option>
+                    <option value="home">🏠 Ana Sayfa (Vitrin)</option>
+                    <option value="services">🧭 Tüm Belediye Hizmetleri Ekranı</option>
+                    <option value="ebelediye">🏛️ E-Belediye Hizmetleri (Vergi / Borç / İmar)</option>
+                    <option value="weather">🌤️ Hava Durumu & Meteoroloji</option>
+                    <option value="profile">👤 Profil & Hesap Ayarları</option>
+                  </optgroup>
+                  <optgroup label="⚡ Altyapı, Acil Durum & Şehir Yaşamı">
+                    <option value="outages">⚡ Planlı Su & Elektrik Kesintileri</option>
+                    <option value="emergency">🚨 Afet & Acil Toplanma Alanları</option>
+                    <option value="neighborhood">🚧 Mahallemde (Saha & Altyapı Çalışmaları)</option>
+                    <option value="pharmacy">💊 Nöbetçi Eczaneler</option>
+                    <option value="parking">🅿️ Otoparklar & Canlı Doluluk</option>
+                  </optgroup>
+                  <optgroup label="🗣️ Vatandaş Katılımı & Çözüm Masası">
+                    <option value="sozSende">🗳️ Söz Sende: Anketler & Vatandaş Önerileri</option>
+                    <option value="report">📸 Çek & Gönder (Yeni Talep / Arıza Bildir)</option>
+                    <option value="requests">📋 Başvurularım & Talep Takip</option>
+                  </optgroup>
+                  <optgroup label="🏢 Şehir Rehberi & Kurumsal Tesis Kategorileri">
+                    <option value="guide_institutions">🏢 Şehir Rehberi: Kurumsal Hizmetler (Tümü)</option>
+                    <option value="guide_etkinlikler">🎭 Kültür & Sanat Etkinlikleri</option>
+                    <option value="guide_lokantalar">🍽️ Kent Lokantaları</option>
+                    <option value="guide_parklar">🌳 Parklar & Yeşil Alanlar</option>
+                    <option value="guide_pazar">🛒 Semt Pazar Yerleri</option>
+                    <option value="guide_spor">⚽ Spor Tesisleri & Salonlar</option>
+                    <option value="guide_kultur">🏛️ Kültür Merkezleri & Kütüphaneler</option>
+                    <option value="guide_kresler">🧸 Kreşler & Çocuk Atölyeleri (AKÇEM)</option>
+                    <option value="guide_mezarliklar">🪦 Mezarlıklar & Defin Hizmetleri</option>
+                    <option value="guide_belediye">🏢 Belediye Hizmet Birimleri & Müdürlükler</option>
+                  </optgroup>
+                  <optgroup label="🏰 Gebze'yi Keşfet Kategorileri">
+                    <option value="discover_places">🏰 Gebze'yi Keşfet: Tarihi & Gezilecek Yerler</option>
+                    <option value="discover_foods">🍲 Gebze'yi Keşfet: Yöresel Lezzetler (Ne Yenir?)</option>
+                    <option value="discover_picnic">🌲 Gebze'yi Keşfet: Doğa, Mesire & Piknik Alanları</option>
+                  </optgroup>
+                  <optgroup label="🐾 Gebze Pati (Can Dostlarımız) Kategorileri">
+                    <option value="pati_adoption">🐶 Gebze Pati: Yuva Arayanlar (Sahiplendirme)</option>
+                    <option value="pati_center">🐾 Gebze Pati: Bakım Merkezi & Hayvan Ambulansı</option>
+                    <option value="pati_feeding">🥣 Gebze Pati: Mama Odakları & Nöbetçi Veteriner</option>
+                  </optgroup>
+                  <optgroup label="🌐 Harici Bağlantı">
+                    <option value="external_url">🌐 Harici Web Sayfası / Bağlantı (URL)</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <div class="form-group" id="broadcastExternalUrlGroup" style="display:none;">
+                <label>🔗 Harici Web Bağlantısı (URL)</label>
+                <input type="url" id="broadcastExternalUrl" placeholder="https://www.gebze.bel.tr/...">
+              </div>
+
               <div class="form-row">
                 <div class="form-group">
-                  <label>Hedef Konu (Topic)</label>
+                  <label>Öncelik / Aciliyet Seviyesi</label>
+                  <select id="broadcastPriority" onchange="updateBroadcastPreview()">
+                    <option value="normal">ℹ️ Normal Bilgilendirme</option>
+                    <option value="important">⚡ Önemli Duyuru (Turuncu Vurgu)</option>
+                    <option value="urgent">🚨 Acil / Kritik Uyarı (Kırmızı Vurgu)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Hedef Mahalle / Bölge</label>
+                  <select id="broadcastNeighborhood" onchange="updateBroadcastPreview()">
+                    <option value="all">📍 Tüm Gebze (Genel)</option>
+                    <option value="Adem Yavuz">Adem Yavuz</option>
+                    <option value="Arapçeşme">Arapçeşme</option>
+                    <option value="Barış">Barış</option>
+                    <option value="Beylikbağı">Beylikbağı</option>
+                    <option value="Cumhuriyet">Cumhuriyet</option>
+                    <option value="Gaziler">Gaziler</option>
+                    <option value="Güzeller">Güzeller</option>
+                    <option value="Hacıhalil">Hacıhalil</option>
+                    <option value="Hürriyet">Hürriyet</option>
+                    <option value="İnönü">İnönü</option>
+                    <option value="İstasyon">İstasyon</option>
+                    <option value="Kirazpınar">Kirazpınar</option>
+                    <option value="Köşklüçeşme">Köşklüçeşme</option>
+                    <option value="Mevlana">Mevlana</option>
+                    <option value="Mimar Sinan">Mimar Sinan</option>
+                    <option value="Mustafapaşa">Mustafapaşa</option>
+                    <option value="Osman Yılmaz">Osman Yılmaz</option>
+                    <option value="Sultan Orhan">Sultan Orhan</option>
+                    <option value="Tatlıkuyu">Tatlıkuyu</option>
+                    <option value="Ulus">Ulus</option>
+                    <option value="Yavuz Selim">Yavuz Selim</option>
+                    <option value="Yenikent">Yenikent</option>
+                    <option value="Kırsal Mahalleler / Köyler">Kırsal Mahalleler / Köyler</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Bildirim Kanalı (Topic)</label>
                   <select id="broadcastTopic">
                     <option value="news">Tüm Vatandaşlar (Genel)</option>
                     <option value="outages">Planlı Kesintiler (outages)</option>
@@ -7025,15 +7406,46 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Bildirim Kategorisi</label>
+                  <label>Bildirim Merkezi Sekmesi</label>
                   <select id="broadcastCategory">
-                    <option value="announcements">Duyurular</option>
-                    <option value="outages">Kesintiler</option>
-                    <option value="services">Belediye Hizmetleri</option>
+                    <option value="announcements">Duyurular Sekmesi</option>
+                    <option value="outages">Kesintiler Sekmesi</option>
+                    <option value="services">Hizmetler Sekmesi</option>
                   </select>
                 </div>
               </div>
-              <button type="submit" class="btn btn-orange" style="width:100%;">🚀 Duyuruyu Canlıya Gönder</button>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Özel Yönlendirme Butonu Metni (Opsiyonel)</label>
+                  <input type="text" id="broadcastActionLabel" placeholder="Örn: Kesintileri İncele" oninput="updateBroadcastPreview()">
+                </div>
+                <div class="form-group">
+                  <label>Duyuru Görsel URL (Opsiyonel)</label>
+                  <input type="url" id="broadcastImageUrl" placeholder="https://...">
+                </div>
+              </div>
+
+              <!-- Canlı Mobil Bildirim Önizlemesi -->
+              <div style="margin:6px 0 16px; padding:14px; background:#F8FAFC; border:1.5px dashed #CBD5E1; border-radius:14px;">
+                <div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px;">
+                  📱 Uygulama İçi Bildirim Kartı Önizlemesi
+                </div>
+                <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:12px; box-shadow:0 2px 8px rgba(10,42,102,0.05);">
+                  <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;">
+                    <span id="previewBroadcastPriority" style="display:none; padding:2px 7px; border-radius:6px; color:#fff; font-size:10px; font-weight:800;"></span>
+                    <span id="previewBroadcastNeighborhood" style="display:none; padding:2px 7px; border-radius:6px; background:#EEF4FF; color:#1E5BC6; font-size:10px; font-weight:700;"></span>
+                  </div>
+                  <div id="previewBroadcastTitle" style="font-weight:800; font-size:13.5px; color:#0A1F44;">Örnek Duyuru Başlığı</div>
+                  <div id="previewBroadcastMsg" style="font-size:12px; color:#475569; margin-top:3px; line-height:1.4;">Duyuru metniniz vatandaşların ekranında ve bildirim merkezinde bu şekilde görünecektir.</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:1px solid #F1F5F9; font-size:11.5px;">
+                    <span style="color:#94A3B8;">🕒 Az önce</span>
+                    <span id="previewBroadcastTarget" style="color:#1E5BC6; font-weight:700;">Haberler & Belediye Duyuruları ›</span>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-orange" style="width:100%;">🚀 Duyuruyu ve Yönlendirmeyi Canlıya Gönder</button>
             </form>
           </div>
           <div>
@@ -8534,7 +8946,11 @@
   <!-- ─── YÖNETİCİ GİRİŞ EKRANI ─── -->
   <div id="loginOverlay" style="display:none;">
     <form class="login-card" onsubmit="window.adminSignIn(event)">
-      <h2>🏛️ Gebze Dijital</h2>
+      <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:10px;">
+        <img src="app_icon.png" onerror="this.onerror=null;this.src='../gorsel/app_icon.png';" alt="Gebze Dijital Logo"
+          style="width:76px; height:76px; border-radius:18px; object-fit:cover; box-shadow:0 8px 24px rgba(10,42,102,0.18); margin-bottom:10px;">
+        <h2 style="margin:0;">Gebze Dijital</h2>
+      </div>
       <p>Belediye yönetim portalına erişmek için yetkili e-posta ve şifrenizle oturum açın.</p>
       <div class="form-group">
         <label>Yönetici E-posta</label>

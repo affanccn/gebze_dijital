@@ -874,9 +874,9 @@ function renderFoods() {
   const list = (window.foodsCache || []).filter(f => {
     if (!q) return true;
     return (f.name || '').toLowerCase().includes(q) ||
-           (f.summary || '').toLowerCase().includes(q) ||
-           (f.whereToEat || '').toLowerCase().includes(q) ||
-           (f.origin || '').toLowerCase().includes(q);
+      (f.summary || '').toLowerCase().includes(q) ||
+      (f.whereToEat || '').toLowerCase().includes(q) ||
+      (f.origin || '').toLowerCase().includes(q);
   }).sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
 
   const countEl = document.getElementById('foodsCount');
@@ -1010,9 +1010,9 @@ function renderPicnic() {
     if (filterType !== 'all' && (p.type || 'piknik') !== filterType) return false;
     if (!q) return true;
     return (p.name || '').toLowerCase().includes(q) ||
-           (p.summary || '').toLowerCase().includes(q) ||
-           (p.village || '').toLowerCase().includes(q) ||
-           (p.address || '').toLowerCase().includes(q);
+      (p.summary || '').toLowerCase().includes(q) ||
+      (p.village || '').toLowerCase().includes(q) ||
+      (p.address || '').toLowerCase().includes(q);
   }).sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
 
   const countEl = document.getElementById('picnicCount');
@@ -2213,8 +2213,8 @@ window.openUserDetailModal = (userId) => {
   }
 
   if (notice) {
-    notice.innerText = isVer 
-      ? "Bu vatandaşın belediye / kimlik doğrulaması tamamlanmıştır ve hesabı aktiftir." 
+    notice.innerText = isVer
+      ? "Bu vatandaşın belediye / kimlik doğrulaması tamamlanmıştır ve hesabı aktiftir."
       : "Bu vatandaşın hesabı henüz doğrulanmamış (onay bekliyor durumunda).";
   }
 
@@ -2310,8 +2310,8 @@ window.toggleUserVerification = async (userId, isVerified, event) => {
 
   const u = (window.usersListCache || []).find(x => x.id === userId) || (window.usersMap ? window.usersMap[userId] : null);
   const name = u ? (u.fullName || 'Vatandaş') : 'Vatandaş';
-  const actionText = isVerified 
-    ? `"${name}" isimli vatandaşın hesabını onaylamak (doğrulamak) istiyor musunuz?` 
+  const actionText = isVerified
+    ? `"${name}" isimli vatandaşın hesabını onaylamak (doğrulamak) istiyor musunuz?`
     : `"${name}" isimli vatandaşın onayını kaldırmak (bekleme durumuna almak) istiyor musunuz?`;
 
   if (!confirm(actionText)) return;
@@ -2353,8 +2353,8 @@ window.toggleUserRole = async (userId) => {
 
   const isCurrentAdmin = u.role === 'admin';
   const newRole = isCurrentAdmin ? 'citizen' : 'admin';
-  const promptText = isCurrentAdmin 
-    ? `"${u.fullName || 'Vatandaş'}" kullanıcısının Yönetici (Admin) yetkisini kaldırıp normal Vatandaş yapmak istiyor musunuz?` 
+  const promptText = isCurrentAdmin
+    ? `"${u.fullName || 'Vatandaş'}" kullanıcısının Yönetici (Admin) yetkisini kaldırıp normal Vatandaş yapmak istiyor musunuz?`
     : `"${u.fullName || 'Vatandaş'}" kullanıcısına Yönetici (Admin) yetkisi vermek istiyor musunuz?`;
 
   if (!confirm(promptText)) return;
@@ -3010,19 +3010,22 @@ function initFormListeners() {
     const btn = e.target.querySelector("button[type=submit]");
     btn.disabled = true;
     try {
-      const generatedId = Date.now().toString().slice(-6);
+      const generatedId = Math.floor(Date.now() / 1000);
       await addDoc(collection(db, "municipal_news"), {
-        newsId: parseInt(generatedId, 10),
+        newsId: generatedId,
         title: document.getElementById("newsTitle").value.trim(),
         summary: document.getElementById("newsSummary").value.trim(),
         category: document.getElementById("newsCategory").value,
         publishedAtText: document.getElementById("newsDate").value.trim() || new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
         image: document.getElementById("newsImage").value.trim() || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=800&q=80",
         url: document.getElementById("newsUrl").value.trim() || "https://www.gebze.bel.tr/",
+        pageIndex: 1,
+        itemIndex: 1,
+        publishedAt: serverTimestamp(),
         createdAt: serverTimestamp()
       });
       e.target.reset();
-      showToast("Haber ve mobil ön izleme metni yayınlandı!");
+      showToast("Haber canlı olarak mobil uygulamada yayınlandı!");
       loadNews();
       loadDashboard();
     } catch (err) { alert(err.message); }
@@ -3364,11 +3367,23 @@ function initFormListeners() {
     const btn = e.target.querySelector("button[type=submit]");
     btn.disabled = true;
     try {
+      const targetPage = document.getElementById("broadcastTargetPage")?.value || "news";
+      const targetSelect = document.getElementById("broadcastTargetPage");
+      const selectedOptText = targetSelect?.options[targetSelect.selectedIndex]?.text || "";
+      const targetLabel = selectedOptText.replace(/^[^\s]+\s/, '').trim();
       await addDoc(collection(db, "broadcast_notifications"), {
         title: document.getElementById("broadcastTitle").value.trim(),
         message: document.getElementById("broadcastMessage").value.trim(),
+        targetPage,
+        actionType: targetPage,
+        targetLabel,
         topic: document.getElementById("broadcastTopic").value,
         category: document.getElementById("broadcastCategory").value,
+        priority: document.getElementById("broadcastPriority")?.value || "normal",
+        neighborhood: document.getElementById("broadcastNeighborhood")?.value || "all",
+        actionButtonLabel: document.getElementById("broadcastActionLabel")?.value.trim() || "",
+        externalUrl: document.getElementById("broadcastExternalUrl")?.value.trim() || "",
+        imageUrl: document.getElementById("broadcastImageUrl")?.value.trim() || "",
         createdAtText: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('tr-TR'),
         createdAt: serverTimestamp()
       });

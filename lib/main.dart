@@ -54,7 +54,9 @@ class _MyAppState extends ConsumerState<MyApp> {
         sm.hideCurrentSnackBar();
         sm.showSnackBar(
           SnackBar(
-            backgroundColor: const Color(0xFF0A2A66),
+            backgroundColor: notif.priority == 'urgent'
+                ? const Color(0xFFB71C1C)
+                : const Color(0xFF0A2A66),
             behavior: SnackBarBehavior.floating,
             elevation: 8,
             shape: RoundedRectangleBorder(
@@ -107,14 +109,11 @@ class _MyAppState extends ConsumerState<MyApp> {
               ],
             ),
             action: SnackBarAction(
-              label: 'GÖR',
+              label: notif.actionButtonLabel ??
+                  (notif.hasDirectNavigation ? 'AÇ' : 'GÖR'),
               textColor: const Color(0xFFFFB300),
               onPressed: () {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (_) => const NotificationsScreen(),
-                  ),
-                );
+                NotificationsScreen.navigateFromBanner(navigatorKey, notif);
               },
             ),
             duration: const Duration(seconds: 10),
