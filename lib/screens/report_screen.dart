@@ -271,8 +271,8 @@ class ReportScreen extends ConsumerWidget {
                       onPressed: () => _openUlakbel(context, lang),
                       icon: const Icon(Icons.open_in_new_rounded, size: 20),
                       label: Text(
-                        _t(lang, "ULAKBEL'e Git", 'Go to ULAKBEL',
-                            'الانتقال إلى ULAKBEL'),
+                        _t(lang, "Hizmet'e Git", 'Go to Service',
+                          'انتقل إلى الخدمة',),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _C.orange,
