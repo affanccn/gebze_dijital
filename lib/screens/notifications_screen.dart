@@ -49,7 +49,7 @@ class NotificationsScreen extends ConsumerStatefulWidget {
   ) async {
     Widget? targetWidget;
 
-    switch (item.actionType) {
+    switch (item.resolvedActionType) {
       case 'home':
         nav.popUntil((route) => route.isFirst);
         return true;
@@ -199,6 +199,22 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   NotificationCategory _selectedCategory = NotificationCategory.all;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(notificationsProvider.notifier).refreshFromFirestore();
+      }
+    });
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    ref.read(notificationsProvider.notifier).refreshFromFirestore();
+  }
 
   void _markAllAsRead() {
     ref.read(notificationsProvider.notifier).markAllAsRead();

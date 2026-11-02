@@ -43,84 +43,97 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
+  void _bindInAppNotificationBanner() {
+    NotificationsNotifier.onInAppNotification = (notif) {
+      final sm = rootScaffoldMessengerKey.currentState;
+      if (sm == null) return;
+      sm.hideCurrentSnackBar();
+      sm.showSnackBar(
+        SnackBar(
+          backgroundColor: notif.priority == 'urgent'
+              ? const Color(0xFFB71C1C)
+              : const Color(0xFF0A2A66),
+          behavior: SnackBarBehavior.floating,
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  notif.icon,
+                  color: const Color(0xFFFFB300),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      notif.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      notif.message,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: notif.actionButtonLabel ??
+                (notif.hasDirectNavigation ? 'AÇ' : 'GÖR'),
+            textColor: const Color(0xFFFFB300),
+            onPressed: () {
+              NotificationsScreen.navigateFromBanner(navigatorKey, notif);
+            },
+          ),
+          duration: const Duration(seconds: 10),
+          persist: false,
+        ),
+      );
+    };
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _bindInAppNotificationBanner();
+    Future.microtask(
+      () => ref.read(notificationsProvider.notifier).refreshFromFirestore(),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     ChatbotNavigator.navigatorKey = navigatorKey;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationsNotifier.onInAppNotification = (notif) {
-        final sm = rootScaffoldMessengerKey.currentState;
-        if (sm == null) return;
-        sm.hideCurrentSnackBar();
-        sm.showSnackBar(
-          SnackBar(
-            backgroundColor: notif.priority == 'urgent'
-                ? const Color(0xFFB71C1C)
-                : const Color(0xFF0A2A66),
-            behavior: SnackBarBehavior.floating,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            content: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    notif.icon,
-                    color: const Color(0xFFFFB300),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        notif.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        notif.message,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            action: SnackBarAction(
-              label: notif.actionButtonLabel ??
-                  (notif.hasDirectNavigation ? 'AÇ' : 'GÖR'),
-              textColor: const Color(0xFFFFB300),
-              onPressed: () {
-                NotificationsScreen.navigateFromBanner(navigatorKey, notif);
-              },
-            ),
-            duration: const Duration(seconds: 10),
-            persist: false,
-          ),
-        );
-      };
+      _bindInAppNotificationBanner();
 
       PushService.init(
         onNewsOpened: () {

@@ -3367,8 +3367,8 @@ function initFormListeners() {
     const btn = e.target.querySelector("button[type=submit]");
     btn.disabled = true;
     try {
-      const targetPage = document.getElementById("broadcastTargetPage")?.value || "news";
-      const targetSelect = document.getElementById("broadcastTargetPage");
+      const targetPage = document.getElementById("broadcastTargetPage")?.value || document.getElementById("broadcastTopic")?.value || "news";
+      const targetSelect = document.getElementById("broadcastTargetPage") || document.getElementById("broadcastTopic");
       const selectedOptText = targetSelect?.options[targetSelect.selectedIndex]?.text || "";
       const targetLabel = selectedOptText.replace(/^[^\s]+\s/, '').trim();
       await addDoc(collection(db, "broadcast_notifications"), {
@@ -3377,7 +3377,7 @@ function initFormListeners() {
         targetPage,
         actionType: targetPage,
         targetLabel,
-        topic: document.getElementById("broadcastTopic").value,
+        topic: targetPage,
         category: document.getElementById("broadcastCategory").value,
         priority: document.getElementById("broadcastPriority")?.value || "normal",
         neighborhood: document.getElementById("broadcastNeighborhood")?.value || "all",

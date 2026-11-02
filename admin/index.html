@@ -4998,7 +4998,7 @@
         title: "Kültür & Sanat Etkinliğimize Davetlisiniz",
         message: "Gebze Kültür Merkezi'nde düzenlenecek ücretsiz etkinlik ve gösteri takvimimiz güncellendi.",
         targetPage: "guide_etkinlikler",
-        topic: "news",
+        topic: "guide_etkinlikler",
         category: "announcements",
         priority: "normal",
         actionButtonLabel: "Etkinlik Takvimini Aç"
@@ -5007,7 +5007,7 @@
         title: "Kent Lokantası Günün Menüsü Hazır",
         message: "Gebze Belediyesi Kent Lokantalarımızda 4 çeşit sağlıklı ve ekonomik sıcak yemek servisimiz başlamıştır.",
         targetPage: "guide_lokantalar",
-        topic: "news",
+        topic: "guide_lokantalar",
         category: "services",
         priority: "normal",
         actionButtonLabel: "Kent Lokantalarını Gör"
@@ -5016,7 +5016,7 @@
         title: "Can Dostlarımız Yuva Arıyor",
         message: "Gebze Pati Bakım Merkezimizdeki sevimli dostlarımızı inceleyerek ücretsiz sahiplenme başvurusu yapabilirsiniz.",
         targetPage: "pati_adoption",
-        topic: "news",
+        topic: "pati_adoption",
         category: "announcements",
         priority: "normal",
         actionButtonLabel: "Yuva Arayanları Gör"
@@ -5025,7 +5025,7 @@
         title: "Mahallenizde Saha & Asfalt Çalışması",
         message: "Fen İşleri Müdürlüğü ekiplerimiz tarafından yürütülen yol bakım ve altyapı çalışmalarını canlı takip edebilirsiniz.",
         targetPage: "neighborhood",
-        topic: "news",
+        topic: "neighborhood",
         category: "services",
         priority: "normal",
         actionButtonLabel: "Saha Çalışmalarını Gör"
@@ -5041,39 +5041,78 @@
       }
     };
 
+    window._broadcastManualTargetSelected = false;
+
+    window.detectBroadcastTargetFromText = (title, msg) => {
+      const text = `${title || ''} ${msg || ''}`.toLocaleLowerCase('tr-TR');
+      if (text.includes('lokanta') || text.includes('günün menüsü') || text.includes('sıcak yemek')) return 'guide_lokantalar';
+      if (text.includes('eczane') || text.includes('nöbetçi')) return 'pharmacy';
+      if (text.includes('otopark')) return 'parking';
+      if (text.includes('kesinti') || text.includes('isu ') || text.includes('sedaş')) return 'outages';
+      if (text.includes('toplanma alan') || text.includes('afet') || text.includes('deprem')) return 'emergency';
+      if (text.includes('kreş') || text.includes('akçem') || text.includes('çocuk atölye')) return 'guide_kresler';
+      if (text.includes('mezarlık') || text.includes('cenaze') || text.includes('defin')) return 'guide_mezarliklar';
+      if (text.includes('pazar yer') || text.includes('semt pazar')) return 'guide_pazar';
+      if (text.includes('spor tesis') || text.includes('spor salon')) return 'guide_spor';
+      if (text.includes('kültür merkez') || text.includes('kütüphane')) return 'guide_kultur';
+      if (text.includes('tiyatro') || text.includes('konser') || text.includes('sinema') || text.includes('etkinlik')) return 'guide_etkinlikler';
+      if (text.includes('piknik') || text.includes('mesire')) return 'discover_picnic';
+      if (text.includes('yöresel lezzet') || text.includes('ne yenir')) return 'discover_foods';
+      if (text.includes('tarihi yer') || text.includes('kale') || text.includes('müze')) return 'discover_places';
+      if (text.includes('mama oda') || text.includes('veteriner')) return 'pati_feeding';
+      if (text.includes('hayvan ambulans') || text.includes('bakım merkezi')) return 'pati_center';
+      if (text.includes('pati') || text.includes('sahiplen') || text.includes('yuva arayan') || text.includes('can dost')) return 'pati_adoption';
+      if (text.includes('asfalt') || text.includes('kazı') || text.includes('altyapı') || text.includes('saha çalış') || text.includes('mahallemde')) return 'neighborhood';
+      if (text.includes('anket') || text.includes('söz sende') || text.includes('oylama')) return 'sozSende';
+      if (text.includes('çek & gönder') || text.includes('çek gönder') || text.includes('arıza bildir')) return 'report';
+      if (text.includes('başvurularım') || text.includes('talep takip') || text.includes('talebiniz')) return 'requests';
+      if (text.includes('vergi') || text.includes('e-belediye') || text.includes('borç sorgu')) return 'ebelediye';
+      if (text.includes('hava durumu') || text.includes('yağış') || text.includes('fırtına') || text.includes('meteoroloji')) return 'weather';
+      return null;
+    };
+
     window.applyBroadcastPreset = (key) => {
       const p = BROADCAST_PRESETS[key];
       if (!p) return;
+      window._broadcastManualTargetSelected = true;
       document.getElementById("broadcastTitle").value = p.title;
       document.getElementById("broadcastMessage").value = p.message;
-      document.getElementById("broadcastTargetPage").value = p.targetPage;
-      document.getElementById("broadcastTopic").value = p.topic;
+      const targetVal = p.targetPage || p.topic;
+      if (document.getElementById("broadcastTargetPage")) document.getElementById("broadcastTargetPage").value = targetVal;
+      if (document.getElementById("broadcastTopic")) document.getElementById("broadcastTopic").value = targetVal;
       document.getElementById("broadcastCategory").value = p.category;
       document.getElementById("broadcastPriority").value = p.priority;
       document.getElementById("broadcastActionLabel").value = p.actionButtonLabel || "";
-      window.onBroadcastTargetChange();
+      window.onBroadcastTargetChange('target');
       window.updateBroadcastPreview();
       showToast("Hazır duyuru şablonu yüklendi.");
     };
 
-    window.onBroadcastTargetChange = () => {
-      const target = document.getElementById("broadcastTargetPage")?.value || "news";
+    window.onBroadcastTargetChange = (source = 'target') => {
+      window._broadcastManualTargetSelected = true;
+      const targetEl = document.getElementById("broadcastTargetPage");
+      const topicEl = document.getElementById("broadcastTopic");
+      let target = "news";
+      if (source === 'topic' && topicEl) {
+        target = topicEl.value || "news";
+        if (targetEl) targetEl.value = target;
+      } else if (targetEl) {
+        target = targetEl.value || "news";
+        if (topicEl) topicEl.value = target;
+      }
+
       const urlWrap = document.getElementById("broadcastExternalUrlGroup");
       if (urlWrap) {
         urlWrap.style.display = target === "external_url" ? "block" : "none";
       }
-      // Hedef sayfaya göre kategori/konu otomatik önerisi
-      const topicEl = document.getElementById("broadcastTopic");
+      // Hedef sayfaya göre sekme kategorisi otomatik önerisi
       const catEl = document.getElementById("broadcastCategory");
-      if (target === "outages" && topicEl && catEl) {
-        topicEl.value = "outages";
+      if ((target === "outages" || target === "neighborhood") && catEl) {
         catEl.value = "outages";
-      } else if (target === "emergency" && topicEl) {
-        topicEl.value = "emergency";
-      } else if (target === "sozSende" && topicEl) {
-        topicEl.value = "sozSende";
       } else if ((target.startsWith("guide_") || target === "pharmacy" || target === "parking" || target === "ebelediye" || target === "services") && catEl && target !== "guide_etkinlikler") {
         catEl.value = "services";
+      } else if (catEl && (target === "emergency" || target === "sozSende" || target === "news" || target === "guide_etkinlikler" || target.startsWith("pati_") || target.startsWith("discover_"))) {
+        catEl.value = "announcements";
       }
       window.updateBroadcastPreview();
     };
@@ -5081,7 +5120,19 @@
     window.updateBroadcastPreview = () => {
       const title = document.getElementById("broadcastTitle")?.value.trim() || "Örnek Duyuru Başlığı";
       const msg = document.getElementById("broadcastMessage")?.value.trim() || "Duyuru metniniz vatandaşların ekranında ve bildirim merkezinde bu şekilde görünecektir.";
-      const target = document.getElementById("broadcastTargetPage")?.value || "news";
+      const targetEl = document.getElementById("broadcastTargetPage");
+      const topicEl = document.getElementById("broadcastTopic");
+
+      // Kullanıcı henüz manuel bir kanal seçmediyse başlık/mesajdan otomatik hedef sayfa/kanal algıla
+      if (!window._broadcastManualTargetSelected) {
+        const detected = window.detectBroadcastTargetFromText(title, msg);
+        if (detected) {
+          if (targetEl) targetEl.value = detected;
+          if (topicEl) topicEl.value = detected;
+        }
+      }
+
+      const target = targetEl?.value || topicEl?.value || "news";
       const priority = document.getElementById("broadcastPriority")?.value || "normal";
       const neighborhood = document.getElementById("broadcastNeighborhood")?.value || "all";
       const btnLabel = document.getElementById("broadcastActionLabel")?.value.trim();
@@ -5140,7 +5191,27 @@
 
         container.innerHTML = '';
         docs.forEach(({ id, data: d }) => {
-          const targetKey = d.targetPage || d.actionType || d.topic || 'news';
+          let targetKey = (d.targetPage && d.targetPage !== 'news') ? d.targetPage
+            : ((d.actionType && d.actionType !== 'news') ? d.actionType : (d.topic || 'news'));
+          if (targetKey === 'news' || targetKey === 'all' || targetKey === 'announcements') {
+            const detected = window.detectBroadcastTargetFromText(d.title, d.message);
+            if (detected) {
+              targetKey = detected;
+              // Mevcut kaydı arka planda düzelt ki tüm cihazlarda doğru sayfaya yönlendirsin
+              updateDoc(doc(db, "broadcast_notifications", id), {
+                topic: detected,
+                targetPage: detected,
+                actionType: detected,
+                targetLabel: (BROADCAST_TARGET_LABELS[detected] || detected).replace(/^[^\s]+\s/, '')
+              }).catch(() => {});
+            }
+          } else if (d.topic !== targetKey) {
+            updateDoc(doc(db, "broadcast_notifications", id), {
+              topic: targetKey,
+              targetPage: targetKey,
+              actionType: targetKey
+            }).catch(() => {});
+          }
           const targetText = BROADCAST_TARGET_LABELS[targetKey] || d.targetLabel || targetKey;
           const prio = d.priority || 'normal';
           const prioBadge = prio === 'urgent'
@@ -5156,7 +5227,7 @@
             ${d.imageUrl ? `<img src="${esc(d.imageUrl)}" class="item-card-image" onclick="openLightbox('${esc(d.imageUrl)}')" alt="duyuru">` : ''}
             <div class="item-card-body">
               <div class="item-card-meta" style="flex-wrap:wrap; gap:6px;">
-                <span>📡 Kanal: ${esc(d.topic || 'news')}</span>
+                <span>📡 Kanal: ${esc(targetText)}</span>
                 ${neighBadge}
                 <span style="margin-left:auto;">${prioBadge}</span>
               </div>
@@ -5406,11 +5477,15 @@
         try {
           const title = document.getElementById("broadcastTitle").value.trim();
           const message = document.getElementById("broadcastMessage").value.trim();
-          const targetPage = document.getElementById("broadcastTargetPage")?.value || "news";
-          const targetSelect = document.getElementById("broadcastTargetPage");
-          const selectedOptText = targetSelect?.options[targetSelect.selectedIndex]?.text || "";
-          const targetLabel = selectedOptText.replace(/^[^\s]+\s/, '').trim();
-          const topic = document.getElementById("broadcastTopic").value;
+          let targetPage = document.getElementById("broadcastTargetPage")?.value
+            || document.getElementById("broadcastTopic")?.value
+            || "news";
+          if (!window._broadcastManualTargetSelected && (targetPage === "news" || targetPage === "all")) {
+            const detected = window.detectBroadcastTargetFromText(title, message);
+            if (detected) targetPage = detected;
+          }
+          const targetLabel = (BROADCAST_TARGET_LABELS[targetPage] || targetPage).replace(/^[^\s]+\s/, '').trim();
+          const topic = targetPage;
           const category = document.getElementById("broadcastCategory").value;
           const priority = document.getElementById("broadcastPriority")?.value || "normal";
           const neighborhood = document.getElementById("broadcastNeighborhood")?.value || "all";
@@ -5435,7 +5510,7 @@
             createdAt: serverTimestamp()
           });
           e.target.reset();
-          window.onBroadcastTargetChange();
+          window._broadcastManualTargetSelected = false;
           window.updateBroadcastPreview();
           showToast("Duyuru ve sayfa yönlendirmesi canlı olarak tüm cihazlara yayınlandı!");
           loadBroadcastHistory();
@@ -7397,12 +7472,54 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Bildirim Kanalı (Topic)</label>
-                  <select id="broadcastTopic">
-                    <option value="news">Tüm Vatandaşlar (Genel)</option>
-                    <option value="outages">Planlı Kesintiler (outages)</option>
-                    <option value="emergency">Afet & Acil Durum (emergency)</option>
-                    <option value="sozSende">Söz Sende / Anketler (sozSende)</option>
+                  <label>Bildirim Kanalı (Topic / Hedef Sayfa)</label>
+                  <select id="broadcastTopic" onchange="onBroadcastTargetChange('topic')">
+                    <optgroup label="📌 Ana Ekranlar & Genel Modüller">
+                      <option value="news">📰 Haberler & Belediye Duyuruları</option>
+                      <option value="detail_only">📄 Sadece Duyuru Detay Penceresi</option>
+                      <option value="home">🏠 Ana Sayfa (Vitrin)</option>
+                      <option value="services">🧭 Tüm Belediye Hizmetleri Ekranı</option>
+                      <option value="ebelediye">🏛️ E-Belediye Hizmetleri</option>
+                      <option value="weather">🌤️ Hava Durumu & Meteoroloji</option>
+                      <option value="profile">👤 Profil & Hesap Ayarları</option>
+                    </optgroup>
+                    <optgroup label="⚡ Altyapı, Acil Durum & Şehir Yaşamı">
+                      <option value="outages">⚡ Planlı Su & Elektrik Kesintileri</option>
+                      <option value="emergency">🚨 Afet & Acil Toplanma Alanları</option>
+                      <option value="neighborhood">🚧 Mahallemde (Saha Çalışmaları)</option>
+                      <option value="pharmacy">💊 Nöbetçi Eczaneler</option>
+                      <option value="parking">🅿️ Otoparklar & Canlı Doluluk</option>
+                    </optgroup>
+                    <optgroup label="🗣️ Vatandaş Katılımı & Çözüm Masası">
+                      <option value="sozSende">🗳️ Söz Sende: Anketler & Öneriler</option>
+                      <option value="report">📸 Çek & Gönder (Talep Oluştur)</option>
+                      <option value="requests">📋 Başvurularım & Talep Takip</option>
+                    </optgroup>
+                    <optgroup label="🏢 Şehir Rehberi & Kurumsal Tesis Kategorileri">
+                      <option value="guide_institutions">🏢 Şehir Rehberi: Kurumsal Hizmetler</option>
+                      <option value="guide_etkinlikler">🎭 Kültür & Sanat Etkinlikleri</option>
+                      <option value="guide_lokantalar">🍽️ Kent Lokantaları</option>
+                      <option value="guide_parklar">🌳 Parklar & Yeşil Alanlar</option>
+                      <option value="guide_pazar">🛒 Semt Pazar Yerleri</option>
+                      <option value="guide_spor">⚽ Spor Tesisleri & Salonlar</option>
+                      <option value="guide_kultur">🏛️ Kültür Merkezleri & Kütüphaneler</option>
+                      <option value="guide_kresler">🧸 Kreşler & Çocuk Atölyeleri (AKÇEM)</option>
+                      <option value="guide_mezarliklar">🪦 Mezarlıklar & Defin Hizmetleri</option>
+                      <option value="guide_belediye">🏢 Belediye Hizmet Birimleri</option>
+                    </optgroup>
+                    <optgroup label="🏰 Gebze'yi Keşfet Kategorileri">
+                      <option value="discover_places">🏰 Gebze'yi Keşfet: Tarihi Yerler</option>
+                      <option value="discover_foods">🍲 Gebze'yi Keşfet: Yöresel Lezzetler</option>
+                      <option value="discover_picnic">🌲 Gebze'yi Keşfet: Doğa & Piknik</option>
+                    </optgroup>
+                    <optgroup label="🐾 Gebze Pati (Can Dostlarımız) Kategorileri">
+                      <option value="pati_adoption">🐶 Gebze Pati: Yuva Arayanlar</option>
+                      <option value="pati_center">🐾 Gebze Pati: Bakım Merkezi & Ambulans</option>
+                      <option value="pati_feeding">🥣 Gebze Pati: Mama & Veteriner</option>
+                    </optgroup>
+                    <optgroup label="🌐 Harici Bağlantı">
+                      <option value="external_url">🌐 Harici Web Sayfası (URL)</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div class="form-group">

@@ -45,15 +45,37 @@ class AppNotification {
     this.isRead = false,
   });
 
-  bool get hasDirectNavigation =>
-      actionType.isNotEmpty &&
-      actionType != 'detail_only' &&
-      actionType != 'announcements';
+  String get resolvedActionType {
+    if (actionType == 'news' ||
+        actionType == 'announcements' ||
+        actionType == 'all' ||
+        actionType.isEmpty) {
+      final inferred = NotificationService.inferActionTypeFromText(
+        title,
+        message,
+      );
+      if (inferred != null) return inferred;
+    }
+    return actionType;
+  }
 
-  String get effectiveTargetLabel =>
-      (targetLabel != null && targetLabel!.trim().isNotEmpty)
-          ? targetLabel!.trim()
-          : NotificationService.labelForActionType(actionType);
+  bool get hasDirectNavigation {
+    final act = resolvedActionType;
+    return act.isNotEmpty && act != 'detail_only' && act != 'announcements';
+  }
+
+  String get effectiveTargetLabel {
+    final act = resolvedActionType;
+    if (act != actionType) {
+      return NotificationService.labelForActionType(act);
+    }
+    if (targetLabel != null &&
+        targetLabel!.trim().isNotEmpty &&
+        targetLabel != 'Haberler & Belediye Duyuruları') {
+      return targetLabel!.trim();
+    }
+    return NotificationService.labelForActionType(act);
+  }
 
   AppNotification copyWith({
     String? id,
@@ -101,6 +123,119 @@ class NotificationService {
     : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  /// Başlık ve mesaj içeriğinden hedef sayfa/kategori kodunu çıkarır
+  /// (özellikle topic='news' olarak kalmış bildirimlerin doğru sayfaya gitmesini sağlar).
+  static String? inferActionTypeFromText(String title, String message) {
+    final text = '$title $message'
+        .toLowerCase()
+        .replaceAll('İ', 'i')
+        .replaceAll('I', 'ı');
+    if (text.contains('lokanta') ||
+        text.contains('günün menüsü') ||
+        text.contains('sıcak yemek') ||
+        text.contains('4 çeşit')) {
+      return 'guide_lokantalar';
+    }
+    if (text.contains('eczane') || text.contains('nöbetçi')) {
+      return 'pharmacy';
+    }
+    if (text.contains('otopark')) {
+      return 'parking';
+    }
+    if (text.contains('kesinti') ||
+        text.contains('isu ') ||
+        text.contains('sedaş')) {
+      return 'outages';
+    }
+    if (text.contains('toplanma alan') ||
+        text.contains('afet') ||
+        text.contains('deprem')) {
+      return 'emergency';
+    }
+    if (text.contains('kreş') ||
+        text.contains('akçem') ||
+        text.contains('çocuk atölye')) {
+      return 'guide_kresler';
+    }
+    if (text.contains('mezarlık') ||
+        text.contains('cenaze') ||
+        text.contains('defin')) {
+      return 'guide_mezarliklar';
+    }
+    if (text.contains('pazar yer') || text.contains('semt pazar')) {
+      return 'guide_pazar';
+    }
+    if (text.contains('spor tesis') || text.contains('spor salon')) {
+      return 'guide_spor';
+    }
+    if (text.contains('kültür merkez') || text.contains('kütüphane')) {
+      return 'guide_kultur';
+    }
+    if (text.contains('tiyatro') ||
+        text.contains('konser') ||
+        text.contains('sinema') ||
+        text.contains('etkinlik')) {
+      return 'guide_etkinlikler';
+    }
+    if (text.contains('piknik') || text.contains('mesire')) {
+      return 'discover_picnic';
+    }
+    if (text.contains('yöresel lezzet') || text.contains('ne yenir')) {
+      return 'discover_foods';
+    }
+    if (text.contains('tarihi yer') ||
+        text.contains('kale') ||
+        text.contains('müze')) {
+      return 'discover_places';
+    }
+    if (text.contains('mama oda') || text.contains('veteriner')) {
+      return 'pati_feeding';
+    }
+    if (text.contains('hayvan ambulans') || text.contains('bakım merkezi')) {
+      return 'pati_center';
+    }
+    if (text.contains('pati') ||
+        text.contains('sahiplen') ||
+        text.contains('yuva arayan') ||
+        text.contains('can dost')) {
+      return 'pati_adoption';
+    }
+    if (text.contains('asfalt') ||
+        text.contains('kazı') ||
+        text.contains('altyapı çalış') ||
+        text.contains('saha çalış') ||
+        text.contains('mahallemde')) {
+      return 'neighborhood';
+    }
+    if (text.contains('anket') ||
+        text.contains('söz sende') ||
+        text.contains('oylama')) {
+      return 'sozSende';
+    }
+    if (text.contains('çek & gönder') ||
+        text.contains('çek gönder') ||
+        text.contains('arıza bildir')) {
+      return 'report';
+    }
+    if (text.contains('başvurularım') ||
+        text.contains('talep takip') ||
+        text.contains('talebiniz')) {
+      return 'requests';
+    }
+    if (text.contains('vergi') ||
+        text.contains('e-belediye') ||
+        text.contains('borç sorgu')) {
+      return 'ebelediye';
+    }
+    if (text.contains('hava durumu') ||
+        text.contains('yağış') ||
+        text.contains('fırtına') ||
+        text.contains('meteoroloji')) {
+      return 'weather';
+    }
+    return null;
+  }
 
   static String labelForActionType(String actionType) {
     switch (actionType) {
@@ -370,6 +505,50 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     }
   }
 
+  /// Hot reload veya ekran açılışında mevcut bildirimlerin hedef sayfalarını yeniden değerlendirir.
+  Future<void> refreshFromFirestore() async {
+    try {
+      if (Firebase.apps.isEmpty) return;
+      final snap = await FirebaseFirestore.instance
+          .collection('broadcast_notifications')
+          .orderBy('createdAt', descending: true)
+          .limit(50)
+          .get();
+      await _handleFirestoreSnapshot(snap, suppressBanner: true);
+    } catch (e) {
+      debugPrint('[NotificationsNotifier] Yenileme hatası: $e');
+    }
+  }
+
+  String _resolveActionType(Map<String, dynamic> d, String title, String message) {
+    final targetPage = (d['targetPage'] as String?)?.trim();
+    final actionType = (d['actionType'] as String?)?.trim();
+    final topic = (d['topic'] as String?)?.trim();
+    final category = (d['category'] as String?)?.trim();
+
+    // 1. Eğer spesifik bir sayfa/kategori seçilmişse (news/all/announcements dışında) doğrudan onu kullan
+    for (final candidate in [targetPage, actionType, topic]) {
+      if (candidate != null &&
+          candidate.isNotEmpty &&
+          candidate != 'news' &&
+          candidate != 'all' &&
+          candidate != 'announcements') {
+        return candidate;
+      }
+    }
+
+    // 2. Eğer topic/targetPage 'news' olarak kalmışsa ancak başlık/mesaj spesifik bir hizmete aitse (örn. Kent Lokantası) metinden algıla
+    final inferred = NotificationService.inferActionTypeFromText(title, message);
+    if (inferred != null) {
+      return inferred;
+    }
+
+    // 3. Aksi halde mevcut alanı veya kategori eşleşmesini kullan
+    if (targetPage != null && targetPage.isNotEmpty) return targetPage;
+    if (actionType != null && actionType.isNotEmpty) return actionType;
+    return _mapActionType(topic, category);
+  }
+
   AppNotification _docToNotification(
     String id,
     Map<String, dynamic> d, {
@@ -381,13 +560,9 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     final message = (d['message'] as String?)?.trim() ?? '';
     final topic = d['topic'] as String?;
     final category = d['category'] as String?;
-    final rawTarget =
-        (d['targetPage'] as String? ?? d['actionType'] as String?)?.trim();
-    final actionType = (rawTarget != null && rawTarget.isNotEmpty)
-        ? rawTarget
-        : _mapActionType(topic, category);
+    final actionType = _resolveActionType(d, title, message);
     final priority = (d['priority'] as String?)?.trim() ?? 'normal';
-    final targetLabel = (d['targetLabel'] as String?)?.trim();
+    final rawTargetLabel = (d['targetLabel'] as String?)?.trim();
     final actionButtonLabel = (d['actionButtonLabel'] as String?)?.trim();
     final externalUrl = (d['externalUrl'] as String?)?.trim();
     final imageUrl =
@@ -395,6 +570,13 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     final neighborhood = (d['neighborhood'] as String?)?.trim();
     final createdAt = d['createdAt'];
     final createdAtText = d['createdAtText'] as String?;
+
+    final effectiveLabel = (rawTargetLabel != null &&
+            rawTargetLabel.isNotEmpty &&
+            !(actionType != 'news' &&
+                rawTargetLabel.contains('Haberler')))
+        ? rawTargetLabel
+        : NotificationService.labelForActionType(actionType);
 
     return AppNotification(
       id: id,
@@ -405,9 +587,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
       color: _mapColor(actionType, topic, category, priority),
       category: _mapCategory(category, topic, actionType),
       actionType: actionType,
-      targetLabel: (targetLabel != null && targetLabel.isNotEmpty)
-          ? targetLabel
-          : NotificationService.labelForActionType(actionType),
+      targetLabel: effectiveLabel,
       actionButtonLabel:
           (actionButtonLabel != null && actionButtonLabel.isNotEmpty)
               ? actionButtonLabel
@@ -427,8 +607,9 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
   }
 
   Future<void> _handleFirestoreSnapshot(
-    QuerySnapshot<Map<String, dynamic>> snapshot,
-  ) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot, {
+    bool suppressBanner = false,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final readIds = prefs.getStringList(_kReadNotificationsKey) ?? [];
@@ -454,7 +635,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
       state = [...firestoreItems, ...existingInitial];
 
       // Uygulama açıkken panele yeni bir bildirim eklendiyse in-app banner göster
-      if (_isInitialLoadDone) {
+      if (_isInitialLoadDone && !suppressBanner) {
         for (final change in snapshot.docChanges) {
           if (change.type == DocumentChangeType.added) {
             final d = change.doc.data();
@@ -478,7 +659,7 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
             }
           }
         }
-      } else {
+      } else if (!_isInitialLoadDone) {
         _isInitialLoadDone = true;
       }
     } catch (e) {
@@ -664,10 +845,9 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
   }
 
   String _mapActionType(String? topic, String? category) {
-    if (topic == 'emergency') return 'emergency';
-    if (topic == 'outages') return 'outages';
-    if (topic == 'sozSende') return 'sozSende';
-    if (topic == 'news') return 'news';
+    if (topic != null && topic.trim().isNotEmpty && topic != 'all') {
+      return topic.trim();
+    }
     if (category == 'outages') return 'outages';
     if (category == 'services') return 'services';
     return 'announcements';
