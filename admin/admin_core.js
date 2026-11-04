@@ -45,9 +45,6 @@ window.db = db;
 window.auth = auth;
 
 // Global Durum Değişkenleri
-window.reportsCache = [];
-window.reportsUnsub = null;
-window.activeReportId = null;
 window.activeSuggestionId = null;
 window.eventsListCache = [];
 window.usersListCache = [];
@@ -138,7 +135,6 @@ window.adminSignIn = async (e) => {
 
 window.adminSignOut = async () => {
   if (confirm('Yönetim panelinden güvenli çıkış yapılsın mı?')) {
-    if (window.reportsUnsub) window.reportsUnsub();
     await signOut(auth);
     const overlay = document.getElementById('loginOverlay');
     if (overlay) overlay.style.display = 'flex';
@@ -147,7 +143,6 @@ window.adminSignOut = async () => {
 
 function refreshAllData() {
   loadDashboard();
-  initRealtimeReports();
   // loadUsers() kaldırıldı; sadece kullanıcılar sekmesine girildiğinde yüklenir.
 }
 
@@ -171,7 +166,6 @@ window.switchNav = (tabId, title, subtitle) => {
 
   // İlgili modül verilerini yükle
   if (tabId === 'dashboard') loadDashboard();
-  if (tabId === 'reports') renderReportsView();
   if (tabId === 'suggestions') loadSuggestions();
   if (tabId === 'polls') loadPolls();
   if (tabId === 'guide') loadGuidePlaces();
@@ -206,13 +200,6 @@ let _adminDashboardCacheTime = 0;
 const ADMIN_DASHBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 dakika TTL
 
 function applyAdminDashboardData(data) {
-  setKpi('kpiReports', data.pendingReports);
-  const bRep = document.getElementById('badgePendingReports');
-  if (bRep && data.pendingReports !== null) {
-    bRep.innerText = data.pendingReports;
-    bRep.style.display = data.pendingReports > 0 ? 'inline-block' : 'none';
-  }
-
   setKpi('kpiSuggestions', data.pendingSugg);
   const bSugg = document.getElementById('badgePendingSugg');
   if (bSugg && data.pendingSugg !== null) {
@@ -268,7 +255,6 @@ async function loadDashboard(forceRefresh = false) {
       foodsCount,
       picnicCount,
       worksCount,
-      pendingReportsCount,
       pendingSuggCount
     ] = await Promise.all([
       safeCount("municipal_news"),
@@ -284,8 +270,6 @@ async function loadDashboard(forceRefresh = false) {
       safeCount("guide_foods"),
       safeCount("guide_picnic"),
       safeCount("neighborhood_works"),
-      safeCount(query(collection(db, "reports"), where("status", "in", ["Beklemede", "İnceleniyor", "İşleme Alındı", "pending"])))
-        .catch(() => safeCount("reports")),
       safeCount(query(collection(db, "suggestions"), where("approved", "==", false)))
         .catch(() => safeCount("suggestions"))
     ]);
@@ -304,7 +288,6 @@ async function loadDashboard(forceRefresh = false) {
       foods: foodsCount ?? (_adminDashboardCache?.foods ?? '-'),
       picnic: picnicCount ?? (_adminDashboardCache?.picnic ?? '-'),
       works: worksCount ?? (_adminDashboardCache?.works ?? '-'),
-      pendingReports: pendingReportsCount ?? (_adminDashboardCache?.pendingReports ?? 0),
       pendingSugg: pendingSuggCount ?? (_adminDashboardCache?.pendingSugg ?? 0)
     };
     _adminDashboardCacheTime = Date.now();
@@ -320,302 +303,6 @@ function setKpi(id, val) {
   const el = document.getElementById(id);
   if (el) el.innerText = val;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. VATANDAŞ BAŞVURULARI & ULAKBEL ÇÖZÜM MASASI
-// ─────────────────────────────────────────────────────────────────────────────
-async function initRealtimeReports() {
-  if (window.reportsUnsub) window.reportsUnsub();
-
-  // Kullanıcı önbelleğini gerekirse arka planda güncelle
-  if (!window.usersMap || Object.keys(window.usersMap).length === 0) {
-    try {
-      const uSnap = await getDocs(collection(db, "users"));
-      window.usersMap = window.usersMap || {};
-      uSnap.forEach(d => { window.usersMap[d.id] = d.data(); });
-    } catch (_) { }
-  }
-
-  try {
-    const q = query(collection(db, "reports"));
-    window.reportsUnsub = onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach(docSnap => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      list.sort((a, b) => {
-        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-        return tb - ta;
-      });
-      window.reportsCache = list;
-
-      let pendingCount = 0;
-      list.forEach(r => {
-        const st = (r.status || '').trim();
-        if (st === 'Beklemede' || st === 'İnceleniyor' || st === 'İşleme Alındı' || st === 'pending') pendingCount++;
-      });
-      const bRep = document.getElementById('badgePendingReports');
-      if (bRep) {
-        bRep.innerText = pendingCount;
-        bRep.style.display = pendingCount > 0 ? 'inline-block' : 'none';
-      }
-      setKpi('kpiReports', pendingCount);
-
-      renderReportsView();
-    }, (err) => {
-      console.warn("Reports snapshot uyarısı:", err.message);
-      const tbody = document.getElementById("reportsTableBody");
-      if (tbody && (!window.reportsCache || window.reportsCache.length === 0)) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">
-          ℹ️ Vatandaş başvurularını listelemek için yönetici hesabıyla oturum açınız.
-        </td></tr>`;
-      }
-    });
-  } catch (e) {
-    console.error("initRealtimeReports hatası:", e);
-  }
-}
-window.initRealtimeReports = initRealtimeReports;
-
-const REPORT_STATUS_MAP = {
-  'Beklemede': { label: 'Beklemede', cls: 'badge-warning' },
-  'pending': { label: 'Beklemede', cls: 'badge-warning' },
-  'İnceleniyor': { label: 'İnceleniyor', cls: 'badge-primary' },
-  'reviewing': { label: 'İnceleniyor', cls: 'badge-primary' },
-  'İşleme Alındı': { label: 'İşleme Alındı', cls: 'badge-info' },
-  'in_progress': { label: 'İşleme Alındı', cls: 'badge-info' },
-  'Çözüldü': { label: 'Çözüldü', cls: 'badge-success' },
-  'resolved': { label: 'Çözüldü', cls: 'badge-success' },
-  'Reddedildi': { label: 'Reddedildi', cls: 'badge-danger' },
-  'rejected': { label: 'Reddedildi', cls: 'badge-danger' }
-};
-
-function renderReportsView() {
-  const container = document.getElementById("reportsTableBody");
-  const gridContainer = document.getElementById("reportsGrid");
-  if (!container || !gridContainer) return;
-
-  const filterStatus = document.getElementById("reportFilterStatus")?.value || 'all';
-  const filterHood = document.getElementById("reportFilterNeighborhood")?.value || '';
-  const filterCat = document.getElementById("reportFilterCategory")?.value || '';
-  const searchTxt = (document.getElementById("reportSearch")?.value || '').trim().toLowerCase();
-
-  const filtered = (window.reportsCache || []).filter(r => {
-    const s = (r.status || 'Beklemede').trim();
-    if (filterStatus === 'pending' && (s !== 'Beklemede' && s !== 'pending')) return false;
-    if (filterStatus === 'reviewing' && (s !== 'İnceleniyor' && s !== 'reviewing')) return false;
-    if (filterStatus === 'in_progress' && (s !== 'İşleme Alındı' && s !== 'in_progress')) return false;
-    if (filterStatus === 'resolved' && (s !== 'Çözüldü' && s !== 'resolved')) return false;
-    if (filterStatus === 'rejected' && (s !== 'Reddedildi' && s !== 'rejected')) return false;
-
-    if (filterHood && r.neighborhood !== filterHood) return false;
-    if (filterCat && r.category !== filterCat && r.categoryKey !== filterCat) return false;
-
-    if (searchTxt) {
-      const matchTicket = (r.ticketNo || '').toLowerCase().includes(searchTxt);
-      const matchName = (r.userName || '').toLowerCase().includes(searchTxt);
-      const matchPhone = (r.userPhone || '').toLowerCase().includes(searchTxt);
-      const matchDesc = (r.description || '').toLowerCase().includes(searchTxt);
-      if (!matchTicket && !matchName && !matchPhone && !matchDesc) return false;
-    }
-    return true;
-  });
-
-  const b = document.getElementById('reportCountBadge');
-  if (b) b.innerText = `${filtered.length} Talep`;
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<tr><td colspan="7" class="empty-state">Kriterlere uygun başvuru kaydı bulunamadı.</td></tr>`;
-    gridContainer.innerHTML = `<div class="empty-state">Kriterlere uygun başvuru kaydı bulunamadı.</div>`;
-    return;
-  }
-
-  // 1. Tablo Görünümü
-  container.innerHTML = '';
-  filtered.forEach(r => {
-    const tr = document.createElement("tr");
-    const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
-
-    let dateStr = '–';
-    if (r.createdAt?.toMillis) {
-      dateStr = new Date(r.createdAt.toMillis()).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    } else if (r.createdAt) {
-      dateStr = new Date(r.createdAt).toLocaleDateString('tr-TR');
-    }
-
-    const ticketNo = r.ticketNo || ('GBZ-' + r.id.substring(0, 6).toUpperCase());
-    const userName = r.userName || (r.userId && window.usersMap[r.userId]?.fullName) || 'Gebze Sakini';
-    const location = [r.neighborhood, r.address].filter(Boolean).join(' • ') || 'Gebze';
-    const descShort = (r.description || 'Açıklama belirtilmemiş').length > 55 ? (r.description || '').substring(0, 55) + '...' : (r.description || '');
-
-    tr.innerHTML = `
-      <td><strong style="color:var(--navy-light); font-family:monospace;">${ticketNo}</strong></td>
-      <td style="white-space:nowrap; font-size:12px; color:var(--text-muted);">${dateStr}</td>
-      <td>
-        <div style="font-weight:700;">${userName}</div>
-        <div style="font-size:11px; color:var(--text-muted);">${r.userPhone || ''}</div>
-      </td>
-      <td>
-        <div style="font-weight:600;">${r.category || 'Genel Şikayet'}</div>
-        <div style="font-size:11.5px; color:var(--text-muted);">📍 ${location}</div>
-      </td>
-      <td style="max-width:260px;">
-        <span style="font-size:12.5px; line-height:1.4;">${descShort}</span>
-        ${r.imageUrl ? ` <span style="cursor:pointer;" onclick="openLightbox('${r.imageUrl}')" title="Fotoğraf">📸</span>` : ''}
-      </td>
-      <td><span class="badge ${stInfo.cls}">${stInfo.label}</span></td>
-      <td>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="openReportDetailModal('${r.id}')">İncele & Yanıtla</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteDocItem('reports', '${r.id}', initRealtimeReports)">Sil</button>
-        </div>
-      </td>
-    `;
-    container.appendChild(tr);
-  });
-
-  // 2. Kart Görünümü
-  gridContainer.innerHTML = '';
-  filtered.forEach(r => {
-    const card = document.createElement("div");
-    card.className = "item-card";
-    const stInfo = REPORT_STATUS_MAP[r.status] || { label: r.status || 'Beklemede', cls: 'badge-warning' };
-    const ticketNo = r.ticketNo || ('GBZ-' + r.id.substring(0, 6).toUpperCase());
-    const userName = r.userName || (r.userId && window.usersMap[r.userId]?.fullName) || 'Gebze Sakini';
-
-    card.innerHTML = `
-      ${r.imageUrl ? `<img src="${r.imageUrl}" class="item-card-image" onclick="openLightbox('${r.imageUrl}')" alt="talep">` : ''}
-      <div class="item-card-body">
-        <div class="item-card-meta">
-          <span style="font-family:monospace; font-weight:800; color:var(--navy-light);">${ticketNo}</span>
-          <span class="badge ${stInfo.cls}" style="margin-left:auto;">${stInfo.label}</span>
-        </div>
-        <div class="item-card-title">${r.category || 'Vatandaş Talebi'}</div>
-        <div class="item-card-desc">${r.description || ''}</div>
-        <div style="font-size:11.5px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:8px;">
-          👤 ${userName} • 📍 ${r.neighborhood || 'Gebze'}
-        </div>
-      </div>
-      <div class="item-card-footer">
-        <button class="btn btn-primary btn-sm" onclick="openReportDetailModal('${r.id}')">İncele / Yanıtla</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteDocItem('reports', '${r.id}', initRealtimeReports)">Sil</button>
-      </div>
-    `;
-    gridContainer.appendChild(card);
-  });
-}
-window.renderReportsView = renderReportsView;
-
-window.switchReportsView = (viewMode) => {
-  const table = document.getElementById("reportsTableView");
-  const grid = document.getElementById("reportsGrid");
-  const btnTable = document.getElementById("btnViewTable");
-  const btnGrid = document.getElementById("btnViewGrid");
-  if (viewMode === 'grid') {
-    if (table) table.style.display = 'none';
-    if (grid) grid.style.display = 'grid';
-    if (btnGrid) { btnGrid.classList.add('btn-primary'); btnGrid.classList.remove('btn-outline'); }
-    if (btnTable) { btnTable.classList.remove('btn-primary'); btnTable.classList.add('btn-outline'); }
-  } else {
-    if (table) table.style.display = 'block';
-    if (grid) grid.style.display = 'none';
-    if (btnTable) { btnTable.classList.add('btn-primary'); btnTable.classList.remove('btn-outline'); }
-    if (btnGrid) { btnGrid.classList.remove('btn-primary'); btnGrid.classList.add('btn-outline'); }
-  }
-};
-
-window.openReportDetailModal = (id) => {
-  const r = (window.reportsCache || []).find(x => x.id === id);
-  if (!r) return;
-  window.activeReportId = id;
-
-  const ticketNo = r.ticketNo || ('GBZ-' + r.id.substring(0, 6).toUpperCase());
-  const userName = r.userName || (r.userId && window.usersMap[r.userId]?.fullName) || 'Gebze Sakini';
-
-  document.getElementById("modalReportTicket").innerText = ticketNo;
-  document.getElementById("modalReportCitizen").innerText = `${userName} (${r.userPhone || 'Tel yok'})`;
-  document.getElementById("modalReportCategory").innerText = r.category || 'Genel Şikayet';
-
-  const loc = [r.neighborhood, r.address].filter(Boolean).join(' • ') || 'Gebze';
-  document.getElementById("modalReportLocation").innerText = loc;
-
-  const mapBtn = document.getElementById("modalReportMapBtn");
-  if (r.lat && r.lng) {
-    mapBtn.href = `https://www.google.com/maps?q=${r.lat},${r.lng}`;
-    mapBtn.style.display = 'inline-flex';
-  } else {
-    mapBtn.style.display = 'none';
-  }
-
-  document.getElementById("modalReportDesc").innerText = r.description || 'Açıklama belirtilmemiş.';
-
-  const imgBox = document.getElementById("modalReportImageBox");
-  if (r.imageUrl) {
-    imgBox.innerHTML = `
-      <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:800; margin-bottom:4px;">Eklenen Fotoğraf</div>
-      <img src="${r.imageUrl}" style="max-height:220px; border-radius:10px; cursor:pointer; border:1px solid var(--border);" onclick="openLightbox('${r.imageUrl}')" alt="talep fotoğrafı">
-    `;
-    imgBox.style.display = 'block';
-  } else {
-    imgBox.style.display = 'none';
-  }
-
-  document.getElementById("modalReportStatusSelect").value = r.status || 'Beklemede';
-  document.getElementById("modalReportNoteInput").value = r.response || r.adminNote || '';
-
-  const histBox = document.getElementById("modalReportHistory");
-  if (r.history && Array.isArray(r.history) && r.history.length > 0) {
-    histBox.innerHTML = r.history.map(h => `
-      <div style="font-size:12px; margin-bottom:4px; padding:6px 10px; background:#F1F5F9; border-radius:6px;">
-        <strong>${h.status || 'Güncelleme'}</strong> • <span style="color:var(--text-muted);">${h.date || ''}</span>
-        ${h.note ? `<div style="color:var(--text-dark); margin-top:2px;">${h.note}</div>` : ''}
-      </div>
-    `).join('');
-  } else {
-    histBox.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">Henüz geçmiş işlem kaydı yok.</div>';
-  }
-
-  document.getElementById("reportDetailModal").style.display = 'flex';
-};
-
-window.closeReportDetailModal = () => {
-  document.getElementById("reportDetailModal").style.display = 'none';
-  window.activeReportId = null;
-};
-
-window.saveReportAction = async () => {
-  if (!window.activeReportId) return;
-  const status = document.getElementById("modalReportStatusSelect").value;
-  const note = document.getElementById("modalReportNoteInput").value.trim();
-  const btn = document.getElementById("btnSaveReportAction");
-  btn.disabled = true;
-
-  try {
-    const historyItem = {
-      status,
-      note,
-      date: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      who: auth.currentUser?.email || 'Yönetici'
-    };
-
-    const docRef = doc(db, "reports", window.activeReportId);
-    await updateDoc(docRef, {
-      status,
-      response: note,
-      adminNote: note,
-      updatedAt: serverTimestamp(),
-      history: arrayUnion(historyItem)
-    });
-
-    showToast("Talep durumu ve resmi birim yanıtı kaydedildi!");
-    closeReportDetailModal();
-  } catch (err) {
-    alert("Kayıt sırasında hata oluştu: " + err.message);
-  } finally {
-    btn.disabled = false;
-  }
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5. VATANDAŞ ÖNERİLERİ (SÖZ SENDE) & MODERASYON
@@ -2162,7 +1849,6 @@ function renderUsersView() {
         <div style="font-size:11.5px; color:var(--text-muted); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${u.address || ''}</div>
       </td>
       <td>
-        <span class="badge badge-primary">Talepler: ${u.totalReports || 0}</span>
         <span class="badge badge-warning">Öneriler: ${u.totalSuggestions || 0}</span>
       </td>
       <td>
@@ -2924,25 +2610,9 @@ window.exportData = async (colName, format) => {
       downloadFile(`gebze_${colName}_${dateStr}.json`, "application/json", jsonStr);
     } else {
       let csv = "\uFEFF";
-      if (colName === 'reports') {
-        csv += "Takip No,Tarih,Vatandaş,Telefon,Mahalle,Adres,Kategori,Açıklama,Durum,Belediye Yanıtı\n";
-        csv += list.map(r => [
-          `"${r.ticketNo || r.id}"`,
-          `"${r.createdAt?.toMillis ? new Date(r.createdAt.toMillis()).toLocaleString('tr-TR') : ''}"`,
-          `"${(r.userName || '').replace(/"/g, '""')}"`,
-          `"${r.userPhone || ''}"`,
-          `"${r.neighborhood || ''}"`,
-          `"${(r.address || '').replace(/"/g, '""')}"`,
-          `"${r.category || ''}"`,
-          `"${(r.description || '').replace(/"/g, '""')}"`,
-          `"${r.status || 'Beklemede'}"`,
-          `"${(r.response || r.adminNote || '').replace(/"/g, '""')}"`
-        ].join(",")).join("\n");
-      } else {
-        const keys = Object.keys(list[0] || {});
-        csv += keys.join(",") + "\n";
-        csv += list.map(item => keys.map(k => `"${String(item[k] ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
-      }
+      const keys = Object.keys(list[0] || {});
+      csv += keys.join(",") + "\n";
+      csv += list.map(item => keys.map(k => `"${String(item[k] ?? '').replace(/"/g, '""')}"`).join(",")).join("\n");
       downloadFile(`gebze_${colName}_${dateStr}.csv`, "text/csv;charset=utf-8;", csv);
     }
     showToast("Veri başarıyla dışa aktarıldı!");
