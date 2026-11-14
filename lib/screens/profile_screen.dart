@@ -80,8 +80,6 @@ const List<String> _kGebzeNeighborhoods = [
 class ProfileScreen extends ConsumerStatefulWidget {
   final ValueChanged<int>? onNavTap;
 
-  /// true ise ekran açılır açılmaz Aktiviteler > Talepler sheet'i açılır
-  /// (Çek & Gönder sonrası "Taleplerim" için).
   final bool openRequestsOnStart;
   final bool showBottomNav;
 
@@ -146,15 +144,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Navigator.of(context).pop();
                       if (i == 1) {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const GuideScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const GuideScreen(),
+                          ),
                         );
                       } else if (i == 2) {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ReportScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const ReportScreen(),
+                          ),
                         );
                       } else if (i == 3) {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const ServicesScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const ServicesScreen(),
+                          ),
                         );
                       }
                     }
@@ -230,8 +234,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ───────────────────────── Üst Header (Hero) ─────────────────────────
-
   Widget _buildHeroHeader(
     BuildContext context,
     UserProfile profile,
@@ -256,7 +258,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Arka plan: Gebze Görseli
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(32),
@@ -276,7 +277,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-          // Karartma ve Lacivert Degrade Katmanı
           Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.vertical(
@@ -294,7 +294,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-          // İçerik: Geri Butonu + Kullanıcı Karşılama ve Profil Resmi
           SafeArea(
             bottom: false,
             child: Padding(
@@ -340,7 +339,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const Spacer(),
                   Row(
                     children: [
-                      // Avatar
                       Stack(
                         children: [
                           Container(
@@ -362,9 +360,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                             child: CircleAvatar(
                               backgroundColor: const Color(0xFF1E5BC6),
-                              backgroundImage:
-                                  getAvatarImageProvider(profile.avatarUrl),
-                              child: getAvatarImageProvider(profile.avatarUrl) == null
+                              backgroundImage: getAvatarImageProvider(
+                                profile.avatarUrl,
+                              ),
+                              child:
+                                  getAvatarImageProvider(profile.avatarUrl) ==
+                                      null
                                   ? Text(
                                       _getInitials(profile.fullName),
                                       style: const TextStyle(
@@ -404,7 +405,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                       const SizedBox(width: 16),
-                      // İsim ve Mahalle
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,8 +511,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ───────────────────────── Sayaç Kartı ─────────────────────────
-
   Widget _buildStatsCard(
     BuildContext context,
     UserProfile profile,
@@ -607,8 +605,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ───────────────────────── Bölüm Başlığı ─────────────────────────
-
   Widget _buildSectionTitle(String title, IconData icon) {
     final isDark = context.isDark;
     return Row(
@@ -627,8 +623,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ],
     );
   }
-
-  // ───────────────────────── Hesap Bölümü ─────────────────────────
 
   Widget _buildAccountSection(
     BuildContext context,
@@ -662,8 +656,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     ]);
   }
-
-  // ───────────────────────── Aktiviteler Bölümü ─────────────────────────
 
   Widget _buildActivitiesSection(
     BuildContext context,
@@ -699,8 +691,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     ]);
   }
-
-  // ───────────────────────── Ayarlar Bölümü ─────────────────────────
 
   Widget _buildSettingsSection(
     BuildContext context,
@@ -806,8 +796,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ]);
   }
 
-  // ───────────────────────── Destek & İletişim ─────────────────────────
-
   Widget _buildSupportSection(BuildContext context, String lang) {
     return _buildGroupCard([
       _buildListTile(
@@ -828,8 +816,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ]);
   }
 
-  // ───────────────────────── Butonlar (Çıkış & Hesap Sil) ─────────────────────────
-
   Widget _buildActionButtons(
     BuildContext context,
     UserProfile profile,
@@ -838,7 +824,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
-        // Çıkış Yap Butonu
         SizedBox(
           width: double.infinity,
           height: 50,
@@ -866,7 +851,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        // Hesabı Sil Butonu
         SizedBox(
           width: double.infinity,
           height: 50,
@@ -890,8 +874,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ],
     );
   }
-
-  // ───────────────────────── Yardımcı Widget'lar ─────────────────────────
 
   Widget _buildGroupCard(List<Widget> children) {
     final isDark = context.isDark;
@@ -1009,8 +991,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ───────────────────────── Modallar & Diyaloglar ─────────────────────────
-
   void _openEditProfileDialog(
     BuildContext context,
     UserProfile profile, [
@@ -1018,8 +998,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   ]) {
     final isDark = context.isDark;
 
-    // Controller'lar artık sheet'in kendi State'inde yaşıyor ve sheet'in
-    // kapanış animasyonu bittikten sonra dispose ediliyor.
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1356,9 +1334,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting &&
                           !snapshot.hasData) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError &&
                           (!snapshot.hasData || snapshot.data!.isEmpty)) {
@@ -1948,10 +1924,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-
-
-// ───────────────────────── Favoriler (Kaydedilenler sekmesi) ─────────────────────────
-
 class _FavoritesList extends ConsumerWidget {
   const _FavoritesList();
 
@@ -1965,7 +1937,10 @@ class _FavoritesList extends ConsumerWidget {
     return favs.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
-        child: Text('Favoriler yüklenemedi.', style: TextStyle(color: mutedColor)),
+        child: Text(
+          'Favoriler yüklenemedi.',
+          style: TextStyle(color: mutedColor),
+        ),
       ),
       data: (list) {
         if (list.isEmpty) {
@@ -2032,9 +2007,6 @@ class _FavoritesList extends ConsumerWidget {
   }
 }
 
-
-// ───────────────────────── Profil Düzenleme Sheet'i ─────────────────────────
-
 class _EditProfileSheet extends ConsumerStatefulWidget {
   final UserProfile profile;
   final String lang;
@@ -2100,9 +2072,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       debugPrint('Profil güncellenemedi: $e');
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profil güncellenemedi: $e')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Profil güncellenemedi: $e')));
     }
   }
 

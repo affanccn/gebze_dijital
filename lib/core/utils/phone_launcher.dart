@@ -4,26 +4,17 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../localization/app_strings.dart';
 
-/// Gebze Belediyesi - Güvenli Telefon Arama ve Tuş Takımı Yönlendiricisi
 class PhoneLauncher {
-  /// Telefon aramasını başlatır ve tuş takımına / arama ekranına yönlendirir.
-  /// 
-  /// Android 11+ paket kısıtlamaları (package visibility) ve canLaunchUrl()
-  /// kaynaklı bloklamaları aşmak için doğrudan launchUrl dener.
-  /// Arama desteklenmeyen ortamlarda (emülatör, Wi-Fi tablet vb.) numarayı
-  /// panoya kopyalar ve kullanıcıya bilgilendirme gösterir.
   static Future<bool> makeCall(
     BuildContext context,
     String phone, {
     String lang = 'tr',
   }) async {
-    // Numarayı temizle: sadece rakamlar ve varsa baştaki '+' kalsın
     final clean = phone.replaceAll(RegExp(r'[^0-9+]'), '');
     if (clean.isEmpty) return false;
 
     bool launched = false;
 
-    // 1. Doğrudan externalApplication modunda tel: URL'sini aç (Dialer tuş takımı)
     try {
       final uri = Uri(scheme: 'tel', path: clean);
       launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -31,7 +22,6 @@ class PhoneLauncher {
       launched = false;
     }
 
-    // 2. Başarısız olduysa platform varsayılan moduyla dene
     if (!launched) {
       try {
         final uri = Uri.parse('tel:$clean');
@@ -41,7 +31,6 @@ class PhoneLauncher {
       }
     }
 
-    // 3. Fallback: Genel launchUrl
     if (!launched) {
       try {
         launched = await launchUrl(Uri.parse('tel:$clean'));
@@ -50,7 +39,6 @@ class PhoneLauncher {
       }
     }
 
-    // 4. Eğer hiçbir şekilde arama başlatılamadıysa (emülatör vb.) numarayı panoya kopyala
     if (!launched) {
       try {
         await Clipboard.setData(ClipboardData(text: clean));

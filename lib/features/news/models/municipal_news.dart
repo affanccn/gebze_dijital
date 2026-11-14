@@ -33,8 +33,6 @@ class MunicipalNews {
     this.createdAt,
   });
 
-  /// Sıralama anahtarı: Admin panelinden eklenen haberler (createdAt içeren veya
-  /// newsId değeri yüksek/eksik olan kayıtlar) her zaman en üstte görünür.
   int get sortKey {
     if (createdAt != null && (newsId == null || newsId! > 100000)) {
       return createdAt!.millisecondsSinceEpoch ~/ 1000;
@@ -61,7 +59,8 @@ class MunicipalNews {
       pageIndex: (data['pageIndex'] as num?)?.toInt() ?? 999,
       itemIndex: (data['itemIndex'] as num?)?.toInt() ?? 999,
       newsId: (data['newsId'] as num?)?.toInt(),
-      summary: data['summary'] as String? ??
+      summary:
+          data['summary'] as String? ??
           data['description'] as String? ??
           data['content'] as String? ??
           '',
@@ -115,7 +114,6 @@ class MunicipalNews {
       final m = (ts.month >= 1 && ts.month <= 12) ? trMonths[ts.month] : 'Ekim';
       return '${ts.day} $m ${ts.year}';
     }
-    // dynamic timestamp check (Firebase Timestamp)
     if (ts != null) {
       try {
         final d = (ts as dynamic).toDate() as DateTime;
@@ -147,7 +145,6 @@ class MunicipalNews {
     return '26 Ekim 2026';
   }
 
-  /// Aktif dile göre başlığı döndürür ('tr', 'en', 'ar')
   String localizedTitle(String lang) {
     if (lang == 'en' &&
         titleEn != null &&
@@ -164,8 +161,6 @@ class MunicipalNews {
     return title;
   }
 
-  /// Aktif dile göre haber özetini döndürür ('tr', 'en', 'ar')
-  /// Eğer hedef dildeki özet henüz yoksa boş string döner ki dinamik çeviri veya fallback devreye girsin.
   String localizedSummary(String lang) {
     if (lang == 'en') {
       if (summaryEn != null &&
@@ -186,7 +181,6 @@ class MunicipalNews {
     return summary;
   }
 
-  /// Haber tarihini aktif dile göre formatlar ('21 Ekim 2026' -> '21 أكتوبر 2026' veya 'October 21, 2026')
   String localizedDate(String lang) {
     final effectiveText =
         (publishedAtText.trim().toLowerCase() == 'güncel' ||
@@ -194,9 +188,8 @@ class MunicipalNews {
         ? '26 Ekim 2026'
         : publishedAtText.trim();
 
-    final match = RegExp(
-      r'(\d{1,2})\s+([A-Za-zÇĞİÖŞÜçğıöşü]+)\s+(\d{4})',
-    ).firstMatch(effectiveText);
+    final match = RegExp(r'(\d{1,2})\s+([A-Za-zÇĞİÖŞÜçğıöşü]+)\s+(\d{4})')
+        .firstMatch(effectiveText);
     if (match == null) return effectiveText;
 
     final day = match.group(1)!;

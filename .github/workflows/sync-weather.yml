@@ -1,8 +1,8 @@
-name: Hava Durumu Senkronizasyonu
+name: Sync Gebze Weather
 
 on:
   schedule:
-    - cron: '0 4 * * *' # Günde bir kez: Her sabah 04:00 UTC (07:00 TSİ) düzenli çalışır
+    - cron: '0 4 * * *'
   workflow_dispatch:
   push:
     paths:
@@ -12,19 +12,19 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Depoyu Klonla
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Node.js Kurulumu
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Bağımlılıkları Yükle
+      - name: Install dependencies
         working-directory: scripts/weather-sync
         run: npm install
 
-      - name: Senkronizasyon Betiğini Çalıştır
+      - name: Sync weather to Firestore
         working-directory: scripts/weather-sync
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

@@ -11,13 +11,13 @@ import 'neighborhood_screen.dart';
 import 'profile_screen.dart';
 import 'report_screen.dart';
 import 'services_screen.dart';
-import 'soz_sende_screen.dart';
-import '../features/ebelediye/presentation/ebelediye_screen.dart';
+import 'surveys_screen.dart';
+import '../features/emunicipality/presentation/emunicipality_screen.dart';
 import '../features/news/municipal_news_screen.dart';
 import '../features/parking/presentation/parking_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
-import '../features/pati/presentation/gebze_pati_screen.dart';
+import '../features/pets/presentation/pets_screen.dart';
 import '../core/services/notification_service.dart';
 
 export '../core/services/notification_service.dart'
@@ -41,8 +41,6 @@ class _C {
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
-  /// Bildirimdeki `actionType` (hedef sayfa / kategori) bilgisine göre ilgili ekranı açar.
-  /// Doğrudan bir sayfaya yönlendirme yapıldıysa `true`, sadece detay gösterilecekse `false` döner.
   static Future<bool> navigateToTarget(
     NavigatorState nav,
     AppNotification item,
@@ -92,7 +90,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       case 'profile':
         targetWidget = const ProfileScreen();
         break;
-      // Şehir Rehberi & Kurumsal Tesis Kategorileri
       case 'guide_institutions':
         targetWidget = const GuideScreen(initialTab: 0);
         break;
@@ -125,7 +122,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       case 'guide_belediye':
         targetWidget = const GuideCategoryScreen(categoryId: 'belediye');
         break;
-      // Gebze'yi Keşfet Alt Bölümleri
       case 'discover_places':
         targetWidget = const GuideScreen(
           initialTab: 1,
@@ -144,7 +140,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
           initialDiscoverSection: 2,
         );
         break;
-      // Gebze Pati Alt Sekmeleri
       case 'pati_center':
         targetWidget = const GebzePatiScreen(initialIndex: 0);
         break;
@@ -155,7 +150,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       case 'pati_feeding':
         targetWidget = const GebzePatiScreen(initialIndex: 2);
         break;
-      // Harici Web Bağlantısı
       case 'external_url':
         final urlStr = item.externalUrl?.trim() ?? '';
         if (urlStr.isNotEmpty) {
@@ -179,7 +173,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
     return true;
   }
 
-  /// Canlı In-App Banner (SnackBar) üzerinden tıklandığında hedef sayfaya veya bildirim ekranına yönlendirir.
   static Future<void> navigateFromBanner(
     GlobalKey<NavigatorState> navigatorKey,
     AppNotification item,
@@ -449,7 +442,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
       body: Column(
         children: [
-          // 32px Oval Curved Header
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.paddingOf(context).top + 10,
@@ -528,7 +520,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
           ),
 
-          // Category Filters
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -557,7 +548,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
           ),
 
-          // Notifications List
           Expanded(
             child: filtered.isEmpty
                 ? Center(

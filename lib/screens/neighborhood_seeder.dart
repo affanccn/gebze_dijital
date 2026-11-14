@@ -1,29 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Mahallemde ekranı için demo verileri `neighborhood_works` koleksiyonuna yazar.
-/// Dosya yolu: lib/screens/neighborhood_seeder.dart
-///
-/// - Tarihler "şimdiye göre" hesaplanır; yüklediğin gün devam eden / yaklaşan
-///   kayıtlar gerçekten aktif görünür.
-/// - Son 4 kayıt bilerek geçmiş tarihlidir: filtrenin çalıştığını göstermek içindir
-///   (Firebase'de görünür, uygulamada görünmez).
-/// - Doküman ID'leri sabittir (demo_01...). Tekrar çalıştırmak kopya üretmez,
-///   aynı kayıtların üstüne yazar.
 class NeighborhoodSeeder {
   static const collection = 'neighborhood_works';
 
   static Future<int> seed() async {
-    // Saatler cihazın saat dilimine bakmadan Türkiye saatine (UTC+3) göre yazılır.
     final trNow = DateTime.now().toUtc().add(const Duration(hours: 3));
 
     Timestamp at(int dayOffset, [int hour = 9]) => Timestamp.fromDate(
-      // Türkiye saati = UTC + 3, bu yüzden UTC'ye çevirmek için 3 çıkarılır.
       DateTime.utc(trNow.year, trNow.month, trNow.day + dayOffset, hour - 3),
     );
 
-    // category: kazi | altyapi | cevre | yol_bakim
     final items = <Map<String, dynamic>>[
-      // ── Devam edenler ──
       {
         'title': 'Doğalgaz Hattı Kazı Çalışması',
         'description': 'Yeni doğalgaz bağlantı hattı için cadde boyunca kazı yapılacaktır. Geçici trafik düzenlemesi uygulanır.',
@@ -85,7 +72,6 @@ class NeighborhoodSeeder {
         'endDate': at(1, 15),
       },
 
-      // ── Yaklaşan (planlı) ──
       {
         'title': 'Kanalizasyon Hattı Genişletme',
         'description': 'Artan nüfus nedeniyle mevcut kanalizasyon hattı daha büyük çapta yenilenecektir.',
@@ -180,7 +166,6 @@ class NeighborhoodSeeder {
         'endDate': at(10, 14),
       },
 
-      // ── GEÇMİŞ (filtre testi): uygulamada görünmemeli ──
       {
         'title': '[GEÇMİŞ] Asfalt Yama Çalışması',
         'description': 'Tamamlanmış çalışma. Listede görünmemesi gerekir.',

@@ -6,36 +6,32 @@ import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Dosya yolu: lib/screens/assembly_service.dart
-///
-/// Toplanma alanlarını doğrudan Gebze Kent Rehberi'nden çeker:
-///   https://kentrehberi.gebze.bel.tr/ToplanmaAlanlari/GetCardsPartial
-///
-/// Akış: ağdan çek → parse et → önbelleğe yaz. Ağ yoksa son başarılı
-/// önbellek kullanılır (afet anında internet olmayabilir).
-///
-/// pubspec.yaml'a eklenecek paketler:
-///   http, html, shared_preferences
-
 const String kAssemblyUrl =
     'https://kentrehberi.gebze.bel.tr/ToplanmaAlanlari/GetCardsPartial';
 
 const String _kCacheKey = 'assembly_areas_cache_v1';
 const String _kCacheTimeKey = 'assembly_areas_cache_time_v1';
 
-/// Konum izni yoksa mesafe hesabı için kullanılan referans nokta (Gebze merkez).
 const double kGebzeCenterLat = 40.8028;
 const double kGebzeCenterLng = 29.4307;
 
-/// Toplanma alanı türü. Etiketler ekranda dile göre çevrilir.
-enum AreaKind { park, market, picnic, school, hospital, forest, municipal, sport, other }
+enum AreaKind {
+  park,
+  market,
+  picnic,
+  school,
+  hospital,
+  forest,
+  municipal,
+  sport,
+  other,
+}
 
-/// Toplanma Alanı Veri Modeli
 class AssemblyArea {
   final String id;
   final String name;
   final String neighborhood;
-  final String street; // boş olabilir
+  final String street;
   final double latitude;
   final double longitude;
   final int? areaM2;
@@ -58,10 +54,8 @@ class AssemblyArea {
     required this.kind,
   });
 
-  /// Kişi başı ~3,5 m² varsayımıyla TAHMİNİ kapasite (resmi veri değildir).
   int? get estimatedCapacity => areaM2 == null ? null : (areaM2! / 3.5).floor();
 
-  /// "8.735 m²"
   String get areaText => areaM2 == null ? '' : '${_thousands(areaM2!)} m²';
 
   Map<String, dynamic> toJson() => {
@@ -148,8 +142,6 @@ class AssemblyService {
     }
   }
 
-  /// Çevrimdışı afet durumunda internet veya önbellek yokken kullanılan
-  /// Gebze'nin ana toplanma alanları
   static const List<AssemblyArea> fallbackAreas = [
     AssemblyArea(
       id: 'gebze_kent_meydani',
@@ -257,9 +249,9 @@ class AssemblyService {
     ),
   ];
 
-  // ───────────────────────── Parse ─────────────────────────
-
-  static final _showOnMap = RegExp(r'ShowOnMap\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)');
+  static final _showOnMap = RegExp(
+    r'ShowOnMap\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)',
+  );
   static final _destination = RegExp(r'destination=([-\d.]+),([-\d.]+)');
 
   static List<AssemblyArea> parse(String htmlText) {
@@ -272,7 +264,7 @@ class AssemblyService {
       if (name.isEmpty) continue;
 
       final coords = _coords(card);
-      if (coords == null) continue; // geçersiz konumu listeye alma
+      if (coords == null) continue;
 
       final fields = <String, String>{};
       for (final row in card.querySelectorAll('div.mb-2')) {
@@ -284,8 +276,14 @@ class AssemblyService {
       }
 
       final infra = <String, bool>{};
-      for (final sp in card.querySelectorAll('span.d-flex.align-items-center.gap-1')) {
-        final label = sp.querySelector('small')?.text.trim().replaceAll(':', '');
+      for (final sp in card.querySelectorAll(
+        'span.d-flex.align-items-center.gap-1',
+      )) {
+        final label = sp
+            .querySelector('small')
+            ?.text
+            .trim()
+            .replaceAll(':', '');
         final badge = sp.querySelector('.badge')?.text.trim();
         if (label != null && badge != null) infra[label] = badge == 'Var';
       }
@@ -309,8 +307,6 @@ class AssemblyService {
     return out;
   }
 
-  /// (lat, lng) döner. Sitede ShowOnMap(BOYLAM, ENLEM) sırası TERS verilir;
-  /// Google linklerindeki destination=ENLEM,BOYLAM güvenilir kaynaktır.
   static (double, double)? _coords(Element card) {
     final raw = card.outerHtml;
     double? lat, lng;
@@ -329,12 +325,9 @@ class AssemblyService {
     }
     if (lat == null || lng == null) return null;
 
-    // Gebze ilçesi sınırları (geniş kutu): yanlış/ters girilmiş koordinatı ele.
     final ok = lat > 40.65 && lat < 41.10 && lng > 29.20 && lng < 29.85;
     return ok ? (lat, lng) : null;
   }
-
-  // ───────────────────────── Temizlik ─────────────────────────
 
   static String _collapse(String s) => s.replaceAll(RegExp(r'\s+'), ' ').trim();
 
@@ -345,11 +338,9 @@ class AssemblyService {
   static String _trUpper(String s) =>
       s.replaceAll('i', 'İ').replaceAll('ı', 'I').toUpperCase();
 
-  /// "ADEMYAVUZ PAZAR  ALANI" → "Ademyavuz Pazar Alanı"
   static String _cleanName(String raw) {
     final s = _collapse(raw);
     if (s == _trUpper(s)) {
-      // Tamamı büyük harf → Türkçe başlık biçimi
       return s.replaceAllMapped(RegExp(r"[^\s.\-()/]+"), (m) {
         final w = m.group(0)!;
         if (_keepUpper.contains(w)) return w;
@@ -364,17 +355,17 @@ class AssemblyService {
     'Köşklüçeşme': 'Köşklü Çeşme',
   };
 
-  /// "Mudarlı Mah. İç Yolu" → "Mudarlı", "Yağcılar Mah." → "Yağcılar"
   static String _cleanNeighborhood(String raw) {
-    var s = _collapse(raw).replaceAll(RegExp(r'\s+Mah(\.|alle|allesi)?.*$'), '');
+    var s = _collapse(raw)
+        .replaceAll(RegExp(r'\s+Mah(\.|alle|allesi)?.*$'), '');
     return _neighborhoodFix[s] ?? s;
   }
 
-  static String _cleanStreet(String raw) => _collapse(
-    raw,
-  ).replaceAll('Mhalle', 'Mahalle').replaceAll('İçyolu', 'İç Yolu');
+  static String _cleanStreet(String raw) =>
+      _collapse(raw)
+          .replaceAll('Mhalle', 'Mahalle')
+          .replaceAll('İçyolu', 'İç Yolu');
 
-  /// "8735m²" → 8735
   static int? _parseArea(String raw) {
     final digits = raw.replaceAll(RegExp(r'[^\d]'), '');
     return digits.isEmpty ? null : int.tryParse(digits);

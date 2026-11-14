@@ -8,10 +8,8 @@ class TextNormalizer {
         .replaceAll("’", "")
         .trim();
 
-    // Noktalama işaretlerini temizle (Türkçe karakterleri koru)
     text = text.replaceAll(RegExp(r'[^\w\sçğıöşüÇĞİÖŞÜ]'), '');
 
-    // Fazla boşlukları temizle
     text = text.replaceAll(RegExp(r'\s+'), ' ');
 
     return text.trim();
@@ -20,7 +18,6 @@ class TextNormalizer {
   static String stemWord(String word) {
     var stemmed = word;
 
-    // Basit kök bulma (son ekleri atma)
     final suffixes = [
       'lar',
       'ler',
@@ -86,7 +83,6 @@ class TextNormalizer {
       'er',
     ];
 
-    // Uzun eklerden kısa eklere doğru sıralayalım
     suffixes.sort((a, b) => b.length.compareTo(a.length));
 
     for (final suffix in suffixes) {

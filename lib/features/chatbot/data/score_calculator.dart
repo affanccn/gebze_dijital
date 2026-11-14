@@ -17,7 +17,6 @@ class ScoreCalculator {
   static ScoreResult calculate(String normalizedInput, ChatIntent intent) {
     int score = 0;
 
-    // Tam Phrase Eşleşmesi
     for (final phrase in intent.phrases) {
       if (normalizedInput.contains(TextNormalizer.normalize(phrase))) {
         score += exactPhraseScore;
@@ -33,14 +32,12 @@ class ScoreCalculator {
       final normalizedKeyword = TextNormalizer.normalize(keyword);
       final stemmedKeyword = TextNormalizer.stemWord(normalizedKeyword);
 
-      // Başlık eşleşmesi (Title match)
       if (normalizedInput.contains(normalizedKeyword)) {
         score += titleMatchScore;
         matchedKeywords++;
         continue;
       }
 
-      // Kelime bazlı eşleşme
       bool keywordFound = false;
       for (int i = 0; i < words.length; i++) {
         if (words[i] == normalizedKeyword ||
@@ -56,7 +53,6 @@ class ScoreCalculator {
       }
     }
 
-    // Birden fazla keyword eşleşmesi bonusu
     if (matchedKeywords > 1) {
       score += (matchedKeywords - 1) * multipleKeywordBonus;
     }

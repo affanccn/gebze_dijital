@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/gebze_avatar.dart';
 import '../services/avatar_crop_service.dart';
 
-/// Gebze Temalı Hazır Avatarlar ve 500x500 Kare Kırpmalı Galeri Seçim Penceresi
 class GebzeAvatarPickerSheet extends StatefulWidget {
   final String currentAvatarUrl;
   final Function(String selectedAvatarUrl) onAvatarSelected;
@@ -100,7 +99,6 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
       ),
       child: Column(
         children: [
-          // Drag Handle
           const SizedBox(height: 12),
           Container(
             width: 44,
@@ -112,7 +110,6 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
           ),
           const SizedBox(height: 14),
 
-          // Header Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -126,7 +123,9 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0A1F44),
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -146,7 +145,9 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                   onPressed: () => Navigator.of(context).pop(),
                   icon: Icon(
                     Icons.close_rounded,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -154,7 +155,6 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
           ),
           const SizedBox(height: 14),
 
-          // Galeri & Kamera Aksiyon Butonları
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -183,7 +183,6 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Eğer Galeriden kırpılmış görsel varsa özel önizleme rozeti
           if (_customCroppedAvatar != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -196,12 +195,16 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                   decoration: BoxDecoration(
                     color: _selectedUrl == _customCroppedAvatar
                         ? const Color(0xFF0A2A66).withAlpha(isDark ? 50 : 20)
-                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                        : (isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFF8FAFC)),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: _selectedUrl == _customCroppedAvatar
                           ? const Color(0xFFFF7A00)
-                          : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          : (isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0)),
                       width: _selectedUrl == _customCroppedAvatar ? 2.2 : 1.2,
                     ),
                   ),
@@ -214,7 +217,9 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                           image: DecorationImage(
-                            image: getAvatarImageProvider(_customCroppedAvatar)!,
+                            image: getAvatarImageProvider(
+                              _customCroppedAvatar,
+                            )!,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -229,7 +234,9 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0A1F44),
                               ),
                             ),
                             const Text(
@@ -255,7 +262,6 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
               ),
             ),
 
-          // Avatarlar Grid'i
           Expanded(
             child: _isProcessing
                 ? const Center(
@@ -266,7 +272,10 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                         SizedBox(height: 12),
                         Text(
                           'Görsel 500×500 px kare kırpılıyor...',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -274,12 +283,13 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                 : GridView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
                     physics: const BouncingScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.90,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.90,
+                        ),
                     itemCount: avatars.length,
                     itemBuilder: (context, index) {
                       final avatar = avatars[index];
@@ -294,19 +304,25 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFF0A2A66).withAlpha(isDark ? 60 : 20)
-                                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                                ? const Color(0xFF0A2A66)
+                                      .withAlpha(isDark ? 60 : 20)
+                                : (isDark
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFF8FAFC)),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSelected
                                   ? const Color(0xFFFF7A00)
-                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                  : (isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFE2E8F0)),
                               width: isSelected ? 2.5 : 1.2,
                             ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFFFF7A00).withAlpha(60),
+                                      color: const Color(0xFFFF7A00)
+                                          .withAlpha(60),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -322,7 +338,9 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                                   CircleAvatar(
                                     radius: 36,
                                     backgroundColor: Colors.transparent,
-                                    backgroundImage: AssetImage(avatar.assetPath),
+                                    backgroundImage: AssetImage(
+                                      avatar.assetPath,
+                                    ),
                                   ),
                                   if (isSelected)
                                     Container(
@@ -353,7 +371,9 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                                         : FontWeight.w600,
                                     color: isSelected
                                         ? const Color(0xFFFF7A00)
-                                        : (isDark ? Colors.white : const Color(0xFF0A1F44)),
+                                        : (isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0A1F44)),
                                   ),
                                 ),
                               ],
@@ -365,14 +385,15 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                   ),
           ),
 
-          // Alt Onay Çubuğu
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               border: Border(
                 top: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
                 ),
               ),
             ),
@@ -387,14 +408,18 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       side: BorderSide(
-                        color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                        color: isDark
+                            ? const Color(0xFF475569)
+                            : const Color(0xFFCBD5E1),
                       ),
                     ),
                     child: Text(
                       'Vazgeç',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ),
@@ -410,7 +435,10 @@ class _GebzeAvatarPickerSheetState extends State<GebzeAvatarPickerSheet> {
                     icon: const Icon(Icons.check_circle_rounded, size: 18),
                     label: const Text(
                       'Fotoğrafı Kaydet',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
                     ),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF0A2A66),
@@ -485,7 +513,9 @@ class _UploadOptionCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],

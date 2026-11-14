@@ -12,7 +12,7 @@ void main() {
     });
 
     test('toGebzeTime correctly adds 3 hours to any DateTime', () {
-      final utcTimestamp = DateTime.utc(2026, 10, 13, 6, 45); // 06:45 UTC
+      final utcTimestamp = DateTime.utc(2026, 10, 13, 6, 45);
       final gebzeTime = GebzeTime.toGebzeTime(utcTimestamp);
 
       expect(gebzeTime.hour, equals(9));
@@ -44,7 +44,6 @@ void main() {
     test(
       'hourly threshold filters out past hours regardless of device timezone',
       () {
-        // Mock: current Gebze time is 14:30
         final threshold = DateTime.utc(2026, 10, 13, 14);
 
         final past11 = GebzeTime.parseWeatherTime('2026-10-13 11:00');

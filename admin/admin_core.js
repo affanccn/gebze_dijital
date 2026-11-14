@@ -1,7 +1,3 @@
-// ══════════════════════════════════════════════════════════════════════════════
-// GEBZE BELEDİYESİ • DİJİTAL YÖNETİM PORTALI - CORE CONTROLLER
-// ══════════════════════════════════════════════════════════════════════════════
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
   getFirestore,
@@ -27,7 +23,6 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Firebase Proje Yapılandırması (Canlı)
 const firebaseConfig = {
   apiKey: "AIzaSyD4CqNJxmmKPTTnFqjzHbFvvH3FZN8VIRM",
   authDomain: "gebze-dijital.firebaseapp.com",
@@ -44,15 +39,11 @@ const auth = getAuth(app);
 window.db = db;
 window.auth = auth;
 
-// Global Durum Değişkenleri
 window.activeSuggestionId = null;
 window.eventsListCache = [];
 window.usersListCache = [];
 window.usersMap = {};
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. OTURUM & YÖNETİCİ KİMLİK DOĞRULAMA
-// ─────────────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, (user) => {
   const overlay = document.getElementById('loginOverlay');
   const who = document.getElementById('adminWho');
@@ -64,7 +55,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Otomatik oturum dene
 if (!auth.currentUser) {
   signInWithEmailAndPassword(auth, "admin@gebze.bel.tr", "GebzeAdmin2026!")
     .then(() => {
@@ -143,12 +133,8 @@ window.adminSignOut = async () => {
 
 function refreshAllData() {
   loadDashboard();
-  // loadUsers() kaldırıldı; sadece kullanıcılar sekmesine girildiğinde yüklenir.
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. NAVİGASYON & MODÜL YÖNETİMİ
-// ─────────────────────────────────────────────────────────────────────────────
 window.switchNav = (tabId, title, subtitle) => {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
@@ -164,7 +150,6 @@ window.switchNav = (tabId, title, subtitle) => {
   if (hTitle) hTitle.innerText = title || 'Yönetim Portalı';
   if (hSubtitle) hSubtitle.innerText = subtitle || 'Gebze Belediyesi Dijital Hizmetler';
 
-  // İlgili modül verilerini yükle
   if (tabId === 'dashboard') loadDashboard();
   if (tabId === 'suggestions') loadSuggestions();
   if (tabId === 'polls') loadPolls();
@@ -192,12 +177,9 @@ window.toggleSidebar = () => {
   if (sidebar) sidebar.classList.toggle('open');
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. GENEL BAKIŞ (DASHBOARD - AGGREGATION & CACHE OPTİMİZE)
-// ─────────────────────────────────────────────────────────────────────────────
 let _adminDashboardCache = null;
 let _adminDashboardCacheTime = 0;
-const ADMIN_DASHBOARD_CACHE_TTL = 5 * 60 * 1000; // 5 dakika TTL
+const ADMIN_DASHBOARD_CACHE_TTL = 5 * 60 * 1000;
 
 function applyAdminDashboardData(data) {
   setKpi('kpiSuggestions', data.pendingSugg);
@@ -304,9 +286,6 @@ function setKpi(id, val) {
   if (el) el.innerText = val;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. VATANDAŞ ÖNERİLERİ (SÖZ SENDE) & MODERASYON
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadSuggestions() {
   const container = document.getElementById("suggestionsGrid");
   if (!container) return;
@@ -420,9 +399,6 @@ window.saveSuggestionReply = async () => {
   } catch (e) { alert("Hata: " + e.message); }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. SÖZ SENDE (ANKETLER)
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadPolls() {
   const container = document.getElementById("pollsGrid");
   if (!container) return;
@@ -475,9 +451,6 @@ window.togglePollStatus = async (id, currentStatus) => {
   } catch (e) { alert("Hata: " + e.message); }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 7. GEZİ & KENT REHBERİ PORTALI (MEKANLAR, DOĞA ROTALARI, LEZZETLER, KURUMLAR)
-// ─────────────────────────────────────────────────────────────────────────────
 window.switchGuideTab = (subTab) => {
   document.querySelectorAll('.guide-sub-view').forEach(v => v.style.display = 'none');
   const target = document.getElementById('guide-sub-' + subTab);
@@ -533,7 +506,6 @@ async function loadGuidePlaces() {
 }
 window.loadGuidePlaces = loadGuidePlaces;
 
-// ═════════════════ YÖRESEL LEZZETLER (guide_foods) ═════════════════
 window.foodsCache = [];
 window.foodEditId = null;
 
@@ -644,7 +616,6 @@ window.cancelFoodEdit = () => {
   if (document.getElementById('foodCancelBtn')) document.getElementById('foodCancelBtn').style.display = 'none';
 };
 
-// ═════════════════ DOĞA & PİKNİK ALANLARI (guide_picnic) ═════════════════
 window.picnicCache = [];
 window.picnicEditId = null;
 window.picnicFilterType = 'all';
@@ -832,9 +803,6 @@ async function loadGuideInstitutions() {
 }
 window.loadGuideInstitutions = loadGuideInstitutions;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 8. GÜNDÜZ BAKIMEVLERİ & KREŞLER
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadNurseries() {
   const container = document.getElementById("nurseriesGrid");
   if (!container) return;
@@ -883,9 +851,6 @@ async function loadNurseries() {
 }
 window.loadNurseries = loadNurseries;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 9. HABERLER & DUYURULAR
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadNews() {
   const container = document.getElementById("newsGrid");
   if (!container) return;
@@ -901,7 +866,6 @@ async function loadNews() {
       list.push({ id: docSnap.id, ...docSnap.data() });
     });
 
-    // En yeni haberler en üstte (newsId varsa büyükten küçüğe, yoksa createdAt'e göre)
     list.sort((a, b) => {
       if (a.newsId && b.newsId) return b.newsId - a.newsId;
       const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
@@ -942,7 +906,7 @@ async function seedOfficialNews() {
   try {
     const newsData = window.GEBZE_OFFICIAL_NEWS;
     if (!Array.isArray(newsData) || newsData.length === 0) {
-      throw new Error("Resmi haber veri paketi (gebze_haber_cache.js) bulunamadı.");
+      throw new Error("Resmi haber veri paketi (news_cache.js) bulunamadı.");
     }
 
     showToast(`${newsData.length} resmi belediye haberi senkronize ediliyor...`);
@@ -999,9 +963,6 @@ async function seedOfficialNews() {
 }
 window.seedOfficialNews = seedOfficialNews;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 10. ETKİNLİKLER & KÜLTÜR-SANAT
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadEvents() {
   const container = document.getElementById("eventsGrid");
   if (container) container.innerHTML = '<div class="empty-state">Etkinlikler yükleniyor...</div>';
@@ -1145,7 +1106,6 @@ window.syncEventsFromWeb = async () => {
         targetEvents = localEvents.filter(x => (x.tarih || '').startsWith(selectedMonth));
       }
     } else {
-      // Ekim 2026 öncesi eski etkinlikleri dahil etme; yalnızca Ekim ve sonrasını al
       targetEvents = data.filter(x => (x.tarih || '') >= '2026-10-01');
     }
 
@@ -1241,9 +1201,6 @@ window.cleanOldEvents = async () => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 11. ACİL DUYURU & BİLDİRİM YAYINI
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadBroadcastHistory() {
   const container = document.getElementById("broadcastGrid");
   if (!container) return;
@@ -1284,9 +1241,6 @@ async function loadBroadcastHistory() {
 }
 window.loadBroadcastHistory = loadBroadcastHistory;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 12. PLANLI KESİNTİLER
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadOutages() {
   const container = document.getElementById("outagesGrid");
   if (!container) return;
@@ -1340,9 +1294,6 @@ window.toggleOutageStatus = async (id, current) => {
   } catch (e) { alert("Hata: " + e.message); }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 13. MAHALLEMDE (SAHA ÇALIŞMALARI)
-// ─────────────────────────────────────────────────────────────────────────────
 const WORK_CATS = {
   kazi: { label: 'Kazı', icon: '🚧' },
   altyapi: { label: 'Altyapı', icon: '🔧' },
@@ -1450,9 +1401,6 @@ window.cleanupExpiredWorks = async () => {
   } catch (e) { alert("Temizlik hatası: " + e.message); }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 14. NÖBETÇİ ECZANELER
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadPharmacies() {
   const container = document.getElementById("pharmaciesGrid");
   if (!container) return;
@@ -1495,9 +1443,6 @@ async function loadPharmacies() {
 }
 window.loadPharmacies = loadPharmacies;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 15. AFET TOPLANMA ALANLARI
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadAssemblyAreas() {
   const container = document.getElementById("assemblyTableBody");
   if (!container) return;
@@ -1542,9 +1487,6 @@ async function loadAssemblyAreas() {
 }
 window.loadAssemblyAreas = loadAssemblyAreas;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 16. GEBZE PATİ (SAHİPLENDİRME, MAMA ODAKLARI, VETERİNERLER)
-// ─────────────────────────────────────────────────────────────────────────────
 window.switchPatiTab = (subTab) => {
   document.querySelectorAll('#view-pets .sub-tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.pati-sub-view').forEach(v => v.style.display = 'none');
@@ -1707,9 +1649,6 @@ async function loadVets() {
 }
 window.loadVets = loadVets;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 17. E-BELEDİYE HİZMETLERİ
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadEBelediye() {
   const container = document.getElementById("ebelediyeGrid");
   if (!container) return;
@@ -1756,9 +1695,6 @@ async function loadEBelediye() {
 }
 window.loadEBelediye = loadEBelediye;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 18. KAYITLI VATANDAŞLAR (USERS)
-// ─────────────────────────────────────────────────────────────────────────────
 async function loadUsers(force = false) {
   const container = document.getElementById("usersTableBody");
   if (!force && window.usersListCache && window.usersListCache.length > 0) {
@@ -2173,9 +2109,6 @@ window.exportUsersCsv = () => {
   downloadFile(`gebze_vatandaslar_${new Date().toISOString().slice(0, 10)}.csv`, "text/csv;charset=utf-8;", csvContent);
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 19. SİSTEM ARAÇLARI, ŞABLON EŞİTLEME & SEEDERS
-// ─────────────────────────────────────────────────────────────────────────────
 window.openSystemToolsModal = () => {
   const m = document.getElementById("systemToolsModal");
   if (m) m.style.display = 'flex';
@@ -2186,7 +2119,6 @@ window.closeSystemToolsModal = () => {
   if (m) m.style.display = 'none';
 };
 
-// 1. Resmi Toplanma Alanları
 window.seedAssemblyAreas = async () => {
   const areas = [
     { name: "15 Temmuz Milli İrade Kent Meydanı", neighborhood: "Hacıhalil", street: "Cumhuriyet Cad.", area: 12000, lat: 40.8028, lng: 29.4307, e: true, w: true, wc: true, kind: "meydan" },
@@ -2213,7 +2145,6 @@ window.seedAssemblyAreas = async () => {
   loadDashboard();
 };
 
-// 2. Gezi Rehberi - Tarihi Mekanlar
 window.seedGuidePlaces = async () => {
   const places = [
     {
@@ -2289,7 +2220,6 @@ window.seedGuidePlaces = async () => {
   loadDashboard();
 };
 
-// 3. Gezi Rehberi - Doğa Rotaları & Piknik
 window.seedGuidePicnic = async () => {
   const rotalar = [
     {
@@ -2345,7 +2275,6 @@ window.seedGuidePicnic = async () => {
   loadGuidePicnic();
 };
 
-// 4. Gezi Rehberi - Lezzet Durakları
 window.seedGuideFoods = async () => {
   const lezzetler = [
     {
@@ -2388,7 +2317,6 @@ window.seedGuideFoods = async () => {
   loadGuideFoods();
 };
 
-// 5. Gezi Rehberi - Kamu Kurumları
 window.seedGuideInstitutions = async () => {
   const kurumlar = [
     { id: "gebze_belediyesi", name: "Gebze Belediyesi Ana Hizmet Binası", category: "Belediye", address: "Mevlana Mah. Issıkgöl Cad. No:1", phone: "0262 642 04 30", url: "https://www.gebze.bel.tr" },
@@ -2411,7 +2339,6 @@ window.seedGuideAll = async () => {
   showToast("Tüm Gezi & Kent Rehberi koleksiyonları eşitlendi!");
 };
 
-// 6. Gündüz Bakımevleri & Kreşler
 window.seedNurseries = async () => {
   const kresler = [
     {
@@ -2467,7 +2394,6 @@ window.seedNurseries = async () => {
   loadDashboard();
 };
 
-// 7. Nöbetçi Eczaneler
 window.seedPharmacies = async () => {
   const eczaneler = [
     { id: "ecz_merkez", name: "Gebze Merkez Eczanesi", district: "Gebze Çarşı", address: "Hacıhalil Mah. Hükümet Cad. No:12", phone: "0262 641 12 34", hours: "Bugün 18:30 - Yarın 08:30" },
@@ -2484,7 +2410,6 @@ window.seedPharmacies = async () => {
   loadDashboard();
 };
 
-// 8. Pati Portalı - Mama Odakları & Klinikleri
 window.seedFeedingPoints = async () => {
   const points = [
     { id: "fp_gaziler", title: "Gazilerdağı Tabiat Parkı Can Dostu Odağı", neighborhood: "Gaziler", description: "Orman yürüyüş yolu başlangıcı sol giriş alanı", status: "%100 Dolu", lastChecked: "Bugün" },
@@ -2512,7 +2437,6 @@ window.seedVetClinics = async () => {
   loadVets();
 };
 
-// 9. E-Belediye Şablonu
 window.seedEBelediyeOnly = async () => {
   const cats = [
     {
@@ -2554,7 +2478,6 @@ window.seedEBelediyeOnly = async () => {
   loadEBelediye();
 };
 
-// 10. Mükerrer Veritabanı Temizliği (Deduplication)
 window.deduplicateDatabase = async () => {
   const btn = document.getElementById("btnDeduplicate");
   if (btn) btn.disabled = true;
@@ -2597,7 +2520,6 @@ window.deduplicateDatabase = async () => {
   }
 };
 
-// 11. Veri Dışa Aktarma (Export CSV / JSON)
 window.exportData = async (colName, format) => {
   try {
     const snap = await getDocs(collection(db, colName));
@@ -2633,7 +2555,6 @@ function downloadFile(filename, type, data) {
   URL.revokeObjectURL(url);
 }
 
-// 12. Genel Silme Fonksiyonu
 window.deleteDocItem = async (colName, docId, callback) => {
   if (!confirm("Bu kaydı kalıcı olarak silmek istediğinize emin misiniz?")) return;
   try {
@@ -2646,7 +2567,6 @@ window.deleteDocItem = async (colName, docId, callback) => {
   }
 };
 
-// 13. Lightbox & Toast
 window.openLightbox = (url) => {
   if (!url) return;
   const lb = document.getElementById("imageLightbox");
@@ -2670,11 +2590,7 @@ function showToast(msg) {
   setTimeout(() => { t.style.display = 'none'; }, 3400);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 20. FORM DİNLEYİCİLERİ & DOM GÜVENLİĞİ
-// ─────────────────────────────────────────────────────────────────────────────
 function initFormListeners() {
-  // 1. Haber Ekle
   document.getElementById("formAddNews")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2702,7 +2618,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 2. Etkinlik Ekle
   document.getElementById("formAddEvent")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2731,7 +2646,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 3. Kesinti Ekle
   document.getElementById("formAddOutage")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2755,7 +2669,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 4. Anket Ekle
   document.getElementById("formAddPoll")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2791,7 +2704,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 5. Gezi - Mekan Ekle
   document.getElementById("formAddGuidePlace")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2816,7 +2728,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 6. Gezi - Doğa / Piknik Rota Ekle
   document.getElementById("formAddGuidePicnic")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2841,7 +2752,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 7. Gezi - Lezzet Noktası Ekle
   document.getElementById("formAddGuideFood")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2865,7 +2775,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 8. Gezi - Kurum Ekle
   document.getElementById("formAddGuideInst")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2888,7 +2797,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 9. Kreş Ekle
   document.getElementById("formAddNursery")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2915,7 +2823,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 10. Can Dost Ekle
   document.getElementById("formAddPet")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2941,7 +2848,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 11. Mama Odak Ekle
   document.getElementById("formAddFeeding")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2962,7 +2868,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 12. Veteriner Ekle
   document.getElementById("formAddVet")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -2983,7 +2888,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 13. Eczane Ekle
   document.getElementById("formAddPharmacy")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -3005,7 +2909,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 14. Afet Toplanma Alanı Ekle
   document.getElementById("formAddAssembly")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -3031,7 +2934,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 15. Canlı Bildirim Yayını
   document.getElementById("formBroadcast")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -3064,7 +2966,6 @@ function initFormListeners() {
     finally { btn.disabled = false; }
   });
 
-  // 16. Mahalle Çalışması Ekle
   document.getElementById("formAddWork")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector("button[type=submit]");
@@ -3098,7 +2999,6 @@ function initFormListeners() {
   });
 }
 
-// DOM Hazırlık Kontrolü
 if (document.readyState === 'loading') {
   document.addEventListener("DOMContentLoaded", initFormListeners);
 } else {

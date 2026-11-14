@@ -25,7 +25,7 @@ class AppNotification {
   final String? actionButtonLabel;
   final String? externalUrl;
   final String? imageUrl;
-  final String priority; // 'normal', 'important', 'urgent'
+  final String priority;
   final String? neighborhood;
   final bool isRead;
 
@@ -126,8 +126,6 @@ class NotificationService {
 
   final http.Client _client;
 
-  /// Başlık ve mesaj içeriğinden hedef sayfa/kategori kodunu çıkarır
-  /// (özellikle topic='news' olarak kalmış bildirimlerin doğru sayfaya gitmesini sağlar).
   static String? inferActionTypeFromText(String title, String message) {
     final text = '$title $message'
         .toLowerCase()
@@ -313,7 +311,6 @@ class NotificationService {
     }
   }
 
-  /// Bildirimi API üzerinde okundu olarak işaretler (API PATCH).
   Future<bool> patchNotificationAsRead(String notificationId) async {
     try {
       final uri = Uri.parse('$kNotificationApiBaseUrl/$notificationId/read');
@@ -344,7 +341,6 @@ class NotificationService {
     }
   }
 
-  /// Tüm bildirimleri API üzerinde okundu olarak işaretler (API PATCH).
   Future<bool> patchAllNotificationsAsRead(List<String> notificationIds) async {
     try {
       final uri = Uri.parse('$kNotificationApiBaseUrl/read-all');
@@ -377,7 +373,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
   bool _isInitialLoadDone = false;
 
-  /// Canlı gelen duyuruları arayüzde (In-App Banner/SnackBar) göstermek için callback
   static void Function(AppNotification notification)? onInAppNotification;
 
   static List<AppNotification> get _initialNotifications => [
@@ -474,7 +469,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     return _initialNotifications;
   }
 
-  /// Firestore `broadcast_notifications` koleksiyonunu canlı dinler
   void _initFirestoreListener() {
     try {
       if (Firebase.apps.isEmpty) return;
@@ -500,7 +494,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     }
   }
 
-  /// Hot reload veya ekran açılışında mevcut bildirimlerin hedef sayfalarını yeniden değerlendirir.
   Future<void> refreshFromFirestore() async {
     try {
       if (Firebase.apps.isEmpty) return;
@@ -525,7 +518,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     final topic = (d['topic'] as String?)?.trim();
     final category = (d['category'] as String?)?.trim();
 
-    // 1. Eğer spesifik bir sayfa/kategori seçilmişse (news/all/announcements dışında) doğrudan onu kullan
     for (final candidate in [targetPage, actionType, topic]) {
       if (candidate != null &&
           candidate.isNotEmpty &&
@@ -536,7 +528,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
       }
     }
 
-    // 2. Eğer topic/targetPage 'news' olarak kalmışsa ancak başlık/mesaj spesifik bir hizmete aitse (örn. Kent Lokantası) metinden algıla
     final inferred = NotificationService.inferActionTypeFromText(
       title,
       message,
@@ -545,7 +536,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
       return inferred;
     }
 
-    // 3. Aksi halde mevcut alanı veya kategori eşleşmesini kullan
     if (targetPage != null && targetPage.isNotEmpty) return targetPage;
     if (actionType != null && actionType.isNotEmpty) return actionType;
     return _mapActionType(topic, category);
@@ -626,7 +616,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
         firestoreItems.add(_docToNotification(id, d, isRead: isRead));
       }
 
-      // Başlangıç mock listesindeki çakışmayanları koru
       final existingInitial = _initialNotifications
           .where((n) => !firestoreItems.any((fn) => fn.id == n.id))
           .map((n) {
@@ -637,7 +626,6 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
 
       state = [...firestoreItems, ...existingInitial];
 
-      // Uygulama açıkken panele yeni bir bildirim eklendiyse in-app banner göster
       if (_isInitialLoadDone && !suppressBanner) {
         for (final change in snapshot.docChanges) {
           if (change.type == DocumentChangeType.added) {
@@ -875,18 +863,16 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
     }
   }
 
-  /// Açılan bildirimi okundu durumuna getirir ve API PATCH isteği gönderir.
   Future<void> markAsRead(String id) async {
     final index = state.indexWhere((n) => n.id == id);
     if (index == -1) return;
 
-    if (state[index].isRead) return; // zaten okundu
+    if (state[index].isRead) return;
 
     final updated = List<AppNotification>.from(state);
     updated[index] = updated[index].copyWith(isRead: true);
     state = updated;
 
-    // Kalıcı saklama
     try {
       final prefs = await SharedPreferences.getInstance();
       final readIds = prefs.getStringList(_kReadNotificationsKey) ?? [];
@@ -898,11 +884,9 @@ class NotificationsNotifier extends Notifier<List<AppNotification>> {
       debugPrint('Bildirim durumu kaydedilemedi: $e');
     }
 
-    // API PATCH isteği
     await _service.patchNotificationAsRead(id);
   }
 
-  /// Tüm bildirimleri okundu durumuna getirir, rozeti sıfırlar ve API PATCH isteği gönderir.
   Future<void> markAllAsRead() async {
     final unreadIds = state.where((n) => !n.isRead).map((n) => n.id).toList();
 

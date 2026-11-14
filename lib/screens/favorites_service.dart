@@ -35,7 +35,6 @@ class FavoritePlace {
   }
 }
 
-/// Giriş yapmış kullanıcının favorileri (en yeni üstte). Misafirse boş liste.
 final favoritesProvider = StreamProvider<List<FavoritePlace>>((ref) {
   final user = ref.watch(authStateProvider).value;
   if (user == null) return Stream.value(const <FavoritePlace>[]);
@@ -46,8 +45,6 @@ final favoritesProvider = StreamProvider<List<FavoritePlace>>((ref) {
       .orderBy('createdAt', descending: true)
       .snapshots()
       .map((s) {
-        // Aynı mekan farklı id'lerle kaydedilmişse listede bir kez göster
-        // (liste en yeniden eskiye sıralı, ilk gelen en yenisidir).
         final seen = <String>{};
         final out = <FavoritePlace>[];
         for (final d in s.docs) {
@@ -59,10 +56,10 @@ final favoritesProvider = StreamProvider<List<FavoritePlace>>((ref) {
       });
 });
 
-/// Kalp ikonunun dolu/boş olmasına karar vermek için id kümesi.
 final favoriteIdsProvider = Provider<Set<String>>(
   (ref) =>
-      ref.watch(favoritesProvider).value?.map((f) => f.id).toSet() ?? <String>{},
+      ref.watch(favoritesProvider).value?.map((f) => f.id).toSet() ??
+      <String>{},
 );
 
 final favoritesServiceProvider = Provider<FavoritesService>(
@@ -80,7 +77,6 @@ class FavoritesService {
         .doc(placeId);
   }
 
-  /// Aynı isimle kayıtlı tüm favori dökümanları (farklı id'li kopyalar dahil).
   Future<List<DocumentReference<Map<String, dynamic>>>> _sameName(
     String name,
   ) async {
@@ -111,7 +107,6 @@ class FavoritesService {
     final snap = await doc.get();
     final copies = await _sameName(p.name);
     if (snap.exists || copies.isNotEmpty) {
-      // Favoriden çıkarırken aynı mekanın tüm kopyalarını sil.
       await _deleteAll({doc, ...copies});
     } else {
       await doc.set({

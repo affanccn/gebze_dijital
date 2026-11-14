@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/localization/app_strings.dart';
 
 class _C {

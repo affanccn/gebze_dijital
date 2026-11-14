@@ -5,14 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/localization/app_strings.dart';
-import '../features/ebelediye/presentation/ebelediye_screen.dart';
+import '../features/emunicipality/presentation/emunicipality_screen.dart';
 import '../features/news/municipal_news_screen.dart';
-import '../features/pati/presentation/gebze_pati_screen.dart';
+import '../features/pets/presentation/pets_screen.dart';
 import '../features/pharmacy/presentation/pharmacies_screen.dart';
 import '../features/weather/presentation/weather_screen.dart';
 import 'emergency_screen.dart';
 import 'outages_screen.dart';
-import 'soz_sende_screen.dart';
+import 'surveys_screen.dart';
 import 'neighborhood_screen.dart';
 import '../features/parking/presentation/parking_screen.dart';
 import '../features/chatbot/chatbot.dart';
@@ -20,9 +20,6 @@ import 'guide_screen.dart';
 import 'report_screen.dart';
 import 'profile_screen.dart';
 import 'app_bottom_nav.dart';
-
-/// Gebze Belediyesi - Hizmetler Ekranı
-/// Dosya yolu: lib/screens/services_screen.dart
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -67,11 +64,8 @@ class _ServiceData {
 }
 
 class ServicesScreen extends ConsumerStatefulWidget {
-  /// Alt menüde başka bir sekmeye geçilmek istendiğinde çağrılır.
-  /// (0: Ana Sayfa, 1: Rehber, 2: Bildir, 3: Hizmetler, 4: Profil)
   final ValueChanged<int>? onNavTap;
 
-  /// Bir hizmet kartına dokunulduğunda çağrılır. id: 'kesintiler', 'otopark' ...
   final ValueChanged<String>? onServiceTap;
 
   final bool showBottomNav;
@@ -372,7 +366,9 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
                       );
                     } else if (i == 4) {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
+                        ),
                       );
                     }
                   }
@@ -383,8 +379,6 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     );
   }
 }
-
-// ───────────────────────── Üst Başlık ─────────────────────────
 
 class _Header extends StatelessWidget {
   final TextEditingController controller;
@@ -527,8 +521,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Acil Durum Kartı ─────────────────────────
-
 class _EmergencyCard extends StatelessWidget {
   final _ServiceData data;
   final VoidCallback onTap;
@@ -614,8 +606,6 @@ class _EmergencyCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Hizmet Kartı ─────────────────────────
-
 class _ServiceCard extends StatelessWidget {
   final _ServiceData data;
   final VoidCallback onTap;
@@ -685,8 +675,6 @@ class _ServiceCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Boş Durum ─────────────────────────
-
 class _EmptyState extends StatelessWidget {
   final String lang;
   const _EmptyState({required this.lang});
@@ -714,5 +702,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-
-

@@ -2,7 +2,6 @@ name: Sync Gebze Municipality News
 
 on:
   schedule:
-    # Türkiye saatiyle öğlen 12:00'de (UTC 09:00) günde bir kez çalışır
     - cron: "0 9 * * *"
   workflow_dispatch:
 

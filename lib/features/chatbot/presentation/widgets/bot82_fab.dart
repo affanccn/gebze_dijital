@@ -11,10 +11,8 @@ import 'gebze_robot_asset.dart';
 
 const _cyan = Color(0xFF22D3EE);
 
-/// assets/images/gebzechatbot.png için ölçüler
 const double kBot82Aspect = 0.724;
 
-/// Robotun ekran (yüz) alanı
 const Rect kBot82FaceRect = Rect.fromLTWH(0.34, 0.09, 0.30, 0.18);
 
 class Bot82Fab extends ConsumerStatefulWidget {
@@ -172,11 +170,7 @@ class _Bot82FabState extends ConsumerState<Bot82Fab>
 
     final art =
         widget.artBuilder?.call(context) ??
-        buildGebzeRobotImage(
-          width: w,
-          height: h,
-          fit: BoxFit.contain,
-        );
+        buildGebzeRobotImage(width: w, height: h, fit: BoxFit.contain);
 
     return Semantics(
       button: true,

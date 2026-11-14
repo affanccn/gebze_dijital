@@ -77,7 +77,6 @@ class _MunicipalNewsListState extends ConsumerState<MunicipalNewsList> {
               ? Axis.horizontal
               : Axis.vertical,
           shrinkWrap: widget.shrinkWrap && !widget.isHorizontal,
-          // Tam ekran haber sayfasında sistem üst boşluğunu kaldır (başlık SafeArea'yı zaten karşılıyor).
           padding: (!widget.shrinkWrap && !widget.isHorizontal)
               ? const EdgeInsets.only(top: 8, bottom: 24)
               : null,

@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/AI-Bot82%20Asistan-FF7A00" alt="Bot82" />
   <img src="https://img.shields.io/badge/Diller-TR%20%7C%20EN%20%7C%20AR%20(RTL)-success" alt="Localization" />
   <img src="https://img.shields.io/badge/Tema-Açık%20%2F%20Koyu%20(Dark%20Mode)-22D3EE" alt="Theme" />
-  <img src="https://img.shields.io/badge/Testler-81%2F81%20Passed-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Testler-83%2F83%20Passed-brightgreen" alt="Tests" />
 </p>
 
 ---
@@ -96,7 +96,7 @@ Mobil uygulama, vatandaşların ihtiyaç duyduğu tüm bilgilere en fazla iki do
 ### 3.1 Ana Sayfa, Karşılama ve Hızlı Erişim
 Vatandaş uygulamayı açtığında dinamik gökyüzü manzarası, canlı meteoroloji kartı, okunmamış bildirim rozeti ve en sık kullanılan 6 modüle hızlı geçiş butonlarıyla karşılanır.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.25.jpeg" width="240" alt="Ana Sayfa Gündüz"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%282%29.jpeg" width="240" alt="Ana Sayfa Akış"/> | <img src="mobilekrangörseller/1111111111.jpeg" width="240" alt="Tüm Hizmetler"/> |
+| <img src="screenshots/mobile/mobile_01.jpeg" width="240" alt="Ana Sayfa Gündüz"/> | <img src="screenshots/mobile/mobile_02.jpeg" width="240" alt="Ana Sayfa Akış"/> | <img src="screenshots/mobile/mobile_03.jpeg" width="240" alt="Tüm Hizmetler"/> |
 |:---:|:---:|:---:|
 | **Ana Sayfa (Gündüz Modu)**<br>Hava durumu, acil erişim butonları ve yaklaşan kültür sanat etkinlikleri | **Ana Sayfa Vitrini**<br>Gebze'nin tarihi simgeleri ve belediye saha çalışmalarının canlı haber akışı | **Tüm Hizmetler Ekranı**<br>Kesintilerden patiye, eczaneden otoparka tüm belediye modülleri |
 
@@ -105,7 +105,7 @@ Vatandaş uygulamayı açtığında dinamik gökyüzü manzarası, canlı meteor
 ### 3.2 Şehir Rehberi ve Hizmet Noktaları
 Gebze'deki tüm belediye birimleri, sosyal alanlar, kütüphaneler ve tesisler kategorize edilmiş rehberde sunulur.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%281%29.jpeg" width="240" alt="Şehir Rehberi"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%286%29.jpeg" width="240" alt="Etkinlikler"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%284%29.jpeg" width="240" alt="Belediye Tesisleri"/> |
+| <img src="screenshots/mobile/mobile_04.jpeg" width="240" alt="Şehir Rehberi"/> | <img src="screenshots/mobile/mobile_05.jpeg" width="240" alt="Etkinlikler"/> | <img src="screenshots/mobile/mobile_06.jpeg" width="240" alt="Belediye Tesisleri"/> |
 |:---:|:---:|:---:|
 | **Şehir Rehberi (Kurumsal)**<br>Etkinlikler, lokantalar, pazarlar, kütüphaneler ve spor tesisleri menüsü | **Yaklaşan Etkinlikler**<br>Çocuk sineması, tiyatro ve konser programları, tarih/saat ve resmi bağlantılar | **Belediye Tesisleri**<br>GİMER Çözüm Merkezi ve Barış Sosyal Tesisleri iletişim ve rota bilgisi |
 
@@ -114,7 +114,7 @@ Gebze'deki tüm belediye birimleri, sosyal alanlar, kütüphaneler ve tesisler k
 ### 3.3 Gebze'yi Keşfet (Tarih, Lezzet, Doğa ve Kültür)
 İlçenin köklü tarihi, zengin gastronomisi ve doğa harikaları "Gebze'yi Keşfet" sekmesinde derinlemesine incelenir.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%287%29.jpeg" width="240" alt="Tarihi Yerler"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%288%29.jpeg" width="240" alt="Yöresel Lezzetler"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26.jpeg" width="240" alt="Doğa ve Piknik"/> |
+| <img src="screenshots/mobile/mobile_07.jpeg" width="240" alt="Tarihi Yerler"/> | <img src="screenshots/mobile/mobile_08.jpeg" width="240" alt="Yöresel Lezzetler"/> | <img src="screenshots/mobile/mobile_09.jpeg" width="240" alt="Doğa ve Piknik"/> |
 |:---:|:---:|:---:|
 | **Tarihi Yerler**<br>Hünkar Çayırı, İlyasbey Camii, Eskihisar Kalesi; favorilere ekleme ve harita konumu | **Yöresel Lezzetler**<br>Tescilli Gebze Çöreği, Kocaeli Manda Yoğurdu, köken ve nerede yenir bilgisi | **Doğa & Piknik Rotaları**<br>Beylikdağı Orman Yürüyüşü, göletler ve mesire alanları yol tarifleri |
 
@@ -123,7 +123,7 @@ Gebze'deki tüm belediye birimleri, sosyal alanlar, kütüphaneler ve tesisler k
 ### 3.4 Parklar, Pazarlar ve Sosyal Tesisler
 Gebzelilerin günlük hayatını kolaylaştıran pazar yerleri, sosyal restoranlar ve dinlenme parkları.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%285%29.jpeg" width="240" alt="Parklar ve Kütüphaneler"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%284%29.jpeg" width="240" alt="Kent Lokantaları"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.26%20%283%29.jpeg" width="240" alt="Pazar Yerleri"/> |
+| <img src="screenshots/mobile/mobile_10.jpeg" width="240" alt="Parklar ve Kütüphaneler"/> | <img src="screenshots/mobile/mobile_11.jpeg" width="240" alt="Kent Lokantaları"/> | <img src="screenshots/mobile/mobile_12.jpeg" width="240" alt="Pazar Yerleri"/> |
 |:---:|:---:|:---:|
 | **Parklar ve Kütüphaneler**<br>Güzide Gençlik Merkezi Kütüphanesi ve Eskihisar Macera Parkı tesisleri | **Kent Lokantaları (Güzide)**<br>Güzide Beylikbağı ve Kent Meydanı restoranları, güncel menü ve yol tarifi | **Kapalı Semt Pazarları**<br>Mevlana ve Tatlıkuyu pazar yerleri, kurulduğu günler ve ulaşım detayları |
 
@@ -132,7 +132,7 @@ Gebzelilerin günlük hayatını kolaylaştıran pazar yerleri, sosyal restoranl
 ### 3.5 Eğitim, Kültür ve Mezarlık Hizmetleri
 Eğitim, sanat ve cenaze-defin gibi sosyal belediyecilik hizmetlerinin şeffaf yönetimi.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27.jpeg" width="240" alt="Spor Tesisleri"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%283%29.jpeg" width="240" alt="Kültür Merkezleri"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%281%29.jpeg" width="240" alt="Mezarlık Hizmetleri"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%282%29.jpeg" width="240" alt="Kreşler"/> |
+| <img src="screenshots/mobile/mobile_13.jpeg" width="240" alt="Spor Tesisleri"/> | <img src="screenshots/mobile/mobile_14.jpeg" width="240" alt="Kültür Merkezleri"/> | <img src="screenshots/mobile/mobile_15.jpeg" width="240" alt="Mezarlık Hizmetleri"/> | <img src="screenshots/mobile/mobile_16.jpeg" width="240" alt="Kreşler"/> |
 |:---:|:---:|:---:|:---:|
 | **Spor Tesisleri**<br>Yarı Olimpik Havuz ve Güzide Sağlıklı Yaşam Merkezi | **Kültür Merkezleri**<br>Osman Hamdi Bey Kültür Merkezi ve GESMEK sanat kursları | **Mezarlık Hizmetleri**<br>Merkez Mezarlığı, Pelitli ve 7/24 Alo 188 Cenaze Hattı | **Kreş ve Atölyeler**<br>Arapçeşme Gündüz Bakımevi ve Montessori kreşleri |
 
@@ -141,7 +141,7 @@ Eğitim, sanat ve cenaze-defin gibi sosyal belediyecilik hizmetlerinin şeffaf y
 ### 3.6 Can Dostlarımız: Gebze Pati & Sokak Hayvanları Ağı
 Sokak hayvanlarımızın sağlığı ve refahı için mahalle odaklı besleme ağı ve kedi köyleri haritası.
 
-| <img src="mobilekrangörseller/gebzepati.jpeg" width="240" alt="Gebze Pati Ana"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28.jpeg" width="240" alt="Mama ve Su Odakları"/> |
+| <img src="screenshots/mobile/mobile_17.jpeg" width="240" alt="Gebze Pati Ana"/> | <img src="screenshots/mobile/mobile_18.jpeg" width="240" alt="Mama ve Su Odakları"/> |
 |:---:|:---:|
 | **Gebze Pati Portalı**<br>Mama odakları, acil hayvan ambulansı ve sahiplendirme modülleri | **Mama ve Su Odakları Detayı**<br>Millet Bahçesi Kedi Köyü ve Kent Meydanı otomatik mama üniteleri haritası |
 
@@ -150,7 +150,7 @@ Sokak hayvanlarımızın sağlığı ve refahı için mahalle odaklı besleme a�
 ### 3.7 Acil Durum, Afet Toplanma ve İhbar Hatları
 Olası afet veya kriz durumlarında vatandaşın hayati bilgiye ve yardım hatlarına gecikmesiz erişmesi sağlanır.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%285%29.jpeg" width="240" alt="Acil Durum ve Toplanma"/> |
+| <img src="screenshots/mobile/mobile_19.jpeg" width="240" alt="Acil Durum ve Toplanma"/> |
 |:---:|
 | **Acil Durum ve Toplanma Alanları**<br>112 Acil Çağrı, Beyaz Masa (444 1 890), AFAD (122), İSU, SEDAŞ, PALGAZ ve Zabıta tek dokunuşla arama; en yakın toplanma alanlarının mesafesi, kişi kapasitesi ve altyapı donanımları (su, elektrik, WC) |
 
@@ -159,7 +159,7 @@ Olası afet veya kriz durumlarında vatandaşın hayati bilgiye ve yardım hatla
 ### 3.8 Akıllı Otopark Doluluk ve Tahmin Sistemi
 Kentsel trafiği ve otopark arama süresini azaltmak için geliştirilen yapay zekâ ve istatistiki tahmin modeli.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%286%29.jpeg" width="240" alt="Otopark Doluluk"/> |
+| <img src="screenshots/mobile/mobile_20.jpeg" width="240" alt="Otopark Doluluk"/> |
 |:---:|
 | **Akıllı Otopark Ekranı**<br>İlçe geneli ortalama doluluk oranı (%69), toplam kapasite, tahmini boş yer sayıları, parkomat tarifeleri ve navigasyon yol tarifi |
 
@@ -168,7 +168,7 @@ Kentsel trafiği ve otopark arama süresini azaltmak için geliştirilen yapay z
 ### 3.9 Söz Sende: Demokratik Katılım ve Kamuoyu Yoklamaları
 Gebzeliler belediyenin kentsel projelerine doğrudan oy vererek karar süreçlerine dahil olur.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.27%20%287%29.jpeg" width="240" alt="Söz Sende Anketler"/> |
+| <img src="screenshots/mobile/mobile_21.jpeg" width="240" alt="Söz Sende Anketler"/> |
 |:---:|
 | **Söz Sende (Aktif Anketler)**<br>Cumhuriyet Meydanı yayalaştırma projesi ve mahalle spor atölyesi yoklamaları; şeffaf oy dağılımı ve "Oyunuz Kaydedildi" onayı |
 
@@ -177,7 +177,7 @@ Gebzeliler belediyenin kentsel projelerine doğrudan oy vererek karar süreçler
 ### 3.10 Canlı Hava Durumu, Nöbetçi Eczaneler ve Saha Çalışmaları
 İlçedeki anlık hava durumu, açık eczaneler ve mahalledeki yol onarım çalışmaları gerçek zamanlı olarak takip edilir.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%282%29.jpeg" width="240" alt="Hava Durumu"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%281%29.jpeg" width="240" alt="Nöbetçi Eczaneler"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%283%29.jpeg" width="240" alt="Mahallemde"/> |
+| <img src="screenshots/mobile/mobile_22.jpeg" width="240" alt="Hava Durumu"/> | <img src="screenshots/mobile/mobile_23.jpeg" width="240" alt="Nöbetçi Eczaneler"/> | <img src="screenshots/mobile/mobile_24.jpeg" width="240" alt="Mahallemde"/> |
 |:---:|:---:|:---:|
 | **Canlı Hava Durumu**<br>Anlık 15°C, nem, rüzgar hızı, günün saatlik tahmini ve 5 günlük hava raporu | **Nöbetçi Eczaneler**<br>Güncel nöbetçi eczaneler listesi, tek tıkla arama ve nöbete özel yol tarifi | **Mahallemde (Saha Çalışmaları)**<br>Kazı, asfaltlama, yol onarımı, sorumlu birim ve kalan gün sayacı |
 
@@ -186,7 +186,7 @@ Gebzeliler belediyenin kentsel projelerine doğrudan oy vererek karar süreçler
 ### 3.11 E-Belediye ve Çözüm Merkezi Portalı
 Belediye binasına gitmeden borç sorgulama, ödeme ve başvuru takibi yapma imkanı.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%284%29.jpeg" width="240" alt="E-Belediye"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%286%29.jpeg" width="240" alt="Belediye Haberleri"/> |
+| <img src="screenshots/mobile/mobile_25.jpeg" width="240" alt="E-Belediye"/> | <img src="screenshots/mobile/mobile_26.jpeg" width="240" alt="Belediye Haberleri"/> |
 |:---:|:---:|
 | **E-Belediye Rehberi**<br>Çözüm masası başvuru formu, başvuru takip, vergi borcu ödeme ve e-Beyan | **Belediye Haberleri**<br>Belediyenin mahalle asfaltlama ve eğitim projelerini duyuran canlı bülten |
 
@@ -195,7 +195,7 @@ Belediye binasına gitmeden borç sorgulama, ödeme ve başvuru takibi yapma imk
 ### 3.12 Yapay Zekâ Destekli Şehir Asistanı (Bot82 Chatbot)
 Kullanıcıların doğal dilde yönelttiği soruları anlayıp anında yanıtlayan ve ilgili hizmet sayfasına yönlendiren akıllı asistan.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%285%29.jpeg" width="240" alt="Gebze Asistanı Chatbot"/> |
+| <img src="screenshots/mobile/mobile_27.jpeg" width="240" alt="Gebze Asistanı Chatbot"/> |
 |:---:|
 | **Gebze Asistanı (Bot82)**<br>Su/elektrik kesintisi, nöbetçi eczane, etkinlikler ve şikayet bildirimi için doğal dil işleme ve hızlı yönlendirme çipleri |
 
@@ -204,7 +204,7 @@ Kullanıcıların doğal dilde yönelttiği soruları anlayıp anında yanıtlay
 ### 3.13 Kullanıcı Profili, Bildirim ve Mahalle Tercihleri
 Kullanıcının kimlik doğrulama durumu, ikamet ettiği mahalle, aktif önerileri ve sistem ayarları.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%287%29.jpeg" width="240" alt="Profilim"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.28%20%288%29.jpeg" width="240" alt="Ayarlar"/> |
+| <img src="screenshots/mobile/mobile_28.jpeg" width="240" alt="Profilim"/> | <img src="screenshots/mobile/mobile_29.jpeg" width="240" alt="Ayarlar"/> |
 |:---:|:---:|
 | **Profilim Ekranı**<br>Kişisel avatar, "Doğrulanmış" hesap rozeti, paylaşılan öneri ve destek sayıları | **Uygulama Ayarları**<br>Dil seçimi, Büyük Yazı Tipi switch'i, tema tercihi, GİM tek dokunuş çağrı butonu |
 
@@ -213,7 +213,7 @@ Kullanıcının kimlik doğrulama durumu, ikamet ettiği mahalle, aktif önerile
 ### 3.14 Çoklu Dil Desteği (Türkçe, İngilizce, Arapça RTL)
 Uygulama, yerli ve yabancı tüm hemşehriler için tam dil uyumuna sahiptir.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.29.jpeg" width="240" alt="İngilizce Arayüz"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.29%20%281%29.jpeg" width="240" alt="Arapça RTL Arayüz"/> |
+| <img src="screenshots/mobile/mobile_30.jpeg" width="240" alt="İngilizce Arayüz"/> | <img src="screenshots/mobile/mobile_31.jpeg" width="240" alt="Arapça RTL Arayüz"/> |
 |:---:|:---:|
 | **İngilizce Dil Desteği (EN)**<br>Uluslararası ziyaretçiler için "Welcome to Gebze" tam çeviri arayüzü | **Arapça Dil Desteği (AR RTL)**<br>Arapça metinler ve sağdan sola (RTL) dönen kullanıcı deneyimi |
 
@@ -222,7 +222,7 @@ Uygulama, yerli ve yabancı tüm hemşehriler için tam dil uyumuna sahiptir.
 ### 3.15 Gece Modu (Dark Mode) ve Erişilebilirlik
 Karanlık ortamlarda gözü yormayan ve pil tasarrufu sağlayan gece modu tasarımı.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.29%20%282%29.jpeg" width="240" alt="Dark Mode 1"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.29%20%283%29.jpeg" width="240" alt="Dark Mode 2"/> |
+| <img src="screenshots/mobile/mobile_32.jpeg" width="240" alt="Dark Mode 1"/> | <img src="screenshots/mobile/mobile_33.jpeg" width="240" alt="Dark Mode 2"/> |
 |:---:|:---:|
 | **Koyu Tema (Dark Mode) - Üst Görünüm**<br>Koyu lacivert ve siyah paletle harmanlanmış modern gece kartları | **Koyu Tema (Dark Mode) - Etkinlikler**<br>Yüksek kontrastlı tipografi ve canlı afiş sunumu |
 
@@ -231,7 +231,7 @@ Karanlık ortamlarda gözü yormayan ve pil tasarrufu sağlayan gece modu tasar�
 ### 3.16 Güvenli Giriş, Üyelik ve Misafir (Guest) Akışı
 Kullanıcılar kayıt olmadan uygulamayı misafir olarak deneyimleyebilir; kritik işlemlerde ise şık bir yetki uyarısıyla karşılanır.
 
-| <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.29%20%284%29.jpeg" width="240" alt="Giriş Ekranı"/> | <img src="mobilekrangörseller/WhatsApp%20Image%202026-10-27%20at%2014.19.29%20%285%29.jpeg" width="240" alt="Misafir Koruması"/> |
+| <img src="screenshots/mobile/mobile_34.jpeg" width="240" alt="Giriş Ekranı"/> | <img src="screenshots/mobile/mobile_35.jpeg" width="240" alt="Misafir Koruması"/> |
 |:---:|:---:|
 | **Üye Girişi & Misafir Modu**<br>E-posta/Şifre ile giriş veya "Üye Olmadan Devam Et" misafir seçeneği | **Üyelik Gerekli (Auth Gate)**<br>Misafir modunda yetki gerektiren alanlara erişimde çıkan bilgilendirme |
 
@@ -245,7 +245,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Vatandaşların mobil uygulama üzerinden gönderdiği fotoğraflı ve konumlu arıza/şikayet bildirimlerinin (asfalt çökmesi, kaldırım, aydınlatma, su patlağı vb.) takip edildiği, durumunun *(Beklemede, İnceleniyor, Çözüldü)* güncellendiği ve vatandaşa SMS/Push yanıtı iletildiği ana operasyon ekranı.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.21.09.jpeg" width="900" alt="Vatandaş Talepleri Yönetimi"/>
+  <img src="screenshots/admin/admin_01.jpeg" width="900" alt="Vatandaş Talepleri Yönetimi"/>
 </p>
 
 ---
@@ -254,7 +254,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Söz Sende modülünde vatandaşların kendi mahalleleri için paylaştığı önerilerin (örn. mobil kütüphane, ücretsiz ring servis, park bankı) kamuoyuna açılmadan önce yönetici onayına sunulduğu moderasyon paneli. *"Onayla ve Yayınla"* butonuyla mobilde anında tüm kullanıcılara açılır.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.21.30.jpeg" width="900" alt="Vatandaş Önerileri ve Moderasyon"/>
+  <img src="screenshots/admin/admin_02.jpeg" width="900" alt="Vatandaş Önerileri ve Moderasyon"/>
 </p>
 
 ---
@@ -263,7 +263,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Belediye yönetiminin ilçe genelinde veya belirli bir mahalle özelinde kamuoyu yoklaması başlatabildiği ekran. Soru, detaylı açıklama, son tarih ve seçenekler girilerek anında mobil uygulamaya sunulur ve toplanan oylar canlı izlenir.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.21.48.jpeg" width="900" alt="Anket ve Kamuoyu Oylamaları"/>
+  <img src="screenshots/admin/admin_03.jpeg" width="900" alt="Anket ve Kamuoyu Oylamaları"/>
 </p>
 
 ---
@@ -272,7 +272,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Mobil uygulamanın ana sayfasında yer alan haber akışının yönetildiği panel. Yeni haber ekleme formunun yanı sıra *"Belediye Haberlerini Senkronize Et"* butonu ile belediyenin resmi web sitesindeki bültenleri tek tıkla uygulamaya aktarır.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.22.02.jpeg" width="900" alt="Haberler ve Duyurular Yönetimi"/>
+  <img src="screenshots/admin/admin_04.jpeg" width="900" alt="Haberler ve Duyurular Yönetimi"/>
 </p>
 
 ---
@@ -281,7 +281,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Gebze Kültür Merkezi ve GESMEK salonlarında düzenlenen tiyatrolar, çocuk sinemaları, seminerler ve konserlerin aylık takvim bazında yönetildiği, afiş ve saat bilgilerinin girildiği kültür yönetim ekranı.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.22.15.jpeg" width="900" alt="Kültür ve Sanat Etkinlikleri Yönetimi"/>
+  <img src="screenshots/admin/admin_05.jpeg" width="900" alt="Kültür ve Sanat Etkinlikleri Yönetimi"/>
 </p>
 
 ---
@@ -290,7 +290,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Firebase Cloud Messaging (FCM) altyapısı üzerinden tüm mobil cihazlara canlı bildirim gönderme konsolu. Bildirimin hedef konusu (Topic) ve tıklandığında açılacak 28 farklı uygulama sayfası seçilerek doğrudan ilgili ekrana yönlendirme yapılabilir.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.22.29.jpeg" width="900" alt="Canlı Bildirim ve Duyuru Yayını"/>
+  <img src="screenshots/admin/admin_06.jpeg" width="900" alt="Canlı Bildirim ve Duyuru Yayını"/>
 </p>
 
 ---
@@ -299,7 +299,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: İlçedeki 9 katlı ve yol üstü otoparkın toplam 695 kapasitesinin, tahmini boş ve dolu park yerlerinin denetlendiği kontrol ekranı. Canlı doluluk butonları (-5, -1, +1, +5) ve resmi otopark senkronizasyonu ile doluluk oranları anında güncellenir.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.22.45.jpeg" width="900" alt="Otopark Doluluk Yönetimi"/>
+  <img src="screenshots/admin/admin_07.jpeg" width="900" alt="Otopark Doluluk Yönetimi"/>
 </p>
 
 ---
@@ -308,7 +308,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: İSU Su Arıza, SEDAŞ Elektrik ve PALGAZ Doğalgaz kurumlarının ilçe genelindeki planlı şebeke yenileme ve boru hattı bakım kesintilerinin başlangıç-tahmini bitiş saatleriyle sisteme girildiği ve harita üzerinde sunulduğu ekran.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.23.02.jpeg" width="900" alt="Planlı Kesintiler Yönetimi"/>
+  <img src="screenshots/admin/admin_08.jpeg" width="900" alt="Planlı Kesintiler Yönetimi"/>
 </p>
 
 ---
@@ -317,7 +317,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Fen İşleri ve Temizlik İşleri Müdürlüğü'nün mahalle bazlı yürüttüğü parke taşı yenileme, asfalt serimi, kablo kanalı kazısı ve ağaç budama çalışmalarının takibi. Tamamlanan veya süresi dolan kayıtlar tek tuşla temizlenebilir.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.23.14.jpeg" width="900" alt="Mahalle Saha Çalışmaları Yönetimi"/>
+  <img src="screenshots/admin/admin_09.jpeg" width="900" alt="Mahalle Saha Çalışmaları Yönetimi"/>
 </p>
 
 ---
@@ -326,7 +326,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: İlçedeki nöbetçi eczanelerin günlük ve haftalık rotasyonunun girildiği panel. Adres, 7/24 telefon numarası ve konum bilgileri doğrulanarak mobildeki arama ve navigasyon butonları güncellenir.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.23.27.jpeg" width="900" alt="Nöbetçi Eczaneler Yönetimi"/>
+  <img src="screenshots/admin/admin_10.jpeg" width="900" alt="Nöbetçi Eczaneler Yönetimi"/>
 </p>
 
 ---
@@ -335,7 +335,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Gebze'deki Alaettin Kurt Şehir Stadyumu, Gaziler Dağı ve kapalı pazarlar gibi toplanma alanlarının metrekare büyüklüğü, tahmini kişi kapasitesi ve altyapı donanımlarının (Elektrik, Su, WC) kayıt altına alındığı afet koordinasyon envanteri.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.23.40.jpeg" width="900" alt="Afet ve Toplanma Alanları Envanteri"/>
+  <img src="screenshots/admin/admin_11.jpeg" width="900" alt="Afet ve Toplanma Alanları Envanteri"/>
 </p>
 
 ---
@@ -344,7 +344,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Gebze Şehir Rehberi'nde yer alan parklar, kent lokantaları, kapalı pazarlar, kültür merkezleri, mezarlıklar ve kreşlerin iletişim bilgileri, fotoğrafları ve coğrafi koordinatlarının topluca yönetildiği ana veri tabanı ekranı.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.23.58.jpeg" width="900" alt="Şehir Rehberi Kurumsal Yönetim"/>
+  <img src="screenshots/admin/admin_12.jpeg" width="900" alt="Şehir Rehberi Kurumsal Yönetim"/>
 </p>
 
 ---
@@ -353,7 +353,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Anibal Mezarı, Çoban Mustafa Paşa Camii ve Külliyesi, Eskihisar Kalesi, Hünkar Çayırı ve Osman Hamdi Bey Müzesi gibi tescilli tarihi mekanların fotoğrafları, tarihçeleri ve merkeze uzaklıklarının düzenlendiği ekran.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.24.11.jpeg" width="900" alt="Tarihi ve Gezilecek Mekanlar Yönetimi"/>
+  <img src="screenshots/admin/admin_13.jpeg" width="900" alt="Tarihi ve Gezilecek Mekanlar Yönetimi"/>
 </p>
 
 ---
@@ -362,7 +362,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Gebze Çöreği, Kocaeli Manda Yoğurdu, Mancarlı Pide ve Höşmerim Tatlısı gibi yöresel değerlerin Osmanlı dönemine uzanan köken hikayeleri, malzeme listeleri, hazırlanış adımları ve tescilli satış noktalarının yönetildiği gastronomi paneli.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.24.26.jpeg" width="900" alt="Yöresel Lezzetler Yönetimi"/>
+  <img src="screenshots/admin/admin_14.jpeg" width="900" alt="Yöresel Lezzetler Yönetimi"/>
 </p>
 
 ---
@@ -371,7 +371,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Beylikdağı Orman Yürüyüş Parkuru, Denizli Göleti Doğa Rotası ve Elmalıdere Şelalesi gibi mesire ve trekking rotalarının tanıtımı, bitki örtüsü ve Google Haritalar navigasyon arama parametrelerinin girildiği panel.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.24.40.jpeg" width="900" alt="Doğa ve Piknik Rotaları Yönetimi"/>
+  <img src="screenshots/admin/admin_15.jpeg" width="900" alt="Doğa ve Piknik Rotaları Yönetimi"/>
 </p>
 
 ---
@@ -380,7 +380,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Beylikbağı, Yenikent, Arapçeşme ve Şehit İlker Ağır çocuk bakım merkezlerinin kontenjan kapasitesi (85-120 kontenjan), kabul edilen yaş aralıkları (36-66 ay), kayıt durumu ve pedagog kadro bilgilerinin yönetildiği modül.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.24.57.jpeg" width="900" alt="Kreşler ve Gündüz Bakımevleri Yönetimi"/>
+  <img src="screenshots/admin/admin_16.jpeg" width="900" alt="Kreşler ve Gündüz Bakımevleri Yönetimi"/>
 </p>
 
 ---
@@ -389,7 +389,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Mobil uygulamaya kayıt yaptıran Gebze sakinlerinin T.C. kimlik numaraları, e-posta, telefon, ikamet mahalleleri, aktivite istatistikleri ve doğrulama durumlarının listelendiği, arama/filtreleme yapılabilen ve tek tıkla Excel (CSV) çıktısı alınabilen kullanıcı paneli.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.25.16.jpeg" width="900" alt="Kayıtlı Vatandaşlar Tablosu"/>
+  <img src="screenshots/admin/admin_17.jpeg" width="900" alt="Kayıtlı Vatandaşlar Tablosu"/>
 </p>
 
 ---
@@ -398,7 +398,7 @@ Belediye yöneticileri ve saha ekipleri için tasarlanan web yönetim kokpiti, F
 > **Açıklama**: Belirli bir vatandaşın kartına tıklandığında açılan hesap yönetim modalı. Kimlik doğrulama tamamlama, Yönetici (Admin) yetkisi atama, profil bilgilerini belediye nüfus kayıtlarıyla güncelleme, cihaz bildirim izinlerini ve tema tercihlerini denetleme penceresi.
 
 <p align="center">
-  <img src="yönetimpaneligörseller/WhatsApp%20Image%202026-10-27%20at%2014.25.46.jpeg" width="900" alt="Vatandaş Hesap Yönetimi Modalı"/>
+  <img src="screenshots/admin/admin_18.jpeg" width="900" alt="Vatandaş Hesap Yönetimi Modalı"/>
 </p>
 
 ---
@@ -452,46 +452,43 @@ flutter pub get
 ```
 
 ### 3. Mobil Uygulamayı Başlatın
+Android cihazda, emülatörde veya Chrome üzerinde çalıştırmak için:
 ```bash
-# Android cihazda veya emülatörde çalıştırmak için:
 flutter run
-
-# Web üzerinde test etmek için:
 flutter run -d chrome
 ```
 
 ### 4. Web Yönetim Panelini Başlatın
-Yönetim paneli bağımsız, hafif ve sunucusuz bir yapıda tasarlanmıştır:
+Yönetim panelini `admin` klasöründen yerel bir web sunucusuyla veya doğrudan tarayıcıda `index.html` dosyasını açarak başlatabilirsiniz:
 ```bash
-# admin klasörüne gidin ve herhangi bir yerel web sunucusuyla açın:
 cd admin
-# Örnek Python sunucusu:
 python -m http.server 8080
-# Veya doğrudan index.html dosyasını modern bir tarayıcıda açabilirsiniz.
 ```
 
 ---
 
 ## 🧪 Testler ve Kod Kalitesi
 
-Proje, yüksek kod kalitesi, sıfır analiz uyarısı ve tam test kapsamı prensibiyle geliştirilmiştir:
+Statik analiz ve test paketini çalıştırmak için:
 
 ```bash
-# Kod analizi (0 issues garantisi)
 flutter analyze
-
-# Otomasyon ve regresyon testlerini çalıştırma (81 test)
 flutter test
 ```
 
-Tüm test paketleri:
-- ✅ `accessibility_test.dart`: Büyük yazı tipi ve kontrast doğrulama testleri
-- ✅ `chatbot_test.dart`: Bot82 niyet eşleştirici, rota ve misafir yönlendirme testleri
-- ✅ `gebze_avatar_test.dart`: 15 özel profil avatarı ve görsel sağlayıcı testleri
-- ✅ `notification_preferences_test.dart`: FCM konu abonelik ve filtreleme testleri
-- ✅ `notification_service_test.dart`: Bildirim okundu ve sayaç testleri
-- ✅ `poppins_font_test.dart`: Türkçe karakter ve yerel Poppins fontu render testleri
-- ✅ `theme_mode_test.dart`: Açık ve Koyu tema renk geçişi doğrulama testleri
+Test dosyaları (toplam 83 test):
+- `test/accessibility_test.dart`: Büyük yazı tipi ve erişilebilirlik doğrulama testleri
+- `test/activities_regression_test.dart`: Etkinlik ve geçmiş kayıt regresyon testleri
+- `test/chatbot_test.dart`: Bot82 niyet eşleştirici, rota ve misafir yönlendirme testleri
+- `test/emergency_and_resilience_test.dart`: Acil durum ve dayanıklılık testleri
+- `test/gebze_avatar_test.dart`: Profil avatarları ve görsel sağlayıcı testleri
+- `test/gebze_time_test.dart`: Zaman ve tarih biçimlendirme testleri
+- `test/localization_and_models_test.dart`: Çoklu dil ve veri modeli testleri
+- `test/notification_preferences_test.dart`: Bildirim tercihleri ve topic abonelik testleri
+- `test/notification_service_test.dart`: Bildirim okundu ve sayaç testleri
+- `test/persistent_bottom_nav_test.dart`: Alt gezinme çubuğu kalıcılık testleri
+- `test/poppins_font_test.dart`: Türkçe karakter ve yerel Poppins fontu testleri
+- `test/theme_mode_test.dart`: Açık ve koyu tema doğrulama testleri
 
 ---
 

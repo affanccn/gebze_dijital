@@ -1,9 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
-/// Gebze Chatbot eğim kaynağı (Tilt Source)
-/// Sensör olmasa bile (Windows, Web, masaüstü, emülatör) sıfır bağımlılıkla
-/// güvenli ve akıcı bir şekilde çalışır.
 class Bot82TiltSource {
   Bot82TiltSource({this.invertX = false, this.invertY = false});
 
@@ -11,9 +8,7 @@ class Bot82TiltSource {
   final bool invertY;
   final ValueNotifier<Offset> tilt = ValueNotifier(Offset.zero);
 
-  void start() {
-    // Masaüstü ve emülatörlerde güvenli merkez konumu
-  }
+  void start() {}
 
   void stop() {}
 

@@ -9,11 +9,6 @@ import 'services_screen.dart';
 import 'profile_screen.dart';
 import 'app_bottom_nav.dart';
 
-/// Gebze Belediyesi - Talep / Şikayet / Öneri (Bildir)
-/// Dosya yolu: lib/screens/report_screen.dart
-///
-/// Başvurular artık uygulama içinde alınmaz; kullanıcı belediyenin
-/// ULAKBEL (Çözüm Masası) sayfasına yönlendirilir.
 const String kUlakbelUrl =
     'https://ebelediye.gebze.bel.tr/NicoPortal/faces/portal/beyazMasa/CozumMasasi.xhtml#';
 
@@ -31,8 +26,6 @@ String _t(String lang, String tr, String en, String ar) =>
     lang == 'en' ? en : (lang == 'ar' ? ar : tr);
 
 class ReportScreen extends ConsumerWidget {
-  /// Eski çağrılarla uyumluluk için duruyor (ana sayfa, alt menü); artık
-  /// kullanılmıyor, ULAKBEL herkese açık.
   final bool isGuest;
   final ValueChanged<int>? onNavTap;
   final bool showBottomNav;
@@ -84,9 +77,7 @@ class ReportScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : _C.bg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : _C.border,
-        ),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : _C.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -156,8 +147,12 @@ class ReportScreen extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _t(lang, 'Talep & Şikayet', 'Requests & Complaints',
-                              'الطلبات والشكاوى'),
+                          _t(
+                            lang,
+                            'Talep & Şikayet',
+                            'Requests & Complaints',
+                            'الطلبات والشكاوى',
+                          ),
                           style: const TextStyle(
                             fontSize: 19,
                             fontWeight: FontWeight.w900,
@@ -255,7 +250,11 @@ class ReportScreen extends ConsumerWidget {
                       'تُستلم الطلبات عبر صفحة ULAKBEL التابعة لبلدية جبزة. اضغط على الزر أدناه لفتح الصفحة وتعبئة النموذج.',
                     ),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13.5, height: 1.45, color: muted),
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      height: 1.45,
+                      color: muted,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Wrap(
@@ -263,12 +262,18 @@ class ReportScreen extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      chip(Icons.handshake_outlined,
-                          _t(lang, 'Talep', 'Request', 'طلب')),
-                      chip(Icons.report_problem_outlined,
-                          _t(lang, 'Şikayet', 'Complaint', 'شكوى')),
-                      chip(Icons.lightbulb_outline_rounded,
-                          _t(lang, 'Öneri', 'Suggestion', 'اقتراح')),
+                      chip(
+                        Icons.handshake_outlined,
+                        _t(lang, 'Talep', 'Request', 'طلب'),
+                      ),
+                      chip(
+                        Icons.report_problem_outlined,
+                        _t(lang, 'Şikayet', 'Complaint', 'شكوى'),
+                      ),
+                      chip(
+                        Icons.lightbulb_outline_rounded,
+                        _t(lang, 'Öneri', 'Suggestion', 'اقتراح'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 22),
@@ -279,8 +284,12 @@ class ReportScreen extends ConsumerWidget {
                       onPressed: () => _openUlakbel(context, lang),
                       icon: const Icon(Icons.open_in_new_rounded, size: 20),
                       label: Text(
-                        _t(lang, "Hizmet'e Git", 'Go to Service',
-                          'انتقل إلى الخدمة',),
+                        _t(
+                          lang,
+                          "Hizmet'e Git",
+                          'Go to Service',
+                          'انتقل إلى الخدمة',
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _C.orange,

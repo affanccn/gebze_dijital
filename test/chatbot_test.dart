@@ -279,7 +279,11 @@ void main() {
 
       for (final input in inputs) {
         final intent = IntentMatcher.match(input);
-        expect(intent?.id, 'historical_places', reason: 'Failed on input: $input');
+        expect(
+          intent?.id,
+          'historical_places',
+          reason: 'Failed on input: $input',
+        );
       }
     });
 
@@ -328,9 +332,7 @@ void main() {
 
         await tester.pumpWidget(
           ProviderScope(
-            overrides: [
-              authScreenVisibleProvider.overrideWith((ref) => true),
-            ],
+            overrides: [authScreenVisibleProvider.overrideWith((ref) => true)],
             child: MaterialApp(
               navigatorKey: navKey,
               builder: (context, child) =>
@@ -348,41 +350,46 @@ void main() {
   });
 
   group('Chatbot Guest Flow & Cache Reset Tests', () {
-    test('ChatbotNotifier reset method clears messages back to initial greeting', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'ChatbotNotifier reset method clears messages back to initial greeting',
+      () {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(chatbotProvider.notifier);
-      final initialCount = container.read(chatbotProvider).messages.length;
-      expect(initialCount, 1);
+        final notifier = container.read(chatbotProvider.notifier);
+        final initialCount = container.read(chatbotProvider).messages.length;
+        expect(initialCount, 1);
 
-      notifier.reset();
-      expect(container.read(chatbotProvider).messages.length, 1);
-      expect(container.read(chatbotProvider).messages.first.text, contains('Gebze Dijital Asistanı'));
-    });
+        notifier.reset();
+        expect(container.read(chatbotProvider).messages.length, 1);
+        expect(
+          container.read(chatbotProvider).messages.first.text,
+          contains('Gebze Dijital Asistanı'),
+        );
+      },
+    );
 
-    test('Guest user asking for auth-required intents receives register redirect', () async {
-      final container = ProviderContainer(
-        overrides: [
-          isLoggedInProvider.overrideWithValue(false),
-          guestModeProvider.overrideWith((ref) => true),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'Guest user asking for auth-required intents receives register redirect',
+      () async {
+        final container = ProviderContainer(
+          overrides: [
+            isLoggedInProvider.overrideWithValue(false),
+            guestModeProvider.overrideWith((ref) => true),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      final notifier = container.read(chatbotProvider.notifier);
+        final notifier = container.read(chatbotProvider.notifier);
 
-      // E-belediye isteği
-      await notifier.sendMessage('E-belediye vergi ödeme');
-      final messages = container.read(chatbotProvider).messages;
-      final lastMsg = messages.last;
+        await notifier.sendMessage('E-belediye vergi ödeme');
+        final messages = container.read(chatbotProvider).messages;
+        final lastMsg = messages.last;
 
-      expect(
-        lastMsg.text,
-        'Üye girişi gerekir, üye olmak ister misiniz?',
-      );
-      expect(lastMsg.action?.route, '/register');
-    });
+        expect(lastMsg.text, 'Üye girişi gerekir, üye olmak ister misiniz?');
+        expect(lastMsg.action?.route, '/register');
+      },
+    );
 
     test('User asking for non-auth intent (weather/pharmacy) receives normal answer in guest mode', () async {
       final container = ProviderContainer(
@@ -399,7 +406,10 @@ void main() {
       final messages = container.read(chatbotProvider).messages;
       final lastMsg = messages.last;
 
-      expect(lastMsg.text, isNot('Üye girişi gerekir, üye olmak ister misiniz?'));
+      expect(
+        lastMsg.text,
+        isNot('Üye girişi gerekir, üye olmak ister misiniz?'),
+      );
       expect(lastMsg.action?.route, contains('pharmacies'));
     });
 

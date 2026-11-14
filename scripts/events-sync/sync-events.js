@@ -2,7 +2,6 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { Agent, setGlobalDispatcher } from "undici";
 
-// GitHub Actions runner'ları için bağlantı zaman aşımını 45 saniyeye yükseltiyoruz
 const agent = new Agent({
   connect: {
     timeout: 45000,
@@ -119,7 +118,6 @@ async function fetchEvents(maxRetries = 3) {
     }
   }
 
-  // Doğrudan bağlantı zaman aşımına uğradıysa proxy üzerinden dene
   const proxyEndpoints = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(EVENTS_JSON_URL)}`,
     `https://corsproxy.io/?url=${encodeURIComponent(EVENTS_JSON_URL)}`,
@@ -224,12 +222,10 @@ async function main() {
     return;
   }
 
-  // Sadece Ekim 2026 ve sonrası (Kasım, Aralık vb.) etkinlikleri senkronize et
   const events = rawEvents
     .filter((item) => item && item.tarih && item.tarih >= "2026-10-01")
     .map(normalizeEvent);
 
-  // Firestore batch limit 500, 400'lük parçalarla yaz
   for (let start = 0; start < events.length; start += 400) {
     const chunk = events.slice(start, start + 400);
     const batch = db.batch();

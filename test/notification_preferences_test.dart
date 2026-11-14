@@ -32,37 +32,51 @@ void main() {
       expect(await PushService.isNotificationAllowed(), isTrue);
       expect(await PushService.isNotificationAllowed(type: 'news'), isTrue);
       expect(await PushService.isNotificationAllowed(type: 'outages'), isTrue);
-      expect(await PushService.isNotificationAllowed(type: 'emergency'), isTrue);
+      expect(
+        await PushService.isNotificationAllowed(type: 'emergency'),
+        isTrue,
+      );
       expect(await PushService.isNotificationAllowed(type: 'sozSende'), isTrue);
     });
 
-    test('Master "push" toggle kapatıldığında tüm topic aboneliklerinden çıkılır', () async {
-      await PushService.syncPreference('push', false);
+    test(
+      'Master "push" toggle kapatıldığında tüm topic aboneliklerinden çıkılır',
+      () async {
+        await PushService.syncPreference('push', false);
 
-      expect(await PushService.getPreference('push'), isFalse);
-      expect(unsubscribedTopics, containsAll(['news', 'outages', 'emergency', 'sozSende']));
+        expect(await PushService.getPreference('push'), isFalse);
+        expect(
+          unsubscribedTopics,
+          containsAll(['news', 'outages', 'emergency', 'sozSende']),
+        );
 
-      // Cihaza herhangi bir bildirim düşmesi engellenir
-      expect(await PushService.isNotificationAllowed(type: 'news'), isFalse);
-      expect(await PushService.isNotificationAllowed(type: 'outages'), isFalse);
-      expect(await PushService.isNotificationAllowed(type: 'emergency'), isFalse);
-      expect(await PushService.isNotificationAllowed(type: 'sozSende'), isFalse);
-      expect(await PushService.isNotificationAllowed(), isFalse);
-    });
+        expect(await PushService.isNotificationAllowed(type: 'news'), isFalse);
+        expect(
+          await PushService.isNotificationAllowed(type: 'outages'),
+          isFalse,
+        );
+        expect(
+          await PushService.isNotificationAllowed(type: 'emergency'),
+          isFalse,
+        );
+        expect(
+          await PushService.isNotificationAllowed(type: 'sozSende'),
+          isFalse,
+        );
+        expect(await PushService.isNotificationAllowed(), isFalse);
+      },
+    );
 
     test('Master "push" toggle tekrar açıldığında açık olan topiclere yeniden abone olunur', () async {
-      // Önce outages kapatalım, sonra master push'ı kapatalım
       await PushService.syncPreference('outages', false);
       await PushService.syncPreference('push', false);
 
       subscribedTopics.clear();
       unsubscribedTopics.clear();
 
-      // Master açılıyor
       await PushService.syncPreference('push', true);
 
       expect(await PushService.getPreference('push'), isTrue);
-      // 'outages' kapalı olduğu için abone olunmamalı, 'news', 'emergency', 'sozSende' abone olunmalı
       expect(subscribedTopics, contains('news'));
       expect(subscribedTopics, contains('emergency'));
       expect(subscribedTopics, contains('sozSende'));
@@ -76,12 +90,16 @@ void main() {
       expect(await PushService.getPreference('outages'), isFalse);
       expect(unsubscribedTopics, contains('outages'));
 
-      // Kesinti bildirimi düşmemeli
       expect(await PushService.isNotificationAllowed(type: 'outages'), isFalse);
-      expect(await PushService.isNotificationAllowed(category: 'outages'), isFalse);
+      expect(
+        await PushService.isNotificationAllowed(category: 'outages'),
+        isFalse,
+      );
 
-      // Ancak diğer açık bildirimler düşmeli
-      expect(await PushService.isNotificationAllowed(type: 'emergency'), isTrue);
+      expect(
+        await PushService.isNotificationAllowed(type: 'emergency'),
+        isTrue,
+      );
       expect(await PushService.isNotificationAllowed(type: 'news'), isTrue);
     });
 
@@ -91,19 +109,31 @@ void main() {
       expect(await PushService.getPreference('emergency'), isFalse);
       expect(unsubscribedTopics, contains('emergency'));
 
-      expect(await PushService.isNotificationAllowed(type: 'emergency'), isFalse);
+      expect(
+        await PushService.isNotificationAllowed(type: 'emergency'),
+        isFalse,
+      );
       expect(await PushService.isNotificationAllowed(type: 'news'), isTrue);
     });
 
-    test('Söz Sende (sozSende) anket toggle kapatıldığında anket bildirimi düşmez', () async {
-      await PushService.syncPreference('sozSende', false);
+    test(
+      'Söz Sende (sozSende) anket toggle kapatıldığında anket bildirimi düşmez',
+      () async {
+        await PushService.syncPreference('sozSende', false);
 
-      expect(await PushService.getPreference('sozSende'), isFalse);
-      expect(unsubscribedTopics, contains('sozSende'));
+        expect(await PushService.getPreference('sozSende'), isFalse);
+        expect(unsubscribedTopics, contains('sozSende'));
 
-      expect(await PushService.isNotificationAllowed(type: 'sozSende'), isFalse);
-      expect(await PushService.isNotificationAllowed(type: 'outages'), isTrue);
-    });
+        expect(
+          await PushService.isNotificationAllowed(type: 'sozSende'),
+          isFalse,
+        );
+        expect(
+          await PushService.isNotificationAllowed(type: 'outages'),
+          isTrue,
+        );
+      },
+    );
 
     test('syncAllPreferences toplu bildirim tercihlerini uygular ve topicleri eşitler', () async {
       final prefs = {
@@ -129,8 +159,14 @@ void main() {
       expect(unsubscribedTopics, contains('sozSende'));
 
       expect(await PushService.isNotificationAllowed(type: 'outages'), isTrue);
-      expect(await PushService.isNotificationAllowed(type: 'emergency'), isFalse);
-      expect(await PushService.isNotificationAllowed(type: 'sozSende'), isFalse);
+      expect(
+        await PushService.isNotificationAllowed(type: 'emergency'),
+        isFalse,
+      );
+      expect(
+        await PushService.isNotificationAllowed(type: 'sozSende'),
+        isFalse,
+      );
     });
 
     test('ProfileService updateNotificationPreference PushService senkronizasyonunu tetikler', () async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+
 import 'package:image/image.dart' as img;
 
 void main() {
@@ -15,18 +16,10 @@ void main() {
   final cx = w / 2.0;
   final cy = h / 2.0;
 
-  // In gorsel/app_icon.png (1024x1024):
-  // All artwork (castle, mosque, GEBZE DİJİTAL, bottom cyan bar, and inner glow)
-  // is inside r <= 484px.
-  // Between r = 486..498px is a dark outer shadow ring, and r > 498px is the dark corner fill.
-  // For any pixel with r <= 482px, we sample the exact source pixel (100% unstretched!).
-  // For r > 482px, we smoothly transition to a clean vertical sky/navy ambient gradient
-  // (matching the badge's own palette) so there are NO dark/black corners and NO radial streaks!
   const double badgeRadius = 482.0;
 
   (int, int, int) ambientColorAt(double sx, double sy) {
     final t = (sy / h).clamp(0.0, 1.0);
-    // Top: bright Gebze sky blue (#28629B) -> Mid: warm horizon blue (#1A4980) -> Bottom: Gebze navy (#0C2B5E)
     final double r, g, b;
     if (t < 0.5) {
       final k = t / 0.5;
@@ -67,12 +60,12 @@ void main() {
     }
   }
 
-  // 1. Adaptive Icon Foreground (108dp canvas, 72dp visible mask = 66.67% diameter)
-  // By mapping badgeRadius (482px) to 0.365 of the 108dp canvas (73% diameter = 78.8dp),
-  // the circular badge completely fills the 72dp circle/squircle/rounded-square mask on all phones
-  // with zero black border, while keeping all text and logos comfortably inside the safe zone!
   img.Image buildAdaptiveForeground(int targetSize) {
-    final out = img.Image(width: targetSize, height: targetSize, numChannels: 4);
+    final out = img.Image(
+      width: targetSize,
+      height: targetSize,
+      numChannels: 4,
+    );
     final tcx = targetSize / 2.0;
     final tcy = targetSize / 2.0;
     final scale = badgeRadius / (targetSize * 0.365);
@@ -88,9 +81,12 @@ void main() {
     return out;
   }
 
-  // 2. Legacy Round Icon (100% circle filling the entire canvas, transparent outside)
   img.Image buildRoundIcon(int targetSize) {
-    final out = img.Image(width: targetSize, height: targetSize, numChannels: 4);
+    final out = img.Image(
+      width: targetSize,
+      height: targetSize,
+      numChannels: 4,
+    );
     final tcx = targetSize / 2.0;
     final tcy = targetSize / 2.0;
     final maxR = targetSize / 2.0;
@@ -118,9 +114,12 @@ void main() {
     return out;
   }
 
-  // 3. Legacy Square / Squircle Icon
   img.Image buildSquareIcon(int targetSize, {bool roundedCorners = false}) {
-    final out = img.Image(width: targetSize, height: targetSize, numChannels: 4);
+    final out = img.Image(
+      width: targetSize,
+      height: targetSize,
+      numChannels: 4,
+    );
     final tcx = targetSize / 2.0;
     final tcy = targetSize / 2.0;
     final half = targetSize / 2.0;
@@ -133,8 +132,11 @@ void main() {
         if (roundedCorners) {
           final qx = (x + 0.5 - tcx).abs() - (half - cornerR);
           final qy = (y + 0.5 - tcy).abs() - (half - cornerR);
-          final d = math.sqrt(math.max(qx, 0.0) * math.max(qx, 0.0) +
-                  math.max(qy, 0.0) * math.max(qy, 0.0)) +
+          final d =
+              math.sqrt(
+                math.max(qx, 0.0) * math.max(qx, 0.0) +
+                    math.max(qy, 0.0) * math.max(qy, 0.0),
+              ) +
               math.min(math.max(qx, qy), 0.0) -
               cornerR;
           if (d > 0) {
@@ -171,28 +173,29 @@ void main() {
     File('$folder/ic_launcher.png').writeAsBytesSync(img.encodePng(squareImg));
 
     final roundImg = buildRoundIcon(launcherSize);
-    File('$folder/ic_launcher_round.png').writeAsBytesSync(img.encodePng(roundImg));
+    File('$folder/ic_launcher_round.png')
+        .writeAsBytesSync(img.encodePng(roundImg));
 
     final fgImg = buildAdaptiveForeground(fgSize);
-    File('$folder/ic_launcher_foreground.png').writeAsBytesSync(img.encodePng(fgImg));
+    File('$folder/ic_launcher_foreground.png')
+        .writeAsBytesSync(img.encodePng(fgImg));
   }
 
-  // Drawable foreground (432x432)
   final drawableFg = buildAdaptiveForeground(432);
   File('android/app/src/main/res/drawable/ic_launcher_foreground.png')
       .writeAsBytesSync(img.encodePng(drawableFg));
 
-  // Web icons
-  File('web/icons/Icon-192.png')
-      .writeAsBytesSync(img.encodePng(buildSquareIcon(192, roundedCorners: false)));
-  File('web/icons/Icon-512.png')
-      .writeAsBytesSync(img.encodePng(buildSquareIcon(512, roundedCorners: false)));
+  File('web/icons/Icon-192.png').writeAsBytesSync(
+    img.encodePng(buildSquareIcon(192, roundedCorners: false)),
+  );
+  File('web/icons/Icon-512.png').writeAsBytesSync(
+    img.encodePng(buildSquareIcon(512, roundedCorners: false)),
+  );
   File('web/icons/Icon-maskable-192.png')
       .writeAsBytesSync(img.encodePng(buildAdaptiveForeground(192)));
   File('web/icons/Icon-maskable-512.png')
       .writeAsBytesSync(img.encodePng(buildAdaptiveForeground(512)));
 
-  // iOS icons
   final iosSpecs = <String, int>{
     'Icon-App-20x20@1x.png': 20,
     'Icon-App-20x20@2x.png': 40,

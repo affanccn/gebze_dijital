@@ -6,9 +6,6 @@ import '../core/localization/app_strings.dart';
 import 'auth_service.dart';
 import 'report_common.dart' show kReportNeighborhoods;
 
-/// Gebze Belediyesi - Giriş / Kayıt (telefon + şifre)
-/// Dosya yolu: lib/screens/auth_screen.dart
-
 class _C {
   static const navy = Color(0xFF0A2A66);
   static const orange = Color(0xFFFF7A00);
@@ -255,8 +252,6 @@ Widget _spinner() => const SizedBox(
   child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white),
 );
 
-// ───────────────────────── Giriş ─────────────────────────
-
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
@@ -302,8 +297,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     try {
       await ref.read(authServiceProvider).signIn(_email.text, _pass.text);
       if (!mounted) return;
-      // Misafir olarak açılmış ana sayfanın üstündeyse kapat. Kök ekransa
-      // AuthGate oturumu görüp ana sayfaya kendisi geçer.
       if (Navigator.of(context).canPop()) Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
@@ -402,7 +395,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   void _guest() {
     ref.read(guestModeProvider.notifier).state = true;
-    // Üyelik uyarısından açıldıysa geri dön; kök ekransa AuthGate geçişi yapar.
     if (Navigator.of(context).canPop()) Navigator.of(context).pop();
   }
 
@@ -558,8 +550,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 }
 
-// ───────────────────────── Kayıt ─────────────────────────
-
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -641,8 +631,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             language: lang,
           );
       if (!mounted) return;
-      // Kayıt sonrası oturum otomatik açılır: kayıt ekranını kapat; giriş
-      // ekranı da (misafir akışından) üstteyse onu da kapat.
       final nav = Navigator.of(context);
       nav.pop();
       if (nav.canPop()) nav.pop();

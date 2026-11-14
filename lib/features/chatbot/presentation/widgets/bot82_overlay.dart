@@ -113,7 +113,6 @@ class _Bot82OverlayState extends ConsumerState<Bot82Overlay> {
 
   @override
   Widget build(BuildContext context) {
-    // Giriş/Kayıt ekranında Chatbot kesinlikle render edilmemelidir.
     final isAuthVisible = ref.watch(authScreenVisibleProvider);
     if (isAuthVisible) {
       return widget.child;

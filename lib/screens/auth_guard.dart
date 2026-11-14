@@ -5,16 +5,6 @@ import '../core/localization/app_strings.dart';
 import 'auth_screen.dart';
 import 'auth_service.dart';
 
-/// Dosya yolu: lib/screens/auth_guard.dart
-///
-/// Üyelik gerektiren bir bölüme girmeden önce çağırın:
-///
-/// ```dart
-/// if (!requireLogin(context, ref)) return;
-/// Navigator.of(context).push(...);
-/// ```
-/// Giriş yapılmışsa true döner. Misafirse "üye olmanız gerekmektedir"
-/// penceresini gösterir ve false döner.
 bool requireLogin(BuildContext context, WidgetRef ref) {
   if (ref.read(isLoggedInProvider)) return true;
 

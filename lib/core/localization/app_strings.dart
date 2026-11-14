@@ -13,7 +13,6 @@ class AppLanguageNotifier extends Notifier<String> {
     return 'tr';
   }
 
-  /// Kayıtlı dili cihazdan okur (uygulama açılışında bir kez).
   Future<void> _loadFromPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -52,14 +51,12 @@ final appLanguageProvider = NotifierProvider<AppLanguageNotifier, String>(
 
 class AppStrings {
   static const Map<String, Map<String, String>> _values = {
-    // ───────────────────────── Alt Menü (Bottom Nav) ─────────────────────────
     'nav_home': {'tr': 'ANA SAYFA', 'en': 'HOME', 'ar': 'الرئيسية'},
     'nav_guide': {'tr': 'REHBER', 'en': 'GUIDE', 'ar': 'دليل'},
     'nav_report': {'tr': 'BİLDİR', 'en': 'REPORT', 'ar': 'إبلاغ'},
     'nav_services': {'tr': 'HİZMETLER', 'en': 'SERVICES', 'ar': 'الخدمات'},
     'nav_profile': {'tr': 'PROFİL', 'en': 'PROFILE', 'ar': 'الملف الشخصي'},
 
-    // ───────────────────────── Genel / Ortak ─────────────────────────
     'loading': {
       'tr': 'Yükleniyor...',
       'en': 'Loading...',
@@ -112,7 +109,6 @@ class AppStrings {
     'mahalle_abbr': {'tr': 'Mah.', 'en': 'Dist.', 'ar': 'حي'},
     'filter_all': {'tr': 'Tümü', 'en': 'All', 'ar': 'الكل'},
 
-    // ───────────────────────── Ana Sayfa ─────────────────────────
     'welcome_gebze': {
       'tr': "Gebze'ye\nHoşgeldiniz",
       'en': "Welcome to\nGebze",
@@ -208,7 +204,6 @@ class AppStrings {
       'ar': 'نصب تذكاري قديم',
     },
 
-    // ───────────────────────── Hizmetler ─────────────────────────
     'services_screen_title': {
       'tr': 'HİZMETLER',
       'en': 'SERVICES',
@@ -332,7 +327,6 @@ class AppStrings {
       'ar': 'لم يتم العثور على خدمات',
     },
 
-    // ───────────────────────── Hava Durumu ─────────────────────────
     'weather_screen_title': {
       'tr': 'HAVA DURUMU',
       'en': 'WEATHER',
@@ -391,7 +385,6 @@ class AppStrings {
       'ar': 'آخر تحديث',
     },
 
-    // ───────────────────────── Acil Durum & Toplanma ─────────────────────────
     'emergency_screen_title': {
       'tr': 'ACİL DURUM & TOPLANMA',
       'en': 'EMERGENCY & ASSEMBLY',
@@ -489,7 +482,6 @@ class AppStrings {
       'ar': 'جاري بدء المسار على الخريطة لـ {0}...',
     },
 
-    // ───────────────────────── Planlı Kesintiler ─────────────────────────
     'outages_screen_title': {
       'tr': 'PLANLI KESİNTİLER',
       'en': 'PLANNED OUTAGES',
@@ -535,7 +527,6 @@ class AppStrings {
       'ar': 'لا توجد انقطاعات نشطة أو مجدولة في هذه الفئة.',
     },
 
-    // ───────────────────────── Şehir Rehberi ─────────────────────────
     'guide_screen_title': {
       'tr': 'Şehir Rehberi',
       'en': 'City Guide',
@@ -626,7 +617,6 @@ class AppStrings {
       'ar': 'تعذر فتح الصفحة. يرجى المحاولة مرة أخرى.',
     },
 
-    // ───────────────────────── Nöbetçi Eczaneler ─────────────────────────
     'pharmacy_screen_title': {
       'tr': 'NÖBETÇİ ECZANELER',
       'en': 'PHARMACIES ON DUTY',
@@ -643,7 +633,6 @@ class AppStrings {
       'ar': 'لم يتم العثور على صيدليات مناوبة اليوم.',
     },
 
-    // ───────────────────────── Söz Sende ─────────────────────────
     'soz_sende_title': {'tr': 'SÖZ SENDE', 'en': 'YOUR SAY', 'ar': 'الرأي لك'},
     'soz_sende_subtitle': {
       'tr': 'Gebze için fikirlerini paylaş, oylamalara katıl ve şehrini birlikte yönet.',
@@ -717,11 +706,7 @@ class AppStrings {
       'en': 'Voting opens after approval',
       'ar': 'سيتم فتح التصويت بعد الموافقة',
     },
-    'status_published': {
-      'tr': 'Yayında',
-      'en': 'Published',
-      'ar': 'منشور',
-    },
+    'status_published': {'tr': 'Yayında', 'en': 'Published', 'ar': 'منشور'},
     'no_suggestions_found': {
       'tr': 'Henüz onaylanmış bir öneri bulunmuyor.',
       'en': 'No approved suggestions found.',
@@ -782,7 +767,6 @@ class AppStrings {
     },
     'cat_other': {'tr': 'Diğer', 'en': 'Other', 'ar': 'أخرى'},
 
-    // ───────────────────────── Gebze Pati ─────────────────────────
     'pati_screen_title': {
       'tr': 'GEBZE PATİ',
       'en': 'GEBZE PAWS',
@@ -905,7 +889,6 @@ class AppStrings {
       'ar': 'عيادات بيطرية مناوبة ومتعاقدة للتدخل العاجل والرعاية.',
     },
 
-    // ───────────────────────── E-Belediye ─────────────────────────
     'ebelediye_screen_title': {
       'tr': 'E-BELEDİYE',
       'en': 'E-MUNICIPALITY',
@@ -952,7 +935,6 @@ class AppStrings {
       'ar': 'حدد خطوة المعاملة التي ترغب بإجرائها',
     },
 
-    // ───────────────────────── Haberler ─────────────────────────
     'municipal_news_title': {
       'tr': 'BELEDİYE HABERLERİ',
       'en': 'MUNICIPAL NEWS',
@@ -1004,7 +986,6 @@ class AppStrings {
       'ar': 'ملخص الخبر والمعاينة',
     },
 
-    // ───────────────────────── Profil ─────────────────────────
     'profile_screen_title': {
       'tr': 'PROFİLİM',
       'en': 'MY PROFILE',
@@ -1262,7 +1243,6 @@ class AppStrings {
       'ar': 'منصة المواطن الرقمي لبلدية جبزة v1.0.0',
     },
 
-    // ───────────────────────── İlave Pati & Ambulans ─────────────────────────
     'ambulance_what_is': {
       'tr': 'Hayvan Ambulansı Ne İşe Yarar?',
       'en': 'What Does Pet Ambulance Do?',
@@ -1397,7 +1377,6 @@ class AppStrings {
       'ar': '* تعمل سيارة إسعاف الحيوانات والوحدة البيطرية المناوبة خارج ساعات العمل للبلاغات الطارئة.',
     },
 
-    // ───────────────────────── Sahiplendirme İlave ─────────────────────────
     'adoption_process_title': {
       'tr': 'Sahiplendirme Süreci Nasıl İşler?',
       'en': 'How Does Adoption Work?',
@@ -1466,7 +1445,6 @@ class AppStrings {
       'ar': 'مركز جبزة لرعاية الحيوانات',
     },
 
-    // ───────────────────────── Mama & Klinikler İlave ─────────────────────────
     'feeding_network_title': {
       'tr': 'Gebze Mama & Su Odakları Ağı',
       'en': 'Gebze Food & Water Points Network',
@@ -1503,7 +1481,6 @@ class AppStrings {
       'ar': 'لم يتم العثور على عيادات بيطرية مناوبة مسجلة.',
     },
 
-    // ───────────────────────── E-Belediye İlave ─────────────────────────
     'ebelediye_guide_title': {
       'tr': 'Online Belediye İşlemleri Rehberi',
       'en': 'Online Municipal Services Guide',
@@ -1535,7 +1512,6 @@ class AppStrings {
       'ar': 'يرجى اختيار نوع المعاملة التي ترغب بإجرائها:',
     },
 
-    // ───────────────────────── Profil İlave ─────────────────────────
     'change_avatar_title': {
       'tr': 'Profil Resmi Değiştir',
       'en': 'Change Profile Picture',
@@ -1573,14 +1549,12 @@ class AppStrings {
     },
   };
 
-  /// Belirli bir anahtar ve dil için çeviriyi döndürür
   static String get(String key, String lang) {
     final entry = _values[key];
     if (entry == null) return key;
     return entry[lang] ?? entry['tr'] ?? key;
   }
 
-  /// Hava durumu durum metinlerini çevirir
   static String translateWeatherCondition(String condition, String lang) {
     final c = condition.toLowerCase().trim();
     if (c.contains('güneş') ||
@@ -1633,7 +1607,6 @@ class AppStrings {
     return condition;
   }
 
-  /// Haftanın günlerini çevirir (1: Pazartesi ... 7: Pazar)
   static String getDayName(int weekday, String lang) {
     const days = {
       1: {'tr': 'Pazartesi', 'en': 'Monday', 'ar': 'الاثنين'},
@@ -1648,7 +1621,6 @@ class AppStrings {
   }
 }
 
-/// Kolay kullanım için BuildContext extension'ı
 extension AppLocalizationsExt on BuildContext {
   String tr(String key, [WidgetRef? ref]) {
     String lang = 'tr';

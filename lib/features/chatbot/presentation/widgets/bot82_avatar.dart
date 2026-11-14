@@ -35,7 +35,6 @@ class _Bot82AvatarState extends State<Bot82Avatar>
       duration: const Duration(milliseconds: 1500),
     )..forward();
 
-    // Düşünme durumu için nabız efekti
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -49,7 +48,6 @@ class _Bot82AvatarState extends State<Bot82Avatar>
       }
     });
 
-    // Hata durumu için glitch efekti
     _glitchController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),

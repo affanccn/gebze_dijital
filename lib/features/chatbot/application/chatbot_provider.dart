@@ -57,7 +57,6 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
   ChatbotState build() {
     _engine.loadConfig();
 
-    // 1. Çıkışta Temizleme (Logout): Oturum değiştiğinde mesaj geçmişi ve cache anında sıfırlanır
     ref.listen<AsyncValue<User?>>(authStateProvider, (previous, next) {
       final prevUid = previous?.value?.uid;
       final nextUid = next.value?.uid;
@@ -66,7 +65,6 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
       }
     });
 
-    // 2. Mod Geçişlerinde Reset: Misafir -> Üye veya Üye -> Misafir geçişinde sohbet penceresi sıfırlanır
     ref.listen<bool>(guestModeProvider, (previous, next) {
       if (previous != null && previous != next) {
         reset();
@@ -76,14 +74,12 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
     return _initialState();
   }
 
-  /// Tüm mesaj geçmişini ve durumu sıfırlar
   void reset() {
     _engine.loadConfig();
     state = _initialState();
     ref.read(bot82Provider.notifier).setChatOpen(false);
   }
 
-  /// Üyelik gerektiren istekleri belirler
   bool _isAuthRequired(String intentId, String? route) {
     const authRequiredIntents = {
       'ebelediye',
@@ -118,12 +114,10 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
 
     ref.read(bot82Provider.notifier).beginThinking();
 
-    // Küçük bir bekleme efekti (düşünme animasyonu)
     await Future.delayed(const Duration(milliseconds: 350));
 
     final cleanText = text.trim().toLowerCase();
 
-    // Kullanıcı üyelik yönlendirmesine doğrudan yanıt veriyorsa
     if (cleanText == 'kayıt ol' ||
         cleanText == 'üye ol' ||
         cleanText == 'evet' ||
@@ -147,10 +141,7 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
     if (cleanText == 'giriş yap' || cleanText == 'oturum aç') {
       final botMsg = ChatMessage.bot(
         'Sizi üye giriş ekranına yönlendiriyorum. Lütfen giriş yapın 🔑',
-        action: const ChatAction(
-          type: ChatActionType.navigate,
-          route: '/auth',
-        ),
+        action: const ChatAction(type: ChatActionType.navigate, route: '/auth'),
       );
       state = state.copyWith(
         messages: [...state.messages, botMsg],
@@ -186,8 +177,6 @@ class ChatbotNotifier extends Notifier<ChatbotState> {
     final isLoggedIn = ref.read(isLoggedInProvider);
     ChatMessage botMsg;
 
-    // Misafir modunda üyelik isteyen isteklerde:
-    // "Üye girişi gerekir, üye olmak ister misiniz?" diyerek Kayıt Ekranına yönlendirir.
     if (!isLoggedIn && _isAuthRequired(intent.intentId, intent.route)) {
       botMsg = ChatMessage.bot(
         'Üye girişi gerekir, üye olmak ister misiniz?',

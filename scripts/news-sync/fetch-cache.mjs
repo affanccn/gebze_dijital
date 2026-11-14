@@ -106,7 +106,7 @@ async function main() {
     }
   });
 
-  const pageList = [...pages].slice(0, 3); // İlk 3 sayfa (~45 haber)
+  const pageList = [...pages].slice(0, 3);
   const allNews = new Map();
 
   for (let i = 0; i < pageList.length; i++) {
@@ -161,10 +161,9 @@ async function main() {
     }
   }
 
-  // gebze_haber_cache.js dosyasına yaz
-  const jsContent = `// GEBZE BELEDİYESİ GÜNCEL RESMİ HABERLER ÖNBELLEĞİ (${new Date().toLocaleDateString('tr-TR')})\nwindow.GEBZE_OFFICIAL_NEWS = ${JSON.stringify(entries, null, 2)};\n`;
-  writeFileSync("c:/Users/Asus/gebze_dijital/gebze_dijital/admin/gebze_haber_cache.js", jsContent, "utf-8");
-  console.log("✅ admin/gebze_haber_cache.js başarıyla oluşturuldu!");
+  const jsContent = `window.GEBZE_OFFICIAL_NEWS = ${JSON.stringify(entries, null, 2)};\n`;
+  writeFileSync("c:/Users/Asus/gebze_dijital/gebze_dijital/admin/news_cache.js", jsContent, "utf-8");
+  console.log("admin/news_cache.js oluşturuldu.");
 }
 
 main().catch(console.error);

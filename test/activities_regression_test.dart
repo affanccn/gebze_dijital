@@ -8,25 +8,28 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Aktivitelerim Model & Serialization Regresyon Testleri', () {
-    test('UserActivityItem.fromMap tam ve geçerli veriyi hatasız ayrıştırır', () {
-      final map = {
-        'type': 'oneri',
-        'title': 'Akıllı Durak Projesi',
-        'description': 'Duraklara dijital ekran yerleştirilmesi',
-        'date': '12 Ekim 2026',
-        'status': 'Yayında',
-        'category': 'Ulaşım',
-      };
+    test(
+      'UserActivityItem.fromMap tam ve geçerli veriyi hatasız ayrıştırır',
+      () {
+        final map = {
+          'type': 'oneri',
+          'title': 'Akıllı Durak Projesi',
+          'description': 'Duraklara dijital ekran yerleştirilmesi',
+          'date': '12 Ekim 2026',
+          'status': 'Yayında',
+          'category': 'Ulaşım',
+        };
 
-      final item = UserActivityItem.fromMap(map, 'act_101');
-      expect(item.id, 'act_101');
-      expect(item.type, 'oneri');
-      expect(item.title, 'Akıllı Durak Projesi');
-      expect(item.description, 'Duraklara dijital ekran yerleştirilmesi');
-      expect(item.date, '12 Ekim 2026');
-      expect(item.status, 'Yayında');
-      expect(item.category, 'Ulaşım');
-    });
+        final item = UserActivityItem.fromMap(map, 'act_101');
+        expect(item.id, 'act_101');
+        expect(item.type, 'oneri');
+        expect(item.title, 'Akıllı Durak Projesi');
+        expect(item.description, 'Duraklara dijital ekran yerleştirilmesi');
+        expect(item.date, '12 Ekim 2026');
+        expect(item.status, 'Yayında');
+        expect(item.category, 'Ulaşım');
+      },
+    );
 
     test('UserActivityItem.fromMap eksik veya null alanlarda varsayılan değerleri atar', () {
       final item = UserActivityItem.fromMap({}, 'act_empty');
@@ -70,44 +73,64 @@ void main() {
       final activities = await stream.first;
 
       expect(activities, isNotEmpty);
-      expect(activities.any((a) => a.type == 'talep'), isTrue, reason: 'Talepler bulunmalı');
-      expect(activities.any((a) => a.type == 'oneri'), isTrue, reason: 'Öneriler bulunmalı');
-      expect(activities.any((a) => a.type == 'destek'), isTrue, reason: 'Destekler bulunmalı');
-      expect(activities.any((a) => a.type == 'kayit'), isTrue, reason: 'Kaydedilenler bulunmalı');
+      expect(
+        activities.any((a) => a.type == 'talep'),
+        isTrue,
+        reason: 'Talepler bulunmalı',
+      );
+      expect(
+        activities.any((a) => a.type == 'oneri'),
+        isTrue,
+        reason: 'Öneriler bulunmalı',
+      );
+      expect(
+        activities.any((a) => a.type == 'destek'),
+        isTrue,
+        reason: 'Destekler bulunmalı',
+      );
+      expect(
+        activities.any((a) => a.type == 'kayit'),
+        isTrue,
+        reason: 'Kaydedilenler bulunmalı',
+      );
     });
 
-    test('Kategori bazlı filtreleme tüm kategorilerde doğru öğeleri ayıklar', () async {
-      final service = ProfileService();
-      final activities = await service.getActivitiesStream().first;
+    test(
+      'Kategori bazlı filtreleme tüm kategorilerde doğru öğeleri ayıklar',
+      () async {
+        final service = ProfileService();
+        final activities = await service.getActivitiesStream().first;
 
-      final talepler = activities.where((a) => a.type == 'talep').toList();
-      final oneriler = activities.where((a) => a.type == 'oneri').toList();
-      final destekler = activities.where((a) => a.type == 'destek').toList();
-      final kayitlar = activities.where((a) => a.type == 'kayit').toList();
+        final talepler = activities.where((a) => a.type == 'talep').toList();
+        final oneriler = activities.where((a) => a.type == 'oneri').toList();
+        final destekler = activities.where((a) => a.type == 'destek').toList();
+        final kayitlar = activities.where((a) => a.type == 'kayit').toList();
 
-      for (final t in talepler) {
-        expect(t.type, 'talep');
-      }
-      for (final o in oneriler) {
-        expect(o.type, 'oneri');
-      }
-      for (final d in destekler) {
-        expect(d.type, 'destek');
-      }
-      for (final k in kayitlar) {
-        expect(k.type, 'kayit');
-      }
-    });
+        for (final t in talepler) {
+          expect(t.type, 'talep');
+        }
+        for (final o in oneriler) {
+          expect(o.type, 'oneri');
+        }
+        for (final d in destekler) {
+          expect(d.type, 'destek');
+        }
+        for (final k in kayitlar) {
+          expect(k.type, 'kayit');
+        }
+      },
+    );
   });
 
   group('Aktivitelerim UI ve Sekme (Tab) Regresyon Widget Testleri', () {
-    testWidgets('Boş aktivite durumunda boşluk ikonu ve metni gösterilir', (tester) async {
+    testWidgets('Boş aktivite durumunda boşluk ikonu ve metni gösterilir', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Builder(
               builder: (context) {
-                // Boş liste durumundaki görünüm testi
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -142,62 +165,67 @@ void main() {
       expect(find.text('Henüz bu kategoride aktiviteniz yok'), findsOneWidget);
     });
 
-    testWidgets('Dolu aktivite kartları kategori, başlık, açıklama ve durum renklerini doğru sunar', (tester) async {
-      const item = UserActivityItem(
-        id: 'act_test',
-        type: 'oneri',
-        title: 'Bisiklet Yolu Genişletme',
-        description: 'Trafikten ayrılmış bisiklet yolu talebi',
-        date: '15 Ekim 2026',
-        status: 'Yayında',
-        category: 'Ulaşım',
-      );
+    testWidgets(
+      'Dolu aktivite kartları kategori, başlık, açıklama ve durum renklerini doğru sunar',
+      (tester) async {
+        const item = UserActivityItem(
+          id: 'act_test',
+          type: 'oneri',
+          title: 'Bisiklet Yolu Genişletme',
+          description: 'Trafikten ayrılmış bisiklet yolu talebi',
+          date: '15 Ekim 2026',
+          status: 'Yayında',
+          category: 'Ulaşım',
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ListView(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(item.category),
-                          Text(item.status),
-                        ],
-                      ),
-                      Text(item.title),
-                      Text(item.description),
-                      Text(item.date),
-                    ],
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ListView(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [Text(item.category), Text(item.status)],
+                        ),
+                        Text(item.title),
+                        Text(item.description),
+                        Text(item.date),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('Bisiklet Yolu Genişletme'), findsOneWidget);
-      expect(find.text('Trafikten ayrılmış bisiklet yolu talebi'), findsOneWidget);
-      expect(find.text('Ulaşım'), findsOneWidget);
-      expect(find.text('Yayında'), findsOneWidget);
-      expect(find.text('15 Ekim 2026'), findsOneWidget);
-    });
+        expect(find.text('Bisiklet Yolu Genişletme'), findsOneWidget);
+        expect(
+          find.text('Trafikten ayrılmış bisiklet yolu talebi'),
+          findsOneWidget,
+        );
+        expect(find.text('Ulaşım'), findsOneWidget);
+        expect(find.text('Yayında'), findsOneWidget);
+        expect(find.text('15 Ekim 2026'), findsOneWidget);
+      },
+    );
 
-    testWidgets('TabController ilk sekme indeksi seçimlerini doğru yapar', (tester) async {
+    testWidgets('TabController ilk sekme indeksi seçimlerini doğru yapar', (
+      tester,
+    ) async {
       int getInitialIndex(String type) {
         return type == 'oneri'
             ? 1
             : type == 'destek'
-                ? 2
-                : type == 'kayit'
-                    ? 3
-                    : 0;
+            ? 2
+            : type == 'kayit'
+            ? 3
+            : 0;
       }
 
       expect(getInitialIndex('talep'), 0);
@@ -206,7 +234,6 @@ void main() {
       expect(getInitialIndex('kayit'), 3);
       expect(getInitialIndex('unknown'), 0);
 
-      // DefaultTabController ile sekme doğrulama
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -241,11 +268,12 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      // Başlangıçta destekler sekmesinin içeriği ekranda olmalıdır
       expect(find.text('Destekler İçeriği'), findsOneWidget);
     });
 
-    testWidgets('Stream yüklenme anında CircularProgressIndicator gösterilir', (tester) async {
+    testWidgets('Stream yüklenme anında CircularProgressIndicator gösterilir', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -254,9 +282,7 @@ void main() {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
                 return const Text('Yüklendi');
               },

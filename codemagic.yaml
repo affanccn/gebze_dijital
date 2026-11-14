@@ -1,4 +1,3 @@
-
 workflows:
   gebze-dijital-ios:
     name: Gebze Dijital iOS Unsigned

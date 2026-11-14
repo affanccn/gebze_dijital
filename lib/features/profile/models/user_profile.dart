@@ -11,9 +11,9 @@ class UserProfile {
   final String avatarUrl;
   final String role;
   final bool isVerified;
-  final String language; // 'tr', 'en', 'ar'
+  final String language;
   final bool isLargeFont;
-  final String themeMode; // 'light', 'dark', 'system'
+  final String themeMode;
   final Map<String, bool> notificationPreferences;
   final int totalRequests;
   final int totalSuggestions;
@@ -206,12 +206,11 @@ class UserProfile {
 
 class UserActivityItem {
   final String id;
-  final String type; // 'talep', 'oneri', 'destek', 'kayit'
+  final String type;
   final String title;
   final String description;
   final String date;
-  final String
-  status; // 'İnceleniyor', 'İşleme Alındı', 'Çözüldü', 'Yayında', 'Desteklendi'
+  final String status;
   final String category;
 
   const UserActivityItem({

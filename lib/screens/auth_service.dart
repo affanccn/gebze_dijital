@@ -1,34 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// Riverpod 3.x: StateProvider artık legacy.dart içinde.
 import 'package:flutter_riverpod/legacy.dart';
 
-/// Dosya yolu: lib/screens/auth_service.dart
-///
-/// Giriş: E-POSTA + ŞİFRE (Firebase e-posta/şifre girişi).
-/// Telefon numarası kayıtta isteğe bağlı olarak profile yazılır.
-
-/// Oturum durumu (null = giriş yapılmamış)
 final authStateProvider = StreamProvider<User?>(
   (ref) => FirebaseAuth.instance.authStateChanges(),
 );
 
-/// Kullanıcı giriş yapmış mı?
 final isLoggedInProvider = Provider<bool>(
   (ref) => ref.watch(authStateProvider).value != null,
 );
 
-/// "Üye olmadan devam et" seçildi mi?
 final guestModeProvider = StateProvider<bool>((ref) => false);
 
-/// Giriş veya Kayıt ekranının ekranda aktif olup olmadığını takip eder
 final authScreenVisibleProvider = StateProvider<bool>((ref) => false);
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
-/// 0555 123 45 67 / +90 555 123 45 67 / 5551234567 → "5551234567"
-/// Geçersizse null döner.
 String? normalizePhone(String raw) {
   var d = raw.replaceAll(RegExp(r'\D'), '');
   if (d.length == 12 && d.startsWith('90')) d = d.substring(2);
@@ -50,18 +38,16 @@ class AuthService {
     await _auth.signInWithEmailAndPassword(email: e, password: password);
   }
 
-  /// Şifre sıfırlama bağlantısını e-postaya gönderir.
   Future<void> sendReset(String email) async {
     final e = email.trim();
     if (!isValidEmail(e)) throw const FormatException('email');
     await _auth.sendPasswordResetEmail(email: e);
   }
 
-  /// Hesabı oluşturur ve kullanıcıyı Firestore `users/{uid}` altına kaydeder.
   Future<void> register({
     required String fullName,
     required String email,
-    required String phone, // boş olabilir
+    required String phone,
     required String neighborhood,
     required String password,
     String language = 'tr',
@@ -82,8 +68,6 @@ class AuthService {
       await user.updateDisplayName(fullName.trim());
     } catch (_) {}
 
-    // Firestore yazımı başarısız olsa bile hesap oluşmuştur; kayıt hatası
-    // gösterme (kurallar yüzünden "hata oluştu" deyip oturum açık kalıyordu).
     try {
       await _db.collection('users').doc(user.uid).set({
         'uid': user.uid,
@@ -116,7 +100,6 @@ class AuthService {
   Future<void> signOut() => _auth.signOut();
 }
 
-/// Hatayı metin anahtarına çevirir.
 String authErrorKey(Object e) {
   if (e is FormatException && e.message == 'phone') return 'err_phone';
   if (e is FormatException && e.message == 'email') return 'err_email';
@@ -144,7 +127,6 @@ String authErrorKey(Object e) {
   return 'err_generic';
 }
 
-/// Auth ekranlarının metinleri (tr / en / ar). Bulunamazsa tr'ye düşer.
 String at(String lang, String key) => _s[lang]?[key] ?? _s['tr']![key] ?? key;
 
 const Map<String, Map<String, String>> _s = {

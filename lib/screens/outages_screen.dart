@@ -20,11 +20,6 @@ class _C {
   static const gas = Color(0xFFE53935);
 }
 
-// ───────────────────────── Tarih yardımcıları ─────────────────────────
-
-/// Firestore'da tarih Timestamp ya da "09.10.2026 10:00" / "09.10.2026"
-/// metni olarak tutulmuş olabilir; ikisini de çözer.
-/// Sadece tarih verilmişse [endOfDay] true iken gün sonu (23:59) kabul edilir.
 DateTime? _parseOutageDate(dynamic v, {bool endOfDay = false}) {
   if (v is Timestamp) return v.toDate();
   if (v is DateTime) return v;
@@ -71,7 +66,6 @@ class OutagesScreen extends ConsumerStatefulWidget {
 }
 
 class _OutagesScreenState extends ConsumerState<OutagesScreen> {
-  // 0: Tümü, 1: Su (İSU), 2: Elektrik (SEDAŞ), 3: Doğalgaz (PALGAZ)
   int _selectedFilter = 0;
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _outagesStream =
       FirebaseFirestore.instance.collection('outages').limit(50).snapshots();
@@ -82,8 +76,6 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   @override
   void initState() {
     super.initState();
-    // Ekran açıkken süresi dolan kesintiler de listeden düşsün diye
-    // her dakika yeniden süzülür ("Mahallemde" ekranındaki mantık).
     _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
@@ -95,8 +87,6 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
     super.dispose();
   }
 
-  /// Firestore boşsa gösterilen örnek veriler. Tarihler "şimdiye göre"
-  /// hesaplanır; böylece her zaman güncel görünür.
   List<Map<String, dynamic>> _getFallbackOutages(String lang) {
     final mahalleSuffix = AppStrings.get('mahalle_suffix', lang);
     final n = DateTime.now();
@@ -182,8 +172,6 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                       items = fallbackOutages;
                     }
 
-                    // Tarih filtresi: bitiş zamanı geçenler listeden düşer,
-                    // durum (planlı / devam ediyor) tarihten hesaplanır.
                     final now = _now;
                     final processed = <Map<String, dynamic>>[];
                     for (final raw in items) {
@@ -197,7 +185,7 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
                       var status = (raw['status'] ?? '').toString();
                       final low = status.toLowerCase();
                       if (low.contains('tamam') || low.contains('complete')) {
-                        continue; // elle "tamamlandı" işaretlenmiş
+                        continue;
                       }
                       if (start != null) {
                         status = start.isAfter(now) ? 'planlı' : 'devam';
@@ -337,8 +325,6 @@ class _OutagesScreenState extends ConsumerState<OutagesScreen> {
   }
 }
 
-// ───────────────────────── Üst Başlık ─────────────────────────
-
 class _Header extends StatelessWidget {
   final String lang;
   const _Header({required this.lang});
@@ -413,8 +399,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Kesinti Kartı ─────────────────────────
 
 class _OutageCard extends StatelessWidget {
   final Map<String, dynamic> data;

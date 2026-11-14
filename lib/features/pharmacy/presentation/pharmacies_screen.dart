@@ -79,7 +79,9 @@ class PharmaciesScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0A1F44),
                           ),
                         ),
                         const SizedBox(height: 14),

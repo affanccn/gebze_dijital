@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +9,6 @@ import 'package:http/http.dart' as http;
 
 import '../models/municipal_news.dart';
 
-/// Haberler Firestore `municipal_news` koleksiyonundan gerçek zamanlı (canlı) olarak dinlenir.
-/// Admin panelinden eklenen, düzenlenen veya silinen haberler anında uygulama ekranına yansır.
 final newsListProvider = StreamProvider<List<MunicipalNews>>((ref) {
   return NewsService().watchNews(limit: 25);
 });
@@ -23,8 +22,6 @@ class NewsService {
   static final Map<String, String> _summaryCache = {};
   static List<MunicipalNews>? _cachedNews;
 
-  /// Belgeleri tekilleştirir ve en yeni (admin panelinden eklenen veya newsId'si en büyük olan)
-  /// haber en üstte olacak şekilde sıralar.
   static List<MunicipalNews> _dedupeAndSort(
     Iterable<QueryDocumentSnapshot<Map<String, dynamic>>> docs, {
     int? limit,
@@ -34,7 +31,6 @@ class NewsService {
         .where((item) => item.title.trim().isNotEmpty)
         .toList();
 
-    // En yeni / en yüksek sortKey en üstte
     items.sort((a, b) => b.sortKey.compareTo(a.sortKey));
 
     final map = <String, MunicipalNews>{};
@@ -64,7 +60,6 @@ class NewsService {
     return result;
   }
 
-  /// Haberleri tek seferlik çeker (newsId alanı olmayan admin haberlerini de kapsar).
   Future<List<MunicipalNews>> fetchNews({
     int limit = 20,
     bool force = false,
@@ -89,7 +84,6 @@ class NewsService {
     }
   }
 
-  /// Metni hedef dile ('en', 'ar') anlık olarak çevirir (ücretsiz Google Translate servisi).
   Future<String?> translateText(String text, String targetLang) async {
     if (text.trim().isEmpty || targetLang == 'tr') return text;
     final cacheKey = '$targetLang:${text.hashCode}';
@@ -127,22 +121,16 @@ class NewsService {
     return null;
   }
 
-  /// Firestore `municipal_news` koleksiyonunu canlı (real-time) dinler.
-  /// `.orderBy('newsId')` kullanılmaz çünkü admin panelinden `newsId` olmadan eklenmiş
-  /// haberlerin Firestore tarafından filtrelenip gizlenmesini önler; sıralama bellekte yapılır.
   Stream<List<MunicipalNews>> watchNews({int limit = 25}) {
-    return _firestore
-        .collection('municipal_news')
-        .limit(100)
-        .snapshots()
-        .map((snapshot) {
-          final sorted = _dedupeAndSort(snapshot.docs, limit: limit);
-          _cachedNews = sorted;
-          return sorted;
-        });
+    return _firestore.collection('municipal_news').limit(100).snapshots().map((
+      snapshot,
+    ) {
+      final sorted = _dedupeAndSort(snapshot.docs, limit: limit);
+      _cachedNews = sorted;
+      return sorted;
+    });
   }
 
-  /// Haberin web sayfasından 5-6 satırlık kısa ön okuma / özet metnini çeker.
   Future<String?> fetchNewsSummary(String url, {String? title}) async {
     if (url.isEmpty) return null;
     if (_summaryCache.containsKey(url)) {

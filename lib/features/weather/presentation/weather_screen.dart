@@ -74,7 +74,9 @@ class WeatherScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0A1F44),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0A1F44),
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -198,7 +200,8 @@ class WeatherScreen extends ConsumerWidget {
                   builder: (_) {
                     final gebzeSync = GebzeTime.toGebzeTime(syncedAt);
                     final now = GebzeTime.now();
-                    final isToday = gebzeSync.year == now.year &&
+                    final isToday =
+                        gebzeSync.year == now.year &&
                         gebzeSync.month == now.month &&
                         gebzeSync.day == now.day;
                     final timeFormatted = isToday
@@ -605,7 +608,6 @@ class _WeatherContent extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ── Gün adı + rozet + tarih ──
           Expanded(
             flex: 6,
             child: Column(
@@ -681,7 +683,6 @@ class _WeatherContent extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // ── İkon + hava durumu metni ──
           Expanded(
             flex: 5,
             child: Row(
@@ -723,7 +724,6 @@ class _WeatherContent extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // ── Sıcaklıklar (sadece gereken kadar yer) ──
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -4,11 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/localization/app_strings.dart';
 import 'report_common.dart';
 
-/// Profil > Aktiviteler > Taleplerim / Şikayetlerim
-/// Dosya yolu: lib/screens/my_requests_screen.dart
-///
-/// - [MyRequestsScreen]: tam ekran sayfa (AppBar'lı).
-/// - [MyRequestsList]: profildeki Aktiviteler sheet'ine gömülebilen liste.
 class MyRequestsScreen extends ConsumerWidget {
   const MyRequestsScreen({super.key});
 
@@ -111,7 +106,7 @@ class MyRequestsList extends ConsumerStatefulWidget {
 }
 
 class _MyRequestsListState extends ConsumerState<MyRequestsList> {
-  String _filter = 'all'; // all | active | done
+  String _filter = 'all';
 
   bool _matches(String statusKey) {
     switch (_filter) {
@@ -227,8 +222,6 @@ String _categoryLabel(Map<String, dynamic> data, String lang) {
   final raw = (data['category'] ?? '').toString();
   return raw.isEmpty ? rt(lang, 'cat_other') : raw;
 }
-
-// ───────────────────────── Kart ─────────────────────────
 
 class _RequestCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -358,8 +351,6 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Detay ─────────────────────────
-
 class _DetailSheet extends StatelessWidget {
   final Map<String, dynamic> data;
   final String lang;
@@ -386,7 +377,7 @@ class _DetailSheet extends StatelessWidget {
     final hasPhoto =
         (data['photoUrl'] ?? '').toString().isNotEmpty ||
         (data['photoBase64'] ?? '').toString().isNotEmpty;
-    final history = _history().reversed.toList(); // en yeni üstte
+    final history = _history().reversed.toList();
     final note = (data['adminNote'] ?? data['response'] ?? '').toString();
     final address = (data['address'] ?? '').toString();
 

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/parking/presentation/parking_screen.dart';
 import '../core/localization/app_strings.dart';
-import '../features/ebelediye/presentation/ebelediye_screen.dart';
+import '../features/emunicipality/presentation/emunicipality_screen.dart';
 import '../features/news/municipal_news_screen.dart';
 import '../features/news/widgets/municipal_news_list.dart';
 import '../features/weather/presentation/weather_screen.dart';
@@ -21,11 +21,7 @@ import 'app_bottom_nav.dart';
 import '../core/theme/theme_provider.dart';
 import '../core/services/events_service.dart';
 
-/// Gebze Belediyesi - Ana Ekran
-/// Dosya yolu: lib/screens/guest_home_screen.dart
-
 class _C {
-  // Gebze Belediyesi teması: lacivert + turuncu
   static const navy = Color(0xFF0A2A66);
   static const navyDeep = Color(0xFF061B45);
   static const orange = Color(0xFFFF7A00);
@@ -66,14 +62,13 @@ class GuestHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
-  // Hero görseli: proje kökündeki gorsel/ klasörü (pubspec.yaml'da tanımlı olmalı).
   static const String _heroAsset = 'gorsel/gebze_gorsel.jpg';
 
   int _navIndex = 0;
   int _guideInitialTab = 0;
   int _guideKey = 0;
   final ScrollController _homeScrollCtrl = ScrollController();
-  double? _heroAspect; // görselin genişlik / yükseklik oranı
+  double? _heroAspect;
 
   @override
   void initState() {
@@ -172,7 +167,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     ),
   ];
 
-  /// Rehberi açar. initialTab: 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet
   void _openGuide({int initialTab = 0}) {
     setState(() {
       _guideInitialTab = initialTab;
@@ -181,7 +175,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     });
   }
 
-  /// Alt menü yönlendirmesi - kalıcı alt bar, sayfa geçişinde animasyona uğramaz
   void _handleNav(int i) {
     if (i == 4 && !requireLogin(context, ref)) return;
     if (_navIndex == i) {
@@ -231,18 +224,9 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                 showBottomNav: false,
                 onNavTap: _handleNav,
               ),
-              ReportScreen(
-                showBottomNav: false,
-                onNavTap: _handleNav,
-              ),
-              ServicesScreen(
-                showBottomNav: false,
-                onNavTap: _handleNav,
-              ),
-              ProfileScreen(
-                showBottomNav: false,
-                onNavTap: _handleNav,
-              ),
+              ReportScreen(showBottomNav: false, onNavTap: _handleNav),
+              ServicesScreen(showBottomNav: false, onNavTap: _handleNav),
+              ProfileScreen(showBottomNav: false, onNavTap: _handleNav),
             ],
           ),
           bottomNavigationBar: AppBottomNav(
@@ -276,7 +260,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
         physics: const BouncingScrollPhysics(),
         child: Stack(
           children: [
-            // Hero arka planı
             Positioned(
               top: 0,
               left: 0,
@@ -285,7 +268,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
               child: _HeroBackground(asset: _heroAsset),
             ),
 
-            // Hero içeriği + beyaz içerik paneli
             Column(
               children: [
                 SizedBox(
@@ -323,7 +305,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
               ],
             ),
 
-            // Hava durumu kartı (hero ile panel arasında)
             Positioned(
               left: 16,
               top: heroH - overlap - 44,
@@ -335,8 +316,6 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
     );
   }
 }
-
-// ───────────────────────── Hero ─────────────────────────
 
 class _HeroBackground extends StatelessWidget {
   final String? asset;
@@ -561,10 +540,7 @@ class _BellIcon extends ConsumerWidget {
               right: 4,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 decoration: BoxDecoration(
                   color: _C.danger,
                   borderRadius: BorderRadius.circular(10),
@@ -595,8 +571,6 @@ class _BellIcon extends ConsumerWidget {
     );
   }
 }
-
-// ───────────────────────── Hava Durumu ─────────────────────────
 
 class _WeatherPill extends ConsumerWidget {
   final double width;
@@ -783,8 +757,6 @@ class _WeatherPill extends ConsumerWidget {
   }
 }
 
-// ───────────────────────── Hızlı İşlemler ─────────────────────────
-
 class _QuickActionData {
   final String label;
   final IconData icon;
@@ -865,8 +837,6 @@ class _QuickActionsCard extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Bölüm Kartları ─────────────────────────
 
 class _RowData {
   final String title;
@@ -1092,10 +1062,6 @@ class _SectionRow extends StatelessWidget {
   }
 }
 
-
-
-// ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
-
 class _EventsSection extends ConsumerWidget {
   final String lang;
   const _EventsSection({required this.lang});
@@ -1110,8 +1076,7 @@ class _EventsSection extends ConsumerWidget {
     void navigateToEvents() {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) =>
-              const GuideCategoryScreen(categoryId: 'etkinlikler'),
+          builder: (_) => const GuideCategoryScreen(categoryId: 'etkinlikler'),
         ),
       );
     }
@@ -1121,17 +1086,18 @@ class _EventsSection extends ConsumerWidget {
         padding: EdgeInsets.all(24),
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => Center(
-        child: Text(
-          '${AppStrings.get('error_occurred', lang)}: $e',
-        ),
-      ),
+      error: (e, _) =>
+          Center(child: Text('${AppStrings.get('error_occurred', lang)}: $e')),
       data: (allEvents) {
-        final upcoming = allEvents.where((e) {
-          final d = (e['date'] ?? '').toString();
-          return d.isNotEmpty && d.compareTo(today) >= 0;
-        }).toList()
-          ..sort((a, b) => (a['date'] ?? '').toString().compareTo((b['date'] ?? '').toString()));
+        final upcoming =
+            allEvents.where((e) {
+              final d = (e['date'] ?? '').toString();
+              return d.isNotEmpty && d.compareTo(today) >= 0;
+            }).toList()..sort(
+              (a, b) => (a['date'] ?? '').toString().compareTo(
+                (b['date'] ?? '').toString(),
+              ),
+            );
         final displayUpcoming = upcoming.take(3).toList();
 
         final List<Map<String, dynamic>> targetList;
@@ -1139,7 +1105,11 @@ class _EventsSection extends ConsumerWidget {
           targetList = displayUpcoming;
         } else if (allEvents.isNotEmpty) {
           final latest = allEvents.toList()
-            ..sort((a, b) => (b['date'] ?? '').toString().compareTo((a['date'] ?? '').toString()));
+            ..sort(
+              (a, b) => (b['date'] ?? '').toString().compareTo(
+                (a['date'] ?? '').toString(),
+              ),
+            );
           targetList = latest.take(3).toList();
         } else {
           targetList = [];
@@ -1175,7 +1145,11 @@ class _EventsSection extends ConsumerWidget {
               final loc = (m['location'] ?? m['address'] ?? 'Gebze').toString();
               final date = (m['formattedDate'] ?? m['date'] ?? '').toString();
               final time = (m['time'] ?? '').toString();
-              subtitle = [loc, date, time].where((s) => s.isNotEmpty).join(' • ');
+              subtitle = [
+                loc,
+                date,
+                time,
+              ].where((s) => s.isNotEmpty).join(' • ');
             }
             final img = (m['imageUrl'] ?? m['image'] ?? '').toString().trim();
             return _RowData(
@@ -1200,8 +1174,6 @@ class _EventsSection extends ConsumerWidget {
     );
   }
 }
-
-// ───────────────────────── Haberler (Firestore) ─────────────────────────
 
 class _NewsSection extends StatelessWidget {
   final String lang;

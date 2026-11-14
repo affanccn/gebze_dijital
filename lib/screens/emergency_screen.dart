@@ -53,11 +53,21 @@ String _kindLabel(AreaKind k, String lang) {
     case AreaKind.picnic:
       return _l3(lang, 'Mesire Alanı', 'Recreation Area', 'منطقة ترفيهية');
     case AreaKind.school:
-      return _l3(lang, 'Okul / Eğitim Tesisi', 'School / Education', 'مدرسة / منشأة تعليمية');
+      return _l3(
+        lang,
+        'Okul / Eğitim Tesisi',
+        'School / Education',
+        'مدرسة / منشأة تعليمية',
+      );
     case AreaKind.hospital:
       return _l3(lang, 'Sağlık Tesisi', 'Health Facility', 'منشأة صحية');
     case AreaKind.forest:
-      return _l3(lang, 'Orman / Doğa Alanı', 'Forest / Nature Area', 'غابة / منطقة طبيعية');
+      return _l3(
+        lang,
+        'Orman / Doğa Alanı',
+        'Forest / Nature Area',
+        'غابة / منطقة طبيعية',
+      );
     case AreaKind.municipal:
       return _l3(lang, 'Belediye Alanı', 'Municipal Area', 'منطقة بلدية');
     case AreaKind.sport:
@@ -121,7 +131,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
     } catch (_) {}
   }
 
-  /// Konum varsa kullanıcıya, yoksa Gebze merkezine olan mesafe (km).
   double _distanceOf(AssemblyArea a) =>
       Geolocator.distanceBetween(
         _pos?.latitude ?? kGebzeCenterLat,
@@ -147,8 +156,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
       );
   }
 
-  /// Harita uygulamasında yol tarifi açar.
-  /// Sırayla: platforma özel yerel uygulama → Google Maps web/uygulama → geo:
   Future<void> _openInMap(AssemblyArea area, String lang) async {
     final lat = area.latitude.toStringAsFixed(6);
     final lng = area.longitude.toStringAsFixed(6);
@@ -401,7 +408,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                   children: [
-                    // 112 Butonu
                     _MainCallCard(
                       title: AppStrings.get('call_center_112_title', lang),
                       subtitle: AppStrings.get('call_center_112_sub', lang),
@@ -415,7 +421,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                     ),
                     const SizedBox(height: 22),
 
-                    // Hızlı Yardım Numaraları
                     _SectionLabel(
                       AppStrings.get('quick_call_label', lang),
                       isDark: isDark,
@@ -458,7 +463,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // Arıza & İhbar Hatları
                     _SectionLabel(
                       AppStrings.get('utility_emergency_label', lang),
                       isDark: isDark,
@@ -473,7 +477,8 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                             icon: Icons.water_drop_rounded,
                             color: const Color(0xFF0288D1),
                             isDark: isDark,
-                            onTap: () => _callNumber('İSU Su Arıza', '185', lang),
+                            onTap: () =>
+                                _callNumber('İSU Su Arıza', '185', lang),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -484,7 +489,8 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                             icon: Icons.electric_bolt_rounded,
                             color: const Color(0xFFF57C00),
                             isDark: isDark,
-                            onTap: () => _callNumber('SEDAŞ Elektrik', '186', lang),
+                            onTap: () =>
+                                _callNumber('SEDAŞ Elektrik', '186', lang),
                           ),
                         ),
                       ],
@@ -499,7 +505,8 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                             icon: Icons.local_fire_department_rounded,
                             color: const Color(0xFFE53935),
                             isDark: isDark,
-                            onTap: () => _callNumber('PALGAZ Doğalgaz', '187', lang),
+                            onTap: () =>
+                                _callNumber('PALGAZ Doğalgaz', '187', lang),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -510,14 +517,14 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                             icon: Icons.local_police_rounded,
                             color: isDark ? const Color(0xFF60A5FA) : _C.navy,
                             isDark: isDark,
-                            onTap: () => _callNumber('Gebze Zabıta', '153', lang),
+                            onTap: () =>
+                                _callNumber('Gebze Zabıta', '153', lang),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 26),
 
-                    // Toplanma Alanları Başlığı ve Sayaç
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -555,7 +562,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Mahalle / Alan Arama Input'u
                     Container(
                       height: 46,
                       decoration: _cardDeco(14, isDark),
@@ -569,7 +575,10 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                         decoration: InputDecoration(
                           filled: false,
                           fillColor: Colors.transparent,
-                          hintText: AppStrings.get('search_assembly_hint', lang),
+                          hintText: AppStrings.get(
+                            'search_assembly_hint',
+                            lang,
+                          ),
                           hintStyle: TextStyle(
                             fontSize: 12.5,
                             color: isDark
@@ -625,7 +634,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                         ),
                       ),
 
-                    // Toplanma Alanı Kartları
                     if (async.isLoading && result == null)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 32),
@@ -656,7 +664,14 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                               onPressed: () =>
                                   ref.invalidate(assemblyAreasProvider),
                               icon: const Icon(Icons.refresh_rounded, size: 18),
-                              label: Text(_l(lang, 'Tekrar dene', 'Retry', 'إعادة المحاولة')),
+                              label: Text(
+                                _l(
+                                  lang,
+                                  'Tekrar dene',
+                                  'Retry',
+                                  'إعادة المحاولة',
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -680,14 +695,23 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen> {
                       for (final area in areas) ...[
                         _AssemblyAreaCard(
                           area: area,
-                          isNearest: _pos != null &&
+                          isNearest:
+                              _pos != null &&
                               _searchAreaQuery.trim().isEmpty &&
                               identical(area, areas.first),
-                          nearestLabel: _l(lang, 'En yakın', 'Nearest', 'الأقرب'),
+                          nearestLabel: _l(
+                            lang,
+                            'En yakın',
+                            'Nearest',
+                            'الأقرب',
+                          ),
                           subtitle: _subtitleOf(area, lang),
                           features: _featuresOf(area, lang),
                           distanceKm: _distanceOf(area),
-                          directionsLabel: AppStrings.get('btn_directions', lang),
+                          directionsLabel: AppStrings.get(
+                            'btn_directions',
+                            lang,
+                          ),
                           isDark: isDark,
                           onNavigate: () => _openInMap(area, lang),
                           onTap: () => _showAreaDetail(area, lang, isDark),
@@ -737,8 +761,6 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Üst Başlık ─────────────────────────
 
 class _Header extends StatelessWidget {
   final String lang;
@@ -832,8 +854,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── 112 Çağrı Kartı ─────────────────────────
 
 class _MainCallCard extends StatelessWidget {
   final String title;
@@ -932,8 +952,6 @@ class _MainCallCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Hızlı Arama Butonları ─────────────────────────
-
 class _QuickCallBox extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -1031,8 +1049,6 @@ class _QuickCallBox extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Arıza & Acil Hat Kartı ─────────────────────────
-
 class _MiniUtilityCard extends StatelessWidget {
   final String title;
   final String number;
@@ -1120,8 +1136,6 @@ class _MiniUtilityCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Toplanma Alanı Kartı ─────────────────────────
-
 class _AssemblyAreaCard extends StatelessWidget {
   final AssemblyArea area;
   final bool isNearest;
@@ -1154,16 +1168,20 @@ class _AssemblyAreaCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: isNearest
-            ? _cardDeco(18, isDark).copyWith(
-                border: Border.all(color: _C.orange, width: 1.8),
-              )
+            ? _cardDeco(
+                18,
+                isDark,
+              ).copyWith(border: Border.all(color: _C.orange, width: 1.8))
             : _cardDeco(18, isDark),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isNearest) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: _C.orange,
                   borderRadius: BorderRadius.circular(20),
@@ -1171,7 +1189,11 @@ class _AssemblyAreaCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.near_me_rounded, size: 13, color: Colors.white),
+                    const Icon(
+                      Icons.near_me_rounded,
+                      size: 13,
+                      color: Colors.white,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       nearestLabel,

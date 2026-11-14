@@ -3,7 +3,6 @@ import 'dart:math';
 import '../domain/parking_lot.dart';
 import 'parking_data.dart';
 
-/// (saat, doluluk oranı) noktaları; aradaki saatler lineer interpolasyonla bulunur.
 typedef Curve = List<(double, double)>;
 
 const _weekday = <ParkingProfile, Curve>{
@@ -60,7 +59,7 @@ const _weekend = <ParkingProfile, Curve>{
 };
 
 class ParkingEstimator {
-  static const slotHours = 3; // 3 saatlik dilimler
+  static const slotHours = 3;
 
   static double _interpolate(Curve c, double h) {
     for (var i = 0; i < c.length - 1; i++) {
@@ -73,7 +72,6 @@ class ParkingEstimator {
     return c.last.$2;
   }
 
-  /// Stabil hash (String.hashCode'a güvenmiyoruz).
   static int _seed(String code, DateTime slotStart) {
     var h = 17;
     for (final u in code.codeUnits) {
@@ -98,8 +96,7 @@ class ParkingEstimator {
     final items = parkingLots.map((lot) {
       final curve = (isWeekend ? _weekend : _weekday)[lot.profile]!;
       final base = _interpolate(curve, midHour);
-      final jitter =
-          (Random(_seed(lot.code, start)).nextDouble() - 0.5) * 0.12; // ±%6
+      final jitter = (Random(_seed(lot.code, start)).nextDouble() - 0.5) * 0.12;
       final ratio = (base + jitter).clamp(0.05, 0.98);
       return ParkingOccupancy(lot, (lot.capacity * ratio).round());
     }).toList();

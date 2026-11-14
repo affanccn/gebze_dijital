@@ -2,12 +2,6 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GEBZE BELEDİYESİ DİJİTAL YÖNETİM & MOBİL UYGULAMA GÜVENLİK KURALLARI
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // 1. Kimlik ve Yetki Yardımcı Fonksiyonları
     function isSignedIn() {
       return request.auth != null;
     }
@@ -16,11 +10,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Gerçek Yönetici (Admin) Kontrolü
-    // - Token custom claim'inde admin yetkisi olanlar
-    // - Resmi belediye yönetici e-posta hesabı (admin@gebze.bel.tr)
-    // - @gebze.bel.tr kurumsal alan adına sahip hesaplar
-    // - users/{uid} dokümanında 'role' alanı 'admin' olarak atanmış yetkililer
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.admin == true ||
@@ -31,14 +20,6 @@ service cloud.firestore {
       );
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 2. Özel ve Hassas Kullanıcı Verileri
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // Kullanıcı Profilleri:
-    // - Kullanıcı yalnızca kendi profilini okuyabilir ve düzenleyebilir.
-    // - Kullanıcı kendi kendine 'admin' rolü veremez veya rolünü yükseltemez.
-    // - Yöneticiler tüm profilleri listeleyebilir ve gerektiğinde rol atayabilir.
     match /users/{uid} {
       allow read: if isOwner(uid) || isAdmin();
       allow create: if isOwner(uid) &&
@@ -49,37 +30,23 @@ service cloud.firestore {
                        isAdmin();
       allow delete: if isAdmin();
 
-      // Kullanıcının alt koleksiyonları (votes, supported, saved, favorites vb.)
       match /{subcollection}/{docId} {
         allow read, write: if isOwner(uid) || isAdmin();
       }
     }
 
-    // Kullanıcı Hareket Kayıtları (user_activities)
     match /user_activities/{id} {
       allow read: if (resource != null && isOwner(resource.data.userId)) || isAdmin();
       allow create: if isOwner(request.resource.data.userId) || isAdmin();
       allow update, delete: if isAdmin();
     }
 
-    // Vatandaş Çek & Gönder Talepleri (reports):
-    // - Vatandaş yalnızca kendi oluşturduğu şikayet ve talepleri görebilir.
-    // - Yeni talep oluştururken userId giriş yapan kullanıcının uid'si olmalıdır.
-    // - Durum değiştirme ve silme yalnızca yöneticilere aittir.
     match /reports/{id} {
       allow read: if (resource != null && isOwner(resource.data.userId)) || isAdmin();
       allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid) || isAdmin();
       allow update, delete: if isAdmin();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 3. Söz Sende: Anketler ve Öneriler
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // Vatandaş Önerileri (suggestions):
-    // - Onaylanmış (Yayında) öneriler kamuya açıktır; onay bekleyen önerileri yalnızca sahibi ve admin görebilir.
-    // - Vatandaş öneri gönderirken durumu 'İncelemede' ve approved: false olmalıdır.
-    // - Vatandaşlar yalnızca beğeni (likes) sayacını artırıp azaltabilir.
     match /suggestions/{id} {
       allow read: if (resource != null && (resource.data.approved == true || resource.data.status == 'Yayında')) ||
                      (isSignedIn() && resource != null && resource.data.authorUid == request.auth.uid) ||
@@ -94,10 +61,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Anketler (polls):
-    // - Herkes anketleri ve sonuçları okuyabilir.
-    // - Yalnızca yöneticiler anket oluşturabilir veya silebilir.
-    // - Giriş yapan vatandaşlar oy verirken yalnızca 'voteCounts' alanını artırabilir.
     match /polls/{pollId} {
       allow read: if true;
       allow create, delete: if isAdmin();
@@ -105,71 +68,56 @@ service cloud.firestore {
                        (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voteCounts']));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 4. Kamuya Açık Belediye Hizmetleri (Anonim Okuma İzni, Yönetici Yazma İzni)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // Belediye Haberleri ve Duyurular
     match /municipal_news/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Kültür ve Etkinlikler
     match /events/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Planlı Kesintiler (İSU, SEDAŞ, PALGAZ)
     match /outages/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Mahallemde (Saha ve Altyapı Çalışmaları)
     match /neighborhood_works/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Nöbetçi Eczaneler
     match /pharmacies_on_duty/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Hava Durumu
     match /weather_info/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Afet ve Acil Durum Toplanma Alanları
     match /assembly_areas/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Otopark ve Doluluk Bilgileri
     match /parking_lots/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Kreşler ve Çocuk Bakımevleri
     match /nurseries/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // E-Belediye Kategorileri
     match /ebelediye_categories/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Şehir Rehberi ve Mekanlar
     match /places/{id} {
       allow read: if true;
       allow write: if isAdmin();
@@ -195,7 +143,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Gebze Pati (Sahiplendirme, Besleme Odakları, Klinikler)
     match /pet_adoptions/{id} {
       allow read: if true;
       allow write: if isAdmin();
@@ -211,7 +158,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Canlı Bildirim ve Duyurular
     match /notifications/{id} {
       allow read: if true;
       allow write: if isAdmin();
@@ -222,9 +168,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 5. Varsayılan Kapatma (Default Deny)
-    // ─────────────────────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }

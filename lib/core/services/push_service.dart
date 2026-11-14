@@ -14,23 +14,19 @@ class PushService {
     'sozSende',
   ];
 
-  /// Topic ve FCM push desteği olan platformlar (Android / iOS)
   static bool get isSupportedPlatform {
     if (kIsWeb) return false;
     return defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
   }
 
-  /// Test amaçlı topic abone handler'ı enjeksiyonu
   @visibleForTesting
   static TopicHandler? topicSubscriber;
 
-  /// Test amaçlı topic abonelikten çıkma handler'ı enjeksiyonu
   @visibleForTesting
   static TopicHandler? topicUnsubscriber;
   static final Set<String> _subscribedTopics = {};
 
-  /// FCM topic abone olma fonksiyonu (test edilebilir ve platform korumalı)
   static Future<void> subscribeToTopic(String topic) async {
     if (topicSubscriber != null) {
       await topicSubscriber!(topic);
@@ -48,7 +44,6 @@ class PushService {
     }
   }
 
-  /// FCM topic abonelikten çıkma fonksiyonu
   static Future<void> unsubscribeFromTopic(String topic) async {
     if (topicUnsubscriber != null) {
       await topicUnsubscriber!(topic);
@@ -64,7 +59,6 @@ class PushService {
     }
   }
 
-  /// Tek bir tercihi senkronize eder (SharedPreferences ve FCM topics)
   static Future<void> syncPreference(String key, bool enabled) async {
     try {
       final sp = await SharedPreferences.getInstance();
@@ -73,15 +67,17 @@ class PushService {
       debugPrint('[PushService] SharedPreferences yazma hatası: $e');
     }
 
-    if (!isSupportedPlatform && topicSubscriber == null && topicUnsubscriber == null) return;
+    if (!isSupportedPlatform &&
+        topicSubscriber == null &&
+        topicUnsubscriber == null) {
+      return;
+    }
     if (key == 'push') {
       if (!enabled) {
-        // Tüm topic aboneliklerinden çık
         for (final topic in supportedTopics) {
           await unsubscribeFromTopic(topic);
         }
       } else {
-        // Master açıldı: açık olan tüm topiclere yeniden abone ol
         for (final topic in supportedTopics) {
           final isTopicAllowed = await getPreference(topic, defaultValue: true);
           if (isTopicAllowed) {
@@ -94,11 +90,9 @@ class PushService {
       return;
     }
 
-    // Alt topic ayarı değiştiğinde:
     if (supportedTopics.contains(key)) {
       final isMasterPush = await getPreference('push', defaultValue: true);
       if (!isMasterPush) {
-        // Master kapalıysa hiçbir topic'e abone olunmaz
         await unsubscribeFromTopic(key);
       } else {
         if (enabled) {
@@ -110,7 +104,6 @@ class PushService {
     }
   }
 
-  /// Tüm bildirim tercihlerini toplu olarak senkronize eder
   static Future<void> syncAllPreferences(Map<String, bool> prefs) async {
     try {
       final sp = await SharedPreferences.getInstance();
@@ -132,8 +125,10 @@ class PushService {
     }
   }
 
-  /// Yerel tercihi oku
-  static Future<bool> getPreference(String key, {bool defaultValue = true}) async {
+  static Future<bool> getPreference(
+    String key, {
+    bool defaultValue = true,
+  }) async {
     try {
       final sp = await SharedPreferences.getInstance();
       return sp.getBool('$prefPrefix$key') ?? defaultValue;
@@ -142,8 +137,10 @@ class PushService {
     }
   }
 
-  /// Bildirimin cihaza düşmesine izin veriliyor mu kontrolü (Gatekeeper)
-  static Future<bool> isNotificationAllowed({String? type, String? category}) async {
+  static Future<bool> isNotificationAllowed({
+    String? type,
+    String? category,
+  }) async {
     final isMasterPush = await getPreference('push', defaultValue: true);
     if (!isMasterPush) {
       debugPrint('[PushService] Master bildirim kapalı, bildirim engellendi.');
@@ -152,9 +149,14 @@ class PushService {
 
     final targetKey = (type ?? category ?? '').trim();
     if (targetKey.isNotEmpty && supportedTopics.contains(targetKey)) {
-      final isCategoryAllowed = await getPreference(targetKey, defaultValue: true);
+      final isCategoryAllowed = await getPreference(
+        targetKey,
+        defaultValue: true,
+      );
       if (!isCategoryAllowed) {
-        debugPrint('[PushService] $targetKey bildirimi kapalı, bildirim engellendi.');
+        debugPrint(
+          '[PushService] $targetKey bildirimi kapalı, bildirim engellendi.',
+        );
         return false;
       }
     }
@@ -162,7 +164,6 @@ class PushService {
     return true;
   }
 
-  /// Push servisini başlatır
   static Future<void> init({required void Function() onNewsOpened}) async {
     if (!isSupportedPlatform) return;
 
@@ -170,7 +171,6 @@ class PushService {
       final m = FirebaseMessaging.instance;
       await m.requestPermission();
 
-      // Kayıtlı tercihlere göre topic aboneliklerini başlat
       final isMasterPush = await getPreference('push', defaultValue: true);
       for (final topic in supportedTopics) {
         final allowed = await getPreference(topic, defaultValue: true);
@@ -181,19 +181,24 @@ class PushService {
         }
       }
 
-      // Ön planda bildirim geldiğinde gatekeeper kontrolü
       FirebaseMessaging.onMessage.listen((RemoteMessage msg) async {
         final type = msg.data['type'] as String?;
         final category = msg.data['category'] as String?;
-        final allowed = await isNotificationAllowed(type: type, category: category);
+        final allowed = await isNotificationAllowed(
+          type: type,
+          category: category,
+        );
         if (!allowed) {
-          debugPrint('[PushService] Ön plan bildirimi engellendi (kullanıcı tercihi kapalı): $type / $category');
+          debugPrint(
+            '[PushService] Ön plan bildirimi engellendi (kullanıcı tercihi kapalı): $type / $category',
+          );
           return;
         }
-        debugPrint('[PushService] Ön plan bildirimi kabul edildi: ${msg.notification?.title}');
+        debugPrint(
+          '[PushService] Ön plan bildirimi kabul edildi: ${msg.notification?.title}',
+        );
       });
 
-      // Uygulama kapalıyken bildirime tıklandıysa
       final initial = await m.getInitialMessage();
       if (initial != null) {
         final type = initial.data['type'] as String?;
@@ -202,7 +207,6 @@ class PushService {
         }
       }
 
-      // Arka plandayken bildirime tıklandıysa
       FirebaseMessaging.onMessageOpenedApp.listen((msg) async {
         final type = msg.data['type'] as String?;
         if (await isNotificationAllowed(type: type)) {
@@ -210,7 +214,6 @@ class PushService {
         }
       });
     } catch (e) {
-      // Push hatası uygulamanın açılmasını engellememeli.
       debugPrint('PushService hatası: $e');
     }
   }

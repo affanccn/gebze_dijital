@@ -2,12 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-/// Gebze Belediyesi - "Gebze'de Ne Yenir?" (Yöresel Lezzetler)
-/// Dosya yolu: lib/screens/guide_foods.dart
-///
-/// Veri: Firestore `guide_foods` koleksiyonu (kodda yemek verisi YOK).
-/// Alanlar için dosyanın en altındaki nota bakın.
-
 class _C {
   static const navy = Color(0xFF0A2A66);
   static const navyDeep = Color(0xFF0F2240);
@@ -24,8 +18,6 @@ String _t(String lang, String tr, String en, String ar) =>
 
 String _norm(String p) => p.trim().replaceAll('\\', '/');
 
-// ───────────────────────── Model ─────────────────────────
-
 class GebzeFood {
   final String id;
   final Map<String, dynamic> _m;
@@ -33,7 +25,6 @@ class GebzeFood {
 
   GebzeFood(this.id, this._m) : order = (_m['order'] as num?)?.toInt() ?? 999;
 
-  /// name_en / name_ar varsa onu, yoksa Türkçe alanı döner.
   String text(String key, String lang) {
     if (lang == 'en' || lang == 'ar') {
       final v = (_m['${key}_$lang'] ?? '').toString().trim();
@@ -46,15 +37,16 @@ class GebzeFood {
     dynamic raw = _m['${key}_$lang'];
     if (raw is! List || raw.isEmpty) raw = _m[key];
     if (raw is List) {
-      return raw.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+      return raw
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
     }
     return const [];
   }
 
   String get image => (_m['image'] ?? '').toString();
 }
-
-// ───────────────────────── Liste ─────────────────────────
 
 class GuideFoodsView extends StatefulWidget {
   final String lang;
@@ -68,7 +60,10 @@ class _GuideFoodsViewState extends State<GuideFoodsView> {
   final _ctrl = TextEditingController();
   String _query = '';
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _foodsStream =
-      FirebaseFirestore.instance.collection('guide_foods').limit(50).snapshots();
+      FirebaseFirestore.instance
+          .collection('guide_foods')
+          .limit(50)
+          .snapshots();
 
   @override
   void dispose() {
@@ -90,15 +85,25 @@ class _GuideFoodsViewState extends State<GuideFoodsView> {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : _C.field,
               borderRadius: BorderRadius.circular(24),
-              border: isDark ? Border.all(color: const Color(0xFF334155)) : null,
+              border: isDark
+                  ? Border.all(color: const Color(0xFF334155))
+                  : null,
             ),
             child: TextField(
               controller: _ctrl,
               onChanged: (v) => setState(() => _query = v),
-              style: TextStyle(fontSize: 14, color: isDark ? Colors.white : _C.textDark),
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white : _C.textDark,
+              ),
               decoration: InputDecoration(
                 filled: false,
-                hintText: _t(lang, 'Lezzet ara...', 'Search dishes...', 'ابحث عن طبق...'),
+                hintText: _t(
+                  lang,
+                  'Lezzet ara...',
+                  'Search dishes...',
+                  'ابحث عن طبق...',
+                ),
                 hintStyle: TextStyle(
                   fontSize: 14,
                   color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
@@ -119,21 +124,25 @@ class _GuideFoodsViewState extends State<GuideFoodsView> {
           child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: _foodsStream,
             builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
+              if (snap.connectionState == ConnectionState.waiting &&
+                  !snap.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
-              final foods = (snap.data?.docs ?? [])
-                  .map((d) => GebzeFood(d.id, d.data()))
-                  .toList()
-                ..sort((a, b) => a.order.compareTo(b.order));
+              final foods =
+                  (snap.data?.docs ?? [])
+                      .map((d) => GebzeFood(d.id, d.data()))
+                      .toList()
+                    ..sort((a, b) => a.order.compareTo(b.order));
 
               final q = _query.trim().toLowerCase();
               final filtered = q.isEmpty
                   ? foods
                   : foods
-                        .where((f) =>
-                            f.text('name', lang).toLowerCase().contains(q) ||
-                            f.text('summary', lang).toLowerCase().contains(q))
+                        .where(
+                          (f) =>
+                              f.text('name', lang).toLowerCase().contains(q) ||
+                              f.text('summary', lang).toLowerCase().contains(q),
+                        )
                         .toList();
 
               if (filtered.isEmpty) {
@@ -141,8 +150,12 @@ class _GuideFoodsViewState extends State<GuideFoodsView> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      _t(lang, 'Henüz lezzet eklenmedi.', 'No dishes added yet.',
-                          'لم تتم إضافة أطباق بعد.'),
+                      _t(
+                        lang,
+                        'Henüz lezzet eklenmedi.',
+                        'No dishes added yet.',
+                        'لم تتم إضافة أطباق بعد.',
+                      ),
                       style: const TextStyle(
                         color: _C.textMuted,
                         fontWeight: FontWeight.w600,
@@ -160,7 +173,8 @@ class _GuideFoodsViewState extends State<GuideFoodsView> {
                   lang: lang,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => FoodDetailScreen(food: filtered[i], lang: lang),
+                      builder: (_) =>
+                          FoodDetailScreen(food: filtered[i], lang: lang),
                     ),
                   ),
                 ),
@@ -221,7 +235,11 @@ class _FoodCard extends StatelessWidget {
   final GebzeFood food;
   final String lang;
   final VoidCallback onTap;
-  const _FoodCard({required this.food, required this.lang, required this.onTap});
+  const _FoodCard({
+    required this.food,
+    required this.lang,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -278,7 +296,11 @@ class _FoodCard extends StatelessWidget {
                             color: _C.orange,
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, size: 18, color: _C.orange),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 18,
+                          color: _C.orange,
+                        ),
                       ],
                     ),
                   ],
@@ -291,8 +313,6 @@ class _FoodCard extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Detay ─────────────────────────
 
 class FoodDetailScreen extends StatelessWidget {
   final GebzeFood food;
@@ -310,7 +330,6 @@ class FoodDetailScreen extends StatelessWidget {
     final where = food.text('whereToEat', lang);
     final ingredients = food.list('ingredients', lang);
 
-    // recipe: tek metin ya da adım listesi olabilir
     final steps = food.list('recipe', lang);
     final recipeText = steps.isEmpty ? food.text('recipe', lang) : '';
 
@@ -325,7 +344,11 @@ class FoodDetailScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800, color: text),
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  color: text,
+                ),
               ),
             ],
           ),
@@ -335,10 +358,8 @@ class FoodDetailScreen extends StatelessWidget {
       ),
     );
 
-    Widget para(String s) => Text(
-      s,
-      style: TextStyle(fontSize: 14.5, height: 1.55, color: muted),
-    );
+    Widget para(String s) =>
+        Text(s, style: TextStyle(fontSize: 14.5, height: 1.55, color: muted));
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
@@ -362,13 +383,21 @@ class FoodDetailScreen extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white, size: 22),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        _t(lang, 'Yöresel Lezzet', 'Local Flavor', 'نكهة محلية'),
+                        _t(
+                          lang,
+                          'Yöresel Lezzet',
+                          'Local Flavor',
+                          'نكهة محلية',
+                        ),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
@@ -415,8 +444,12 @@ class FoodDetailScreen extends StatelessWidget {
                         if (origin.isNotEmpty)
                           section(
                             Icons.public_rounded,
-                            _t(lang, 'Nereden Geliyor?', 'Where Does It Come From?',
-                                'من أين أتى؟'),
+                            _t(
+                              lang,
+                              'Nereden Geliyor?',
+                              'Where Does It Come From?',
+                              'من أين أتى؟',
+                            ),
                             para(origin),
                           ),
                         if (ingredients.isNotEmpty)
@@ -430,14 +463,18 @@ class FoodDetailScreen extends StatelessWidget {
                                 for (final i in ingredients)
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: isDark
                                           ? const Color(0xFF1E293B)
                                           : const Color(0xFFFFF3E0),
                                       borderRadius: BorderRadius.circular(14),
                                       border: isDark
-                                          ? Border.all(color: const Color(0xFF334155))
+                                          ? Border.all(
+                                              color: const Color(0xFF334155),
+                                            )
                                           : null,
                                     ),
                                     child: Text(
@@ -455,16 +492,25 @@ class FoodDetailScreen extends StatelessWidget {
                         if (steps.isNotEmpty || recipeText.isNotEmpty)
                           section(
                             Icons.soup_kitchen_rounded,
-                            _t(lang, 'Nasıl Yapılır?', 'How Is It Made?', 'كيف يُحضَّر؟'),
+                            _t(
+                              lang,
+                              'Nasıl Yapılır?',
+                              'How Is It Made?',
+                              'كيف يُحضَّر؟',
+                            ),
                             steps.isNotEmpty
                                 ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       for (int i = 0; i < steps.length; i++)
                                         Padding(
-                                          padding: const EdgeInsets.only(bottom: 8),
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
                                           child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Container(
                                                 width: 24,
@@ -495,7 +541,12 @@ class FoodDetailScreen extends StatelessWidget {
                         if (where.isNotEmpty)
                           section(
                             Icons.place_rounded,
-                            _t(lang, 'Nerede Yenir?', 'Where To Eat It?', 'أين تتناوله؟'),
+                            _t(
+                              lang,
+                              'Nerede Yenir?',
+                              'Where To Eat It?',
+                              'أين تتناوله؟',
+                            ),
                             para(where),
                           ),
                       ],

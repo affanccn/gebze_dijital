@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-/// Etkinlikler aylık/günlük periyotlarla güncellenir.
-/// keepAlive ile 1 saat boyunca bellekte tutulur, her ekran geçişinde Firestore okunmaz.
-final eventsListProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+final eventsListProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
   final link = ref.keepAlive();
   final timer = Timer(const Duration(hours: 1), () {
     link.close();
@@ -58,8 +59,10 @@ class EventsService {
     return '$day $monthName $year'.trim();
   }
 
-  /// Önbellekli ve sınırlandırılmış etkinlik çekme fonksiyonu.
-  Future<List<Map<String, dynamic>>> fetchEvents({int limit = 50, bool force = false}) async {
+  Future<List<Map<String, dynamic>>> fetchEvents({
+    int limit = 50,
+    bool force = false,
+  }) async {
     final now = DateTime.now();
     if (!force &&
         _cachedEvents != null &&
@@ -74,9 +77,11 @@ class EventsService {
           .where('date', isGreaterThanOrEqualTo: '2026-10-01')
           .orderBy('date')
           .limit(limit)
-          .get(force
-              ? const GetOptions(source: Source.server)
-              : const GetOptions(source: Source.serverAndCache));
+          .get(
+            force
+                ? const GetOptions(source: Source.server)
+                : const GetOptions(source: Source.serverAndCache),
+          );
 
       _cachedEvents = snap.docs
           .map((doc) => {'id': doc.id, ...doc.data()})
@@ -90,7 +95,6 @@ class EventsService {
     }
   }
 
-  /// Firestore `events` koleksiyonunu dinler
   Stream<List<Map<String, dynamic>>> watchEvents({int limit = 50}) {
     return _firestore
         .collection('events')
@@ -99,22 +103,23 @@ class EventsService {
         .limit(limit)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList(),
         );
   }
 
-  /// Resmi Gebze Belediyesi web sitesinden (`etkinlik.json`) etkinlikleri çeker
-  /// ve Firestore `events` koleksiyonuna kaydeder/günceller.
   Future<int> syncEventsFromWeb() async {
     try {
-      final res = await http.get(
-        Uri.parse(_eventsJsonUrl),
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'GebzeDijitalMobile/1.0',
-        },
-      ).timeout(const Duration(seconds: 15));
+      final res = await http
+          .get(
+            Uri.parse(_eventsJsonUrl),
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'GebzeDijitalMobile/1.0',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (res.statusCode != 200) {
         throw Exception('HTTP ${res.statusCode}: $_eventsJsonUrl');
@@ -131,12 +136,13 @@ class EventsService {
       for (final item in decoded) {
         if (item is! Map<String, dynamic>) continue;
         final date = (item['tarih'] ?? '').toString().trim();
-        // Sadece Ekim 2026 ve sonrası (Ekim, Kasım, Aralık vb.) etkinlikleri kabul et
         if (date.isNotEmpty && date.compareTo('2026-10-01') < 0) continue;
 
         final rawId = (item['id'] ?? count + 1).toString();
         final title = (item['baslik'] ?? '').toString().trim();
-        final category = (item['kategori'] ?? 'Kültür & Sanat').toString().trim();
+        final category = (item['kategori'] ?? 'Kültür & Sanat')
+            .toString()
+            .trim();
         final location = (item['konum'] ?? 'Gebze').toString().trim();
         final time = (item['saat'] ?? '').toString().trim();
         final formattedDate = formatTrDate(date);
@@ -189,12 +195,13 @@ class EventsService {
     }
   }
 
-  /// Eğer veritabanında henüz etkinlik yoksa otomatik olarak arka planda doldurur
   Future<void> ensureEventsSeeded() async {
     try {
       final snap = await _firestore.collection('events').limit(1).get();
       if (snap.docs.isEmpty) {
-        debugPrint('EventsService: Etkinlikler boş, belediyeden ilk yükleme yapılıyor...');
+        debugPrint(
+          'EventsService: Etkinlikler boş, belediyeden ilk yükleme yapılıyor...',
+        );
         await syncEventsFromWeb();
       }
     } catch (e) {

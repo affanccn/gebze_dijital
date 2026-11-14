@@ -105,7 +105,8 @@ class _MyAppState extends ConsumerState<MyApp> {
             ],
           ),
           action: SnackBarAction(
-            label: notif.actionButtonLabel ??
+            label:
+                notif.actionButtonLabel ??
                 (notif.hasDirectNavigation ? 'AÇ' : 'GÖR'),
             textColor: const Color(0xFFFFB300),
             onPressed: () {
@@ -198,8 +199,6 @@ class _MyAppState extends ConsumerState<MyApp> {
         foregroundColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         elevation: 0,
         scrolledUnderElevation: 0,
-        // NOT: Buraya iconTheme koymayın. AppBar'da appBarTheme.iconTheme,
-        // ekrandaki foregroundColor'ı ezer ve geri butonu koyu kalır.
       ),
       cardTheme: CardThemeData(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -365,7 +364,6 @@ class _MyAppState extends ConsumerState<MyApp> {
       darkTheme: _buildTheme(isLargeFont, true),
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
-        // Büyük yazı modu: Tüm uygulama genelinde metinleri %25 oranında büyütür
         final textScaler = isLargeFont
             ? const TextScaler.linear(1.25)
             : const TextScaler.linear(1.0);

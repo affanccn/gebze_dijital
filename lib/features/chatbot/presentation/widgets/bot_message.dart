@@ -18,7 +18,9 @@ class BotMessageWidget extends ConsumerWidget {
 
   String _getNavigationLabel(String route) {
     final r = route.toLowerCase();
-    if (r.contains('register') || r.contains('kayit')) return 'Kayıt Ol / Üye Ol';
+    if (r.contains('register') || r.contains('kayit')) {
+      return 'Kayıt Ol / Üye Ol';
+    }
     if (r.contains('auth') || r.contains('login') || r.contains('giris')) {
       return 'Giriş Yap';
     }
@@ -28,18 +30,32 @@ class BotMessageWidget extends ConsumerWidget {
     }
     if (r.contains('pharmacies')) return 'Nöbetçi Eczaneleri Gör';
     if (r.contains('weather')) return 'Hava Durumunu Aç';
-    if (r.contains('content') || r.contains('news') || r.contains('haber')) return 'Haberleri Oku';
-    if (r.contains('etkinlik') || r.contains('events')) return 'Etkinlikleri Gör';
-    if (r.contains('parking') || r.contains('otopark')) return 'Otopark Doluluklarını Gör';
+    if (r.contains('content') || r.contains('news') || r.contains('haber')) {
+      return 'Haberleri Oku';
+    }
+    if (r.contains('etkinlik') || r.contains('events')) {
+      return 'Etkinlikleri Gör';
+    }
+    if (r.contains('parking') || r.contains('otopark')) {
+      return 'Otopark Doluluklarını Gör';
+    }
     if (r.contains('lokanta')) return 'Kent Lokantalarını Aç';
     if (r.contains('pazar')) return 'Semt Pazarlarını Gör';
     if (r.contains('park')) return 'Park ve Bahçeleri Gör';
     if (r.contains('spor')) return 'Spor Tesislerini Gör';
     if (r.contains('kultur')) return 'Kültür Merkezlerini Gör';
-    if (r.contains('mezarlik') || r.contains('vefat')) return 'Mezarlık Hizmetlerini Gör';
-    if (r.contains('kres') || r.contains('akcem')) return 'Kreş ve AKÇEM Merkezleri';
-    if (r.contains('doga') || r.contains('piknik')) return 'Doğa ve Piknik Alanlarını Gör';
-    if (r.contains('lezzet') || r.contains('yoresel')) return 'Yöresel Lezzetleri Keşfet';
+    if (r.contains('mezarlik') || r.contains('vefat')) {
+      return 'Mezarlık Hizmetlerini Gör';
+    }
+    if (r.contains('kres') || r.contains('akcem')) {
+      return 'Kreş ve AKÇEM Merkezleri';
+    }
+    if (r.contains('doga') || r.contains('piknik')) {
+      return 'Doğa ve Piknik Alanlarını Gör';
+    }
+    if (r.contains('lezzet') || r.contains('yoresel')) {
+      return 'Yöresel Lezzetleri Keşfet';
+    }
     if (r.contains('tarihi')) return 'Tarihi Yerleri Keşfet';
     if (r.contains('places') || r.contains('guide') || r.contains('rehber')) {
       return 'Gebze Rehberini Aç';

@@ -7,9 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/profile/services/profile_service.dart' show kCurrentUserId;
 
-/// Çek & Gönder / Taleplerim ortak sabitleri, durumlar ve veri erişimi.
-/// Dosya yolu: lib/screens/report_common.dart
-
 class RC {
   static const navy = Color(0xFF0A2A66);
   static const navyDeep = Color(0xFF061B45);
@@ -64,7 +61,6 @@ const List<ReportCategory> kReportCategories = [
   ReportCategory('other', Icons.more_horiz_rounded),
 ];
 
-/// Dahili durum anahtarları (sıralı).
 const List<String> kReportStatuses = [
   'pending',
   'reviewing',
@@ -73,8 +69,6 @@ const List<String> kReportStatuses = [
   'rejected',
 ];
 
-/// Firestore'a yazılan Türkçe durum etiketleri (suggestions koleksiyonundaki
-/// `status: "Beklemede"` düzeniyle aynı). Yönetim paneli bu değerleri yazmalı.
 const Map<String, String> kReportStatusTr = {
   'pending': 'Beklemede',
   'reviewing': 'İnceleniyor',
@@ -83,7 +77,6 @@ const Map<String, String> kReportStatusTr = {
   'rejected': 'Reddedildi',
 };
 
-/// Türkçe karakterleri sadeleştirip küçük harfe çevirir.
 String foldTr(String s) => s
     .replaceAll('İ', 'i')
     .replaceAll('I', 'i')
@@ -99,8 +92,6 @@ String foldTr(String s) => s
     .replaceAll('mah.', '')
     .trim();
 
-/// Firestore'daki ham `status` değerini (TR/EN, büyük-küçük harf fark etmez)
-/// dahili anahtara çevirir.
 String reportStatusKey(dynamic raw) {
   final f = foldTr((raw ?? '').toString());
   if (f.contains('cozul') || f.contains('resolved') || f.contains('tamam')) {
@@ -144,9 +135,6 @@ IconData reportStatusIcon(String s) {
   }
 }
 
-// ───────────────────────── Kimlik & Veri ─────────────────────────
-
-/// Oturum süresince kullanıcının yerel olarak oluşturduğu raporlar
 final List<Map<String, dynamic>> localSubmittedReports = [];
 
 final List<Map<String, dynamic>> _fallbackReports = [
@@ -237,17 +225,13 @@ final List<Map<String, dynamic>> _fallbackReports = [
   },
 ];
 
-/// Talepler, profil servisinin kullandığı kullanıcı kimliğiyle eşlenir
-/// (`users/{kCurrentUserId}`). Böylece profildeki Taleplerim aynı kayıtları görür.
 Future<String> getReportUserId() async => kCurrentUserId;
 
 final reportUserIdProvider = FutureProvider<String>((ref) => getReportUserId());
 
-/// Kullanıcının talepleri (en yeni üstte). Her öğede `_id` alanı bulunur.
 final myReportsProvider = StreamProvider<List<Map<String, dynamic>>>((
   ref,
 ) async* {
-  // İlk önce hemen mevcut yerel ve örnek verileri yay (Asla sonsuz dönen yükleniyor kalmaz)
   List<Map<String, dynamic>> combined = [
     ...localSubmittedReports,
     if (localSubmittedReports.isEmpty) ..._fallbackReports,
@@ -256,7 +240,6 @@ final myReportsProvider = StreamProvider<List<Map<String, dynamic>>>((
 
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) {
-    // Misafir kullanıcı durumunda Firestore'a yetkisiz istek atmayıp yerel veriyi koru
     return;
   }
 
@@ -289,16 +272,13 @@ final myReportsProvider = StreamProvider<List<Map<String, dynamic>>>((
       });
       yield unique.isEmpty ? _fallbackReports : unique;
     }
-  } catch (_) {
-    // Ağ ya da Firestore yetki hatasında yerel veri zaten sağlandı
-  }
+  } catch (_) {}
 });
 
 final myReportCountProvider = Provider<int>(
   (ref) => ref.watch(myReportsProvider).value?.length ?? 0,
 );
 
-/// `photoUrl` (Storage) ya da `photoBase64` (yedek) alanından fotoğraf çizer.
 Widget reportPhoto(
   Map<String, dynamic> data, {
   double? width,
@@ -349,7 +329,6 @@ String fmtDateTime(dynamic ts) {
   return '${two(d.day)}.${two(d.month)}.${d.year} ${two(d.hour)}:${two(d.minute)}';
 }
 
-/// Basit çok dilli metin erişimi (tr / en / ar). Bulunamazsa tr'ye düşer.
 String rt(String lang, String key) =>
     _strings[lang]?[key] ?? _strings['tr']![key] ?? key;
 

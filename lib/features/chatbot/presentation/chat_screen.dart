@@ -289,7 +289,6 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
                   },
                 ),
               ),
-              // Sıkça Sorulan Sorular / Hızlı Soru-Cevap Çipleri
               Container(
                 height: 44,
                 color: isDark ? const Color(0xFF1E293B) : Colors.white,

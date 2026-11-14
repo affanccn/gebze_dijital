@@ -14,14 +14,12 @@ void main() {
 
   group('Afet & Acil Durum Çevrimdışı Dayanıklılık Testleri', () {
     test('İnternet ve önbellek yokken AssemblyService hazır toplanma alanlarını döner', () async {
-      // SharedPreferences boşken ve ağ isteği başarısız olduğunda fallback alanlar dönmeli
       final result = await AssemblyService.load();
 
       expect(result.fromCache, isTrue);
       expect(result.areas, isNotEmpty);
       expect(result.areas.length, greaterThanOrEqualTo(5));
 
-      // Gebze'nin kritik merkez toplanma alanlarının varlığı
       final names = result.areas.map((a) => a.name).join(' ');
       expect(names, contains('Kent Meydanı'));
       expect(names, contains('Tatlıkuyu'));
@@ -29,15 +27,24 @@ void main() {
       expect(names, contains('Eskihisar'));
     });
 
-    test('Tüm toplanma alanlarının koordinatları Gebze sınırları içerisindedir', () async {
-      final result = await AssemblyService.load();
-      for (final area in result.areas) {
-        expect(area.latitude, inInclusiveRange(40.65, 41.10),
-            reason: '${area.name} enlemi Gebze sınırları içinde olmalı');
-        expect(area.longitude, inInclusiveRange(29.20, 29.85),
-            reason: '${area.name} boylamı Gebze sınırları içinde olmalı');
-      }
-    });
+    test(
+      'Tüm toplanma alanlarının koordinatları Gebze sınırları içerisindedir',
+      () async {
+        final result = await AssemblyService.load();
+        for (final area in result.areas) {
+          expect(
+            area.latitude,
+            inInclusiveRange(40.65, 41.10),
+            reason: '${area.name} enlemi Gebze sınırları içinde olmalı',
+          );
+          expect(
+            area.longitude,
+            inInclusiveRange(29.20, 29.85),
+            reason: '${area.name} boylamı Gebze sınırları içinde olmalı',
+          );
+        }
+      },
+    );
 
     test('Toplanma alanlarının tahmini kapasite hesabı doğru çalışır', () {
       const areaWithM2 = AssemblyArea(
@@ -54,7 +61,6 @@ void main() {
         kind: AreaKind.park,
       );
 
-      // 7000 / 3.5 = 2000 kişi
       expect(areaWithM2.estimatedCapacity, 2000);
       expect(areaWithM2.areaText, '7.000 m²');
     });
@@ -74,38 +80,40 @@ void main() {
       }
     });
 
-    testWidgets('Acil durum ekranı 112, 444 1 890, 122 ve altyapı arıza numaralarını listeler', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ListView(
-              children: const [
-                Text('112'),
-                Text('444 1 890'),
-                Text('122'),
-                Text('185'),
-                Text('186'),
-                Text('187'),
-                Text('153'),
-              ],
+    testWidgets(
+      'Acil durum ekranı 112, 444 1 890, 122 ve altyapı arıza numaralarını listeler',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ListView(
+                children: const [
+                  Text('112'),
+                  Text('444 1 890'),
+                  Text('122'),
+                  Text('185'),
+                  Text('186'),
+                  Text('187'),
+                  Text('153'),
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('112'), findsOneWidget);
-      expect(find.text('444 1 890'), findsOneWidget);
-      expect(find.text('122'), findsOneWidget);
-      expect(find.text('185'), findsOneWidget);
-      expect(find.text('186'), findsOneWidget);
-      expect(find.text('187'), findsOneWidget);
-      expect(find.text('153'), findsOneWidget);
-    });
+        expect(find.text('112'), findsOneWidget);
+        expect(find.text('444 1 890'), findsOneWidget);
+        expect(find.text('122'), findsOneWidget);
+        expect(find.text('185'), findsOneWidget);
+        expect(find.text('186'), findsOneWidget);
+        expect(find.text('187'), findsOneWidget);
+        expect(find.text('153'), findsOneWidget);
+      },
+    );
   });
 
   group('PushService Masaüstü ve Platform Koruma Testleri', () {
     test('isSupportedPlatform Web ve Masaüstünde güvenle kontrol edilir', () {
-      // Test ortamında defaultTargetPlatform android / testtir
       expect(PushService.isSupportedPlatform, isA<bool>());
     });
   });

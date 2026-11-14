@@ -4,9 +4,6 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { Agent, setGlobalDispatcher } from "undici";
 
-// GitHub Actions runner'ları (yurt dışı bulut IP'leri) ile belediye sunucusu arasındaki
-// ağ gecikmeleri ve paket kayıplarında 10 saniyelik varsayılan zaman aşımı yetersiz kalıyordu.
-// Bağlantı ve yanıt zaman aşımlarını 45 saniyeye yükseltiyoruz.
 const agent = new Agent({
   connect: {
     timeout: 45000,
@@ -65,10 +62,6 @@ function initializeFirebase() {
   return getFirestore();
 }
 
-/**
- * Sayfa HTML'ini çeker; bağlantı zaman aşımı veya geçici ağ hatalarında
- * exponential backoff ile tekrar dener, ardından CORS/proxy fallback dener.
- */
 async function getHtml(url, maxRetries = 3) {
   let lastError;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -98,7 +91,6 @@ async function getHtml(url, maxRetries = 3) {
     }
   }
 
-  // GitHub Actions yabancı bulut IP'lerine belediye sunucusu zaman aşımı veriyorsa, proxy üzerinden dene
   const proxyEndpoints = [
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
@@ -144,14 +136,9 @@ function parseTurkishDate(str) {
   return new Date(Date.UTC(year, month, day, 12, 0, 0));
 }
 
-/**
- * Türkçe metni hedef dile (en: İngilizce, ar: Arapça) çevirir.
- * Ücretsiz ve sınırsız Google Translate web servisini kullanır.
- * Hata veya zaman aşımında güvenle orijinal metne geri döner.
- */
 async function translateText(text, targetLang) {
   if (!text || !text.trim()) return "";
-  const clean = text.trim().slice(0, 1200); // güvenli uzunluk sınırı
+  const clean = text.trim().slice(0, 1200);
 
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${targetLang}&dt=t&q=${encodeURIComponent(clean)}`;
@@ -183,9 +170,6 @@ async function translateText(text, targetLang) {
   return clean;
 }
 
-/**
- * Haber detay sayfasından özet ve haber tarihini çeker.
- */
 async function fetchNewsDetails(url) {
   if (!url) return { summary: "", dateText: "" };
   try {
@@ -227,10 +211,6 @@ function absoluteUrl(value, base = BASE_URL) {
   }
 }
 
-/**
- * URL'deki encoding farklarını (örn: %E2%80%9C vs “) normalize eder.
- * Bu sayede aynı haber farklı URL varyasyonlarıyla çiftlenmez.
- */
 function canonicalUrl(url) {
   if (!url) return "";
   try {
@@ -240,12 +220,9 @@ function canonicalUrl(url) {
   }
 }
 
-
-// "08 Ekim 2026" biçimindeki tarihi yakalar (site bu biçimi kullanıyor).
 const TR_DATE_RE =
   /(\d{1,2})\s+(Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|Kasım|Aralık)\s+(\d{4})/i;
 
-// Bazı bağlantılarda başlık iki kez yazılıyor ("A A" -> "A").
 function cleanTitle(value) {
   const s = (value ?? "").replace(/\s+/g, " ").trim();
   if (s.length % 2 === 1) {
@@ -255,7 +232,6 @@ function cleanTitle(value) {
   return s;
 }
 
-// URL sonundaki sayı (…_7418.html veya .../617) haberin site içi kimliği; yeniden eskiye sıralamada kullanılır.
 function newsIdFromUrl(url) {
   const m = url.match(/(?:_|\/)(\d+)(?:\.html)?(?:$|\?)/);
   return m ? Number(m[1]) : null;
@@ -265,7 +241,6 @@ function imageSrc(img) {
   return absoluteUrl(img.attr("src") || img.attr("data-src") || "");
 }
 
-// Başlığı saran, TEK habere ait ve tarih içeren en yakın kutuyu bulur.
 function findCard($, link) {
   let node = link.parent();
   for (let i = 0; i < 5 && node.length; i++) {
@@ -275,7 +250,7 @@ function findCard($, link) {
         .map((_, a) => absoluteUrl($(a).attr("href")))
         .get()
     );
-    if (urls.size > 1) return null; // birden fazla haberi kapsıyor, çok geniş
+    if (urls.size > 1) return null;
     if (TR_DATE_RE.test(node.text())) return node;
     node = node.parent();
   }
@@ -283,7 +258,7 @@ function findCard($, link) {
 }
 
 function extractNews($, pageIndex) {
-  const byUrl = new Map(); // url -> kayıt (ilk görülme sırası korunur)
+  const byUrl = new Map();
 
   $('a[href*="/haber/"]').each((_, element) => {
     const link = $(element);
@@ -300,7 +275,6 @@ function extractNews($, pageIndex) {
     const img = link.find("img").first();
 
     if (inHeading) {
-      // En güvenilir başlık: haber kartındaki <h3> bağlantısı.
       const title = cleanTitle(link.text());
       if (title && rec.titleRank < 3) {
         rec.title = title;
@@ -321,7 +295,6 @@ function extractNews($, pageIndex) {
         rec.titleRank = 2;
       }
     } else {
-      // Slider gibi yerlerdeki düz metin bağlantısı: son çare.
       const title = cleanTitle(link.attr("title") || link.text());
       if (title && rec.titleRank < 1) {
         rec.title = title;
@@ -373,7 +346,6 @@ async function main() {
 
   const $first = cheerio.load(firstHtml);
 
-  // İlk sayfa ve HTML'de bulunan sayfalama bağlantıları.
   const pages = new Set([NEWS_URL]);
 
   $first(".news-pagination a.page-btn").each((_, element) => {
@@ -404,7 +376,6 @@ async function main() {
       const items = extractNews($, i + 1);
 
       for (const item of items) {
-        // Canonical URL üzerinden SHA256 kimlik: aynı haber tekrar eklenmez.
         const canonUrl = canonicalUrl(item.url);
         const id = createHash("sha256")
           .update(canonUrl)
@@ -428,7 +399,6 @@ async function main() {
 
   const entries = [...allNews.values()];
 
-  // 1. Firestore'da halihazırda var olan haberlerin çevirilerini çek (akıllı önbellek) ve çift kayıtları temizle
   console.log("Firestore'daki mevcut haber kayıtları ve çevirileri taranıyor...");
   const translationCache = new Map();
   const existingByNewsId = new Map();
@@ -469,7 +439,6 @@ async function main() {
     console.warn("Önbellek okunamadı, çeviriler sıfırdan kontrol edilecek:", err?.message || err);
   }
 
-  // 2. Eksik çevirileri tespit et ve tamamla
   let translatedCount = 0;
   console.log("Haber başlıkları ve özetleri çoklu dil için (EN, AR) kontrol ediliyor...");
 
@@ -477,7 +446,6 @@ async function main() {
     const item = entries[i];
     const cached = translationCache.get(item.id);
 
-    // Başlık çevirileri
     if (cached?.title_en && cached?.title_ar) {
       item.title_en = cached.title_en;
       item.title_ar = cached.title_ar;
@@ -485,10 +453,9 @@ async function main() {
       item.title_en = await translateText(item.title, "en");
       item.title_ar = await translateText(item.title, "ar");
       translatedCount++;
-      await new Promise((r) => setTimeout(r, 150)); // rate-limit önlemi
+      await new Promise((r) => setTimeout(r, 150));
     }
 
-    // Özet (özellikle en yeni 15 haber için özet metni Firestore'a kaydedilir)
     let summary = cached?.summary || "";
     let summaryEn = cached?.summary_en || "";
     let summaryAr = cached?.summary_ar || "";
@@ -520,7 +487,6 @@ async function main() {
     `Çeviri adımı tamamlandı (${translatedCount} yeni/güncellenen haber çevrildi).`
   );
 
-  // Firestore batch sınırını aşmamak için parçalı yaz.
   for (let start = 0; start < entries.length; start += 400) {
     const batch = db.batch();
 

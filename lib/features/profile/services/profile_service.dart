@@ -10,7 +10,6 @@ import '../../../screens/auth_service.dart' show authStateProvider;
 import '../../../screens/favorites_service.dart' show favoritesProvider;
 import '../models/user_profile.dart';
 
-
 String get kCurrentUserId {
   try {
     return FirebaseAuth.instance.currentUser?.uid ?? 'default_citizen';
@@ -18,7 +17,6 @@ String get kCurrentUserId {
     return 'default_citizen';
   }
 }
-
 
 FutureProvider<int> _subCountProvider(String sub) =>
     FutureProvider<int>((ref) async {
@@ -56,24 +54,23 @@ final _mySuggestionsCountProvider = FutureProvider<int>((ref) async {
 });
 
 final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
-
   final user = ref.watch(authStateProvider).value;
 
-  
   final favCount = ref.watch(favoritesProvider.select((v) => v.value?.length));
   final voteCount = ref.watch(_votesCountProvider.select((v) => v.value));
   final supCount = ref.watch(_supportedCountProvider.select((v) => v.value));
-  final sugCount = ref.watch(_mySuggestionsCountProvider.select((v) => v.value));
+  final sugCount = ref.watch(
+    _mySuggestionsCountProvider.select((v) => v.value),
+  );
   UserProfile withCounts(UserProfile p) => p.copyWith(
-        totalSaved: favCount ?? p.totalSaved,
-        totalSupported: (voteCount != null && supCount != null)
-            ? voteCount + supCount
-            : p.totalSupported,
-        totalSuggestions: sugCount ?? p.totalSuggestions,
-      );
+    totalSaved: favCount ?? p.totalSaved,
+    totalSupported: (voteCount != null && supCount != null)
+        ? voteCount + supCount
+        : p.totalSupported,
+    totalSuggestions: sugCount ?? p.totalSuggestions,
+  );
 
   if (user == null) {
-    
     return Stream.value(UserProfile.defaultProfile());
   }
 
@@ -81,7 +78,6 @@ final profileProvider = StreamProvider.autoDispose<UserProfile>((ref) {
 
   return docRef.snapshots().map((doc) {
     if (!doc.exists) {
-      // Döküman henüz yoksa (kayıt yazımı gecikti/başarısız) oluştur.
       final defaultProfile = UserProfile.defaultProfile();
       try {
         docRef.set(defaultProfile.toFirestore());
@@ -114,7 +110,7 @@ class ProfileService {
     if (db == null) return null;
     return db.collection('users').doc(kCurrentUserId);
   }
-  
+
   bool get _isAuthAvailable {
     try {
       return FirebaseAuth.instance.currentUser != null;
@@ -123,7 +119,6 @@ class ProfileService {
     }
   }
 
-  /// Profil bilgilerini (ad, eposta, telefon, adres, tc) güncelle
   Future<void> updateProfile({
     required String fullName,
     required String email,
@@ -149,7 +144,6 @@ class ProfileService {
     } catch (_) {}
   }
 
-  /// Mahalle seçimini doğrudan güncelle
   Future<void> updateNeighborhood(String neighborhood) async {
     if (!_isAuthAvailable) return;
     try {
@@ -160,7 +154,6 @@ class ProfileService {
     } catch (_) {}
   }
 
-  /// Bildirim tercihlerini güncelle
   Future<void> updateNotificationPreference(String key, bool enabled) async {
     await PushService.syncPreference(key, enabled);
     if (!_isAuthAvailable) return;
@@ -172,7 +165,6 @@ class ProfileService {
     } catch (_) {}
   }
 
-  /// Dil tercihini güncelle ('tr', 'en', 'ar')
   Future<void> updateLanguage(String languageCode) async {
     if (!_isAuthAvailable) return;
     try {
@@ -181,20 +173,15 @@ class ProfileService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      // Hata artık yutulmuyor: ekran kullanıcıya gösterebilsin.
       debugPrint('updateLanguage hatası: $e');
       rethrow;
     }
   }
 
-  /// Büyük yazı tipi tercihini güncelle
   Future<void> updateLargeFont(bool isLarge) async {
     if (!_isAuthAvailable) return;
     try {
       await _userRef?.set({
-        // Kayıt sırasında (auth_service) alan adı 'largeFont', burada ise
-        // 'isLargeFont' yazılıyordu. Okuyan taraf hangisini bekliyorsa
-        // bulsun diye ikisini de yazıyoruz.
         'largeFont': isLarge,
         'isLargeFont': isLarge,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -205,7 +192,6 @@ class ProfileService {
     }
   }
 
-  /// Tema modunu güncelle ('light', 'dark', 'system')
   Future<void> updateThemeMode(String themeMode) async {
     if (!_isAuthAvailable) return;
     try {
@@ -216,7 +202,6 @@ class ProfileService {
     } catch (_) {}
   }
 
-  /// Profil resmini güncelle
   Future<void> updateAvatarUrl(String avatarUrl) async {
     if (!_isAuthAvailable) return;
     try {
@@ -227,7 +212,6 @@ class ProfileService {
     } catch (_) {}
   }
 
-  /// Hesabı sil
   Future<void> deleteAccount() async {
     if (!_isAuthAvailable) return;
     try {
@@ -243,8 +227,18 @@ class ProfileService {
   }
 
   static const List<String> _months = [
-    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+    'Ocak',
+    'Şubat',
+    'Mart',
+    'Nisan',
+    'Mayıs',
+    'Haziran',
+    'Temmuz',
+    'Ağustos',
+    'Eylül',
+    'Ekim',
+    'Kasım',
+    'Aralık',
   ];
 
   static String _fmtDate(dynamic v) {
@@ -253,7 +247,6 @@ class ProfileService {
     return '${d.day.toString().padLeft(2, '0')} ${_months[d.month - 1]} ${d.year}';
   }
 
-  /// users/{uid}/favorites kaydını "Kayıtlarım" sekmesi için aktivite satırına çevirir.
   static UserActivityItem _favoriteToActivity(
     QueryDocumentSnapshot<Map<String, dynamic>> d,
   ) {
@@ -289,7 +282,6 @@ class ProfileService {
     return '';
   }
 
-  /// users/{uid}/votes/{pollId} -> "Desteklerim" satırı (anket başlığı polls'tan alınır).
   Future<UserActivityItem> _voteToActivity(
     FirebaseFirestore db,
     QueryDocumentSnapshot<Map<String, dynamic>> d,
@@ -319,7 +311,6 @@ class ProfileService {
     );
   }
 
-  /// users/{uid}/supported/{suggestionId} -> "Desteklerim" satırı.
   Future<UserActivityItem> _supportToActivity(
     FirebaseFirestore db,
     QueryDocumentSnapshot<Map<String, dynamic>> d,
@@ -346,13 +337,14 @@ class ProfileService {
     );
   }
 
-  /// Kullanıcının yazdığı öneri -> "Önerilerim" satırı.
   static UserActivityItem _suggestionToActivity(
     QueryDocumentSnapshot<Map<String, dynamic>> d,
   ) {
     final m = d.data();
     final isApproved = m['approved'] == true;
-    final statusText = isApproved ? 'Onaylandı' : (m['status'] ?? 'İncelemede').toString();
+    final statusText = isApproved
+        ? 'Onaylandı'
+        : (m['status'] ?? 'İncelemede').toString();
     return UserActivityItem(
       id: 'sug_${d.id}',
       type: 'oneri',
@@ -364,10 +356,6 @@ class ProfileService {
     );
   }
 
-  /// Kullanıcı aktivitelerini getir.
-  /// - Misafir: örnek (demo) liste.
-  /// - Giriş yapmış kullanıcı: gerçek kayıtlar. Demo veri gösterilmez.
-  ///   activities + yazdığı öneriler + anket oyları + öneri destekleri + favoriler.
   Stream<List<UserActivityItem>> getActivitiesStream() {
     if (!_isAuthAvailable) {
       return Stream.value(_fallbackActivities);
@@ -384,16 +372,20 @@ class ProfileService {
       return Stream.value(_fallbackActivities);
     }
 
-    const order = ['activities', 'suggestions', 'votes', 'supported', 'favorites'];
+    const order = [
+      'activities',
+      'suggestions',
+      'votes',
+      'supported',
+      'favorites',
+    ];
     final parts = <String, List<UserActivityItem>>{};
     final subs = <StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>[];
     late final StreamController<List<UserActivityItem>> controller;
 
     void emit() {
       if (controller.isClosed) return;
-      controller.add([
-        for (final k in order) ...?parts[k],
-      ]);
+      controller.add([for (final k in order) ...?parts[k]]);
     }
 
     void listenTo(
@@ -401,7 +393,8 @@ class ProfileService {
       Query<Map<String, dynamic>> query,
       Future<List<UserActivityItem>> Function(
         QuerySnapshot<Map<String, dynamic>> snap,
-      ) convert,
+      )
+      convert,
     ) {
       subs.add(
         query.snapshots().listen(

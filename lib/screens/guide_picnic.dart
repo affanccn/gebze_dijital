@@ -3,24 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Gebze Belediyesi - "Doğa & Piknik" (köydeki piknik, doğa ve mesire alanları)
-/// Dosya yolu: lib/screens/guide_picnic.dart
-///
-/// Veri: Firestore `guide_picnic` koleksiyonu. Koleksiyon boşsa aşağıdaki
-/// yedek liste (_fallbackPicnic) gösterilir.
-///
-/// Firestore alanları (hepsi opsiyonel, `name` hariç):
-///   name, name_en, name_ar          -> String
-///   summary, summary_en, summary_ar -> String
-///   type                            -> 'piknik' | 'mesire' | 'doga' | 'park'
-///   village                         -> köy / mahalle adı
-///   address                         -> String
-///   lat, lng                        -> number (varsa yol tarifi bunu kullanır)
-///   mapQuery                        -> koordinat yoksa haritada aranacak metin
-///   image                           -> https://... ya da gorsel/... asset yolu
-///   features, features_en, features_ar -> `List<String>` (ör. çardak, otopark)
-///   order                           -> number (sıralama)
-
 class _C {
   static const navy = Color(0xFF0A2A66);
   static const orange = Color(0xFFFF7A00);
@@ -35,8 +17,6 @@ String _t(String lang, String tr, String en, String ar) =>
     lang == 'en' ? en : (lang == 'ar' ? ar : tr);
 
 String _norm(String p) => p.trim().replaceAll('\\', '/');
-
-// ───────────────────────── Tür yardımcıları ─────────────────────────
 
 const _types = ['piknik', 'mesire', 'doga', 'park'];
 
@@ -55,7 +35,6 @@ String _typeLabel(String type, String lang) {
   }
 }
 
-/// Filtre çiplerinde kullanılan kısa etiketler (hepsi tek satıra sığsın diye).
 String _typeChipLabel(String type, String lang) {
   switch (type) {
     case 'piknik':
@@ -86,15 +65,13 @@ IconData _typeIcon(String type) {
   }
 }
 
-// ───────────────────────── Model ─────────────────────────
-
 class GebzePicnic {
   final String id;
   final Map<String, dynamic> _m;
   final int order;
 
   GebzePicnic(this.id, this._m, {int? fallbackOrder})
-      : order = (_m['order'] as num?)?.toInt() ?? fallbackOrder ?? 999;
+    : order = (_m['order'] as num?)?.toInt() ?? fallbackOrder ?? 999;
 
   String text(String key, String lang) {
     if (lang == 'en' || lang == 'ar') {
@@ -141,9 +118,6 @@ class GebzePicnic {
   }
 }
 
-// ───────────────────────── Yedek veri ─────────────────────────
-// Firestore boşken görünür. Görsel/koordinat/açıklamayı Firestore'dan ekleyin.
-
 List<GebzePicnic> _fallbackPicnic() {
   final items = <Map<String, dynamic>>[
     {
@@ -151,12 +125,9 @@ List<GebzePicnic> _fallbackPicnic() {
       'name': 'Beylikdağı Orman Yürüyüşü',
       'name_en': 'Beylikdagi Forest Walk',
       'name_ar': 'مسار غابة بيليك داغي',
-      'summary':
-          'Gebze\'nin doğal yeşil alanlarından biri olan Beylikdağı Kent Ormanı, şehir hayatının yoğunluğundan uzaklaşmak ve doğayla vakit geçirmek isteyenler için değerlendirilebilecek bir alandır. Ağaçlandırılmış yamaçları ve orman dokusuyla açık havada yürüyüş yapmak, temiz hava almak ve doğa fotoğrafları çekmek isteyenlere farklı bir deneyim sunar.\n\nKent ormanı, Gebze\'nin yeşil alanlarını keşfetmek ve doğayla iç içe zaman geçirmek isteyen vatandaşlar için potansiyel bir doğa rotasıdır.\n\nZiyaret öncesi: Yürüyüş güzergâhı, erişim durumu ve mevcut olanaklar hakkında güncel bilgi alınması önerilir.',
-      'summary_en':
-          'One of Gebze\'s natural green areas, Beylikdagi City Forest offers a peaceful route for open-air walking, fresh air, and nature photography among afforested hillsides.\n\nPre-visit note: Checking the current route accessibility is recommended.',
-      'summary_ar':
-          'تعتبر غابة بيليك داغي الحضرية إحدى المناطق الخضراء الطبيعية في جبزة، وتوفر مساراً رائعاً للمشي في الهواء الطلق واستنشاق الهواء النقي والتصوير الطبيعي.',
+      'summary': 'Gebze\'nin doğal yeşil alanlarından biri olan Beylikdağı Kent Ormanı, şehir hayatının yoğunluğundan uzaklaşmak ve doğayla vakit geçirmek isteyenler için değerlendirilebilecek bir alandır. Ağaçlandırılmış yamaçları ve orman dokusuyla açık havada yürüyüş yapmak, temiz hava almak ve doğa fotoğrafları çekmek isteyenlere farklı bir deneyim sunar.\n\nKent ormanı, Gebze\'nin yeşil alanlarını keşfetmek ve doğayla iç içe zaman geçirmek isteyen vatandaşlar için potansiyel bir doğa rotasıdır.\n\nZiyaret öncesi: Yürüyüş güzergâhı, erişim durumu ve mevcut olanaklar hakkında güncel bilgi alınması önerilir.',
+      'summary_en': 'One of Gebze\'s natural green areas, Beylikdagi City Forest offers a peaceful route for open-air walking, fresh air, and nature photography among afforested hillsides.\n\nPre-visit note: Checking the current route accessibility is recommended.',
+      'summary_ar': 'تعتبر غابة بيليك داغي الحضرية إحدى المناطق الخضراء الطبيعية في جبزة، وتوفر مساراً رائعاً للمشي في الهواء الطلق واستنشاق الهواء النقي والتصوير الطبيعي.',
       'type': 'doga',
       'village': 'Beylikdağı',
       'address': 'Beylikdağı, Gebze, Kocaeli',
@@ -172,19 +143,26 @@ List<GebzePicnic> _fallbackPicnic() {
       'name': 'Denizli Göleti Doğa Rotası',
       'name_en': 'Denizli Pond Nature Route',
       'name_ar': 'مسار بركة دينيزلي الطبيعي',
-      'summary':
-          'Gebze\'nin Denizli Mahallesi çevresinde yer alan Denizli Göleti, gölet manzarasını kırsal doğayla buluşturan bir yürüyüş noktasıdır. Gölet çevresindeki doğal alanlardan başlayan yürüyüşler, toprak yollar ve orman patikaları boyunca ilerleyerek ziyaretçilere şehrin yoğunluğundan uzaklaşma fırsatı sunar.\n\nDoğa fotoğrafçılığı, manzara izleme ve açık havada vakit geçirmek isteyenler için değerlendirilebilecek bu rota, çevredeki tepeler ve kırsal yürüyüş güzergâhlarıyla birleştirilebilir.',
-      'summary_en':
-          'Located around Denizli Neighborhood in Gebze, Denizli Pond combines lake views with rural nature. Trails along dirt roads and forest paths offer a serene escape from city hustle.',
-      'summary_ar':
-          'تقع بركة دينيزلي بالقرب من حي دينيزلي في جبزة، وتجمع بين إطلالة البحيرة الهادئة والطبيعة الريفية مع مسارات المشي عبر الطرق الترابية والغابات.',
+      'summary': 'Gebze\'nin Denizli Mahallesi çevresinde yer alan Denizli Göleti, gölet manzarasını kırsal doğayla buluşturan bir yürüyüş noktasıdır. Gölet çevresindeki doğal alanlardan başlayan yürüyüşler, toprak yollar ve orman patikaları boyunca ilerleyerek ziyaretçilere şehrin yoğunluğundan uzaklaşma fırsatı sunar.\n\nDoğa fotoğrafçılığı, manzara izleme ve açık havada vakit geçirmek isteyenler için değerlendirilebilecek bu rota, çevredeki tepeler ve kırsal yürüyüş güzergâhlarıyla birleştirilebilir.',
+      'summary_en': 'Located around Denizli Neighborhood in Gebze, Denizli Pond combines lake views with rural nature. Trails along dirt roads and forest paths offer a serene escape from city hustle.',
+      'summary_ar': 'تقع بركة دينيزلي بالقرب من حي دينيزلي في جبزة، وتجمع بين إطلالة البحيرة الهادئة والطبيعة الريفية مع مسارات المشي عبر الطرق الترابية والغابات.',
       'type': 'doga',
       'village': 'Denizli Mahallesi',
       'address': 'Denizli Mahallesi, Gebze, Kocaeli',
       'mapQuery': 'Denizli Göleti Gebze Kocaeli',
       'image': 'gorsel/piknik/denizli_goleti.jpg',
-      'features': ['Gölet Manzarası', 'Kırsal Doğa', 'Orman Yürüyüşü', 'Fotoğrafçılık'],
-      'features_en': ['Lake View', 'Rural Nature', 'Forest Walk', 'Photography'],
+      'features': [
+        'Gölet Manzarası',
+        'Kırsal Doğa',
+        'Orman Yürüyüşü',
+        'Fotoğrafçılık',
+      ],
+      'features_en': [
+        'Lake View',
+        'Rural Nature',
+        'Forest Walk',
+        'Photography',
+      ],
       'features_ar': ['إطلالة البركة', 'طبيعة ريفية', 'مشي في الغابة', 'تصوير'],
       'order': 2,
     },
@@ -193,20 +171,32 @@ List<GebzePicnic> _fallbackPicnic() {
       'name': 'Denizli Göleti – Yörük Yaylaları Doğa Rotası',
       'name_en': 'Denizli Pond – Yoruk Plateaus Nature Route',
       'name_ar': 'مسار بركة دينيزلي – هضاب يوروك الطبيعي',
-      'summary':
-          'Denizli Göleti\'nden başlayarak Gebze\'nin kırsal alanlarına uzanan bu doğa rotası; orman yollarını, geniş çayırlıkları ve yayla manzaralarını bir araya getirir. Şehir yaşamından uzaklaşmak, doğanın sakinliğini hissetmek ve uzun yürüyüşler yapmak isteyenler için farklı bir keşif deneyimi sunar.\n\nGüzergâhın seçilen bölümüne göre yürüyüş, gölet çevresinden tepelere ve yayla açıklıklarına doğru ilerleyebilir. Doğa yürüyüşü grupları tarafından kullanılan bu bölge, kırsal manzara ve doğa fotoğrafçılığı açısından da ilgi çekicidir.',
-      'summary_en':
-          'Starting from Denizli Pond and extending into rural Gebze, this nature route combines forest tracks, wide meadows, and plateau views, offering a great experience for hiking groups.',
-      'summary_ar':
-          'يمتد هذا المسار الطبيعي من بركة دينيزلي نحو ريف جبزة، جامعاً بين طرق الغابات والمروج الخضراء الواسعة وإطلالات الهضاب الخلابة.',
+      'summary': 'Denizli Göleti\'nden başlayarak Gebze\'nin kırsal alanlarına uzanan bu doğa rotası; orman yollarını, geniş çayırlıkları ve yayla manzaralarını bir araya getirir. Şehir yaşamından uzaklaşmak, doğanın sakinliğini hissetmek ve uzun yürüyüşler yapmak isteyenler için farklı bir keşif deneyimi sunar.\n\nGüzergâhın seçilen bölümüne göre yürüyüş, gölet çevresinden tepelere ve yayla açıklıklarına doğru ilerleyebilir. Doğa yürüyüşü grupları tarafından kullanılan bu bölge, kırsal manzara ve doğa fotoğrafçılığı açısından da ilgi çekicidir.',
+      'summary_en': 'Starting from Denizli Pond and extending into rural Gebze, this nature route combines forest tracks, wide meadows, and plateau views, offering a great experience for hiking groups.',
+      'summary_ar': 'يمتد هذا المسار الطبيعي من بركة دينيزلي نحو ريف جبزة، جامعاً بين طرق الغابات والمروج الخضراء الواسعة وإطلالات الهضاب الخلابة.',
       'type': 'doga',
       'village': 'Denizli & Yörük Yaylaları',
       'address': 'Denizli Mahallesi ve Yörük Yaylaları çevresi, Gebze, Kocaeli',
       'mapQuery': 'Denizli Göleti Yörük Yaylaları Gebze Kocaeli',
       'image': 'gorsel/piknik/denizli_yoruk_yaylalari.png',
-      'features': ['Yayla Manzaraları', 'Orman Patikaları', 'Çayırlıklar', 'Uzun Doğa Yürüyüşleri'],
-      'features_en': ['Plateau Views', 'Forest Trails', 'Meadows', 'Long Nature Walks'],
-      'features_ar': ['مناظر الهضاب', 'مسارات الغابات', 'مروج خضراء', 'مشي طبيعي طويل'],
+      'features': [
+        'Yayla Manzaraları',
+        'Orman Patikaları',
+        'Çayırlıklar',
+        'Uzun Doğa Yürüyüşleri',
+      ],
+      'features_en': [
+        'Plateau Views',
+        'Forest Trails',
+        'Meadows',
+        'Long Nature Walks',
+      ],
+      'features_ar': [
+        'مناظر الهضاب',
+        'مسارات الغابات',
+        'مروج خضراء',
+        'مشي طبيعي طويل',
+      ],
       'order': 3,
     },
     {
@@ -214,20 +204,32 @@ List<GebzePicnic> _fallbackPicnic() {
       'name': 'Elmalıdere Şelalesi ve Orman Patikaları',
       'name_en': 'Elmalidere Waterfall & Forest Trails',
       'name_ar': 'شلال إلماليده ره ومسارات الغابة',
-      'summary':
-          'Gebze\'nin Denizli kırsalı çevresinde bulunan Elmalıdere Şelalesi, dere yatağı, doğal bitki örtüsü ve orman yollarıyla doğa yürüyüşü meraklılarının ilgisini çeken bir noktadır. Bölgeye uzanan güzergâhlar, yürüyüş boyunca farklı arazi dokularını ve kırsal manzaraları keşfetme imkânı sunar.\n\nŞelaleye ulaşan patikalar, doğa fotoğrafçılığı ve sakin bir açık hava deneyimi arayanlar için ilgi çekici olabilir. Bununla birlikte arazi koşulları, su seviyesi ve erişim durumu mevsime göre değişebileceğinden ziyaret öncesinde güzergâhın güncel durumu kontrol edilmelidir.',
-      'summary_en':
-          'Located around Denizli countryside in Gebze, Elmalidere Waterfall attracts hiking enthusiasts with its stream bed, natural flora, and forest paths.\n\nNote: Seasonal terrain conditions and water levels may vary.',
-      'summary_ar':
-          'يقع شلال إلماليده ره في ريف دينيزلي بجبزة، ويجذب عشاق المشي الطبيعي بمجراه المائي وغطائه النباتي ومساراته بين الغابات.',
+      'summary': 'Gebze\'nin Denizli kırsalı çevresinde bulunan Elmalıdere Şelalesi, dere yatağı, doğal bitki örtüsü ve orman yollarıyla doğa yürüyüşü meraklılarının ilgisini çeken bir noktadır. Bölgeye uzanan güzergâhlar, yürüyüş boyunca farklı arazi dokularını ve kırsal manzaraları keşfetme imkânı sunar.\n\nŞelaleye ulaşan patikalar, doğa fotoğrafçılığı ve sakin bir açık hava deneyimi arayanlar için ilgi çekici olabilir. Bununla birlikte arazi koşulları, su seviyesi ve erişim durumu mevsime göre değişebileceğinden ziyaret öncesinde güzergâhın güncel durumu kontrol edilmelidir.',
+      'summary_en': 'Located around Denizli countryside in Gebze, Elmalidere Waterfall attracts hiking enthusiasts with its stream bed, natural flora, and forest paths.\n\nNote: Seasonal terrain conditions and water levels may vary.',
+      'summary_ar': 'يقع شلال إلماليده ره في ريف دينيزلي بجبزة، ويجذب عشاق المشي الطبيعي بمجراه المائي وغطائه النباتي ومساراته بين الغابات.',
       'type': 'doga',
       'village': 'Denizli Kırsalı',
       'address': 'Denizli kırsalı, Gebze, Kocaeli',
       'mapQuery': 'Elmalıdere Şelalesi Denizli Gebze Kocaeli',
       'image': 'gorsel/piknik/elmalidere_selalesi.jpg',
-      'features': ['Şelale Manzarası', 'Dere Yatağı', 'Orman Patikaları', 'Doğa Fotoğrafçılığı'],
-      'features_en': ['Waterfall View', 'Stream Bed', 'Forest Paths', 'Nature Photography'],
-      'features_ar': ['إطلالة الشلال', 'مجرى مائي', 'مسارات الغابة', 'تصوير الطبيعة'],
+      'features': [
+        'Şelale Manzarası',
+        'Dere Yatağı',
+        'Orman Patikaları',
+        'Doğa Fotoğrafçılığı',
+      ],
+      'features_en': [
+        'Waterfall View',
+        'Stream Bed',
+        'Forest Paths',
+        'Nature Photography',
+      ],
+      'features_ar': [
+        'إطلالة الشلال',
+        'مجرى مائي',
+        'مسارات الغابة',
+        'تصوير الطبيعة',
+      ],
       'order': 4,
     },
     {
@@ -235,19 +237,26 @@ List<GebzePicnic> _fallbackPicnic() {
       'name': 'Yelken Tepe Doğa Yürüyüşü',
       'name_en': 'Yelken Tepe Nature Walk',
       'name_ar': 'مسار جبل يلكن تيبي',
-      'summary':
-          'Gebze\'nin Denizli kırsalındaki Yelken Tepe, gölet ve yayla güzergâhlarıyla birleştirilebilen bir doğa yürüyüşü noktasıdır. Orman içinden geçen patikalar ve yükseltilerden görülen kırsal manzaralar, yürüyüşe farklı bir deneyim katar.\n\nTepeye uzanan güzergâhlar, doğada vakit geçirmek, manzara fotoğrafları çekmek ve daha uzun yürüyüş parkurlarını keşfetmek isteyenlere hitap eder. Arazi yapısı ve seçilen parkura bağlı olarak yürüyüş, başlangıç seviyesinden daha deneyimli doğa yürüyüşçülerine kadar farklı hazırlık düzeyleri gerektirebilir.',
-      'summary_en':
-          'Yelken Tepe in rural Denizli, Gebze is a peak hiking spot featuring paths through forest terrain and rewarding panoramic rural vistas.',
-      'summary_ar':
-          'تعتبر قمة يلكن تيبي في ريف دينيزلي بجبزة وجهة مميزة للمشي الجبلي والمسارات الغابية والمناظر الريفية البانورامية.',
+      'summary': 'Gebze\'nin Denizli kırsalındaki Yelken Tepe, gölet ve yayla güzergâhlarıyla birleştirilebilen bir doğa yürüyüşü noktasıdır. Orman içinden geçen patikalar ve yükseltilerden görülen kırsal manzaralar, yürüyüşe farklı bir deneyim katar.\n\nTepeye uzanan güzergâhlar, doğada vakit geçirmek, manzara fotoğrafları çekmek ve daha uzun yürüyüş parkurlarını keşfetmek isteyenlere hitap eder. Arazi yapısı ve seçilen parkura bağlı olarak yürüyüş, başlangıç seviyesinden daha deneyimli doğa yürüyüşçülerine kadar farklı hazırlık düzeyleri gerektirebilir.',
+      'summary_en': 'Yelken Tepe in rural Denizli, Gebze is a peak hiking spot featuring paths through forest terrain and rewarding panoramic rural vistas.',
+      'summary_ar': 'تعتبر قمة يلكن تيبي في ريف دينيزلي بجبزة وجهة مميزة للمشي الجبلي والمسارات الغابية والمناظر الريفية البانورامية.',
       'type': 'doga',
       'village': 'Denizli Kırsalı',
       'address': 'Yelken Tepe, Denizli kırsalı, Gebze, Kocaeli',
       'mapQuery': 'Yelken Tepe Denizli Gebze Kocaeli',
       'image': 'gorsel/piknik/yelken_tepe.png',
-      'features': ['Tepe Yürüyüşü', 'Orman Patikaları', 'Kırsal Manzara', 'Fotoğrafçılık'],
-      'features_en': ['Hill Trek', 'Forest Paths', 'Rural Scenery', 'Photography'],
+      'features': [
+        'Tepe Yürüyüşü',
+        'Orman Patikaları',
+        'Kırsal Manzara',
+        'Fotoğrafçılık',
+      ],
+      'features_en': [
+        'Hill Trek',
+        'Forest Paths',
+        'Rural Scenery',
+        'Photography',
+      ],
       'features_ar': ['صعود التل', 'مسارات الغابة', 'مشهد ريفي', 'تصوير'],
       'order': 5,
     },
@@ -373,8 +382,6 @@ List<GebzePicnic> _fallbackPicnic() {
   ];
 }
 
-// ───────────────────────── Liste ─────────────────────────
-
 class GuidePicnicView extends StatefulWidget {
   final String lang;
   const GuidePicnicView({super.key, required this.lang});
@@ -388,7 +395,10 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
   String _query = '';
   String _type = 'all';
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _picnicStream =
-      FirebaseFirestore.instance.collection('guide_picnic').limit(50).snapshots();
+      FirebaseFirestore.instance
+          .collection('guide_picnic')
+          .limit(50)
+          .snapshots();
 
   @override
   void dispose() {
@@ -406,8 +416,14 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(_t(widget.lang, 'Sayfa açılamadı.',
-                'Could not open the page.', 'تعذّر فتح الصفحة.')),
+            content: Text(
+              _t(
+                widget.lang,
+                'Sayfa açılamadı.',
+                'Could not open the page.',
+                'تعذّر فتح الصفحة.',
+              ),
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -429,19 +445,25 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : _C.field,
               borderRadius: BorderRadius.circular(24),
-              border:
-                  isDark ? Border.all(color: const Color(0xFF334155)) : null,
+              border: isDark
+                  ? Border.all(color: const Color(0xFF334155))
+                  : null,
             ),
             child: TextField(
               controller: _ctrl,
               onChanged: (v) => setState(() => _query = v),
               style: TextStyle(
-                  fontSize: 14, color: isDark ? Colors.white : _C.textDark),
+                fontSize: 14,
+                color: isDark ? Colors.white : _C.textDark,
+              ),
               decoration: InputDecoration(
                 filled: false,
-                hintText: _t(lang, 'Piknik, mesire veya doğa alanı ara...',
-                    'Search picnic, recreation or nature areas...',
-                    'ابحث عن منطقة نزهة أو طبيعة...'),
+                hintText: _t(
+                  lang,
+                  'Piknik, mesire veya doğa alanı ara...',
+                  'Search picnic, recreation or nature areas...',
+                  'ابحث عن منطقة نزهة أو طبيعة...',
+                ),
                 hintStyle: TextStyle(
                   fontSize: 14,
                   color: isDark ? const Color(0xFF94A3B8) : _C.textMuted,
@@ -465,47 +487,53 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
               for (int i = 0; i < filters.length; i++) ...[
                 if (i != 0) const SizedBox(width: 6),
                 Expanded(
-                  child: Builder(builder: (context) {
-                    final f = filters[i];
-                    final isSel = f == _type;
-                    return ChoiceChip(
-                      padding: EdgeInsets.zero,
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      label: SizedBox(
-                        width: double.infinity,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _typeChipLabel(f, lang),
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight:
-                                  isSel ? FontWeight.w700 : FontWeight.w500,
-                              color: isSel
-                                  ? Colors.white
-                                  : (isDark ? Colors.white : _C.textDark),
+                  child: Builder(
+                    builder: (context) {
+                      final f = filters[i];
+                      final isSel = f == _type;
+                      return ChoiceChip(
+                        padding: EdgeInsets.zero,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        label: SizedBox(
+                          width: double.infinity,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _typeChipLabel(f, lang),
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: isSel
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isSel
+                                    ? Colors.white
+                                    : (isDark ? Colors.white : _C.textDark),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      selected: isSel,
-                      selectedColor:
-                          isDark ? const Color(0xFF2563EB) : _C.navy,
-                      backgroundColor:
-                          isDark ? const Color(0xFF1E293B) : Colors.white,
-                      side: BorderSide(
-                        color: isSel
-                            ? (isDark ? const Color(0xFF2563EB) : _C.navy)
-                            : (isDark ? const Color(0xFF334155) : _C.line),
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      showCheckmark: false,
-                      onSelected: (_) => setState(() => _type = f),
-                    );
-                  }),
+                        selected: isSel,
+                        selectedColor: isDark
+                            ? const Color(0xFF2563EB)
+                            : _C.navy,
+                        backgroundColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white,
+                        side: BorderSide(
+                          color: isSel
+                              ? (isDark ? const Color(0xFF2563EB) : _C.navy)
+                              : (isDark ? const Color(0xFF334155) : _C.line),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        showCheckmark: false,
+                        onSelected: (_) => setState(() => _type = f),
+                      );
+                    },
+                  ),
                 ),
               ],
             ],
@@ -533,7 +561,8 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
               final q = _query.trim().toLowerCase();
               final filtered = all.where((p) {
                 final okType = _type == 'all' || p.type == _type;
-                final okQuery = q.isEmpty ||
+                final okQuery =
+                    q.isEmpty ||
                     p.text('name', lang).toLowerCase().contains(q) ||
                     p.text('summary', lang).toLowerCase().contains(q) ||
                     p.text('village', lang).toLowerCase().contains(q) ||
@@ -546,10 +575,16 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      _t(lang, 'Alan bulunamadı.', 'No areas found.',
-                          'لم يتم العثور على أماكن.'),
+                      _t(
+                        lang,
+                        'Alan bulunamadı.',
+                        'No areas found.',
+                        'لم يتم العثور على أماكن.',
+                      ),
                       style: const TextStyle(
-                          color: _C.textMuted, fontWeight: FontWeight.w600),
+                        color: _C.textMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 );
@@ -572,29 +607,30 @@ class _GuidePicnicViewState extends State<GuidePicnicView> {
   }
 }
 
-// ───────────────────────── Görsel ─────────────────────────
-
 class _PicnicImage extends StatelessWidget {
   final String image;
   final String type;
   final double height;
-  const _PicnicImage(
-      {required this.image, required this.type, required this.height});
+  const _PicnicImage({
+    required this.image,
+    required this.type,
+    required this.height,
+  });
 
   Widget _placeholder() => Container(
-        height: height,
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF66BB6A), Color(0xFF1B5E20)],
-          ),
-        ),
-        child: Center(
-          child: Icon(_typeIcon(type), color: Colors.white70, size: 56),
-        ),
-      );
+    height: height,
+    width: double.infinity,
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF66BB6A), Color(0xFF1B5E20)],
+      ),
+    ),
+    child: Center(
+      child: Icon(_typeIcon(type), color: Colors.white70, size: 56),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -619,8 +655,6 @@ class _PicnicImage extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Kart ─────────────────────────
 
 class _PicnicCard extends StatelessWidget {
   final GebzePicnic item;
@@ -685,7 +719,9 @@ class _PicnicCard extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 5),
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: _C.green,
                           borderRadius: BorderRadius.circular(14),
@@ -693,8 +729,11 @@ class _PicnicCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(_typeIcon(item.type),
-                                size: 14, color: Colors.white),
+                            Icon(
+                              _typeIcon(item.type),
+                              size: 14,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 5),
                             Text(
                               _typeLabel(item.type, lang),
@@ -730,8 +769,11 @@ class _PicnicCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.location_on_rounded,
-                            size: 18, color: _C.green),
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 18,
+                          color: _C.green,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -751,8 +793,12 @@ class _PicnicCard extends StatelessWidget {
                   if (summary.isNotEmpty) ...[
                     const SizedBox(height: 18),
                     Text(
-                      _t(lang, 'Açıklama & Rota Bilgisi',
-                          'Description & Route Info', 'الوصف ومعلومات المسار'),
+                      _t(
+                        lang,
+                        'Açıklama & Rota Bilgisi',
+                        'Description & Route Info',
+                        'الوصف ومعلومات المسار',
+                      ),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -774,8 +820,12 @@ class _PicnicCard extends StatelessWidget {
                   if (features.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Text(
-                      _t(lang, 'Öne Çıkanlar & Aktiviteler',
-                          'Highlights & Activities', 'الأنشطة والمميزات'),
+                      _t(
+                        lang,
+                        'Öne Çıkanlar & Aktiviteler',
+                        'Highlights & Activities',
+                        'الأنشطة والمميزات',
+                      ),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -790,14 +840,15 @@ class _PicnicCard extends StatelessWidget {
                         for (final f in features)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF0F172A)
                                   : const Color(0xFFE8F5E9),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color: _C.green.withAlpha(80)),
+                              border: Border.all(color: _C.green.withAlpha(80)),
                             ),
                             child: Text(
                               f,
@@ -823,10 +874,16 @@ class _PicnicCard extends StatelessWidget {
                       },
                       icon: const Icon(Icons.directions_rounded, size: 20),
                       label: Text(
-                        _t(lang, 'Haritada Yol Tarifi Al',
-                            'Get Directions on Map', 'الاتجاهات على الخريطة'),
+                        _t(
+                          lang,
+                          'Haritada Yol Tarifi Al',
+                          'Get Directions on Map',
+                          'الاتجاهات على الخريطة',
+                        ),
                         style: const TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 15),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _C.orange,
@@ -877,8 +934,10 @@ class _PicnicCard extends StatelessWidget {
                   left: 12,
                   top: 12,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: _C.green.withAlpha(230),
                       borderRadius: BorderRadius.circular(14),
@@ -886,8 +945,11 @@ class _PicnicCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_typeIcon(item.type),
-                            size: 14, color: Colors.white),
+                        Icon(
+                          _typeIcon(item.type),
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           _typeLabel(item.type, lang),
@@ -931,8 +993,12 @@ class _PicnicCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _t(lang, 'Detayları ve rota bilgilerini gör →',
-                          'View details and route info →', 'عرض التفاصيل والمعلومات →'),
+                      _t(
+                        lang,
+                        'Detayları ve rota bilgilerini gör →',
+                        'View details and route info →',
+                        'عرض التفاصيل والمعلومات →',
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -947,8 +1013,11 @@ class _PicnicCard extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.location_on_rounded,
-                            size: 16, color: _C.green),
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 16,
+                          color: _C.green,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -973,7 +1042,9 @@ class _PicnicCard extends StatelessWidget {
                         for (final f in features)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF0F172A)
@@ -1010,7 +1081,8 @@ class _PicnicCard extends StatelessWidget {
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),

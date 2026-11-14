@@ -11,16 +11,6 @@ import 'auth_screen.dart';
 import 'auth_service.dart';
 import 'guest_home_screen.dart';
 
-/// Dosya yolu: lib/screens/auth_gate.dart
-///
-/// Uygulamanın kök ekranı (main.dart > home).
-/// - Oturum açık                       → ana sayfa
-/// - "Üye olmadan devam et" seçilmiş   → ana sayfa (kısıtlı)
-/// - Aksi halde                        → giriş ekranı
-///
-/// Ayrıca kullanıcı giriş yapınca Firestore'daki profilinden dil, yazı tipi
-/// ve tema tercihini bir kez okuyup uygulamaya yükler; böylece aynı hesapla
-/// başka cihazdan girildiğinde de ayarlar aynı gelir.
 class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
 
@@ -29,7 +19,6 @@ class AuthGate extends ConsumerStatefulWidget {
 }
 
 class _AuthGateState extends ConsumerState<AuthGate> {
-  /// Tercihleri en son hangi kullanıcı için senkronladık.
   String? _syncedUid;
   ProviderSubscription<AsyncValue<UserProfile>>? _sub;
 
@@ -39,7 +28,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     super.dispose();
   }
 
-  /// Profil gelince (yalnızca bir kez) tercihleri uygular.
   void _syncPreferences(String uid) {
     _sub?.close();
     var applied = false;
@@ -48,8 +36,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       next,
     ) {
       final p = next.value;
-      // Döküman henüz yokken üretilen varsayılan profili (id: default_citizen)
-      // atla; gerçek kullanıcı dökümanını bekle.
       if (applied || p == null || p.id != uid) return;
       applied = true;
 
@@ -58,7 +44,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       ref.read(appThemeModeProvider.notifier).setThemeMode(p.themeMode);
       PushService.syncAllPreferences(p.notificationPreferences);
 
-      // Bir kez uygulayınca dinlemeyi bırak.
       Future.microtask(() {
         _sub?.close();
         _sub = null;
@@ -76,7 +61,6 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       ref.read(authScreenVisibleProvider.notifier).state = !isHome;
     });
 
-    // Kullanıcı değişti (giriş / çıkış): giriş yaptıysa tercihlerini yükle.
     final uid = auth.value?.uid;
     if (uid != _syncedUid) {
       _syncedUid = uid;

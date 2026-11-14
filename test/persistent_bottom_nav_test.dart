@@ -38,12 +38,10 @@ void main() {
       expect(find.text(AppStrings.get('nav_services', 'tr')), findsOneWidget);
       expect(find.text(AppStrings.get('nav_profile', 'tr')), findsOneWidget);
 
-      // Tap on Rehber (tab 1)
       await tester.tap(find.text(AppStrings.get('nav_guide', 'tr')));
       await tester.pump();
       expect(selectedTab, 1);
 
-      // Tap on Hizmetler (tab 3)
       await tester.tap(find.text(AppStrings.get('nav_services', 'tr')));
       await tester.pump();
       expect(selectedTab, 3);
@@ -54,18 +52,13 @@ void main() {
       (tester) async {
         await tester.pumpWidget(
           ProviderScope(
-            overrides: [
-              isLoggedInProvider.overrideWith((ref) => true),
-            ],
-            child: const MaterialApp(
-              home: GuestHomeScreen(),
-            ),
+            overrides: [isLoggedInProvider.overrideWith((ref) => true)],
+            child: const MaterialApp(home: GuestHomeScreen()),
           ),
         );
 
         await tester.pump();
 
-        // Exactly one AppBottomNav must exist in the widget tree
         expect(find.byType(AppBottomNav), findsOneWidget);
         expect(find.byType(IndexedStack), findsOneWidget);
 
@@ -74,11 +67,9 @@ void main() {
         );
         expect(indexedStackBefore.index, 0);
 
-        // Tap on Services (Hizmetler) tab
         await tester.tap(find.text(AppStrings.get('nav_services', 'tr')));
         await tester.pump();
 
-        // AppBottomNav is STILL exactly one, unchanged, never disposed
         expect(find.byType(AppBottomNav), findsOneWidget);
 
         final indexedStackAfter = tester.widget<IndexedStack>(

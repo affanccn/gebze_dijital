@@ -205,12 +205,10 @@ async function main() {
     console.log("TAMAM");
   }
 
-  // Önbellek dosyasını güncelle
-  const jsContent = `// GEBZE BELEDİYESİ GÜNCEL RESMİ HABERLER ÖNBELLEĞİ (${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR')})\nwindow.GEBZE_OFFICIAL_NEWS = ${JSON.stringify(entries, null, 2)};\n`;
-  writeFileSync("c:/Users/Asus/gebze_dijital/gebze_dijital/admin/gebze_haber_cache.js", jsContent, "utf-8");
-  console.log("\n4. admin/gebze_haber_cache.js güncellendi.");
+  const jsContent = `window.GEBZE_OFFICIAL_NEWS = ${JSON.stringify(entries, null, 2)};\n`;
+  writeFileSync("c:/Users/Asus/gebze_dijital/gebze_dijital/admin/news_cache.js", jsContent, "utf-8");
+  console.log("\n4. admin/news_cache.js güncellendi.");
 
-  // Doğrudan Firebase Firestore'a yaz
   console.log("5. Haberler doğrudan Firebase Firestore veritabanına yazılıyor...");
   let successCount = 0;
   for (const item of entries) {

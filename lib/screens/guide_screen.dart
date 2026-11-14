@@ -16,9 +16,6 @@ import 'services_screen.dart';
 import 'profile_screen.dart';
 import 'app_bottom_nav.dart';
 
-/// Gebze Belediyesi - Şehir Rehberi
-/// Dosya yolu: lib/screens/guide_screen.dart
-
 class _C {
   static const navy = Color(0xFF0A2A66);
   static const navyDeep = Color(0xFF0F2240);
@@ -49,7 +46,6 @@ Widget _withFont(BuildContext context, Widget child) {
   );
 }
 
-/// Özel mezar taşı ikonu çizimi
 Widget _tombstoneIcon(Color color, double size) {
   return SizedBox(
     width: size,
@@ -72,24 +68,19 @@ class _TombstonePainter extends CustomPainter {
     final h = size.height;
 
     final path = Path();
-    // Taban çizgisi
     path.moveTo(w * 0.1, h * 0.9);
     path.lineTo(w * 0.9, h * 0.9);
-    // Sağ kenar
     path.lineTo(w * 0.85, h * 0.4);
-    // Üst kavis (mezar taşı yuvarlak başlığı)
     path.arcToPoint(
       Offset(w * 0.15, h * 0.4),
       radius: Radius.circular(w * 0.35),
       clockwise: false,
     );
-    // Sol kenar
     path.lineTo(w * 0.1, h * 0.9);
     path.close();
 
     canvas.drawPath(path, paint);
 
-    // Kaide/Alt taban
     final baseRect = RRect.fromRectAndRadius(
       Rect.fromLTRB(w * 0.05, h * 0.85, w * 0.95, h * 0.95),
       const Radius.circular(2),
@@ -101,12 +92,9 @@ class _TombstonePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// Önizleme sayfasındaki yeni metinler için yerel çeviri yardımcısı.
-/// (İstersen bunları ileride AppStrings dosyasına taşıyabilirsiniz.)
 String _t(String lang, String tr, String en, String ar) =>
     lang == 'en' ? en : (lang == 'ar' ? ar : tr);
 
-/// Windows'tan kopyalanan "gorsel\tesisler\x.jpg" yollarını "gorsel/tesisler/x.jpg" yapar.
 String _normalizeImagePath(String path) => path.trim().replaceAll('\\', '/');
 
 Future<void> _openUrl(BuildContext context, String url, String lang) async {
@@ -131,8 +119,6 @@ Future<void> _openUrl(BuildContext context, String url, String lang) async {
       );
   }
 }
-
-// ───────────────────────── Modeller ─────────────────────────
 
 class HistoricPlace {
   final String id;
@@ -191,7 +177,6 @@ class _Category {
   final IconData icon;
   final Color color;
 
-  /// Hazır ikon yetmediğinde özel çizilmiş ikon (örn. mezar taşı).
   final Widget Function(Color color, double size)? iconBuilder;
 
   const _Category(
@@ -499,7 +484,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
           ? 'سبيل عثماني من القرن السابع عشر في قلب جبزة، بناه الوزير إبراهيم باشا بجوار حمام جوبان مصطفى باشا.'
           : 'Gebze şehir merkezinde, Çoban Mustafa Paşa Hamamı\'nın hemen yanında yer alan; Vezir İbrahim Paşa tarafından 17. yüzyılda yaptırılan Osmanlı çeşmesi.',
       detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_ibrahim-pasa-cesmesi-carsi-cesmesi_9.html',
-      image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg', // dosya adını klasördekiyle eşleştir
+      image: 'gorsel/tarihi_yerler/ipasacesmesi.jpg',
       category: catTarihi,
     ),
     HistoricPlace(
@@ -547,7 +532,7 @@ List<HistoricPlace> _getFallbackPlaces(String lang) {
           ? 'شاذروان مجمع جوبان مصطفى باشا من القرن السادس عشر، وهو من العناصر العثمانية الكلاسيكية في المجمع.'
           : '16. yüzyılda inşa edilen Çoban Mustafa Paşa Külliyesi\'nin klasik dönem Osmanlı mimarisini yansıtan şadırvanı.',
       detailUrl: 'https://www.gebze.bel.tr/gebze-tarihi-yerler_coban-mustafa-pasa-sadirvani_10.html',
-      image: 'gorsel/tarihi_yerler/sadirvan.jpg', // dosya adını klasördekiyle eşleştir
+      image: 'gorsel/tarihi_yerler/sadirvan.jpg',
       category: catTarihi,
     ),
     HistoricPlace(
@@ -1089,12 +1074,9 @@ void _ensureNurseriesSeeded() {
   });
 }
 
-// ───────────────────────── Ana Ekran ─────────────────────────
-
 class GuideScreen extends ConsumerWidget {
   final ValueChanged<int>? onNavTap;
 
-  /// 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet (ana sayfadaki kısayollar için)
   final int initialTab;
   final int initialDiscoverSection;
   final bool showBottomNav;
@@ -1140,7 +1122,10 @@ class GuideScreen extends ConsumerWidget {
                   child: TabBarView(
                     children: [
                       _InstitutionsTab(lang: lang),
-                      _DiscoverTab(lang: lang, initialSection: initialDiscoverSection),
+                      _DiscoverTab(
+                        lang: lang,
+                        initialSection: initialDiscoverSection,
+                      ),
                     ],
                   ),
                 ),
@@ -1158,15 +1143,21 @@ class GuideScreen extends ConsumerWidget {
                         Navigator.of(context).pop();
                         if (i == 2) {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ReportScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const ReportScreen(),
+                            ),
                           );
                         } else if (i == 3) {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ServicesScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const ServicesScreen(),
+                            ),
                           );
                         } else if (i == 4) {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const ProfileScreen(),
+                            ),
                           );
                         }
                       }
@@ -1180,8 +1171,6 @@ class GuideScreen extends ConsumerWidget {
   }
 }
 
-/// Ana sayfadaki kısayollar için: bir kurumsal hizmet kategorisinin
-/// kart listesini doğrudan açar (örn. categoryId: 'lokantalar' → Kent Lokantaları).
 class GuideCategoryScreen extends ConsumerWidget {
   final String categoryId;
   const GuideCategoryScreen({super.key, required this.categoryId});
@@ -1310,8 +1299,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Ortak arama kutusu ─────────────────────────
-
 class _SearchField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -1361,8 +1348,6 @@ class _SearchField extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Sekme 1: Kurumsal Hizmetler ─────────────────────────
 
 class _InstitutionsTab extends StatefulWidget {
   final String lang;
@@ -1497,7 +1482,6 @@ class _CategoryTile extends StatelessWidget {
   }
 }
 
-/// Kurum listesi ekranı (arama kutulu)
 class _InstitutionListScreen extends StatefulWidget {
   final _Category category;
   final String lang;
@@ -1510,23 +1494,22 @@ class _InstitutionListScreen extends StatefulWidget {
 class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   final _ctrl = TextEditingController();
   String _query = '';
-  String _selectedTimeFilter =
-      'upcoming'; // 'upcoming', 'this_month', 'all', 'past'
-  String _selectedEventCategory = 'all'; // 'all', 'tiyatro', 'sinema', 'konser', 'soylesi', 'cocuk', 'diger'
+  String _selectedTimeFilter = 'upcoming';
+  String _selectedEventCategory = 'all';
 
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _dataStream =
       widget.category.id == 'etkinlikler'
-          ? FirebaseFirestore.instance
-              .collection('events')
-              .where('date', isGreaterThanOrEqualTo: '2026-10-01')
-              .orderBy('date')
-              .limit(50)
-              .snapshots()
-          : FirebaseFirestore.instance
-              .collection('guide_institutions')
-              .where('category', isEqualTo: widget.category.id)
-              .limit(50)
-              .snapshots();
+      ? FirebaseFirestore.instance
+            .collection('events')
+            .where('date', isGreaterThanOrEqualTo: '2026-10-01')
+            .orderBy('date')
+            .limit(50)
+            .snapshots()
+      : FirebaseFirestore.instance
+            .collection('guide_institutions')
+            .where('category', isEqualTo: widget.category.id)
+            .limit(50)
+            .snapshots();
 
   @override
   void dispose() {
@@ -1558,7 +1541,6 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
     final dateStr = (d['date'] ?? '').toString();
     final cat = (d['category'] ?? '').toString().toLowerCase();
 
-    // 1. Zaman Filtresi
     if (todayStr != null && dateStr.isNotEmpty) {
       if (_selectedTimeFilter == 'upcoming') {
         if (dateStr.compareTo(todayStr) < 0) return false;
@@ -1572,7 +1554,6 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
       }
     }
 
-    // 2. Kategori Filtresi
     if (_selectedEventCategory != 'all') {
       if (_selectedEventCategory == 'tiyatro') {
         if (!cat.contains('tiyatro')) return false;
@@ -1754,8 +1735,6 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                   final m = d.data();
                   final subtitle = (m['subtitle'] ?? m['description'] ?? '')
                       .toString();
-                  // 'location/address' yoksa mekanı alt başlıktan al:
-                  // "Osman Hamdi Bey Kültür Merkezi • 19:30" → "Osman Hamdi Bey Kültür Merkezi"
                   final venue = subtitle.split('•').first.trim();
                   final loc = (m['location'] ?? m['address'] ?? '')
                       .toString()
@@ -1836,7 +1815,6 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                   ),
                 ),
                 if (category.id == 'etkinlikler') ...[
-                  // 1. Zaman Filtresi (Zaman Chipleri)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(
@@ -1889,7 +1867,6 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
                       ],
                     ),
                   ),
-                  // 2. Kategori Filtresi (Kategori Chipleri)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.fromLTRB(16, 3, 16, 8),
@@ -2018,8 +1995,6 @@ class _InstitutionListScreenState extends State<_InstitutionListScreen> {
   }
 }
 
-/// Google Maps yol tarifi linki. Koordinat (lat/lng) varsa onu kullanır,
-/// yoksa "ad adres Gebze" metniyle arar.
 String _directionsUrl(Map<String, dynamic> data, String name, String address) {
   final lat = double.tryParse('${data['lat'] ?? data['latitude'] ?? ''}');
   final lng = double.tryParse('${data['lng'] ?? data['longitude'] ?? ''}');
@@ -2027,7 +2002,6 @@ String _directionsUrl(Map<String, dynamic> data, String name, String address) {
   if (lat != null && lng != null) {
     dest = '$lat,$lng';
   } else {
-    // Etkinliklerde etkinlik adı yerine mekan adıyla ara (mapQuery).
     final mapQuery = (data['mapQuery'] ?? '').toString().trim();
     final text = [
       mapQuery.isNotEmpty ? mapQuery : name,
@@ -2186,9 +2160,6 @@ class _InstitutionCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                // Yol tarifi: koordinat varsa onu, yoksa ad + adresi hedef alır.
-                // Telefonda Google Maps / varsayılan harita uygulaması açılır.
-                // Kayıtta 'showDirections': false varsa düğme gizlenir.
                 if (showDirections) ...[
                   const SizedBox(height: 12),
                   SizedBox(
@@ -2290,7 +2261,6 @@ class _InstitutionCard extends StatelessWidget {
   }
 }
 
-/// Asset (`gorsel/...`) veya ağ (`https://...`) görseli; hata/yüklenirken placeholder.
 class _CardImage extends StatelessWidget {
   final String image;
   final double height;
@@ -2331,8 +2301,6 @@ class _CardImage extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Sekme 2: Gebze'yi Keşfet ─────────────────────────
-
 class _DiscoverTab extends ConsumerStatefulWidget {
   final String lang;
   final int initialSection;
@@ -2347,7 +2315,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   final _ctrl = TextEditingController();
   String _query = '';
   String _filter = '';
-  int _section = 0; // 0 = Tarihi Yerler, 1 = Lezzetler, 2 = Doğa & Piknik
+  int _section = 0;
 
   @override
   void didChangeDependencies() {
@@ -2369,7 +2337,7 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.lang != widget.lang) {
       _section = widget.initialSection.clamp(0, 2);
-    _filter = AppStrings.get('filter_all', widget.lang);
+      _filter = AppStrings.get('filter_all', widget.lang);
     }
   }
 
@@ -2529,8 +2497,6 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
                 _ensurePlacesSeeded();
               }
 
-              // Aynı isimli mekan birden fazla kayıtsa tek kart göster;
-              // favoriye eklenmiş olan kopya varsa onu tercih et.
               final byName = <String, HistoricPlace>{};
               for (final p in basePlaces) {
                 final k = p.name.trim().toLowerCase();
@@ -2572,7 +2538,6 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
                       if (!requireLogin(context, ref)) return;
                       await ref.read(favoritesServiceProvider).toggle(p);
                     },
-                    // Doğrudan internete gitmek yerine önce uygulama içi önizleme açılır.
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) =>
@@ -2590,7 +2555,6 @@ class _DiscoverTabState extends ConsumerState<_DiscoverTab>
   }
 }
 
-/// "Tarihi Yerler | Lezzetler | Doğa & Piknik" geçiş butonu (Gebze'yi Keşfet sekmesinin üstünde)
 class _DiscoverToggle extends StatelessWidget {
   final String lang;
   final int selected;
@@ -2877,8 +2841,6 @@ class _PlaceCard extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Mekan Önizleme Sayfası ─────────────────────────
-
 class _PlaceDetailScreen extends StatelessWidget {
   final HistoricPlace place;
   final String lang;
@@ -3106,4 +3068,3 @@ class _PlaceDetailScreen extends StatelessWidget {
     );
   }
 }
-

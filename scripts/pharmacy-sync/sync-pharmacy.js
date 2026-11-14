@@ -49,14 +49,12 @@ async function fetchPharmacies() {
     throw new Error("API'den beklenen formatta veri alınamadı.");
   }
 
-  // EczaneAPI 'Bugün' için olan objeyi bul.
   const todayData = data.data.find(d => d.day === "Bugün" || d.day === "Today");
   if (!todayData || !todayData.pharmacies) {
     return [];
   }
 
-  return todayData.pharmacies; // Array of pharmacies
-
+  return todayData.pharmacies;
 }
 
 async function main() {
@@ -70,15 +68,13 @@ async function main() {
 
   const batch = db.batch();
 
-  // Önce eski nöbetçi eczaneleri temizleyelim (sadece bugünün verisi kalsın)
   const oldDocs = await db.collection(COLLECTION).get();
   oldDocs.forEach((doc) => {
     batch.delete(doc.ref);
   });
 
-  // Yeni eczaneleri ekleyelim
   pharmacies.forEach((pharmacy) => {
-    const ref = db.collection(COLLECTION).doc(); // Auto ID
+    const ref = db.collection(COLLECTION).doc();
     batch.set(ref, {
       name: pharmacy.name || "",
       address: pharmacy.address || "",

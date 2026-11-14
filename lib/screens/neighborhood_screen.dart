@@ -11,13 +11,6 @@ import '../features/profile/services/profile_service.dart';
 import 'neighborhood_seeder.dart';
 import 'report_common.dart' show kReportNeighborhoods, foldTr;
 
-/// Gebze Belediyesi - Mahallemde Ekranı
-/// Dosya yolu: lib/screens/neighborhood_screen.dart
-///
-/// Veri: Firestore `neighborhood_works` koleksiyonu
-/// - Bitiş tarihi geçen çalışmalar listeden otomatik düşer.
-/// - Profildeki mahalle otomatik seçili gelir; üstteki seçiciyle değiştirilebilir.
-
 class _C {
   static const navy = Color(0xFF0A2A66);
   static const navyDeep = Color(0xFF061B45);
@@ -41,10 +34,7 @@ const List<String> _kBodyFontFallback = [
   'sans-serif',
 ];
 
-/// "Tüm Gebze" seçimi için işaretçi değer.
 const String _kAllHoods = '__all__';
-
-// ───────────────────────── Kategoriler ─────────────────────────
 
 class _Cat {
   final String key;
@@ -62,8 +52,6 @@ const _cats = <_Cat>[
 
 _Cat _catOf(String key) =>
     _cats.firstWhere((c) => c.key == key, orElse: () => _cats.first);
-
-// ───────────────────────── Metinler (tr / en / ar) ─────────────────────────
 
 String _t(String lang, String key) =>
     _strings[lang]?[key] ?? _strings['tr']![key] ?? key;
@@ -134,8 +122,6 @@ const Map<String, Map<String, String>> _strings = {
   },
 };
 
-// ───────────────────────── Model ─────────────────────────
-
 class _Work {
   final String id;
   final String title;
@@ -161,7 +147,6 @@ class _Work {
 
   static DateTime? _dt(dynamic v) => v is Timestamp ? v.toDate() : null;
 
-  /// Tarihi okunamayan kayıt null döner (listede gösterilmez).
   static _Work? fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {
     final m = d.data();
     final s = _dt(m['startDate']);
@@ -184,8 +169,6 @@ class _Work {
   bool isOngoing(DateTime now) => !start.isAfter(now) && !end.isBefore(now);
 }
 
-// ───────────────────────── Ekran ─────────────────────────
-
 class NeighborhoodScreen extends ConsumerStatefulWidget {
   const NeighborhoodScreen({super.key});
 
@@ -198,26 +181,19 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
   Timer? _ticker;
   DateTime _now = DateTime.now();
 
-  /// null  -> kullanıcı elle seçmedi, profil mahallesi kullanılır
-  /// _kAllHoods -> "Tüm Gebze"
-  /// diğer -> elle seçilen mahalle
   String? _manualHood;
 
-  /// 0 = Tümü, 1.. = _cats[i-1]
   int _catFilter = 0;
 
   @override
   void initState() {
     super.initState();
-    // Sunucu tarafı filtre: bitiş tarihi geçmiş kayıtlar hiç gelmez.
-    // Tek alan üzerinde olduğu için ek index gerekmez.
     _stream = FirebaseFirestore.instance
         .collection('neighborhood_works')
         .where('endDate', isGreaterThanOrEqualTo: Timestamp.now())
         .orderBy('endDate')
         .snapshots();
 
-    // Ekran açıkken süresi dolanlar da düşsün diye her dakika yeniden süz.
     _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
@@ -229,7 +205,6 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
     super.dispose();
   }
 
-  /// Profildeki mahalle adını listedeki yazımla eşleştirir.
   String? _profileHood() {
     final raw = ref.watch(profileProvider).value?.neighborhood;
     if (raw == null || raw.trim().isEmpty) return null;
@@ -241,7 +216,6 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
     return null;
   }
 
-  /// Aktif mahalle: elle seçim varsa o, yoksa profil, yoksa tümü.
   String get _activeHood {
     if (_manualHood != null) return _manualHood!;
     return _profileHood() ?? _kAllHoods;
@@ -489,7 +463,6 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
         final all = (snap.data?.docs ?? [])
             .map(_Work.fromDoc)
             .whereType<_Work>()
-            // İstemci tarafı: süresi dolanları anında düşür.
             .where((w) => !w.isExpired(_now))
             .where(
               (w) =>
@@ -501,7 +474,6 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
             )
             .toList();
 
-        // Devam edenler önce, sonra başlangıç tarihine göre.
         all.sort((a, b) {
           final ao = a.isOngoing(_now) ? 0 : 1;
           final bo = b.isOngoing(_now) ? 0 : 1;
@@ -521,8 +493,6 @@ class _NeighborhoodScreenState extends ConsumerState<NeighborhoodScreen> {
     );
   }
 }
-
-// ───────────────────────── Üst Başlık ─────────────────────────
 
 class _Header extends StatelessWidget {
   final String lang;
@@ -570,7 +540,6 @@ class _Header extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Sadece debug modda görünür: demo verileri Firebase'e yükler.
                   if (onSeed != null)
                     IconButton(
                       tooltip: 'Demo verileri yükle',
@@ -610,8 +579,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Mahalle Seçici ─────────────────────────
 
 class _HoodSelector extends StatelessWidget {
   final String lang;
@@ -700,8 +667,6 @@ class _HoodSelector extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Çalışma Kartı ─────────────────────────
-
 class _WorkCard extends StatelessWidget {
   final _Work work;
   final String lang;
@@ -710,7 +675,6 @@ class _WorkCard extends StatelessWidget {
 
   String _fmt(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');
-    // Cihaz saat diliminden bağımsız olarak Türkiye saati (UTC+3) göster.
     final t = d.toUtc().add(const Duration(hours: 3));
     return '${two(t.day)}.${two(t.month)}.${t.year} ${two(t.hour)}:${two(t.minute)}';
   }
@@ -891,8 +855,6 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
-
-// ───────────────────────── Boş Durum ─────────────────────────
 
 class _EmptyState extends StatelessWidget {
   final String lang;

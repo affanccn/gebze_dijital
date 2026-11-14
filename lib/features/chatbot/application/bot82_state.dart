@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Gebze Asistanı temel animasyon durumları
 enum Bot82Mode { idle, thinking, tapped }
 
 class Bot82State {

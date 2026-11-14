@@ -38,16 +38,25 @@ class NewsItem {
 
   static DateTime? _parseTrDate(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
-    final match = RegExp(
-      r'(\d{1,2})\s+([A-Za-zÇĞİÖŞÜçğıöşü]+)\s+(\d{4})',
-    ).firstMatch(raw);
+    final match = RegExp(r'(\d{1,2})\s+([A-Za-zÇĞİÖŞÜçğıöşü]+)\s+(\d{4})')
+        .firstMatch(raw);
     if (match == null) return null;
     final day = int.tryParse(match.group(1)!) ?? 1;
     final monthStr = match.group(2)!.toLowerCase();
     final year = int.tryParse(match.group(3)!) ?? 2026;
     const mList = [
-      'ocak', 'şubat', 'mart', 'nisan', 'mayıs', 'haziran',
-      'temmuz', 'ağustos', 'eylül', 'ekim', 'kasım', 'aralık'
+      'ocak',
+      'şubat',
+      'mart',
+      'nisan',
+      'mayıs',
+      'haziran',
+      'temmuz',
+      'ağustos',
+      'eylül',
+      'ekim',
+      'kasım',
+      'aralık',
     ];
     final mIdx = mList.indexOf(monthStr);
     final month = mIdx != -1 ? mIdx + 1 : 10;
@@ -63,7 +72,8 @@ class NewsItem {
         dt = _parseTrDate(pText);
       }
     }
-    dt ??= (d['syncedAt'] as Timestamp?)?.toDate() ??
+    dt ??=
+        (d['syncedAt'] as Timestamp?)?.toDate() ??
         (d['createdAt'] as Timestamp?)?.toDate();
     dt ??= DateTime(2026, 10, 26);
 

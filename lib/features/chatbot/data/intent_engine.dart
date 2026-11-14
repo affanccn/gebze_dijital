@@ -157,7 +157,6 @@ class IntentEngine {
 
       String intentDebug = "[$intentId]\n";
 
-      // 1. Phrase Matching
       final phrases = (intent['phrases'] as List<dynamic>? ?? []);
       for (var p in phrases) {
         final phraseStr = _normalize(p.toString());
@@ -170,7 +169,6 @@ class IntentEngine {
         }
       }
 
-      // 2. Keyword Matching
       final keywords = (intent['keywords'] as List<dynamic>? ?? []);
       for (var k in keywords) {
         final keyStr = _normalize(k.toString());

@@ -32,7 +32,6 @@ async function fetchWeather() {
     throw new Error("WEATHER_API_KEY GitHub Secret eksik.");
   }
 
-  // weatherapi.com endpoint for Gebze, 5 days forecast
   const url = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=Gebze&days=5&aqi=no&alerts=no&lang=tr`;
 
   const response = await fetch(url);
@@ -54,10 +53,8 @@ async function main() {
 
   const batch = db.batch();
   
-  // Hava durumu bilgisini tek bir dökümanda tutmak mantıklıdır (örneğin "gebze" id'li döküman)
   const ref = db.collection(COLLECTION).doc("gebze"); 
   
-  // Open-Meteo ile eksik günleri (5 güne) tamamlama desteği
   let finalForecast = weatherData.forecast ? weatherData.forecast.forecastday.map(day => ({
     date: day.date,
     maxtemp_c: day.day.maxtemp_c,
@@ -71,7 +68,6 @@ async function main() {
     })) : []
   })) : [];
 
-  // WeatherAPI free plan 3 gün döndürdüyse, Open-Meteo ücretsiz API'sinden 5 güne tamamla
   if (finalForecast.length < 5) {
     try {
       const omUrl = 'https://api.open-meteo.com/v1/forecast?latitude=40.8037&longitude=29.4398&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=Europe%2FIstanbul';
