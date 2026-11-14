@@ -7,6 +7,7 @@ import 'auth_guard.dart';
 import 'guide_screen.dart';
 import 'services_screen.dart';
 import 'profile_screen.dart';
+import 'app_bottom_nav.dart';
 
 /// Gebze Belediyesi - Talep / Şikayet / Öneri (Bildir)
 /// Dosya yolu: lib/screens/report_screen.dart
@@ -34,7 +35,13 @@ class ReportScreen extends ConsumerWidget {
   /// kullanılmıyor, ULAKBEL herkese açık.
   final bool isGuest;
   final ValueChanged<int>? onNavTap;
-  const ReportScreen({super.key, this.isGuest = false, this.onNavTap});
+  final bool showBottomNav;
+  const ReportScreen({
+    super.key,
+    this.isGuest = false,
+    this.onNavTap,
+    this.showBottomNav = false,
+  });
 
   Future<void> _openUlakbel(BuildContext context, String lang) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -295,119 +302,33 @@ class ReportScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _BottomNav(
-        index: 2,
-        lang: lang,
-        onTap: (i) {
-          if (onNavTap != null) {
-            onNavTap!(i);
-          } else if (i != 2) {
-            if (i == 4 && !requireLogin(context, ref)) return;
-            Navigator.of(context).pop();
-            if (i == 1) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const GuideScreen()),
-              );
-            } else if (i == 3) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ServicesScreen()),
-              );
-            } else if (i == 4) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            }
-          }
-        },
-      ),
+      bottomNavigationBar: showBottomNav
+          ? AppBottomNav(
+              index: 2,
+              lang: lang,
+              onTap: (i) {
+                if (onNavTap != null) {
+                  onNavTap!(i);
+                } else if (i != 2) {
+                  if (i == 4 && !requireLogin(context, ref)) return;
+                  Navigator.of(context).pop();
+                  if (i == 1) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const GuideScreen()),
+                    );
+                  } else if (i == 3) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ServicesScreen()),
+                    );
+                  } else if (i == 4) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    );
+                  }
+                }
+              },
+            )
+          : null,
     );
   }
-}
-
-// ───────────────────────── Alt Menü ─────────────────────────
-
-class _BottomNav extends StatelessWidget {
-  final int index;
-  final String lang;
-  final ValueChanged<int> onTap;
-  const _BottomNav({
-    required this.index,
-    required this.lang,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <_NavItem>[
-      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
-      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
-      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
-      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(
-        AppStrings.get('nav_profile', lang),
-        Icons.person_outline_rounded,
-      ),
-    ];
-
-    return Material(
-      color: _C.navyDeep,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-      elevation: 16,
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 6),
-          child: Row(
-            children: [
-              for (int i = 0; i < items.length; i++)
-                Expanded(
-                  child: InkWell(
-                    onTap: () => onTap(i),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          items[i].icon,
-                          size: 28,
-                          color: i == index ? _C.orange : Colors.white70,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          items[i].label,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: i == index
-                                ? FontWeight.w800
-                                : FontWeight.w500,
-                            color: i == index ? _C.orange : Colors.white70,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 64,
-                          height: 3,
-                          decoration: BoxDecoration(
-                            color: i == index ? _C.orange : Colors.transparent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem {
-  final String label;
-  final IconData icon;
-  const _NavItem(this.label, this.icon);
 }

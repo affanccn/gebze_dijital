@@ -17,6 +17,7 @@ import '../core/theme/theme_provider.dart';
 import 'services_screen.dart';
 import 'guide_screen.dart';
 import 'report_screen.dart';
+import 'app_bottom_nav.dart';
 
 class _C {
   static const navy = Color(0xFF0A2A66);
@@ -82,11 +83,13 @@ class ProfileScreen extends ConsumerStatefulWidget {
   /// true ise ekran açılır açılmaz Aktiviteler > Talepler sheet'i açılır
   /// (Çek & Gönder sonrası "Taleplerim" için).
   final bool openRequestsOnStart;
+  final bool showBottomNav;
 
   const ProfileScreen({
     super.key,
     this.onNavTap,
     this.openRequestsOnStart = false,
+    this.showBottomNav = false,
   });
 
   @override
@@ -132,29 +135,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const Center(child: CircularProgressIndicator(color: _C.navy)),
             error: (err, _) => _buildErrorState(context, err.toString()),
           ),
-          bottomNavigationBar: _BottomNav(
-            index: 4,
-            onTap: (i) {
-              if (widget.onNavTap != null) {
-                widget.onNavTap!(i);
-              } else if (i != 4) {
-                Navigator.of(context).pop();
-                if (i == 1) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const GuideScreen()),
-                  );
-                } else if (i == 2) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ReportScreen()),
-                  );
-                } else if (i == 3) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ServicesScreen()),
-                  );
-                }
-              }
-            },
-          ),
+          bottomNavigationBar: widget.showBottomNav
+              ? AppBottomNav(
+                  index: 4,
+                  lang: ref.watch(appLanguageProvider),
+                  onTap: (i) {
+                    if (widget.onNavTap != null) {
+                      widget.onNavTap!(i);
+                    } else if (i != 4) {
+                      Navigator.of(context).pop();
+                      if (i == 1) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const GuideScreen()),
+                        );
+                      } else if (i == 2) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ReportScreen()),
+                        );
+                      } else if (i == 3) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ServicesScreen()),
+                        );
+                      }
+                    }
+                  },
+                )
+              : null,
         ),
       ),
     );
@@ -1942,89 +1948,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-// ───────────────────────── Alt Gezinme Barı ─────────────────────────
 
-class _NavItem {
-  final String label;
-  final IconData icon;
-  const _NavItem(this.label, this.icon);
-}
-
-class _BottomNav extends ConsumerWidget {
-  final int index;
-  final ValueChanged<int> onTap;
-  const _BottomNav({required this.index, required this.onTap});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final lang = ref.watch(appLanguageProvider);
-    final items = <_NavItem>[
-      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
-      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
-      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
-      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(
-        AppStrings.get('nav_profile', lang),
-        Icons.person_outline_rounded,
-      ),
-    ];
-
-    return Material(
-      color: _C.navyDeep,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-      elevation: 16,
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 6),
-          child: Row(
-            children: [
-              for (int i = 0; i < items.length; i++)
-                Expanded(
-                  child: InkWell(
-                    onTap: () => onTap(i),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          items[i].icon,
-                          size: 28,
-                          color: i == index ? _C.orange : Colors.white70,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          items[i].label,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: i == index
-                                ? FontWeight.w800
-                                : FontWeight.w500,
-                            color: i == index ? _C.orange : Colors.white70,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 64,
-                          height: 3,
-                          decoration: BoxDecoration(
-                            color: i == index ? _C.orange : Colors.transparent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ───────────────────────── Favoriler (Kaydedilenler sekmesi) ─────────────────────────
 

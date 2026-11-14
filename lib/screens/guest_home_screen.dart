@@ -1,5 +1,4 @@
 import 'auth_guard.dart';
-import 'auth_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +17,7 @@ import 'report_screen.dart';
 import 'services_screen.dart';
 import 'neighborhood_screen.dart';
 import 'notifications_screen.dart';
+import 'app_bottom_nav.dart';
 import '../core/theme/theme_provider.dart';
 import '../core/services/events_service.dart';
 
@@ -70,12 +70,21 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
   static const String _heroAsset = 'gorsel/gebze_gorsel.jpg';
 
   int _navIndex = 0;
+  int _guideInitialTab = 0;
+  int _guideKey = 0;
+  final ScrollController _homeScrollCtrl = ScrollController();
   double? _heroAspect; // görselin genişlik / yükseklik oranı
 
   @override
   void initState() {
     super.initState();
     _resolveHeroAspect();
+  }
+
+  @override
+  void dispose() {
+    _homeScrollCtrl.dispose();
+    super.dispose();
   }
 
   void _resolveHeroAspect() {
@@ -165,65 +174,27 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
 
   /// Rehberi açar. initialTab: 0 = Kurumsal Hizmetler, 1 = Gebze'yi Keşfet
   void _openGuide({int initialTab = 0}) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => GuideScreen(
-          initialTab: initialTab,
-          onNavTap: (j) {
-            if (j == 4 && !requireLogin(context, ref)) return;
-            Navigator.of(context).pop();
-            if (j != 0 && j != 1) _handleNav(j);
-          },
-        ),
-      ),
-    );
+    setState(() {
+      _guideInitialTab = initialTab;
+      _guideKey++;
+      _navIndex = 1;
+    });
   }
 
-  /// Alt menü yönlendirmesi
+  /// Alt menü yönlendirmesi - kalıcı alt bar, sayfa geçişinde animasyona uğramaz
   void _handleNav(int i) {
     if (i == 4 && !requireLogin(context, ref)) return;
-    if (i == 1) {
-      _openGuide();
-    } else if (i == 2) {
-      final isLoggedIn = ref.read(isLoggedInProvider);
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ReportScreen(
-            isGuest: !isLoggedIn,
-            onNavTap: (j) {
-              if (j == 4 && !requireLogin(context, ref)) return;
-              Navigator.of(context).pop();
-              if (j != 0 && j != 2) _handleNav(j);
-            },
-          ),
-        ),
-      );
-    } else if (i == 3) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ServicesScreen(
-            onNavTap: (j) {
-              if (j == 4 && !requireLogin(context, ref)) return;
-              Navigator.of(context).pop();
-              if (j != 0 && j != 3) _handleNav(j);
-            },
-          ),
-        ),
-      );
-    } else if (i == 4) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ProfileScreen(
-            onNavTap: (j) {
-              Navigator.of(context).pop();
-              if (j != 0 && j != 4) _handleNav(j);
-            },
-          ),
-        ),
-      );
-    } else {
-      setState(() => _navIndex = i);
+    if (_navIndex == i) {
+      if (i == 0 && _homeScrollCtrl.hasClients) {
+        _homeScrollCtrl.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+      return;
     }
+    setState(() => _navIndex = i);
   }
 
   @override
@@ -241,11 +212,50 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
           displayColor: isDark ? Colors.white : const Color(0xFF0A1F44),
         ),
       ),
-      child: _buildScreen(context, lang),
+      child: PopScope(
+        canPop: _navIndex == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && _navIndex != 0) {
+            setState(() => _navIndex = 0);
+          }
+        },
+        child: Scaffold(
+          backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
+          body: IndexedStack(
+            index: _navIndex,
+            children: [
+              _buildHomeScreen(context, lang),
+              GuideScreen(
+                key: ValueKey('guide_${_guideInitialTab}_$_guideKey'),
+                initialTab: _guideInitialTab,
+                showBottomNav: false,
+                onNavTap: _handleNav,
+              ),
+              ReportScreen(
+                showBottomNav: false,
+                onNavTap: _handleNav,
+              ),
+              ServicesScreen(
+                showBottomNav: false,
+                onNavTap: _handleNav,
+              ),
+              ProfileScreen(
+                showBottomNav: false,
+                onNavTap: _handleNav,
+              ),
+            ],
+          ),
+          bottomNavigationBar: AppBottomNav(
+            index: _navIndex,
+            lang: lang,
+            onTap: _handleNav,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildScreen(BuildContext context, String lang) {
+  Widget _buildHomeScreen(BuildContext context, String lang) {
     final size = MediaQuery.of(context).size;
     final heroH = _heroAspect != null
         ? (size.width / _heroAspect!).clamp(280.0, 480.0)
@@ -261,72 +271,65 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
       ),
-      child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0F172A) : _C.bg,
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Stack(
-            children: [
-              // Hero arka planı
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: heroH,
-                child: _HeroBackground(asset: _heroAsset),
-              ),
+      child: SingleChildScrollView(
+        controller: _homeScrollCtrl,
+        physics: const BouncingScrollPhysics(),
+        child: Stack(
+          children: [
+            // Hero arka planı
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: heroH,
+              child: _HeroBackground(asset: _heroAsset),
+            ),
 
-              // Hero içeriği + beyaz içerik paneli
-              Column(
-                children: [
-                  SizedBox(
-                    height: heroH - overlap,
-                    child: _HeroContent(lang: lang),
+            // Hero içeriği + beyaz içerik paneli
+            Column(
+              children: [
+                SizedBox(
+                  height: heroH - overlap,
+                  child: _HeroContent(lang: lang),
+                ),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : _C.bg,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(overlap),
+                    ),
                   ),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : _C.bg,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(overlap),
+                  padding: const EdgeInsets.fromLTRB(16, 52, 16, 110),
+                  child: Column(
+                    children: [
+                      _QuickActionsCard(items: quickActions),
+                      const SizedBox(height: 16),
+                      _EventsSection(lang: lang),
+                      const SizedBox(height: 16),
+                      _SectionCard(
+                        title: AppStrings.get('historic_places_title', lang),
+                        seeAllText: AppStrings.get('see_all', lang),
+                        icon: Icons.account_balance_rounded,
+                        iconColor: _C.navy,
+                        rows: historicPlaces,
+                        onSeeAll: () => _openGuide(initialTab: 1),
                       ),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(16, 52, 16, 110),
-                    child: Column(
-                      children: [
-                        _QuickActionsCard(items: quickActions),
-                        const SizedBox(height: 16),
-                        _EventsSection(lang: lang),
-                        const SizedBox(height: 16),
-                        _SectionCard(
-                          title: AppStrings.get('historic_places_title', lang),
-                          seeAllText: AppStrings.get('see_all', lang),
-                          icon: Icons.account_balance_rounded,
-                          iconColor: _C.navy,
-                          rows: historicPlaces,
-                          onSeeAll: () => _openGuide(initialTab: 1),
-                        ),
-                        const SizedBox(height: 16),
-                        _NewsSection(lang: lang),
-                      ],
-                    ),
+                      const SizedBox(height: 16),
+                      _NewsSection(lang: lang),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
 
-              // Hava durumu kartı (hero ile panel arasında)
-              Positioned(
-                left: 16,
-                top: heroH - overlap - 44,
-                child: _WeatherPill(width: size.width * 0.66, lang: lang),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: _BottomNav(
-          index: _navIndex,
-          lang: lang,
-          onTap: _handleNav,
+            // Hava durumu kartı (hero ile panel arasında)
+            Positioned(
+              left: 16,
+              top: heroH - overlap - 44,
+              child: _WeatherPill(width: size.width * 0.66, lang: lang),
+            ),
+          ],
         ),
       ),
     );
@@ -1089,93 +1092,7 @@ class _SectionRow extends StatelessWidget {
   }
 }
 
-// ───────────────────────── Alt Menü ─────────────────────────
 
-class _BottomNav extends StatelessWidget {
-  final int index;
-  final String lang;
-  final ValueChanged<int> onTap;
-  const _BottomNav({
-    required this.index,
-    required this.lang,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <_NavItem>[
-      _NavItem(AppStrings.get('nav_home', lang), Icons.home_rounded),
-      _NavItem(AppStrings.get('nav_guide', lang), Icons.explore_outlined),
-      _NavItem(AppStrings.get('nav_report', lang), Icons.photo_camera_outlined),
-      _NavItem(AppStrings.get('nav_services', lang), Icons.grid_view_rounded),
-      _NavItem(
-        AppStrings.get('nav_profile', lang),
-        Icons.person_outline_rounded,
-      ),
-    ];
-
-    return Material(
-      color: _C.navyDeep,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-      elevation: 16,
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 6),
-          child: Row(
-            children: [
-              for (int i = 0; i < items.length; i++)
-                Expanded(
-                  child: InkWell(
-                    onTap: () => onTap(i),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          items[i].icon,
-                          size: 28,
-                          color: i == index ? _C.orange : Colors.white70,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          items[i].label,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: i == index
-                                ? FontWeight.w800
-                                : FontWeight.w500,
-                            color: i == index ? _C.orange : Colors.white70,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 64,
-                          height: 3,
-                          decoration: BoxDecoration(
-                            color: i == index ? _C.orange : Colors.transparent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem {
-  final String label;
-  final IconData icon;
-  const _NavItem(this.label, this.icon);
-}
 
 // ───────────────────────── Etkinlikler (Firestore) ─────────────────────────
 
