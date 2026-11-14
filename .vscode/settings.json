@@ -1,5 +1,13 @@
 {
   "java.import.gradle.enabled": false,
+  "java.configuration.updateBuildConfiguration": "disabled",
+  "java.import.exclusions": [
+    "**/android/**",
+    "**/build/**",
+    "**/gebze_dijital-main/**"
+  ],
+  "gradle.autoDetect": "off",
+  "gradle.nestedProjects": false,
   "java.project.resourceFilters": [
     "node_modules",
     ".git",
@@ -9,4 +17,3 @@
     "**/gebze_dijital-main": true
   }
 }
-
